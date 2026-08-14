@@ -62,14 +62,14 @@ export const getMyMemberships = createServerFn({ method: "GET" })
         role,
         status,
         expires_at,
-        entity:entities(id, name, type, status)
+        entity:entities!inner(id, name, type, status)
       `,
       )
       .eq("user_id", context.userId)
       .eq("status", "active")
       .eq("entities.status", "active")
-      .or(`expires_at.is.null,expires_at.gt.${now}`)
-      .is("deleted_at", null);
+      .is("entities.deleted_at", null)
+      .or(`expires_at.is.null,expires_at.gt.${now}`);
 
     if (error) throw error;
     return membershipRowSchema.array().parse(data ?? []);
