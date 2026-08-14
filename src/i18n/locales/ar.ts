@@ -110,6 +110,6 @@ export const ar = {
   table: {
     empty: "لا توجد سجلات للعرض",
   },
-} as const;
+};
 
 export type Translations = typeof ar;
