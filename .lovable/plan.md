@@ -1,71 +1,70 @@
-# المرحلة 4 — إنشاء المشروع وقوالب الأنواع (خطة)
+# المرحلة 5 — محرك الصلاحيات (خطة)
 
-## 1. النطاق
-- تعريف مخطط القوالب والمشاريع والمراحل (بدون تنفيذ migration في هذه المرحلة).
-- Seed منطقي لقوالب المراحل لكل نوع مشروع.
-- صفحة "إنشاء مشروع جديد" (نموذج واجهة فقط، بلا منطق مالي أو أطراف).
+## 1. الوضع الحالي والفجوة (مُتحقَّق منه من قاعدة البيانات)
 
-خارج النطاق: التسعير، الأطراف والعقود، المراسلات، المستندات، تحرير المراحل المخصصة.
+الموجود فعلاً:
+- `entity_memberships.role` من نوع `app_role` (owner, admin, manager, member, viewer) + `status` + `expires_at`.
+- دوال في مخطط `private` غير مكشوفة عبر REST: `is_entity_member(uid, entity_id)`، `has_role(uid, entity_id, role)`، `can_access_project(uid, project_id)`.
+- `projects.owner_id` + `entity_id`، وسياسات RLS تعتمد على العضوية أو أدوار owner/admin/manager.
+- `entity_memberships` حالياً: قراءة فقط (لا سياسات INSERT/UPDATE/DELETE) — أي لا مسار لإدارة الفريق إطلاقاً.
 
-## 2. الجداول المقترحة
+الفجوات:
+- الصلاحية اليوم = دور خام (role) وليس فعلاً محدداً؛ لا تمييز بين عرض/تعديل/اعتماد/تصدير/مشاركة.
+- لا وحدات (modules) في نموذج الصلاحيات: كل الجداول تُقاس بنفس المسطرة.
+- لا منح على مستوى مشروع واحد (project-level grant) لعضو أو لكيان خارجي.
+- لا حماية صريحة ضد تعديل العضو لدوره الخاص (غياب سياسات الكتابة يمنعها مؤقتاً، لكن أول سياسة كتابة تفتح الثغرة).
+- لا سجل تدقيق لأي تغيير صلاحية.
 
-### `project_templates` (بيانات مرجعية عامة)
-- `code text unique` (villa, residential_building, compound, commercial, land_development, offplan_sales)
-- `name_ar`, `name_en`, `description_ar`, `description_en`
-- `is_active boolean`, `requires_license boolean` (بيع على الخارطة = true)
-- `feature_flag text null`, `version int`, `created_at`, `updated_at`, `deleted_at`
-- RLS: قراءة للمستخدمين المسجّلين على الصفوف النشطة فقط؛ لا كتابة من العميل (تُدار عبر migration/خادم).
+## 2. التصميم: طبقة فوق ما هو مبني، بلا كسر
 
-### `stage_templates` (مراحل القالب)
-- `project_template_id` FK، `order_index int`، `code text`
-- `name_ar`, `name_en`, `description_ar`
-- `kind text` — `core` | `optional` (مراحل ركيز الأساسية مقابل مكتبة اختيارية)
-- `is_required boolean` (المراحل الأساسية اللازمة: لا تُحذف عند الإنشاء)
-- `default_duration_days int null`, `created_at`, `updated_at`, `deleted_at`
-- تفرد: `(project_template_id, code) where deleted_at is null`
-- RLS: قراءة فقط للمسجّلين.
+### أ) قاموس ثابت للأفعال والوحدات (enums)
+- `app_action`: `view | create | update | soft_delete | approve | execute | export | share | manage_members`
+- `app_module`: `projects | stages | contracts | documents | finance | correspondence | reports | members`
 
-### `projects` (بيانات نطاق)
-- `owner_id uuid not null default auth.uid()` → `auth.users`
-- `entity_id uuid null` → `entities` (مشروع شخصي أو تابع لكيان)
-- `project_template_id` FK، `name`, `code`, `status` (`draft|active|on_hold|completed|cancelled`)
-- `city text`, `district text`, `land_area numeric null`, `start_date date null`, `expected_end_date date null`, `notes text null`
-- `created_by`, `created_at`, `updated_at`, `deleted_at`
-- **قيد المالك الواضح:** `CHECK (entity_id is not null OR owner_id is not null)` مع `owner_id` إلزامي دائمًا؛ عند وجود `entity_id` يجب أن يكون المُنشئ عضوًا نشطًا في الكيان (يُتحقق داخل سياسة INSERT).
-- RLS (deny by default): مالك المشروع يرى/يعدّل مشروعه؛ أعضاء الكيان يرون مشاريع كيانهم عبر `private.is_entity_member`؛ التعديل/الحذف للمالك أو أدوار `owner/admin/manager` عبر `private.has_role`. الحذف = soft delete.
+### ب) `role_permissions` (مصفوفة الدور × الوحدة × الفعل) — بيانات مرجعية
+- `role app_role`, `module app_module`, `action app_action`, تفرد على الثلاثية.
+- Seed مبدئي: owner = كل شيء؛ admin = كل شيء عدا حذف الكيان و`approve` المالي؛ manager = view/create/update/soft_delete/execute/export على projects+stages+documents؛ member = view/create/update على projects+stages+documents؛ viewer = view + export فقط.
+- RLS: قراءة للمسجّلين، لا كتابة من العميل (تُدار عبر migration فقط).
 
-### `project_stages` (نسخة المراحل داخل المشروع)
-- `project_id` FK، `stage_template_id null` (null = مرحلة مخصّصة مستقبلًا)
-- `source text` — `core` | `library` | `custom` (حقل مستقبلي للمخصص؛ لا واجهة له الآن)
-- `order_index`, `name_ar`, `name_en`, `status` (`pending|in_progress|done|skipped`)
-- `is_required boolean`, `planned_start date null`, `planned_end date null`, `created_at`, `updated_at`, `deleted_at`
-- RLS: مشتقّة من صلاحية المشروع الأب عبر دالة `private.can_access_project(uid, project_id)`.
+### ج) `permission_grants` (استثناءات دقيقة فوق الدور) — append/override
+- `subject_user_id uuid null`, `subject_entity_id uuid null` (أحدهما فقط — CHECK)
+- `scope_type text` (`entity | project`)، `scope_entity_id`, `scope_project_id`
+- `module app_module`, `action app_action`, `effect text` (`allow | deny`)
+- `granted_by uuid`, `expires_at`, `revoked_at`, timestamps
+- فهارس على مفاتيح النطاق. `deny` يغلب `allow` دائماً.
 
-### `stage_dependencies`
-- `project_id`, `predecessor_stage_id`, `successor_stage_id`, `type` (`finish_to_start` مبدئيًا)
-- تفرد على الزوج، ومنع الاعتماد الذاتي بـ CHECK
-- RLS: نفس دالة صلاحية المشروع.
+### د) دالة القرار الواحدة `private.can(uid, module, action, entity_id, project_id)`
+منطق ثابت (deny by default):
+1. لا سياق (لا كيان ولا مشروع) → `false`.
+2. مشروع شخصي (`owner_id = uid`، بلا كيان) → مالك المشروع لديه كل الأفعال.
+3. صلاحية الكيان: العضوية نشطة وغير منتهية → `role_permissions` تسمح بالثنائية.
+4. `permission_grants`: `deny` مطابق → رفض فوري؛ `allow` مطابق (غير منتهٍ/ملغى) → سماح.
+5. سقف الكيان الخارجي: أي منح لمستخدم عبر `subject_entity_id` **مقيَّد** بما مُنح لذلك الكيان أصلاً على المشروع — تُطبَّق بدالة داخلية `private.entity_ceiling(entity_id, project_id, module, action)` قبل قبول أي `allow`.
 
-كل جدول: GRANT صريح لـ `authenticated` و`service_role`، تفعيل RLS، سياسات صريحة لكل عملية، فهارس على مفاتيح النطاق (`owner_id`, `entity_id`, `project_id`).
+كل الدوال `SECURITY DEFINER`, `STABLE`, `SET search_path = public`، ولا `GRANT EXECUTE` للعميل إلا لما تحتاجه سياسات RLS.
 
-## 3. أنواع المشاريع وقوالب المراحل (Seed)
-- **فيلا:** دراسة الجدوى والمتطلبات → التصميم المعماري → التصميم الإنشائي → التراخيص البلدية → التعاقد والتنفيذ → الأعمال الإنشائية → التشطيبات → التسليم والضمان.
-- **عمارة سكنية:** ما سبق + دراسة السوق/التأجير + أنظمة MEP + السلامة والدفاع المدني + الفرز/الصكوك.
-- **مجمع:** التخطيط العام والكتلي + البنية التحتية + التصاميم المكرّرة + إدارة المرافق المشتركة.
-- **مشروع تجاري:** دراسة الجدوى التجارية + تصميم واجهات ومساحات مؤجّرة + اشتراطات تشغيلية + تجهيز المستأجرين.
-- **تطوير أرض:** التحقق من الصك والاستخدام + المخطط الأولي + الاعتمادات البلدية + خدمات البنية التحتية + الإفراز.
-- **بيع على الخارطة:** خلف `requires_license` + Feature Flag معطّل — يُدرج القالب في القاعدة كغير نشط ولا يظهر في نموذج الإنشاء.
+### هـ) استخدام تدريجي لا كاسر
+- سياسات RLS الحالية تبقى كما هي في هذه المرحلة؛ تُعاد صياغتها بحيث تصبح: الشرط القديم **أو** `private.can(...)` — بحيث لا يفقد أحد وصولاً قائماً.
+- `can_access_project` يظل موجوداً ويُعاد تعريفه داخلياً فوق `private.can(... 'projects','view' ...)`.
 
-تمييز المراحل: `kind='core'` + `is_required=true` للمراحل النظامية اللازمة (تراخيص، تسليم)، `kind='optional'` لمراحل المكتبة، و`source='custom'` محجوز لمرحلة لاحقة.
+## 3. القواعد الحرجة الثلاث (تُبنى الآلية لدعمها)
 
-## 4. الواجهة
-- مسار جديد `src/routes/_authenticated/projects.new.tsx`: اختيار نوع المشروع (بطاقات) → بيانات أساسية (اسم، مدينة/حي، مساحة، تواريخ، ملاحظات) → اختيار النطاق (شخصي أو أحد كياناتي من `entity_memberships`) → معاينة المراحل الافتراضية مع تمييز الأساسي/الاختياري وإمكانية إلغاء الاختياري فقط.
-- نصوص عبر i18n (ar/en) ومكوّنات `src/components/rakeez/*` القائمة.
-- الحفظ عبر server function واحدة `createProject` (معاملة: مشروع + نسخ المراحل) في `src/lib/projects.functions.ts` مع `requireSupabaseAuth`.
-- القراءة الأولية للقوالب عبر loader/`useSuspenseQuery`، وتحديث head() للمسار.
+1. **لا تعديل ذاتي للدور:** سياسات UPDATE/DELETE على `entity_memberships` تشترط `user_id <> auth.uid()`، وتريجر `prevent_self_role_change` يرفض أي تغيير لـ`role/status/expires_at` عندما `NEW.user_id = auth.uid()`. مالك الكيان الأخير لا يمكن تخفيض دوره (تريجر يمنع ترك الكيان بلا owner).
+2. **لا إدارة فريق كيان آخر:** كل سياسة كتابة على `entity_memberships` تمر عبر `private.can(auth.uid(),'members','manage_members', NEW.entity_id, null)` — الدور يُقاس دائماً داخل نفس `entity_id` المستهدف.
+3. **لا تجاوز سقف الكيان الخارجي:** تريجر تحقق على `permission_grants` عند الإدراج: إذا كان الموضوع مستخدماً منتمياً لكيان خارجي، يُرفض المنح إن لم يكن ضمن `entity_ceiling`. كذلك يُمنع المانح من منح فعل لا يملكه هو (no privilege escalation by proxy).
 
-## 5. الترتيب التنفيذي (بعد الموافقة)
-1. Migration واحدة: الجداول + GRANT + RLS + دوال الصلاحية + Seed القوالب والمراحل.
-2. `projects.functions.ts` (قراءة القوالب، إنشاء مشروع).
-3. صفحة الإنشاء + مفاتيح i18n.
-4. اختبار فعلي: إنشاء مشروع شخصي والتحقق من نسخ المراحل، ثم حذف بيانات الاختبار.
+## 4. سجل التدقيق `permission_audit_log` (append-only)
+
+- الأعمدة: `id`, `actor_user_id`, `target_user_id`, `target_entity_id`, `target_project_id`, `object_type` (`membership | grant`), `object_id`, `action` (`insert | update | revoke`), `old_value jsonb`, `new_value jsonb`, `created_at`.
+- يُكتب حصراً عبر تريجرات `SECURITY DEFINER` على `entity_memberships` و`permission_grants` — لا كتابة مباشرة.
+- RLS: قراءة فقط لمن يملك `members.view` على الكيان المعني؛ **لا** INSERT/UPDATE/DELETE لأي دور عميل (append-only حقيقي عبر منع REVOKE من الجداول + غياب السياسات).
+
+## 5. خارج النطاق الآن
+لا واجهة إدارة صلاحيات، ولا شاشة أعضاء، ولا دعوات. فقط الأساس الخادمي.
+
+## 6. الترتيب التنفيذي (بعد الموافقة)
+1. Migration واحدة: enums + `role_permissions` (+Seed) + `permission_grants` + `permission_audit_log` + دوال `private.can`/`entity_ceiling` + تريجرات المنع والتدقيق + سياسات RLS للجداول الجديدة + GRANT صريح.
+2. إعادة صياغة غير كاسرة لسياسات `projects`/`project_stages`/`stage_dependencies` لتشمل `private.can` كمسار إضافي.
+3. `src/lib/permissions.functions.ts`: `getMyPermissions(scope)` للقراءة فقط (يستخدم `requireSupabaseAuth`)، بلا أي منح من العميل.
+4. اختبار فعلي بثلاثة مستخدمين: عضو يحاول رفع دوره (يجب أن يفشل)، مدير كيان A يحاول تعديل عضوية كيان B (يفشل)، ومنح لمستخدم من كيان خارجي يتجاوز سقف كيانه (يفشل) — ثم التحقق من صفوف `permission_audit_log` وحذف كل بيانات الاختبار.
+5. تشغيل Supabase Advisors ومعالجة أي Finding قبل إعلان الاكتمال.
