@@ -1,5 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+
 import heroImage from "../assets/rakeez-hero.jpg";
+import { LanguageToggle } from "@/components/rakeez";
+import { useI18n, useT } from "@/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,7 +30,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-background font-sans text-foreground">
       <Header />
       <main className="flex-1">
         <Hero />
@@ -41,49 +44,56 @@ function Index() {
 }
 
 function Header() {
+  const t = useT();
+
   const navLinks = [
-    { label: "الرئيسية", to: "#hero" },
-    { label: "خدماتنا", to: "#services" },
-    { label: "من نحن", to: "#about" },
-    { label: "تواصل معنا", to: "#contact" },
+    { key: "nav.home", to: "#hero" },
+    { key: "nav.services", to: "#services" },
+    { key: "nav.about", to: "#about" },
+    { key: "nav.contact", to: "#contact" },
   ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <a href="#hero" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-            ر
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+            {t("common.appInitial")}
           </span>
           <span className="text-lg font-bold tracking-tight text-foreground">
-            ركيز
+            {t("common.appName")}
           </span>
         </a>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-6 md:flex" aria-label={t("nav.home")}>
           {navLinks.map((link) => (
             <a
               key={link.to}
               href={link.to}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {link.label}
+              {t(link.key)}
             </a>
           ))}
         </nav>
 
-        <a
-          href="#contact"
-          className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
-        >
-          ابدأ الآن
-        </a>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <LanguageToggle />
+          <a
+            href="#contact"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+          >
+            {t("nav.cta")}
+          </a>
+        </div>
       </div>
     </header>
   );
 }
 
 function Hero() {
+  const t = useT();
+
   return (
     <section
       id="hero"
@@ -91,7 +101,7 @@ function Hero() {
     >
       <img
         src={heroImage}
-        alt="خلفية تجريدية ترمز إلى الثبات والأساس بلونين أزرق داكن وذهبي"
+        alt={t("hero.imageAlt")}
         width={1920}
         height={1080}
         className="absolute inset-0 h-full w-full object-cover"
@@ -101,27 +111,26 @@ function Hero() {
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 lg:px-8">
         <span className="inline-flex items-center rounded-full border border-rakeez-gold/30 bg-rakeez-gold/10 px-3 py-1 text-sm font-medium text-rakeez-gold backdrop-blur-sm">
-          حلول رقمية راسخة
+          {t("hero.badge")}
         </span>
-        <h1 className="mt-6 text-4xl font-extrabold leading-tight text-rakeez-cream sm:text-5xl lg:text-6xl text-balance">
-          نبني أساسًا رقميًا قويًا لنمو أعمالك
+        <h1 className="mt-6 text-balance text-4xl font-extrabold leading-tight text-rakeez-cream sm:text-5xl lg:text-6xl">
+          {t("hero.title")}
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-rakeez-cream/80 text-balance">
-          في ركيز، نؤمن بأن كل مشروع ناجح يبدأ بفهم عميق وتصميم واعٍ وتنفيذ
-          دقيق. نساعدك في وضع حجر الأساس الرقمي لمستقبل أعمالك.
+        <p className="mx-auto mt-6 max-w-2xl text-balance text-lg leading-relaxed text-rakeez-cream/80">
+          {t("hero.subtitle")}
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <a
             href="#contact"
-            className="inline-flex items-center justify-center rounded-full bg-rakeez-gold px-6 py-3 text-base font-semibold text-rakeez-navy shadow-lg transition-all hover:bg-rakeez-gold/90 hover:shadow-xl"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-rakeez-gold px-6 py-3 text-base font-semibold text-rakeez-navy shadow-lg transition-all hover:bg-rakeez-gold/90 hover:shadow-xl"
           >
-            ابدأ مشروعك
+            {t("hero.primaryCta")}
           </a>
           <a
             href="#services"
-            className="inline-flex items-center justify-center rounded-full border border-rakeez-cream/30 bg-rakeez-cream/5 px-6 py-3 text-base font-semibold text-rakeez-cream backdrop-blur-sm transition-all hover:bg-rakeez-cream/10"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-rakeez-cream/30 bg-rakeez-cream/5 px-6 py-3 text-base font-semibold text-rakeez-cream backdrop-blur-sm transition-all hover:bg-rakeez-cream/10"
           >
-            اكتشف خدماتنا
+            {t("hero.secondaryCta")}
           </a>
         </div>
       </div>
@@ -130,53 +139,40 @@ function Hero() {
 }
 
 function Features() {
+  const t = useT();
+
   const features = [
-    {
-      title: "استراتيجية رقمية",
-      description:
-        "نرسم خارطة طريق واضحة لوجودك الرقمي، مبنية على أهدافك وجمهورك وفرص السوق.",
-      icon: CompassIcon,
-    },
-    {
-      title: "تصميم وتطوير",
-      description:
-        "نصمم واجهات أنيقة ونطور تجارب سلسة تعكس هويتك وتقدم قيمة حقيقية لمستخدميك.",
-      icon: LayersIcon,
-    },
-    {
-      title: "حلول مبتكرة",
-      description:
-        "نبني أدوات وتقنيات مخصصة تتكيف مع احتياجاتك وتنمو مع تطور أعمالك.",
-      icon: SparklesIcon,
-    },
+    { key: "strategy", icon: CompassIcon },
+    { key: "design", icon: LayersIcon },
+    { key: "innovation", icon: SparklesIcon },
   ];
 
   return (
     <section id="services" className="py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl text-balance">
-            ما الذي نقدمه؟
+          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            {t("features.title")}
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground text-balance">
-            ثلاثة ركائز أساسية نبني عليها كل مشروع نعمل فيه.
+          <p className="mt-4 text-balance text-lg text-muted-foreground">
+            {t("features.subtitle")}
           </p>
         </div>
 
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
             <div
-              key={feature.title}
+              key={feature.key}
               className="group relative rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-foreground">
                 <feature.icon className="h-6 w-6" />
               </div>
               <h3 className="mt-6 text-xl font-semibold text-card-foreground">
-                {feature.title}
+                {t(`features.${feature.key}.title`)}
               </h3>
               <p className="mt-3 leading-relaxed text-muted-foreground">
-                {feature.description}
+                {t(`features.${feature.key}.description`)}
               </p>
               <div className="absolute inset-x-0 bottom-0 h-1 rounded-b-2xl bg-rakeez-gold opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
@@ -188,37 +184,36 @@ function Features() {
 }
 
 function About() {
+  const t = useT();
+
+  const stats = [
+    { value: t("about.stat1Value"), label: t("about.stat1Label") },
+    { value: t("about.stat2Value"), label: t("about.stat2Label") },
+    { value: t("about.stat3Value"), label: t("about.stat3Label") },
+  ];
+
   return (
     <section id="about" className="border-y border-border bg-secondary/40 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl text-balance">
-              من نحن؟
+            <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {t("about.title")}
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-balance">
-              ركيز هو استوديو رقمي يساعد الشركات والعلامات التجارية على بناء
-              حضور رقمي قوي ومستدام. نجمع بين الفهم العميق للأعمال، والتصميم
-              البصري المتقن، والتنفيذ التقني الدقيق.
+            <p className="mt-6 text-balance text-lg leading-relaxed text-muted-foreground">
+              {t("about.paragraph1")}
             </p>
-            <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-balance">
-              هدفنا ليس تسليم مشروع فحسب، بل إرساء شراكة طويلة المدى تساعدك
-              على التكيف والنمو في عالم رقمي متغير.
+            <p className="mt-4 text-balance text-lg leading-relaxed text-muted-foreground">
+              {t("about.paragraph2")}
             </p>
 
             <div className="mt-10 grid grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-bold text-rakeez-gold">+50</div>
-                <div className="mt-1 text-sm text-muted-foreground">مشروع منجز</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-rakeez-gold">+30</div>
-                <div className="mt-1 text-sm text-muted-foreground">عميل سعيد</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-rakeez-gold">5+</div>
-                <div className="mt-1 text-sm text-muted-foreground">سنوات خبرة</div>
-              </div>
+              {stats.map((stat) => (
+                <div key={stat.label}>
+                  <div className="text-3xl font-bold text-rakeez-gold">{stat.value}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -226,7 +221,7 @@ function About() {
             <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-rakeez-navy shadow-2xl">
               <img
                 src={heroImage}
-                alt="تجسيد بصري لقيم ركيز: الثبات والأساس والنمو"
+                alt={t("about.imageAlt")}
                 width={1920}
                 height={1080}
                 loading="lazy"
@@ -243,15 +238,15 @@ function About() {
 }
 
 function Contact() {
+  const t = useT();
+
   return (
     <section id="contact" className="py-24 sm:py-32">
       <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl text-balance">
-          جاهز لوضع حجر الأساس؟
+        <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          {t("contact.title")}
         </h2>
-        <p className="mt-4 text-lg text-muted-foreground text-balance">
-          دعنا نتحدث عن رؤيتك. معًا نحولها إلى منتج رقمي راسخ يحقق أهدافك.
-        </p>
+        <p className="mt-4 text-balance text-lg text-muted-foreground">{t("contact.subtitle")}</p>
 
         <form
           className="mt-12 space-y-6 rounded-2xl border border-border bg-card p-8 shadow-sm"
@@ -262,43 +257,49 @@ function Contact() {
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2 text-start">
               <label htmlFor="name" className="text-sm font-medium text-foreground">
-                الاسم
+                {t("contact.nameLabel")}
               </label>
               <input
                 id="name"
+                name="name"
                 type="text"
-                placeholder="اسمك الكامل"
+                autoComplete="name"
+                placeholder={t("contact.namePlaceholder")}
                 className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground shadow-sm outline-none ring-ring transition-all placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               />
             </div>
             <div className="space-y-2 text-start">
               <label htmlFor="email" className="text-sm font-medium text-foreground">
-                البريد الإلكتروني
+                {t("contact.emailLabel")}
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                placeholder="your@email.com"
-                className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground shadow-sm outline-none ring-ring transition-all placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                autoComplete="email"
+                dir="ltr"
+                placeholder={t("contact.emailPlaceholder")}
+                className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-start text-sm text-foreground shadow-sm outline-none ring-ring transition-all placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               />
             </div>
           </div>
           <div className="space-y-2 text-start">
             <label htmlFor="message" className="text-sm font-medium text-foreground">
-              الرسالة
+              {t("contact.messageLabel")}
             </label>
             <textarea
               id="message"
+              name="message"
               rows={4}
-              placeholder="اخبرنا قليلاً عن مشروعك..."
+              placeholder={t("contact.messagePlaceholder")}
               className="flex w-full rounded-lg border border-input bg-background px-4 py-2 text-sm text-foreground shadow-sm outline-none ring-ring transition-all placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             />
           </div>
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 sm:w-auto"
           >
-            إرسال الرسالة
+            {t("contact.submit")}
           </button>
         </form>
       </div>
@@ -307,38 +308,37 @@ function Contact() {
 }
 
 function Footer() {
+  const { t } = useI18n();
+
+  const links = [
+    { key: "nav.home", to: "#hero" },
+    { key: "nav.servicesShort", to: "#services" },
+    { key: "nav.contact", to: "#contact" },
+  ];
+
   return (
     <footer className="border-t border-border bg-rakeez-navy py-12 text-rakeez-cream">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rakeez-gold text-sm font-bold text-rakeez-navy">
-              ر
+              {t("common.appInitial")}
             </span>
-            <span className="text-lg font-bold">ركيز</span>
+            <span className="text-lg font-bold">{t("common.appName")}</span>
           </div>
           <p className="text-sm text-rakeez-cream/60">
-            © {new Date().getFullYear()} ركيز. جميع الحقوق محفوظة.
+            {t("footer.rights", { year: new Date().getFullYear() })}
           </p>
-          <div className="flex items-center gap-6">
-            <a
-              href="#hero"
-              className="text-sm text-rakeez-cream/60 transition-colors hover:text-rakeez-cream"
-            >
-              الرئيسية
-            </a>
-            <a
-              href="#services"
-              className="text-sm text-rakeez-cream/60 transition-colors hover:text-rakeez-cream"
-            >
-              الخدمات
-            </a>
-            <a
-              href="#contact"
-              className="text-sm text-rakeez-cream/60 transition-colors hover:text-rakeez-cream"
-            >
-              تواصل معنا
-            </a>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            {links.map((link) => (
+              <a
+                key={link.to}
+                href={link.to}
+                className="inline-flex min-h-11 items-center text-sm text-rakeez-cream/60 transition-colors hover:text-rakeez-cream"
+              >
+                {t(link.key)}
+              </a>
+            ))}
           </div>
         </div>
       </div>
@@ -356,6 +356,7 @@ function CompassIcon({ className }: { className?: string }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       <circle cx="12" cy="12" r="10" />
       <path d="m16.2 7.8-4.6 4.6-4.6-4.6" />
@@ -374,6 +375,7 @@ function LayersIcon({ className }: { className?: string }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       <polygon points="12 2 2 7 12 12 22 7 12 2" />
       <polyline points="2 17 12 22 22 17" />
@@ -392,6 +394,7 @@ function SparklesIcon({ className }: { className?: string }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       <path d="m12 3-1.9 5.8H4l5.1 3.7L6.2 19 12 14.8 17.8 19l-2.9-6.5L20 8.8h-6.1Z" />
     </svg>
