@@ -15,6 +15,9 @@ export const ar = {
     optional: "اختياري",
     required: "مطلوب",
     search: "بحث",
+    dashboard: "لوحة التحكم",
+    settings: "الإعدادات",
+    security: "الأمان",
   },
   nav: {
     home: "الرئيسية",

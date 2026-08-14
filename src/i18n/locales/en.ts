@@ -17,6 +17,9 @@ export const en: Translations = {
     optional: "Optional",
     required: "Required",
     search: "Search",
+    dashboard: "Dashboard",
+    settings: "Settings",
+    security: "Security",
   },
   nav: {
     home: "Home",
