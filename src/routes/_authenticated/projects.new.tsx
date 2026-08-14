@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ErrorState, FieldShell, LoadingState, TextAreaField, TextField } from "@/components/rakeez";
-import { useLocale, useT } from "@/i18n";
+import { useI18n, useT } from "@/i18n";
 import { useActiveAccount } from "@/lib/active-account";
 import {
   createProject,
@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/projects/new")({
 
 function NewProjectPage() {
   const t = useT();
-  const { locale } = useLocale();
+  const { locale } = useI18n();
   const navigate = useNavigate();
   const { scope } = useActiveAccount();
 
