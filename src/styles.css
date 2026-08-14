@@ -57,6 +57,21 @@
   --color-rakeez-gold: var(--rakeez-gold);
   --color-rakeez-cream: var(--rakeez-cream);
   --color-rakeez-sand: var(--rakeez-sand);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-soft: var(--info-soft);
+  --font-sans: var(--font-family-sans);
+  --spacing-section: var(--space-section);
+  --spacing-gutter: var(--space-gutter);
+  --spacing-touch: var(--space-touch);
+  --shadow-card: var(--shadow-elevation-1);
+  --shadow-elevated: var(--shadow-elevation-2);
 }
 
 :root {
@@ -97,6 +112,29 @@
   --sidebar-accent-foreground: var(--rakeez-navy);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+
+  /* Typography */
+  --font-family-sans: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Spacing scale (layout rhythm) */
+  --space-touch: 2.75rem; /* 44px minimum touch target */
+  --space-gutter: 1rem;
+  --space-section: 6rem;
+
+  /* Status colors */
+  --success: oklch(0.58 0.13 155);
+  --success-foreground: oklch(0.98 0.01 155);
+  --success-soft: oklch(0.94 0.04 155);
+  --warning: oklch(0.62 0.14 70);
+  --warning-foreground: oklch(0.99 0.01 85);
+  --warning-soft: oklch(0.95 0.05 80);
+  --info: oklch(0.55 0.1 235);
+  --info-foreground: oklch(0.98 0.01 235);
+  --info-soft: oklch(0.94 0.03 235);
+
+  /* Elevation */
+  --shadow-elevation-1: 0 1px 2px 0 color-mix(in oklab, var(--rakeez-navy) 8%, transparent);
+  --shadow-elevation-2: 0 12px 32px -12px color-mix(in oklab, var(--rakeez-navy) 30%, transparent);
 }
 
 .dark {
@@ -132,6 +170,19 @@
   --sidebar-accent-foreground: var(--rakeez-cream);
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: var(--ring);
+
+  --success: oklch(0.68 0.13 155);
+  --success-foreground: oklch(0.18 0.04 155);
+  --success-soft: oklch(0.3 0.06 155);
+  --warning: oklch(0.78 0.13 78);
+  --warning-foreground: oklch(0.2 0.04 80);
+  --warning-soft: oklch(0.3 0.05 80);
+  --info: oklch(0.7 0.1 235);
+  --info-foreground: oklch(0.18 0.04 235);
+  --info-soft: oklch(0.3 0.05 235);
+
+  --shadow-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 40%);
+  --shadow-elevation-2: 0 12px 32px -12px oklch(0 0 0 / 60%);
 }
 
 @layer base {
@@ -149,6 +200,26 @@
     font-feature-settings: "kern" 1, "liga" 1;
   }
 
+  /* Visible focus in both directions and both themes. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* Prevent accidental horizontal overflow at any breakpoint. */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Numbers and latin snippets stay LTR inside RTL text. */
+  [dir="rtl"] .force-ltr,
+  .force-ltr {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
   ::selection {
     background-color: var(--color-accent);
     color: var(--color-accent-foreground);
@@ -158,5 +229,20 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Mirrors directional icons (arrows, chevrons) when the layout is RTL. */
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  /* Minimum accessible touch target. */
+  .touch-target {
+    min-block-size: var(--space-touch);
+    min-inline-size: var(--space-touch);
+  }
+
+  .section-y {
+    padding-block: var(--space-section);
   }
 }
