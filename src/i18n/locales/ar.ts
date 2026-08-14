@@ -151,7 +151,36 @@ export const ar = {
     continue: "متابعة",
     role: "الدور",
   },
+  projects: {
+    newTitle: "إنشاء مشروع جديد",
+    newSubtitle: "اختر نوع المشروع وأدخل بياناته الأساسية، وستُنشأ المراحل الافتراضية تلقائيًا.",
+    type: "نوع المشروع",
+    typeHint: "يحدد قائمة المراحل الافتراضية للمشروع.",
+    name: "اسم المشروع",
+    namePlaceholder: "مثال: فيلا حي الياسمين",
+    scope: "الحساب المالك",
+    scopePersonal: "حسابي الشخصي",
+    city: "المدينة",
+    district: "الحي",
+    landArea: "مساحة الأرض (م²)",
+    startDate: "تاريخ البداية",
+    expectedEndDate: "تاريخ الانتهاء المتوقع",
+    notes: "ملاحظات",
+    stagesPreview: "المراحل الافتراضية",
+    stagesPreviewHint: "المراحل الأساسية إلزامية، ويمكنك اختيار المراحل الاختيارية.",
+    stageCore: "أساسية",
+    stageOptional: "اختيارية",
+    noTemplateSelected: "اختر نوع المشروع لعرض مراحله.",
+    submit: "إنشاء المشروع",
+    creating: "جارٍ الإنشاء…",
+    created: "تم إنشاء المشروع بنجاح",
+    createFailed: "تعذّر إنشاء المشروع. حاول مرة أخرى.",
+    nameRequired: "اسم المشروع مطلوب (حرفان على الأقل).",
+    typeRequired: "نوع المشروع مطلوب.",
+    licenseGated: "هذا النوع يتطلب ترخيصًا ولم يُفعّل بعد.",
+  },
 };
+
 
 
 export type Translations = typeof ar;
