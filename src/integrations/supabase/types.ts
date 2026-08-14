@@ -112,6 +112,306 @@ export type Database = {
         }
         Relationships: []
       }
+      project_stages: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_required: boolean
+          name_ar: string
+          name_en: string
+          order_index: number
+          planned_end: string | null
+          planned_start: string | null
+          project_id: string
+          source: string
+          stage_template_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_required?: boolean
+          name_ar: string
+          name_en: string
+          order_index: number
+          planned_end?: string | null
+          planned_start?: string | null
+          project_id: string
+          source?: string
+          stage_template_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_required?: boolean
+          name_ar?: string
+          name_en?: string
+          order_index?: number
+          planned_end?: string | null
+          planned_start?: string | null
+          project_id?: string
+          source?: string
+          stage_template_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_stages_stage_template_id_fkey"
+            columns: ["stage_template_id"]
+            isOneToOne: false
+            referencedRelation: "stage_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_templates: {
+        Row: {
+          code: string
+          created_at: string
+          deleted_at: string | null
+          description_ar: string | null
+          description_en: string | null
+          feature_flag: string | null
+          id: string
+          is_active: boolean
+          name_ar: string
+          name_en: string
+          requires_license: boolean
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          deleted_at?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          feature_flag?: string | null
+          id?: string
+          is_active?: boolean
+          name_ar: string
+          name_en: string
+          requires_license?: boolean
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          deleted_at?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          feature_flag?: string | null
+          id?: string
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string
+          requires_license?: boolean
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          city: string | null
+          code: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          district: string | null
+          entity_id: string | null
+          expected_end_date: string | null
+          id: string
+          land_area: number | null
+          name: string
+          notes: string | null
+          owner_id: string
+          project_template_id: string
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          code?: string | null
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          district?: string | null
+          entity_id?: string | null
+          expected_end_date?: string | null
+          id?: string
+          land_area?: number | null
+          name: string
+          notes?: string | null
+          owner_id: string
+          project_template_id: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          district?: string | null
+          entity_id?: string | null
+          expected_end_date?: string | null
+          id?: string
+          land_area?: number | null
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          project_template_id?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_project_template_id_fkey"
+            columns: ["project_template_id"]
+            isOneToOne: false
+            referencedRelation: "project_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_dependencies: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          predecessor_stage_id: string
+          project_id: string
+          successor_stage_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          predecessor_stage_id: string
+          project_id: string
+          successor_stage_id: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          predecessor_stage_id?: string
+          project_id?: string
+          successor_stage_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_dependencies_predecessor_stage_id_fkey"
+            columns: ["predecessor_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_dependencies_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_dependencies_successor_stage_id_fkey"
+            columns: ["successor_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_templates: {
+        Row: {
+          code: string
+          created_at: string
+          default_duration_days: number | null
+          deleted_at: string | null
+          description_ar: string | null
+          id: string
+          is_required: boolean
+          kind: string
+          name_ar: string
+          name_en: string
+          order_index: number
+          project_template_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          default_duration_days?: number | null
+          deleted_at?: string | null
+          description_ar?: string | null
+          id?: string
+          is_required?: boolean
+          kind?: string
+          name_ar: string
+          name_en: string
+          order_index: number
+          project_template_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          default_duration_days?: number | null
+          deleted_at?: string | null
+          description_ar?: string | null
+          id?: string
+          is_required?: boolean
+          kind?: string
+          name_ar?: string
+          name_en?: string
+          order_index?: number
+          project_template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_templates_project_template_id_fkey"
+            columns: ["project_template_id"]
+            isOneToOne: false
+            referencedRelation: "project_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

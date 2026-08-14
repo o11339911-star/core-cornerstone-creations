@@ -1,3 +1,2 @@
-// Placeholder Database type until Supabase is connected and real types are generated.
-// Lovable will replace src/integrations/supabase/* when a project is connected.
-export type Database = Record<string, never>;
+// Single source of truth for database types: the generated Supabase types.
+export type { Database, Tables, TablesInsert, TablesUpdate, Enums } from "@/integrations/supabase/types";
