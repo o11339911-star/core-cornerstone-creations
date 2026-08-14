@@ -1,0 +1,128 @@
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useT } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    password: z.string().min(8),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "passwordMismatch",
+    path: ["confirmPassword"],
+  });
+
+type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
+
+export const Route = createFileRoute("/_authenticated/settings/security")({
+  component: SecuritySettingsPage,
+});
+
+function SecuritySettingsPage() {
+  const t = useT();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const form = useForm<ChangePasswordForm>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: { currentPassword: "", password: "", confirmPassword: "" },
+  });
+
+  const onSubmit = async (values: ChangePasswordForm) => {
+    setError(null);
+    setSuccess(false);
+    setSubmitting(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.email) {
+      setError(t("auth.invalidCredentials"));
+      setSubmitting(false);
+      return;
+    }
+
+    // Verify the current password first.
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: values.currentPassword,
+    });
+
+    if (signInError) {
+      setError(t("auth.invalidCredentials"));
+      setSubmitting(false);
+      return;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: values.password,
+    });
+
+    setSubmitting(false);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+
+    setSuccess(true);
+    form.reset();
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("common.security")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetSubtitle")}</p>
+        </div>
+
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="currentPassword">{t("auth.currentPassword")}</Label>
+            <Input
+              id="currentPassword"
+              type="password"
+              autoComplete="current-password"
+              dir="ltr"
+              {...form.register("currentPassword")}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">{t("auth.newPassword")}</Label>
+            <Input id="password" type="password" autoComplete="new-password" dir="ltr" {...form.register("password")} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">{t("auth.confirmPassword")}</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              dir="ltr"
+              {...form.register("confirmPassword")}
+            />
+          </div>
+
+          {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+          {success && <div className="rounded-md bg-primary/10 p-3 text-sm text-foreground">{t("auth.passwordUpdated")}</div>}
+
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? t("common.loading") : t("auth.updatePassword")}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
