@@ -95,7 +95,6 @@ function Hero() {
         width={1920}
         height={1080}
         className="absolute inset-0 h-full w-full object-cover"
-        priority="true"
       />
       <div className="absolute inset-0 bg-rakeez-navy/70" />
       <div className="absolute inset-0 bg-gradient-to-t from-rakeez-navy/90 via-transparent to-rakeez-navy/30" />
