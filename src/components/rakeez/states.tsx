@@ -22,12 +22,12 @@ const toneClasses: Record<Tone, string> = {
 };
 
 export type StateViewProps = {
-  icon?: LucideIcon;
+  icon?: LucideIcon | undefined;
   title: string;
-  description?: string;
-  tone?: Tone;
-  action?: React.ReactNode;
-  className?: string;
+  description?: string | undefined;
+  tone?: Tone | undefined;
+  action?: React.ReactNode | undefined;
+  className?: string | undefined;
 };
 
 /** Shared shell for every non-content state (empty / error / offline / unauthorized). */
@@ -72,10 +72,10 @@ export function LoadingState({
   rows = 3,
   className,
 }: {
-  title?: string;
-  description?: string;
-  rows?: number;
-  className?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  rows?: number | undefined;
+  className?: string | undefined;
 }) {
   const t = useT();
   return (
@@ -111,10 +111,10 @@ export function EmptyState({
   action,
   className,
 }: {
-  title?: string;
-  description?: string;
-  action?: React.ReactNode;
-  className?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  action?: React.ReactNode | undefined;
+  className?: string | undefined;
 }) {
   const t = useT();
   return (
@@ -134,10 +134,10 @@ export function ErrorState({
   onRetry,
   className,
 }: {
-  title?: string;
-  description?: string;
-  onRetry?: () => void;
-  className?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  onRetry?: (() => void) | undefined;
+  className?: string | undefined;
 }) {
   const t = useT();
   return (
@@ -164,10 +164,10 @@ export function UnauthorizedState({
   action,
   className,
 }: {
-  title?: string;
-  description?: string;
-  action?: React.ReactNode;
-  className?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  action?: React.ReactNode | undefined;
+  className?: string | undefined;
 }) {
   const t = useT();
   return (
@@ -188,10 +188,10 @@ export function OfflineState({
   onRetry,
   className,
 }: {
-  title?: string;
-  description?: string;
-  onRetry?: () => void;
-  className?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  onRetry?: (() => void) | undefined;
+  className?: string | undefined;
 }) {
   const t = useT();
   return (
@@ -242,12 +242,12 @@ export function AsyncBoundary({
   loadingFallback,
   children,
 }: {
-  isLoading?: boolean;
-  isError?: boolean;
-  isUnauthorized?: boolean;
-  isEmpty?: boolean;
-  onRetry?: () => void;
-  loadingFallback?: React.ReactNode;
+  isLoading?: boolean | undefined;
+  isError?: boolean | undefined;
+  isUnauthorized?: boolean | undefined;
+  isEmpty?: boolean | undefined;
+  onRetry?: (() => void) | undefined;
+  loadingFallback?: React.ReactNode | undefined;
   children: React.ReactNode;
 }) {
   const online = useOnlineStatus();
