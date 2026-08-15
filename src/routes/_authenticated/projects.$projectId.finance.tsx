@@ -355,7 +355,10 @@ function FinancePage() {
           </ul>
         )}
       </section>
+      </>
+      )}
     </div>
+
   );
 }
 
