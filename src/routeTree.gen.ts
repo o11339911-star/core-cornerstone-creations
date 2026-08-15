@@ -28,6 +28,7 @@ import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdPartiesRouteImport } from './routes/_authenticated/projects.$projectId.parties'
+import { Route as AuthenticatedProjectsProjectIdReportsRouteImport } from './routes/_authenticated/projects.$projectId.reports'
 import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './routes/_authenticated/projects.$projectId.requests'
 import { Route as AuthenticatedProjectsProjectIdServicesRouteImport } from './routes/_authenticated/projects.$projectId.services'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
@@ -138,6 +139,12 @@ const AuthenticatedProjectsProjectIdPartiesRoute =
     path: '/projects/$projectId/parties',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdReportsRoute =
+  AuthenticatedProjectsProjectIdReportsRouteImport.update({
+    id: '/projects/$projectId/reports',
+    path: '/projects/$projectId/reports',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdRequestsRoute =
   AuthenticatedProjectsProjectIdRequestsRouteImport.update({
     id: '/projects/$projectId/requests',
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
+  '/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
@@ -206,6 +214,7 @@ export interface FileRoutesByTo {
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
+  '/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
@@ -232,6 +241,7 @@ export interface FileRoutesById {
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
+  '/_authenticated/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/_authenticated/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/_authenticated/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/entities/$entityId/team'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
+    | '/projects/$projectId/reports'
     | '/projects/$projectId/requests'
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/entities/$entityId/team'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
+    | '/projects/$projectId/reports'
     | '/projects/$projectId/requests'
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
@@ -307,6 +319,7 @@ export interface FileRouteTypes {
     | '/_authenticated/entities/$entityId/team'
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/parties'
+    | '/_authenticated/projects/$projectId/reports'
     | '/_authenticated/projects/$projectId/requests'
     | '/_authenticated/projects/$projectId/services'
     | '/_authenticated/projects/$projectId/stages'
@@ -456,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdPartiesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/reports': {
+      id: '/_authenticated/projects/$projectId/reports'
+      path: '/projects/$projectId/reports'
+      fullPath: '/projects/$projectId/reports'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/requests': {
       id: '/_authenticated/projects/$projectId/requests'
       path: '/projects/$projectId/requests'
@@ -500,6 +520,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
   AuthenticatedProjectsProjectIdPartiesRoute: typeof AuthenticatedProjectsProjectIdPartiesRoute
+  AuthenticatedProjectsProjectIdReportsRoute: typeof AuthenticatedProjectsProjectIdReportsRoute
   AuthenticatedProjectsProjectIdRequestsRoute: typeof AuthenticatedProjectsProjectIdRequestsRoute
   AuthenticatedProjectsProjectIdServicesRoute: typeof AuthenticatedProjectsProjectIdServicesRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
@@ -524,6 +545,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdContractsRoute,
   AuthenticatedProjectsProjectIdPartiesRoute:
     AuthenticatedProjectsProjectIdPartiesRoute,
+  AuthenticatedProjectsProjectIdReportsRoute:
+    AuthenticatedProjectsProjectIdReportsRoute,
   AuthenticatedProjectsProjectIdRequestsRoute:
     AuthenticatedProjectsProjectIdRequestsRoute,
   AuthenticatedProjectsProjectIdServicesRoute:

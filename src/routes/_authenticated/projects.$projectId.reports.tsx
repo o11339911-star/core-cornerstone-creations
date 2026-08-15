@@ -145,7 +145,8 @@ function ReportsPage() {
 
       <AsyncBoundary
         isLoading={reportsQuery.isLoading}
-        error={reportsQuery.error instanceof Error ? reportsQuery.error.message : null}
+        isError={reportsQuery.isError}
+        onRetry={() => void reportsQuery.refetch()}
       >
         {(reportsQuery.data ?? []).length === 0 ? (
           <EmptyState title="لا توجد تقارير" description="ابدأ بإنشاء أول تقرير هندسي لهذا المشروع." />
