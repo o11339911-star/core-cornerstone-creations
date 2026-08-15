@@ -209,12 +209,21 @@ export const reserveDocumentVersion = createServerFn({ method: "POST" })
     };
   });
 
+/** Server-fixed 60s signed URL. The client cannot influence the lifetime. */
+const DOCUMENT_URL_TTL_SECONDS = 60;
+
 export const getDocumentDownloadUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ versionId: z.string().uuid() }).parse(input),
-  )
+  // Only the version id is accepted; any extra field (e.g. expiresIn) is dropped.
+  .inputValidator((input: unknown) => z.object({ versionId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    const { data: allowed, error: canError } = await context.supabase.rpc(
+      "can_access_document_version",
+      { _version_id: data.versionId, _action: "view" },
+    );
+    if (canError) throw new Error(canError.message);
+    if (!allowed) throw new Error("Forbidden");
+
     const { data: version, error } = await context.supabase
       .from("document_versions")
       .select("storage_bucket, storage_path")
@@ -225,9 +234,9 @@ export const getDocumentDownloadUrl = createServerFn({ method: "POST" })
 
     const signed = await context.supabase.storage
       .from(version.storage_bucket)
-      .createSignedUrl(version.storage_path, 300);
+      .createSignedUrl(version.storage_path, DOCUMENT_URL_TTL_SECONDS);
     if (signed.error) throw new Error(signed.error.message);
-    return { url: signed.data.signedUrl, expiresInSeconds: 300 };
+    return { url: signed.data.signedUrl, expiresInSeconds: DOCUMENT_URL_TTL_SECONDS };
   });
 
 export const linkDocument = createServerFn({ method: "POST" })
