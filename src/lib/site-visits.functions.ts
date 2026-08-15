@@ -252,7 +252,8 @@ export const recordReinspection = createServerFn({ method: "POST" })
     const { data: id, error } = await context.supabase.rpc("record_reinspection", {
       _observation_id: data.observationId,
       _result: data.result,
-      ...(data.actionId ? { _action_id: data.actionId } : {}),
+      // the RPC accepts a null action (observation re-inspected without a specific action)
+      _action_id: (data.actionId ?? null) as unknown as string,
       ...(data.note ? { _note: data.note } : {}),
       ...(data.visitId ? { _visit_id: data.visitId } : {}),
     });
