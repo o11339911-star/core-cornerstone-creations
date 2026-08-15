@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
@@ -64,6 +65,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -216,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
@@ -247,6 +255,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
@@ -280,6 +289,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/dashboard'
+    | '/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/invite/accept'
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/dashboard'
+    | '/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/invite/accept'
@@ -376,6 +388,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/_authenticated/dashboard'
+    | '/_authenticated/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/invite/accept'
@@ -447,6 +460,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/auth/forgot-password': {
@@ -629,6 +649,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
@@ -654,6 +675,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
