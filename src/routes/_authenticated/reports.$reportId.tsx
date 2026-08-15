@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/reports/$reportId")({
 
 const VERSION_STATUS: Record<string, string> = {
   draft: "مسودة",
-  submitted: "مُقدَّم للاعتماد",
+  pending_approval: "مُقدَّم للاعتماد",
   approved: "معتمد",
   superseded: "مستبدل",
 };
@@ -167,7 +167,7 @@ function ReportDetailPage() {
                     </button>
                   </>
                 ) : null}
-                {current.status === "submitted" ? (
+                {current.status === "pending_approval" ? (
                   <button
                     type="button"
                     onClick={run(() => approve({ data: { versionId: current.id } }), "تم اعتماد التقرير وختمه")}
