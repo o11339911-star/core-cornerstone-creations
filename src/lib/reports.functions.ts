@@ -140,11 +140,11 @@ export const createReport = createServerFn({ method: "POST" })
       _entity_id: data.entityId,
       _project_id: data.projectId,
       _title: data.title,
-      _template_id: data.templateId ?? null,
+      _template_id: data.templateId ?? undefined,
       _language: data.language,
-      _stage_id: data.stageId ?? null,
-      _visit_id: data.visitId ?? null,
-      _property_id: data.propertyId ?? null,
+      _stage_id: data.stageId ?? undefined,
+      _visit_id: data.visitId ?? undefined,
+      _property_id: data.propertyId ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { reportId: id as string };
@@ -190,7 +190,7 @@ export const approveReport = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: at, error } = await context.supabase.rpc("approve_report", {
       _version_id: data.versionId,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { approvedAt: at as string };
@@ -204,7 +204,7 @@ export const createReportVersion = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: id, error } = await context.supabase.rpc("create_report_version", {
       _report_id: data.reportId,
-      _reason: data.reason ?? null,
+      _reason: data.reason ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { versionId: id as string };
