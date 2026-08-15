@@ -7375,6 +7375,7 @@ export type Database = {
         | "reports"
         | "members"
         | "properties"
+        | "marketing"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
@@ -7558,6 +7559,7 @@ export const Constants = {
         "reports",
         "members",
         "properties",
+        "marketing",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       breakglass_status: ["pending", "approved", "denied", "expired"],
