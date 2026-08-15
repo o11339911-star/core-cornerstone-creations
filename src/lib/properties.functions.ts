@@ -429,6 +429,8 @@ export const addDeedVersion = createServerFn({ method: "POST" })
       .from("deed_versions")
       .insert({
         deed_id: deedId,
+        // The database trigger recomputes the real sequence number.
+        version_no: 1,
         deed_date: data.deedDate || null,
         area: data.area ?? null,
         file_path: data.filePath || null,
