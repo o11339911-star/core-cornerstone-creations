@@ -119,7 +119,7 @@ export const createRequest = createServerFn({ method: "POST" })
       _project_id: data.projectId,
       _request_type_code: data.requestTypeCode,
       _subject: data.subject,
-      ...(data.body ? { _body: data.body } : {}),
+      _body: data.body ?? "",
       ...(data.stageId ? { _stage_id: data.stageId } : {}),
       ...(data.assignedEntityId ? { _assigned_entity_id: data.assignedEntityId } : {}),
       ...(data.assignedUserId ? { _assigned_user_id: data.assignedUserId } : {}),
