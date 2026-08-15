@@ -133,6 +133,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
+  // Global rule: any Arabic-Indic / Persian digit typed, pasted, scanned or
+  // imported into a field becomes 0-9 immediately.
+  useLatinDigitInputGuard();
+
   useEffect(() => {
     const {
       data: { subscription },
