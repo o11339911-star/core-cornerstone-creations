@@ -3,6 +3,7 @@ import { CalendarDays, FileText, Scale, ShieldCheck } from "lucide-react";
 
 import { MarkdownView } from "@/components/legal/markdown-view";
 import { PageHero, HeroBadge } from "@/components/rakeez/dashboard-kit";
+import { formatLongDate } from "@/lib/format";
 import type { LegalDocument } from "@/lib/legal.functions";
 
 const NAV = [

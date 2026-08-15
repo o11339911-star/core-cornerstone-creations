@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Camera, ShieldCheck } from "lucide-react";
 
-import { CardsSkeleton, ErrorState, SoftEmpty } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, Num, SoftEmpty } from "@/components/rakeez";
+import { formatDate } from "@/lib/format";
 import { getPublicMedia } from "@/lib/media.functions";
 
 export const Route = createFileRoute("/m/$token")({
