@@ -264,7 +264,7 @@ export const submitStage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ submittedAt: string }> => {
     const { data: at, error } = await context.supabase.rpc("submit_stage", {
       _stage_id: data.stageId,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { submittedAt: at as unknown as string };
@@ -280,7 +280,7 @@ export const approveStage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ approvedAt: string }> => {
     const { data: at, error } = await context.supabase.rpc("approve_stage", {
       _stage_id: data.stageId,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { approvedAt: at as unknown as string };
