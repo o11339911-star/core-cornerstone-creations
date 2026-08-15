@@ -3291,6 +3291,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      advance_service_request: {
+        Args: { _note?: string; _request_id: string; _to_status: string }
+        Returns: string
+      }
       approve_contract_version: {
         Args: { _note?: string; _version_id: string }
         Returns: string
@@ -3327,6 +3331,25 @@ export type Database = {
           _property_id?: string
           _property_unit_id?: string
           _request_type_code: string
+          _stage_id?: string
+          _subject: string
+          _submit?: boolean
+        }
+        Returns: string
+      }
+      create_service_request: {
+        Args: {
+          _assigned_entity_id?: string
+          _assigned_user_id?: string
+          _body?: string
+          _due_at?: string
+          _external_ref_no?: string
+          _project_id: string
+          _property_id?: string
+          _property_unit_id?: string
+          _provider_name?: string
+          _requirements_note?: string
+          _service_code: string
           _stage_id?: string
           _subject: string
           _submit?: boolean
@@ -3404,8 +3427,27 @@ export type Database = {
         Args: { _accept: boolean; _party_id: string }
         Returns: string
       }
+      review_and_link_service: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: string
+      }
       submit_stage: {
         Args: { _note?: string; _stage_id: string }
+        Returns: string
+      }
+      update_service_request_details: {
+        Args: {
+          _account_no?: string
+          _appointment_at?: string
+          _external_ref_no?: string
+          _meter_no?: string
+          _payment_amount?: number
+          _payment_ref?: string
+          _payment_status?: string
+          _provider_name?: string
+          _request_id: string
+          _requirements_note?: string
+        }
         Returns: string
       }
     }
