@@ -2,7 +2,16 @@ import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, FolderPlus, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  Building2,
+  CalendarClock,
+  FolderPlus,
+  MapPin,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Store,
+} from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
