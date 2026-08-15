@@ -906,6 +906,7 @@ export type Database = {
         | "export"
         | "share"
         | "manage_members"
+        | "view_exact"
       app_module:
         | "projects"
         | "stages"
@@ -915,6 +916,7 @@ export type Database = {
         | "correspondence"
         | "reports"
         | "members"
+        | "properties"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       visibility_level: "internal" | "limited" | "project_wide"
     }
@@ -1054,6 +1056,7 @@ export const Constants = {
         "export",
         "share",
         "manage_members",
+        "view_exact",
       ],
       app_module: [
         "projects",
@@ -1064,6 +1067,7 @@ export const Constants = {
         "correspondence",
         "reports",
         "members",
+        "properties",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       visibility_level: ["internal", "limited", "project_wide"],
