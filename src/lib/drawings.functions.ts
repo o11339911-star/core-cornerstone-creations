@@ -28,7 +28,8 @@ export const DRAWING_DISCIPLINES = [
   "other",
 ] as const;
 
-export const DRAWING_FORMATS = ["pdf", "dwg", "dxf", "ifc", "zip"] as const;
+// ZIP مرفوضة عمدًا: لا يوجد فحص محتوى موثوق للأرشيف، فلا نقبلها بدل ادّعاء حمايتها.
+export const DRAWING_FORMATS = ["pdf", "dwg", "dxf", "ifc"] as const;
 
 export const drawingSchema = z.object({
   id: z.string().uuid(),
@@ -73,6 +74,7 @@ export const drawingMarkupSchema = z.object({
   document_version_id: z.string().uuid(),
   page_no: z.number(),
   body: z.string(),
+  request_id: z.string().uuid().nullable(),
   resolved_at: z.string().nullable(),
   created_by: z.string().uuid(),
   created_at: z.string(),
@@ -95,7 +97,7 @@ const REVISION_COLS =
   "id, drawing_id, document_version_id, revision_label, format, sheet_count, created_by, created_at";
 const EVENT_COLS = "id, drawing_id, from_status, to_status, note, created_at";
 const MARKUP_COLS =
-  "id, drawing_id, document_version_id, page_no, body, resolved_at, created_by, created_at";
+  "id, drawing_id, document_version_id, page_no, body, request_id, resolved_at, created_by, created_at";
 const JOB_COLS = "id, document_version_id, provider, status, error_code, created_at";
 
 /* ------------------------------------------------------------------ reads */
@@ -148,12 +150,46 @@ export const getDrawing = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
     ]);
 
+    const parsedRevisions = z.array(drawingRevisionSchema).parse(revisions.data ?? []);
+    const parsedMarkups = z.array(drawingMarkupSchema).parse(markups.data ?? []);
+
+    const versionIds = parsedRevisions.map((r) => r.document_version_id);
+    const files = versionIds.length
+      ? await context.supabase
+          .from("document_versions")
+          .select("id, file_ext, size_bytes, checksum_sha256, created_at, storage_path")
+          .in("id", versionIds)
+      : { data: [], error: null };
+
+    const requestIds = parsedMarkups
+      .map((m) => m.request_id)
+      .filter((id): id is string => Boolean(id));
+    const linkedRequests = requestIds.length
+      ? await context.supabase
+          .from("requests")
+          .select("id, request_no, subject, status")
+          .in("id", requestIds)
+      : { data: [], error: null };
+
     return {
       drawing: drawingSchema.parse(row),
-      revisions: z.array(drawingRevisionSchema).parse(revisions.data ?? []),
+      revisions: parsedRevisions,
       events: z.array(drawingEventSchema).parse(events.data ?? []),
-      markups: z.array(drawingMarkupSchema).parse(markups.data ?? []),
+      markups: parsedMarkups,
       jobs: z.array(drawingJobSchema).parse(jobs.data ?? []),
+      files: (files.data ?? []).map((f) => ({
+        id: f.id as string,
+        fileExt: (f.file_ext as string) ?? null,
+        sizeBytes: (f.size_bytes as number) ?? null,
+        checksum: (f.checksum_sha256 as string) ?? null,
+        createdAt: (f.created_at as string) ?? null,
+      })),
+      linkedRequests: (linkedRequests.data ?? []).map((r) => ({
+        id: r.id as string,
+        requestNo: (r.request_no as string) ?? null,
+        subject: (r.subject as string) ?? null,
+        status: (r.status as string) ?? null,
+      })),
     };
   });
 
@@ -165,15 +201,18 @@ export const getDrawingsModuleStatus = createServerFn({ method: "GET" })
       .select("aps_enabled, aps_client_id_env, aps_client_secret_env")
       .maybeSingle();
     if (error) throw new Error(error.message);
+
+    // محوّل APS خادمي فقط، ولا يجري أي اتصال شبكي — يقيّم البوابة محليًا.
+    const { evaluateApsGate } = await import("./drawings/aps.server");
+    const gate = evaluateApsGate(Boolean(row?.aps_enabled));
+
     return {
-      apsEnabled: Boolean(row?.aps_enabled),
+      apsSettingEnabled: Boolean(row?.aps_enabled),
+      apsReady: gate.ready,
+      apsReasonKey: gate.reasonKey,
       // أسماء متغيرات البيئة فقط — لا قيم أسرار إطلاقًا.
       apsClientIdEnv: row?.aps_client_id_env ?? "APS_CLIENT_ID",
       apsClientSecretEnv: row?.aps_client_secret_env ?? "APS_CLIENT_SECRET",
-      apsSecretsPresent: Boolean(
-        process.env[row?.aps_client_id_env ?? "APS_CLIENT_ID"] &&
-          process.env[row?.aps_client_secret_env ?? "APS_CLIENT_SECRET"],
-      ),
     };
   });
 
@@ -284,7 +323,7 @@ export const setDrawingStatus = createServerFn({ method: "POST" })
         toStatus: z.enum([
           "under_review",
           "returned",
-          "approved",
+          "approved_internal",
           "issued_for_construction",
           "as_built",
           "superseded",
@@ -348,4 +387,43 @@ export const resolveDrawingMarkup = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+/** يحوّل ملاحظة على مخطط إلى طلب معلومة (RFI) ضمن نظام الطلبات والمحادثة القائم. */
+export const convertMarkupToRfi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        markupId: uuid,
+        drawingId: uuid,
+        subject: z.string().min(3).max(200),
+        body: z.string().min(3).max(4000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: drawing, error: drawingError } = await context.supabase
+      .from("drawing_records")
+      .select("project_id, drawing_no")
+      .eq("id", data.drawingId)
+      .maybeSingle();
+    if (drawingError) throw new Error(drawingError.message);
+    if (!drawing?.project_id) throw new Error("المخطط غير متاح");
+
+    const { data: requestId, error: requestError } = await context.supabase.rpc("create_request", {
+      _project_id: drawing.project_id,
+      _request_type_code: "info_request",
+      _subject: data.subject,
+      _body: data.body,
+    });
+    if (requestError) throw new Error(requestError.message);
+
+    const { error: linkError } = await context.supabase.rpc("link_drawing_markup_request", {
+      _markup_id: data.markupId,
+      _request_id: requestId as string,
+    });
+    if (linkError) throw new Error(linkError.message);
+
+    return { requestId: requestId as string };
   });

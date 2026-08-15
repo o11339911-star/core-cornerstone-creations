@@ -9630,6 +9630,10 @@ export type Database = {
         }
         Returns: string
       }
+      link_drawing_markup_request: {
+        Args: { _markup_id: string; _request_id: string }
+        Returns: undefined
+      }
       link_marketing_asset: {
         Args: { _document_id: string; _profile_id: string }
         Returns: undefined
