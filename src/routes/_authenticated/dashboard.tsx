@@ -2,7 +2,16 @@ import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, FolderPlus, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  Building2,
+  CalendarClock,
+  FolderPlus,
+  MapPin,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Store,
+} from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -112,6 +121,24 @@ function DashboardPage() {
       </PageHero>
 
       <div className="grid gap-3 sm:grid-cols-3">
+        <Link
+          to="/marketplace"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
+        >
+          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
+            <Store className="size-5" aria-hidden="true" />
+          </span>
+          <span className="text-sm font-semibold text-foreground">سوق الخدمات</span>
+        </Link>
+        <Link
+          to="/appointments"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
+        >
+          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
+            <CalendarClock className="size-5" aria-hidden="true" />
+          </span>
+          <span className="text-sm font-semibold text-foreground">المواعيد</span>
+        </Link>
         <Link
           to="/projects/new"
           className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"

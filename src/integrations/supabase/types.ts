@@ -29,6 +29,136 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_participants: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          entity_id: string
+          id: string
+          reminder_channel: string
+          side: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          entity_id: string
+          id?: string
+          reminder_channel?: string
+          side: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          entity_id?: string
+          id?: string
+          reminder_channel?: string
+          side?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_participants_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_participants_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          cancel_deadline_at: string
+          cancel_reason: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: string
+          duration_minutes: number
+          id: string
+          kind: string
+          listing_id: string | null
+          notes: string | null
+          provider_entity_id: string
+          provider_timezone: string
+          requester_entity_id: string
+          requester_timezone: string
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_deadline_at: string
+          cancel_reason?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string
+          duration_minutes?: number
+          id?: string
+          kind: string
+          listing_id?: string | null
+          notes?: string | null
+          provider_entity_id: string
+          provider_timezone: string
+          requester_entity_id: string
+          requester_timezone: string
+          starts_at: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_deadline_at?: string
+          cancel_reason?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string
+          duration_minutes?: number
+          id?: string
+          kind?: string
+          listing_id?: string | null
+          notes?: string | null
+          provider_entity_id?: string
+          provider_timezone?: string
+          requester_entity_id?: string
+          requester_timezone?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "service_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_provider_entity_id_fkey"
+            columns: ["provider_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_requester_entity_id_fkey"
+            columns: ["requester_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_transfers: {
         Row: {
           created_at: string
@@ -198,6 +328,93 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cart_items: {
+        Row: {
+          cart_id: string
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          cart_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          cart_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carts: {
+        Row: {
+          buyer_entity_id: string
+          created_at: string
+          created_by: string
+          id: string
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_entity_id: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_entity_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carts_buyer_entity_id_fkey"
+            columns: ["buyer_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -729,6 +946,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      core_free_actions: {
+        Row: {
+          code: string
+          created_at: string
+          description_ar: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description_ar: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description_ar?: string
+        }
+        Relationships: []
       }
       correspondence_message_attachments: {
         Row: {
@@ -1597,6 +1832,81 @@ export type Database = {
         }
         Relationships: []
       }
+      entitlements: {
+        Row: {
+          code: string
+          created_at: string
+          description_ar: string
+          description_en: string
+          is_commercial: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description_ar: string
+          description_en: string
+          is_commercial?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description_ar?: string
+          description_en?: string
+          is_commercial?: boolean
+        }
+        Relationships: []
+      }
+      entity_entitlements: {
+        Row: {
+          code: string
+          created_at: string
+          entity_id: string
+          expires_at: string | null
+          granted_at: string
+          granted_by: string | null
+          id: string
+          revoked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          entity_id: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          revoked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          entity_id?: string
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          revoked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_entitlements_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "entitlements"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "entity_entitlements_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_invitations: {
         Row: {
           accepted_at: string | null
@@ -1915,6 +2225,47 @@ export type Database = {
           },
         ]
       }
+      entity_subscription_state: {
+        Row: {
+          created_at: string
+          entity_id: string
+          grace_until: string | null
+          plan_code: string
+          policy_note: string | null
+          read_only_since: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          grace_until?: string | null
+          plan_code?: string
+          policy_note?: string | null
+          read_only_since?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          grace_until?: string | null
+          plan_code?: string
+          policy_note?: string | null
+          read_only_since?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_subscription_state_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: true
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       escalation_events: {
         Row: {
           id: string
@@ -2080,6 +2431,56 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feature_flag_countries: {
+        Row: {
+          code: string
+          country_code: string
+          created_at: string
+        }
+        Insert: {
+          code: string
+          country_code: string
+          created_at?: string
+        }
+        Update: {
+          code?: string
+          country_code?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_flag_countries_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "feature_flags"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      feature_flags: {
+        Row: {
+          code: string
+          created_at: string
+          description_ar: string
+          enabled_globally: boolean
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description_ar: string
+          enabled_globally?: boolean
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description_ar?: string
+          enabled_globally?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       financial_document_amounts: {
         Row: {
@@ -3680,6 +4081,159 @@ export type Database = {
             columns: ["visit_id"]
             isOneToOne: false
             referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          id: string
+          name_snapshot: string
+          order_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          name_snapshot: string
+          order_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          id?: string
+          name_snapshot?: string
+          order_id?: string
+          product_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_payments: {
+        Row: {
+          amount: number
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          method: string
+          order_id: string
+          receipt_path: string | null
+          receipt_uploaded_at: string | null
+        }
+        Insert: {
+          amount: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          method: string
+          order_id: string
+          receipt_path?: string | null
+          receipt_uploaded_at?: string | null
+        }
+        Update: {
+          amount?: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          method?: string
+          order_id?: string
+          receipt_path?: string | null
+          receipt_uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer_entity_id: string
+          cart_id: string | null
+          country_code: string
+          created_at: string
+          currency: string
+          id: string
+          payment_method: string
+          placed_by: string
+          status: string
+          store_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_entity_id: string
+          cart_id?: string | null
+          country_code: string
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method: string
+          placed_by?: string
+          status?: string
+          store_id: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_entity_id?: string
+          cart_id?: string | null
+          country_code?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method?: string
+          placed_by?: string
+          status?: string
+          store_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_buyer_entity_id_fkey"
+            columns: ["buyer_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -6436,6 +6990,100 @@ export type Database = {
         }
         Relationships: []
       }
+      service_listing_areas: {
+        Row: {
+          city: string | null
+          country_code: string
+          created_at: string
+          id: string
+          listing_id: string
+          region: string | null
+        }
+        Insert: {
+          city?: string | null
+          country_code?: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          region?: string | null
+        }
+        Update: {
+          city?: string | null
+          country_code?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          region?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_listing_areas_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "service_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_listings: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          deleted_at: string | null
+          description: string
+          entity_id: string
+          id: string
+          price_max: number | null
+          price_min: number | null
+          published_at: string | null
+          service_kind: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          deleted_at?: string | null
+          description: string
+          entity_id: string
+          id?: string
+          price_max?: number | null
+          price_min?: number | null
+          published_at?: string | null
+          service_kind: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          deleted_at?: string | null
+          description?: string
+          entity_id?: string
+          id?: string
+          price_max?: number | null
+          price_min?: number | null
+          published_at?: string | null
+          service_kind?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_listings_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_request_details: {
         Row: {
           account_no: string | null
@@ -7057,6 +7705,88 @@ export type Database = {
           },
         ]
       }
+      store_products: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stores: {
+        Row: {
+          country_code: string
+          created_at: string
+          entity_id: string
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          entity_id: string
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          entity_id?: string
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stores_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       warranties: {
         Row: {
           created_at: string
@@ -7337,6 +8067,10 @@ export type Database = {
         Args: { _template_id: string }
         Returns: string
       }
+      add_cart_item: {
+        Args: { _cart_id: string; _product_id: string; _quantity: number }
+        Returns: undefined
+      }
       add_document_version: {
         Args: {
           _checksum_sha256: string
@@ -7364,6 +8098,15 @@ export type Database = {
           _item_id: string
           _kind: string
           _note?: string
+        }
+        Returns: string
+      }
+      add_store_product: {
+        Args: {
+          _description?: string
+          _name: string
+          _price: number
+          _store_id: string
         }
         Returns: string
       }
@@ -7419,6 +8162,10 @@ export type Database = {
         Args: { _template_id: string }
         Returns: string
       }
+      archive_service_listing: {
+        Args: { _listing_id: string }
+        Returns: undefined
+      }
       assign_media_photographer: {
         Args: {
           _photographer_entity_id?: string
@@ -7435,6 +8182,10 @@ export type Database = {
           _checksum?: string
           _object_path: string
         }
+        Returns: undefined
+      }
+      attach_payment_receipt: {
+        Args: { _order_id: string; _receipt_path: string }
         Returns: undefined
       }
       auto_assign_queue_item: { Args: { _item_id: string }; Returns: string }
@@ -7458,6 +8209,10 @@ export type Database = {
           _version_id: string
         }
         Returns: boolean
+      }
+      cancel_appointment: {
+        Args: { _appointment_id: string; _reason?: string }
+        Returns: undefined
       }
       cancel_financial_document: {
         Args: { _document_id: string; _reason: string }
@@ -7486,6 +8241,19 @@ export type Database = {
       }
       close_request: {
         Args: { _reason?: string; _request_id: string }
+        Returns: string
+      }
+      complete_appointment: {
+        Args: { _appointment_id: string }
+        Returns: undefined
+      }
+      confirm_appointment: {
+        Args: { _appointment_id: string }
+        Returns: undefined
+      }
+      confirm_order_payment: { Args: { _order_id: string }; Returns: undefined }
+      create_cart: {
+        Args: { _buyer_entity_id: string; _store_id: string }
         Returns: string
       }
       create_document: {
@@ -7720,6 +8488,7 @@ export type Database = {
         }
         Returns: Json
       }
+      export_entity_data: { Args: { _entity_id: string }; Returns: Json }
       forfeit_retention: {
         Args: { _hold_id: string; _reason: string }
         Returns: string
@@ -7735,6 +8504,10 @@ export type Database = {
           _staff_user_id: string
         }
         Returns: string
+      }
+      grant_entity_entitlement: {
+        Args: { _code: string; _entity_id: string; _expires_at?: string }
+        Returns: undefined
       }
       invite_project_party: {
         Args: {
@@ -7853,6 +8626,14 @@ export type Database = {
         }
         Returns: number
       }
+      open_store: {
+        Args: { _country_code: string; _entity_id: string; _name: string }
+        Returns: string
+      }
+      place_order: {
+        Args: { _cart_id: string; _payment_method: string }
+        Returns: string
+      }
       platform_me: { Args: never; Returns: Json }
       post_request_message: {
         Args: {
@@ -7865,6 +8646,22 @@ export type Database = {
       }
       project_completion: { Args: { _project_id: string }; Returns: Json }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      propose_appointment: {
+        Args: {
+          _cancel_hours?: number
+          _duration_minutes?: number
+          _kind: string
+          _listing_id?: string
+          _notes?: string
+          _provider_entity_id: string
+          _provider_timezone: string
+          _requester_entity_id: string
+          _requester_timezone: string
+          _starts_at: string
+          _title: string
+        }
+        Returns: string
+      }
       publish_media_asset: {
         Args: { _asset_id: string; _public_object_path: string }
         Returns: string
@@ -7877,6 +8674,19 @@ export type Database = {
           _summary_en?: string
           _title_ar: string
           _title_en: string
+        }
+        Returns: string
+      }
+      publish_service_listing: {
+        Args: {
+          _areas?: Json
+          _description: string
+          _entity_id: string
+          _price_max?: number
+          _price_min?: number
+          _publish?: boolean
+          _service_kind: string
+          _title: string
         }
         Returns: string
       }
@@ -8022,6 +8832,7 @@ export type Database = {
         Returns: string
       }
       restore_document: { Args: { _document_id: string }; Returns: boolean }
+      restore_subscription: { Args: { _entity_id: string }; Returns: undefined }
       resubmit_disbursement_request: {
         Args: {
           _evidence: Json
@@ -8061,6 +8872,10 @@ export type Database = {
         Returns: string
       }
       revoke_case_access: { Args: { _case_id: string }; Returns: undefined }
+      revoke_entity_entitlement: {
+        Args: { _code: string; _entity_id: string }
+        Returns: undefined
+      }
       revoke_marketing_package: {
         Args: { _package_id: string }
         Returns: undefined
@@ -8141,6 +8956,10 @@ export type Database = {
         Args: { _item_id: string; _status: string }
         Returns: undefined
       }
+      simulate_subscription_expiry: {
+        Args: { _entity_id: string; _grace_days?: number }
+        Returns: undefined
+      }
       soft_delete_document: {
         Args: { _document_id: string; _reason: string }
         Returns: string
@@ -8184,6 +9003,17 @@ export type Database = {
           _template_id: string
         }
         Returns: string
+      }
+      update_service_listing: {
+        Args: {
+          _description?: string
+          _listing_id: string
+          _price_max?: number
+          _price_min?: number
+          _status?: string
+          _title?: string
+        }
+        Returns: undefined
       }
       update_service_request_details: {
         Args: {
@@ -8244,6 +9074,7 @@ export type Database = {
         }
         Returns: string
       }
+      use_advanced_analytics: { Args: { _entity_id: string }; Returns: Json }
       verify_marketing_package: { Args: { _token: string }; Returns: Json }
       verify_report: {
         Args: { _token: string }
@@ -8283,6 +9114,8 @@ export type Database = {
         | "properties"
         | "marketing"
         | "media"
+        | "marketplace"
+        | "commerce"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
@@ -8468,6 +9301,8 @@ export const Constants = {
         "properties",
         "marketing",
         "media",
+        "marketplace",
+        "commerce",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       breakglass_status: ["pending", "approved", "denied", "expired"],

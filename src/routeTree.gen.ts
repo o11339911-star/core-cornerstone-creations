@@ -13,10 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
+import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
+import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
+import { Route as AuthIndexRouteImport } from './routes/auth.index'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
@@ -79,6 +82,12 @@ const SelectAccountRoute = SelectAccountRouteImport.update({
   path: '/select-account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppointmentsRoute =
+  AuthenticatedAppointmentsRouteImport.update({
+    id: '/appointments',
+    path: '/appointments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -89,6 +98,12 @@ const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
   path: '/marketing',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketplaceRoute =
+  AuthenticatedMarketplaceRouteImport.update({
+    id: '/marketplace',
+    path: '/marketplace',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
@@ -99,6 +114,11 @@ const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
   id: '/platform',
   path: '/platform',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   id: '/forgot-password',
@@ -350,8 +370,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/appointments': typeof AuthenticatedAppointmentsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -361,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/auth/': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -399,10 +422,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/appointments': typeof AuthenticatedAppointmentsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -411,6 +435,7 @@ export interface FileRoutesByTo {
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/auth': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -453,8 +478,10 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
+  '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -464,6 +491,7 @@ export interface FileRoutesById {
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/auth/': typeof AuthIndexRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -506,8 +534,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/select-account'
+    | '/appointments'
     | '/dashboard'
     | '/marketing'
+    | '/marketplace'
     | '/notifications'
     | '/platform'
     | '/auth/forgot-password'
@@ -517,6 +547,7 @@ export interface FileRouteTypes {
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
+    | '/auth/'
     | '/admin/report-templates'
     | '/n/$notificationId'
     | '/platform/breakglass'
@@ -555,10 +586,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth'
     | '/select-account'
+    | '/appointments'
     | '/dashboard'
     | '/marketing'
+    | '/marketplace'
     | '/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -567,6 +599,7 @@ export interface FileRouteTypes {
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
+    | '/auth'
     | '/admin/report-templates'
     | '/n/$notificationId'
     | '/platform/breakglass'
@@ -608,8 +641,10 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/select-account'
+    | '/_authenticated/appointments'
     | '/_authenticated/dashboard'
     | '/_authenticated/marketing'
+    | '/_authenticated/marketplace'
     | '/_authenticated/notifications'
     | '/_authenticated/platform'
     | '/auth/forgot-password'
@@ -619,6 +654,7 @@ export interface FileRouteTypes {
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
+    | '/auth/'
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breakglass'
@@ -699,6 +735,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SelectAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/appointments': {
+      id: '/_authenticated/appointments'
+      path: '/appointments'
+      fullPath: '/appointments'
+      preLoaderRoute: typeof AuthenticatedAppointmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -711,6 +754,13 @@ declare module '@tanstack/react-router' {
       path: '/marketing'
       fullPath: '/marketing'
       preLoaderRoute: typeof AuthenticatedMarketingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/marketplace': {
+      id: '/_authenticated/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof AuthenticatedMarketplaceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -726,6 +776,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform'
       preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth/': {
+      id: '/auth/'
+      path: '/'
+      fullPath: '/auth/'
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/auth/forgot-password': {
       id: '/auth/forgot-password'
@@ -1044,8 +1101,10 @@ const AuthenticatedPlatformRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppointmentsRoute: typeof AuthenticatedAppointmentsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
+  AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
@@ -1081,8 +1140,10 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppointmentsRoute: AuthenticatedAppointmentsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
+  AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedAdminReportTemplatesRoute:
@@ -1145,11 +1206,13 @@ const AuthenticatedRouteRouteWithChildren =
 interface AuthRouteChildren {
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthIndexRoute: AuthIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
