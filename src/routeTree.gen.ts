@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
+import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
@@ -81,6 +82,12 @@ const SelectAccountRoute = SelectAccountRouteImport.update({
   path: '/select-account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppointmentsRoute =
+  AuthenticatedAppointmentsRouteImport.update({
+    id: '/appointments',
+    path: '/appointments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -363,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/appointments': typeof AuthenticatedAppointmentsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -415,6 +423,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/select-account': typeof SelectAccountRoute
+  '/appointments': typeof AuthenticatedAppointmentsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -469,6 +478,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -524,6 +534,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/select-account'
+    | '/appointments'
     | '/dashboard'
     | '/marketing'
     | '/marketplace'
@@ -576,6 +587,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/select-account'
+    | '/appointments'
     | '/dashboard'
     | '/marketing'
     | '/marketplace'
@@ -629,6 +641,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/select-account'
+    | '/_authenticated/appointments'
     | '/_authenticated/dashboard'
     | '/_authenticated/marketing'
     | '/_authenticated/marketplace'
@@ -721,6 +734,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/select-account'
       preLoaderRoute: typeof SelectAccountRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/appointments': {
+      id: '/_authenticated/appointments'
+      path: '/appointments'
+      fullPath: '/appointments'
+      preLoaderRoute: typeof AuthenticatedAppointmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -1081,6 +1101,7 @@ const AuthenticatedPlatformRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppointmentsRoute: typeof AuthenticatedAppointmentsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
@@ -1119,6 +1140,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppointmentsRoute: AuthenticatedAppointmentsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
