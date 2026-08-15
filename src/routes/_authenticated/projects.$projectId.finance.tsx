@@ -148,6 +148,8 @@ function FinancePage() {
   const milestones = milestonesQuery.data ?? [];
   const anyMasked = milestones.some((m) => m.amounts_masked);
 
+  const tabs = ["milestones", "documents", "retention", "ledger"] as const;
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
       <header className="mb-6">
@@ -156,8 +158,34 @@ function FinancePage() {
 
       <FinanceDisclaimer />
 
+      <div role="tablist" aria-label={t("finance.title")} className="mt-6 flex flex-wrap gap-2">
+        {tabs.map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => setTab(key)}
+            className={`min-h-11 rounded-md border px-4 text-sm font-medium ${
+              tab === key
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-input bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            {t(`finance.tabs.${key}`)}
+          </button>
+        ))}
+      </div>
+
+      {tab === "documents" ? <div className="mt-6"><DocumentsTab projectId={projectId} /></div> : null}
+      {tab === "retention" ? <div className="mt-6"><RetentionTab projectId={projectId} /></div> : null}
+      {tab === "ledger" ? <div className="mt-6"><LedgerTab projectId={projectId} /></div> : null}
+
+      {tab !== "milestones" ? null : (
+      <>
       <RakeezCard className="mt-6" title={t("finance.newMilestone")} description={t("finance.sodHint")}>
         <form
+
           className="grid gap-4 sm:grid-cols-2"
           onSubmit={(e) => {
             e.preventDefault();
