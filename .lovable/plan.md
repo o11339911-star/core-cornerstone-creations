@@ -1,94 +1,88 @@
-# المرحلة 10 — العقود والملاحق والمراسلات (خطة)
-
-## 0. إصلاح مسبق ضروري (من المرحلة 9)
-
-أثناء الاختبار الحي للمرحلة 9 ظهر خطأ حقيقي مؤكد: سياسة عرض `project_stages` تستدعي
-`private.stage_in_scope`، لكن هذه الدالة غير ممنوحة صلاحية التنفيذ للمستخدمين المسجّلين،
-فيفشل أي استعلام للمراحل بالخطأ `permission denied for function stage_in_scope`.
-أول بند في Migration هذه المرحلة: منح `execute` على `private.stage_in_scope` لدور
-`authenticated` (نفس نمط بقية دوال `private` المستخدمة داخل السياسات).
+# المرحلة 11 — المراحل والتنفيذ والزيارات الميدانية
 
 ## 1. المبدأ العام
 
-- لا مفهوم "طرف" جديد: أطراف العقد تشير إلى `project_parties` (المرحلة 9) أو إلى كيان/مستخدم داخلي.
-- لا محرك صلاحيات موازٍ: كل قرار وصول يمر عبر `private.can(...)` بوحدتي `contracts` و`correspondence` الموجودتين في `app_module`.
-- لا ادّعاء توقيع إلكتروني موثّق نظاميًا: التسمية في القاعدة والواجهة هي **"اعتماد داخلي" / internal approval**، وليست "توقيع رسمي".
-- كل شيء إضافة لا حذف: الإصدارات append-only، الإنهاء بتغيير حالة لا بحذف.
+المرحلة تُدار كـ"وحدة تنفيذ" لها أصحاب أدوار، وسجل تنفيذ يومي، وزيارات ميدانية موثّقة، وملاحظات فنية بدورة حياة واضحة، ولا تُغلق إلا باستيفاء معايير إكمال معلنة + اعتماد صريح من شخص غير المنفّذ.
 
-## 2. الجداول الجديدة
+لا نكرر ما هو قائم: `project_stages` و`stage_dependencies` (المرحلة 4) هما مصدر الحقيقة للمراحل والتبعيات، و`private.can` (المرحلة 5) هو محرك الصلاحية الوحيد، و`permission_audit_log` (المرحلة 5) هو سجل التدقيق الوحيد.
 
-| الجدول | الغرض | ملاحظات أساسية |
-|---|---|---|
-| `contracts` | العقد الأب: مشروع، عقار اختياري، نوع، رقم، عملة، حالة (`draft/active/suspended/completed/terminated`)، إصدار حالي | لا يحمل قيمة مالية مباشرة — القيمة تعيش في الإصدار |
-| `contract_versions` | نسخة العقد: رقم إصدار تلقائي، القيمة المالية، مدة، شروط، ملف، سبب الإصدار | append-only بعد الاعتماد |
-| `contract_parties` | ربط العقد بطرف: إما `project_party_id` (طرف خارجي من المرحلة 9) أو `entity_id`/`user_id` داخلي + دور الطرف في العقد (`first_party/second_party/witness/consultant`) وحالة الاعتماد الداخلي |
-| `contract_stages` | ربط العقد بمراحل المشروع الفعلية من `project_stages` | لا نصوص حرة لأسماء المراحل |
-| `contract_extensions` | طلب تمديد: مقدَّم من طرف، تاريخ جديد مطلوب، سبب — **منفصل تمامًا** عن الموافقة (حقول قرار مستقلة: `decided_by`, `decision`, `decided_at`, `decision_note`) | الطلب لا يغيّر تاريخ العقد؛ الموافقة فقط تُنشئ إصدارًا جديدًا |
-| `change_orders` | أمر تغيير: وصف، أثر على القيمة، أثر على المدة، حالة (`requested/under_review/approved/rejected/withdrawn`)، مرجع الإصدار الناتج |
-| `correspondence_threads` | سلسلة مراسلات مرتبطة بمشروع (وعقد/مرحلة اختياريًا)، موضوع، حالة (`open/closed`) |
-| `correspondence_messages` | رسالة داخل السلسلة: كاتبها، النص، مرفق اختياري، **`visibility`** |
+## 2. تعديلات على الموجود (توسيع لا استبدال)
 
-### الرؤية على الرسائل (بند 2)
+- `project_stages`: إضافة `parent_stage_id` (مرحلة فرعية داخل مرحلة رئيسية، مع منع الدوران عبر تريجر ومنع تجاوز مستويين)، و`actual_start` / `actual_end`، و`completion_note`، و`approved_by` / `approved_at`.
+- توسيع قيم `project_stages.status` لتشمل دورة حياة أوضح: `pending → in_progress → submitted → approved` مع `rework` و`skipped`. الانتقالات المسموحة تُفرض بتريجر (لا قفزة من `pending` إلى `approved`).
+- `permission_audit_log`: توسيع قائمة `object_type` لتشمل كيانات هذه المرحلة (`project_stages`, `stage_roles`, `stage_progress`, `site_visits`, `stage_observations`, `observation_actions`, `stage_attachments`)، وتوسيع `action` بقيمة `status_change`. لا جدول تدقيق موازٍ.
 
-عمود `visibility` على كل رسالة بثلاث قيم صريحة:
+## 3. الجداول الجديدة
 
-- `shared` — تظهر لكل من يملك وصولًا للسلسلة.
-- `party_limited` — تظهر لأطراف محددين فقط عبر جدول `correspondence_message_audience` (نفس نمط `assignment_visibility_audience` من المرحلة 6).
-- `internal_note` — ملاحظة داخلية: تظهر فقط لأعضاء كيان صاحب السلسلة، ولا تظهر لمقدّم الطلب ولا لأي طرف خارجي مهما كانت صلاحياته على المشروع.
+- `stage_roles` — من يشغل أي دور على المرحلة: `stage_id`, `user_id`, `entity_id`, `role` ∈ (`responsible`, `executor`, `reviewer`, `approver`), `assigned_by`, `starts_on`, `ends_on`, `status`.
+- `stage_completion_criteria` — معايير الإكمال: `stage_id`, `code`, `label_ar/en`, `is_required`, `evidence_type` ∈ (`file`, `visit`, `checklist`, `text`), `weight`.
+- `stage_criteria_results` — استيفاء المعيار: `criterion_id`, `satisfied`, `evidence_attachment_id`, `evidence_visit_id`, `note`, `recorded_by`.
+- `stage_progress` — تحديثات التقدّم: `stage_id`, `percent` (0-100)، `note`, `reported_by`, `reported_at` (سطر لكل تحديث، غير قابل للتعديل أو الحذف).
+- `site_visits` — الزيارة الميدانية: `stage_id`, `project_id`, `visited_by`, `visit_start`, `visit_end`, `summary`, `weather_note`, `location_consent` (منطقي، افتراضي false)، `location_reason` ∈ (`inspection`, `handover`, `incident`, `other`).
+- `site_visit_locations` — الإحداثيات الدقيقة في جدول منفصل (نفس نمط `property_exact_locations` من المرحلة 7): `visit_id`, `lat`, `lng`, `accuracy_m`. لا يُكتب سطر هنا إلا مع `location_consent = true` وسبب مذكور (تريجر يفرض ذلك).
+- `stage_observations` — ملاحظة فنية / عدم مطابقة: `stage_id`, `visit_id`, `kind` ∈ (`note`, `nonconformity`), `severity` ∈ (`low`, `medium`, `high`, `critical`), `title`, `body`, `status`, `raised_by`, `due_on`.
+- `observation_actions` — الإجراء التصحيحي: `observation_id`, `action_text`, `assigned_to`, `due_on`, `status`, `completed_at`, `completed_by`.
+- `observation_reinspections` — إعادة الفحص: `observation_id`, `action_id`, `inspected_by`, `result` ∈ (`passed`, `failed`), `note`, `visit_id`.
+- `stage_attachments` — المرفقات والصور: `stage_id`, `visit_id`, `observation_id`, `file_path`, `file_hash`, `mime_type`, `kind` ∈ (`photo`, `document`, `report`), `uploaded_by`. الملفات نفسها في bucket خاص.
 
-السياسات تنفّذ هذا في القاعدة، لا في الواجهة — أي استعلام مباشر من طرف خارجي يعيد صفوفًا أقل فعليًا.
+## 4. دورات الحالة
 
-### رؤية القيمة المالية (بند 3)
+```text
+المرحلة:      pending -> in_progress -> submitted -> approved
+                             ^              |
+                             +--- rework <--+            (skipped من pending فقط)
 
-القيمة المالية لا تُخفى بالواجهة، بل بالبنية:
+الملاحظة:     open -> action_assigned -> action_done -> reinspection -> closed
+                                                    \-> failed -> action_assigned
 
-- `contract_versions` يحوي الحقول المالية، وسياسته تشترط `private.can(uid,'finance','view',entity,project)`.
-- الحقول غير المالية (المدة، الشروط، المرفق، رقم الإصدار) تُقرأ عبر `contract_versions_public` — عرض `security_invoker` يُظهر الأعمدة المالية كـ `NULL` لمن لا يملك `finance/view`، مع علم `can_view_amounts`.
-- النتيجة: مقاول يرى وجود عقد مكتب الإشراف ومدته إن كان ضمن نطاقه، ويرى `NULL` مكان القيمة — لا تسريب على مستوى الـAPI.
+الإجراء:      assigned -> in_progress -> done -> verified | rejected
+```
 
-## 3. الوصول (تفصيل)
+كل انتقال حالة يُسجَّل تلقائيًا في `permission_audit_log` بـ `action = 'status_change'` مع القيمة القديمة والجديدة، عبر تريجر AFTER — والجدول أصلًا append-only ومحمي من الكتابة المباشرة.
 
-- `contracts`: قراءة إذا `private.can(uid,'contracts','view',entity,project)` **و** كان المستخدم ضمن نطاق المشروع (`private.can_access_project`) أو طرفًا في العقد نفسه.
-- طرف خارجي (`accepted_party_entity`): يرى فقط العقود التي هو طرف فيها، ومراحلها ضمن `private.stage_in_scope` — لا يرى عقود الأطراف الأخرى.
-- الكتابة/التعديل: `contracts/update` أو `contracts/create` حسب الفعل، عبر `private.can` فقط.
-- دالة مساعدة واحدة جديدة: `private.can_access_contract(_user_id, _contract_id)` تجمع الشروط أعلاه وتُستخدم في سياسات الجداول التابعة (نفس نمط `can_access_property`). ستكون `SECURITY DEFINER` مع فحص صلاحية حقيقي داخلها، وممنوحة `execute` لـ`authenticated` لأنها تُستدعى من السياسات.
+## 5. قاعدة منع الاعتماد الذاتي (فصل المهام)
 
-## 4. عدم تعديل النسخة المعتمدة (بند 6)
+- اعتماد المرحلة يتم حصريًا عبر دالة `public.approve_stage(_stage_id, _note)`:
+  - يجب أن يملك المُعتمِد `private.can(..., 'stages', 'approve', ...)`.
+  - يجب أن تكون المرحلة في حالة `submitted`.
+  - يجب أن تكون كل المعايير الإلزامية مستوفاة، وكل عدم مطابقة `high`/`critical` مغلقة.
+  - **يُرفض** إذا كان المُعتمِد هو نفسه من قدّم المرحلة (`submitted_by`) أو مسجَّلًا عليها بدور `executor` — نفس نمط `decide_contract_extension` في المرحلة 10.
+- إعادة الفحص (`observation_reinspections`) لا يجوز أن يقوم بها منفّذ الإجراء التصحيحي نفسه.
+- الفصل قابل للتعطيل على مستوى المشروع فقط بعلم واضح (`projects.requires_segregation`، افتراضي `true`)، ويُسجَّل أي تعطيل في سجل التدقيق.
 
-- تريجر `assign_contract_version` يرقّم الإصدار تلقائيًا (نمط `assign_deed_version`).
-- تريجر `contract_versions_lock`: يرفض أي `UPDATE`/`DELETE` على صف `approved_at is not null` برسالة واضحة (نمط `prevent_row_mutation` من المرحلة 7). التعديل قبل الاعتماد مسموح؛ بعده الطريق الوحيد هو ملحق/إصدار جديد.
-- تريجر `sync_contract_current_version` يحدّث `contracts.current_version_id` عند إدراج إصدار جديد.
-- الموافقة على `contract_extensions` أو `change_orders` تُنشئ **إصدارًا جديدًا** يشير إلى مصدره (`source_extension_id` / `source_change_order_id`) ولا تلمس الإصدار السابق إطلاقًا.
+## 6. الوصول والخصوصية
 
-## 5. الأثر التدقيقي (بند 4)
+- كل جداول المرحلة 11 عليها RLS، والقراءة تمر عبر `private.stage_in_scope` + `private.can(..., 'stages'|'documents', 'view', ...)`، بحيث لا يرى الطرف الخارجي إلا المراحل المتفق عليها في نطاقه (المرحلة 9).
+- سياسات القراءة تُكتب بأسلوب "بيانات السطر" (تمرير `stage_id`/`project_id` للدالة) وليس بإعادة الاستعلام عن نفس الجدول، تفاديًا لمشكلة عدم ظهور السطر فور إنشائه التي عولجت في المرحلة 10.
+- الموقع الدقيق للزيارة محجوب افتراضيًا: يظهر فقط لمن يملك `view_exact`، ولا يُخزَّن أصلًا بلا موافقة صريحة وسبب. الزائر يرى دائمًا موقعه هو.
+- كل الدوال الجديدة `SECURITY DEFINER` تبدأ بفحص `auth.uid()` ثم `private.can(...)`، و`EXECUTE` محجوب عن `anon`.
 
-تريجرات على `contracts`, `contract_versions`, `contract_parties`, `contract_extensions`, `change_orders`
-تكتب في `permission_audit_log` الموجود (`object_type` = `contract`, `contract_version`, `contract_party`, `contract_extension`, `change_order`).
-تسمية حقول الاعتماد: `approved_by` / `approved_at` / `approval_note` — ولا تُستخدم كلمة "توقيع" في القاعدة ولا في نصوص الواجهة؛ نص الواجهة: «اعتماد داخلي — لا يُعد توقيعًا إلكترونيًا موثقًا».
+## 7. التخزين
 
-## 6. الطبقة الخادمية والواجهة
+bucket خاص جديد `stage-evidence` بنفس نمط `property-documents`:
+- غير عام، مسار `project_id/stage_id/...`.
+- سياسات storage تعتمد على نفس دوال الصلاحية.
+- الرفع والقراءة عبر server functions تُصدر signed URL قصيرة الأجل بعد فحص صلاحية خادمي؛ لا وصول مباشر من المتصفح بمفتاح.
 
-- `src/lib/contracts.functions.ts`: قائمة العقود، ملف العقد، إنشاء عقد + إصدار أول، إضافة إصدار، إضافة/إزالة طرف، ربط مراحل، طلب تمديد، البتّ في التمديد، أمر تغيير والبتّ فيه، اعتماد داخلي.
-- `src/lib/correspondence.functions.ts`: السلاسل، الرسائل، إنشاء رسالة مع مستوى رؤية وجمهور محدد.
-- دوال RPC `SECURITY DEFINER` فقط حيث تلزم الذرّية: `approve_contract_version`, `decide_contract_extension`, `decide_change_order` — وكلها تبدأ بفحص `private.can` داخلي.
-- الواجهة:
-  - `projects.$projectId.contracts.tsx` — قائمة عقود المشروع.
-  - `contracts.$contractId.tsx` — ملخص أعلى الصفحة (الحالة، الطرف، المدة، القيمة إن سُمح) + تبويبات مطوية: الإصدارات، الأطراف، المراحل، التمديدات، أوامر التغيير.
-  - `projects.$projectId.correspondence.tsx` — السلاسل والرسائل مع وسم بصري واضح للملاحظة الداخلية.
-- مفاتيح i18n جديدة (`contracts`, `correspondence`) في `ar.ts` و`en.ts`.
+## 8. طبقة التطبيق
 
-## 7. الترتيب التنفيذي (بعد اعتمادك)
+- `src/lib/stages.functions.ts`: قائمة المراحل بشجرة رئيسية/فرعية، تحديث التقدّم، تقديم المرحلة، اعتمادها، إدارة الأدوار والمعايير.
+- `src/lib/site-visits.functions.ts`: إنشاء زيارة (مع الموافقة على الموقع)، رفع الصور، الملاحظات والإجراءات وإعادة الفحص، وإصدار signed URLs.
+- الواجهات: `projects.$projectId.stages.tsx` (شجرة المراحل + التبعيات + الحالة)، `projects.$projectId.stages.$stageId.tsx` (الأدوار، المعايير، التقدّم، الخط الزمني، المرفقات)، و`projects.$projectId.visits.tsx` (الزيارات والملاحظات).
+- مفاتيح i18n عربية/إنجليزية لكل الحالات والأدوار والرسائل.
 
-1. Migration واحدة: منح `stage_in_scope` + الأنواع + الجداول + GRANT + RLS + السياسات + التريجرات + العرض + الدوال.
-2. تحديث `src/lib/database.ts` والأنواع المولّدة.
-3. الطبقة الخادمية (`contracts.functions.ts`, `correspondence.functions.ts`).
-4. i18n ثم صفحات الواجهة.
-5. اختبار حي ثم تنظيف كامل موثّق ثم Supabase Advisors.
+## 9. ترتيب التنفيذ عند الاعتماد
 
-## 8. الاختبارات الحية المخططة (تُنفَّذ بعد الاعتماد فقط)
+1. Migration: توسيع `project_stages` و`permission_audit_log`، الجداول التسعة الجديدة، الدوال المساعدة، التريجرات، RLS + GRANTs.
+2. إنشاء bucket `stage-evidence` وسياساته.
+3. server functions ثم الواجهات وi18n.
+4. اختبارات حية بحسابات واضحة الأسماء (`p11-*`)، ثم حذف كامل لبيانات الاختبار والمستخدمين والملفات، ثم Supabase Advisors ومعالجة أي Finding.
 
-1. `UPDATE` على إصدار معتمد → مرفوض؛ الملحق يُنشئ إصدارًا جديدًا والأصل سليم.
-2. طلب تمديد لا يغيّر تاريخ العقد؛ الموافقة وحدها تُنشئ الإصدار الجديد؛ ولا يستطيع مقدّم الطلب البتّ في طلبه.
-3. مستخدم بلا `finance/view` يقرأ العقد فيعود مبلغ `NULL` فعليًا (تحقق من القيمة الراجعة لا من الواجهة).
-4. طرف خارجي لا يرى عقد طرف آخر، ولا يرى أي رسالة `internal_note`، ويرى `shared` ضمن نطاقه.
-5. إنهاء الطرف (المرحلة 9) يقطع وصوله للعقد المستقبلي بينما تبقى إصداراته ورسائله السابقة مؤرشفة كما هي.
+## 10. اختبارات القبول
+
+1. منفّذ المرحلة يحاول اعتماد عمله → رفض صريح؛ معتمِد آخر ينجح.
+2. اعتماد مرحلة بمعيار إلزامي غير مستوفٍ أو عدم مطابقة حرجة مفتوحة → رفض.
+3. رفع ملف وحده لا يغيّر حالة المرحلة إلى `approved`.
+4. زيارة بلا موافقة موقع → لا يُخزَّن أي إحداثي؛ ومع موافقة، الإحداثي محجوب عمن لا يملك `view_exact`.
+5. دورة عدم مطابقة كاملة: فتح → إجراء → إعادة فحص فاشلة → إجراء جديد → إعادة فحص ناجحة → إغلاق، مع ظهور كل انتقال في الخط الزمني وعدم إمكانية تعديله أو حذفه.
+6. طرف خارجي يرى مراحل نطاقه فقط، ولا يرى ملاحظات مراحل خارج نطاقه.
