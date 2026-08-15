@@ -42,11 +42,11 @@ export const listDocumentCategories = createServerFn({ method: "GET" })
 
 export const listMyDocumentEntities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context, userId }) => {
+  .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("entity_memberships")
       .select("entity_id, role, entities(id, name_ar, name_en)")
-      .eq("user_id", userId)
+      .eq("user_id", context.userId)
       .eq("status", "active");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => ({
@@ -169,7 +169,7 @@ export const createDocument = createServerFn({ method: "POST" })
       _owner_entity_id: data.ownerEntityId,
       _category_code: data.categoryCode,
       _title: data.title,
-      _description: data.description ?? null,
+      _description: data.description ?? undefined,
       _visibility: data.visibility ?? "entity_private",
     });
     if (error) throw new Error(error.message);
@@ -199,7 +199,7 @@ export const reserveDocumentVersion = createServerFn({ method: "POST" })
       _mime_type: data.mimeType,
       _size_bytes: data.sizeBytes,
       _checksum_sha256: data.checksumSha256.toLowerCase(),
-      _supersede_reason: data.supersedeReason ?? null,
+      _supersede_reason: data.supersedeReason ?? undefined,
       _source: data.source ?? "upload",
     });
     if (error) throw new Error(error.message);
@@ -303,7 +303,7 @@ export const approveDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("approve_document", {
       _document_id: data.documentId,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
