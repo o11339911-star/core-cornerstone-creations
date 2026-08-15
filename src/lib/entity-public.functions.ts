@@ -105,17 +105,17 @@ export const saveEntityPublicProfile = createServerFn({ method: "POST" })
     const { data: slug, error } = await context.supabase.rpc("upsert_entity_public_profile", {
       _entity_id: data.entityId,
       _display_name_ar: data.displayNameAr,
-      _display_name_en: data.displayNameEn ?? undefined,
-      _activity_ar: data.activityAr ?? undefined,
-      _activity_en: data.activityEn ?? undefined,
       _services: data.services,
       _regions: data.regions,
-      _bio_ar: data.bioAr ?? undefined,
-      _bio_en: data.bioEn ?? undefined,
-      _logo_url: data.logoUrl ?? undefined,
-      _website_url: data.websiteUrl ?? undefined,
-      _public_email: data.publicEmail ?? undefined,
-      _public_phone: data.publicPhone ?? undefined,
+      ...(data.displayNameEn ? { _display_name_en: data.displayNameEn } : {}),
+      ...(data.activityAr ? { _activity_ar: data.activityAr } : {}),
+      ...(data.activityEn ? { _activity_en: data.activityEn } : {}),
+      ...(data.bioAr ? { _bio_ar: data.bioAr } : {}),
+      ...(data.bioEn ? { _bio_en: data.bioEn } : {}),
+      ...(data.logoUrl ? { _logo_url: data.logoUrl } : {}),
+      ...(data.websiteUrl ? { _website_url: data.websiteUrl } : {}),
+      ...(data.publicEmail ? { _public_email: data.publicEmail } : {}),
+      ...(data.publicPhone ? { _public_phone: data.publicPhone } : {}),
     });
     if (error) throw new Error(error.message);
     return slug as string;
