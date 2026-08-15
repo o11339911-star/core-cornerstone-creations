@@ -139,16 +139,15 @@ function MarketplacePage() {
   return (
     <div className="space-y-6">
       <PageHero
-        eyebrow="المرحلة 24"
         title="سوق الخدمات"
-        description="أعلن عن خدمات كيانك ومناطق تغطيتها. هوية النشر تُشتق من حسابك النشط في الخادم — لا نشر باسم غيرك."
-        icon={Store}
+        subtitle="أعلن عن خدمات كيانك ومناطق تغطيتها. هوية النشر تُشتق من حسابك النشط في الخادم — لا نشر باسم غيرك."
+        badge={<HeroBadge>المرحلة 24</HeroBadge>}
       >
         <HeroBadge>{rows.length} إعلانًا</HeroBadge>
         <HeroBadge>منفصل عن بيانات المشاريع</HeroBadge>
       </PageHero>
 
-      <SectionCard title="نشر إعلان خدمة" description="يظهر الإعلان للجميع فور نشره.">
+      <SectionCard icon={Store} title="نشر إعلان خدمة">
         <FieldGrid>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">الكيان الناشر</span>
@@ -254,8 +253,9 @@ function MarketplacePage() {
       </SectionCard>
 
       <SectionCard
+        icon={Sparkles}
         title="الإعلانات المنشورة"
-        description="تصفية حسب نوع الخدمة."
+        count={rows.length}
         action={
           <div className="flex flex-wrap gap-2">
             <Button
@@ -290,8 +290,7 @@ function MarketplacePage() {
         ) : rows.length === 0 ? (
           <SoftEmpty
             icon={Sparkles}
-            title="لا توجد إعلانات بعد"
-            description="انشر أول إعلان خدمة لكيانك ليظهر هنا."
+            message="لا توجد إعلانات بعد — انشر أول إعلان خدمة لكيانك ليظهر هنا."
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
