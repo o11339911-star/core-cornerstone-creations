@@ -3,10 +3,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { BellRing } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ErrorState } from "@/components/rakeez";
+import {
+  CardsSkeleton,
+  ErrorState,
+  HeroBadge,
+  PageHero,
+  SectionCard,
+  SoftEmpty,
+} from "@/components/rakeez";
 import { useT } from "@/i18n";
 import {
   listNotifications,
@@ -60,7 +68,7 @@ function NotificationsPage() {
   const markRead = useServerFn(markNotificationRead);
   const markAll = useServerFn(markAllNotificationsRead);
 
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: rows = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["notifications", "list", unreadOnly],
     queryFn: () => fetchList({ data: { unreadOnly } }),
   });
@@ -81,73 +89,98 @@ function NotificationsPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">{t("notifications.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("notifications.subtitle")}</p>
-      </header>
-
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Button variant={unreadOnly ? "outline" : "default"} size="sm" onClick={() => setUnreadOnly(false)}>
-          {t("notifications.all")}
-        </Button>
-        <Button variant={unreadOnly ? "default" : "outline"} size="sm" onClick={() => setUnreadOnly(true)}>
-          {t("notifications.unreadOnly")}
-        </Button>
-        <div className="ms-auto flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => readAll.mutate()}>
-            {t("notifications.markAll")}
-          </Button>
-          <Link
-            to="/settings/notifications"
-            className="inline-flex min-h-9 items-center rounded-md border border-input px-3 text-sm font-medium"
+    <div className="mx-auto min-h-screen w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={t("notifications.title")}
+        subtitle={t("notifications.subtitle")}
+        badge={<HeroBadge tone="neutral">{rows.length}</HeroBadge>}
+        aside={
+          <Button
+            variant="secondary"
+            className="min-h-11"
+            disabled={readAll.isPending}
+            onClick={() => readAll.mutate()}
           >
-            {t("notifications.preferences")}
-          </Link>
-        </div>
-      </div>
+            {readAll.isPending ? t("common.loading") : t("notifications.markAll")}
+          </Button>
+        }
+      />
 
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
-      ) : rows.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          {t("notifications.empty")}
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {rows.map((n) => (
-            <li
-              key={n.id}
-              className="rounded-lg border border-border bg-card p-4 shadow-sm"
+      <SectionCard
+        icon={BellRing}
+        title={t("notifications.title")}
+        count={rows.length}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={unreadOnly ? "outline" : "default"}
+              size="sm"
+              className="min-h-9"
+              onClick={() => setUnreadOnly(false)}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-foreground">
-                  {TYPE_LABEL_AR[n.type_code] ?? n.type_code}
-                </span>
-                {!n.read_at && <Badge variant="destructive">{t("notifications.unread")}</Badge>}
-                {n.severity === "critical" && <Badge variant="destructive">{t("notifications.security")}</Badge>}
-                <span className="ms-auto text-xs text-muted-foreground">
-                  {formatRiyadh(n.created_at)} · {t("notifications.riyadhTime")}
-                </span>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link
-                  to="/n/$notificationId"
-                  params={{ notificationId: n.id }}
-                  className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
-                >
-                  {t("notifications.open")}
-                </Link>
-                {!n.read_at && (
-                  <Button variant="outline" size="sm" onClick={() => readOne.mutate(n.id)}>
-                    {t("notifications.markRead")}
-                  </Button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+              {t("notifications.all")}
+            </Button>
+            <Button
+              variant={unreadOnly ? "default" : "outline"}
+              size="sm"
+              className="min-h-9"
+              onClick={() => setUnreadOnly(true)}
+            >
+              {t("notifications.unreadOnly")}
+            </Button>
+            <Link
+              to="/settings/notifications"
+              className="inline-flex min-h-9 items-center rounded-md border border-input px-3 text-sm font-medium"
+            >
+              {t("notifications.preferences")}
+            </Link>
+          </div>
+        }
+      >
+        {isLoading ? (
+          <CardsSkeleton cards={2} />
+        ) : isError ? (
+          <ErrorState onRetry={() => void refetch()} />
+        ) : rows.length === 0 ? (
+          <SoftEmpty icon={BellRing} message={t("notifications.empty")} />
+        ) : (
+          <ul className="space-y-3">
+            {rows.map((n) => (
+              <li key={n.id} className="rounded-lg border border-border bg-card p-4 shadow-card">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-foreground">
+                    {TYPE_LABEL_AR[n.type_code] ?? n.type_code}
+                  </span>
+                  {!n.read_at && <Badge variant="destructive">{t("notifications.unread")}</Badge>}
+                  {n.severity === "critical" && <Badge variant="destructive">{t("notifications.security")}</Badge>}
+                  <span className="ms-auto text-xs text-muted-foreground">
+                    {formatRiyadh(n.created_at)} · {t("notifications.riyadhTime")}
+                  </span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    to="/n/$notificationId"
+                    params={{ notificationId: n.id }}
+                    className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
+                  >
+                    {t("notifications.open")}
+                  </Link>
+                  {!n.read_at && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-9"
+                      onClick={() => readOne.mutate(n.id)}
+                    >
+                      {t("notifications.markRead")}
+                    </Button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+    </div>
   );
 }

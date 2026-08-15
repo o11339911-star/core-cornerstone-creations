@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
 import {
-  RakeezCard,
   TextField,
   AsyncBoundary,
   SoftEmpty,

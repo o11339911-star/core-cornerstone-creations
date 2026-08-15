@@ -4,7 +4,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import {
+  TextField,
+  AsyncBoundary,
+  SoftEmpty,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  CardsSkeleton,
+} from "@/components/rakeez";
+import { Layers, ListChecks, History } from "lucide-react";
 import {
   addStageCriterion,
   approveStage,
@@ -20,6 +29,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/stages")({
   component: StagesPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "مراحل المشروع والتنفيذ — ركيز" },
@@ -125,11 +135,8 @@ function StagesPage() {
   const current = (stagesQuery.data ?? []).find((s) => s.id === stageId) ?? null;
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("stages.title")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("stages.subtitle")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero title={t("stages.title")} subtitle={t("stages.subtitle")} />
 
       {error ? (
         <p role="alert" className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
@@ -137,11 +144,15 @@ function StagesPage() {
         </p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <RakeezCard title={t("stages.stage")}>
-          <AsyncBoundary isLoading={stagesQuery.isLoading} isError={stagesQuery.isError}>
+      <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+        <SectionCard icon={Layers} title={t("stages.stage")}>
+          <AsyncBoundary
+            isLoading={stagesQuery.isLoading}
+            isError={stagesQuery.isError}
+            loadingFallback={<CardsSkeleton cards={1} />}
+          >
             {roots.length === 0 ? (
-              <EmptyState title={t("stages.noStages")} />
+              <SoftEmpty icon={Layers} message={t("stages.noStages")} />
             ) : (
               <ul className="grid gap-1">
                 {roots.map((s) => (
@@ -161,14 +172,12 @@ function StagesPage() {
               </ul>
             )}
           </AsyncBoundary>
-        </RakeezCard>
+        </SectionCard>
 
-        <div className="grid gap-6">
+        <div className="grid gap-4">
           {current ? (
-            <RakeezCard
-              title={current.name_ar}
-              description={t(`stages.statuses.${current.status}`)}
-            >
+            <SectionCard icon={Layers} title={current.name_ar}>
+              <p className="mb-3 text-xs text-muted-foreground">{t(`stages.statuses.${current.status}`)}</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -216,11 +225,15 @@ function StagesPage() {
                   {t("stages.reportProgress")}
                 </button>
               </form>
-            </RakeezCard>
+            </SectionCard>
           ) : null}
 
-          <RakeezCard title={t("stages.criteria")}>
-            <AsyncBoundary isLoading={criteriaQuery.isLoading} isError={criteriaQuery.isError}>
+          <SectionCard icon={ListChecks} title={t("stages.criteria")}>
+            <AsyncBoundary
+              isLoading={criteriaQuery.isLoading}
+              isError={criteriaQuery.isError}
+              loadingFallback={<CardsSkeleton cards={1} />}
+            >
               <ul className="grid gap-2">
                 {(criteriaQuery.data ?? []).map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-3 text-sm">
@@ -290,10 +303,14 @@ function StagesPage() {
                 {t("stages.addCriterion")}
               </button>
             </form>
-          </RakeezCard>
+          </SectionCard>
 
-          <RakeezCard title={t("stages.timeline")}>
-            <AsyncBoundary isLoading={timelineQuery.isLoading} isError={timelineQuery.isError}>
+          <SectionCard icon={History} title={t("stages.timeline")}>
+            <AsyncBoundary
+              isLoading={timelineQuery.isLoading}
+              isError={timelineQuery.isError}
+              loadingFallback={<CardsSkeleton cards={1} />}
+            >
               <ol className="grid gap-2 text-sm">
                 {(timelineQuery.data ?? []).map((row) => (
                   <li key={row.id} className="flex justify-between gap-3">
@@ -306,7 +323,7 @@ function StagesPage() {
                 ))}
               </ol>
             </AsyncBoundary>
-          </RakeezCard>
+          </SectionCard>
         </div>
       </div>
     </div>
