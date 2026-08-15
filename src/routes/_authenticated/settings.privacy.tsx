@@ -8,6 +8,7 @@ import { Download, FileText, ShieldCheck, Inbox } from "lucide-react";
 import { CardsSkeleton, ErrorState, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDate } from "@/lib/format";
 import {
   DSR_KINDS,
   evaluateMyErasure,
@@ -222,7 +223,7 @@ function PrivacySettingsPage() {
                   {request.due_at ? (
                     <p className="mt-2 text-xs text-muted-foreground">
                       الموعد النظامي للرد:{" "}
-                      <span dir="ltr">{new Date(request.due_at).toLocaleDateString("ar-SA-u-nu-latn")}</span>
+                      <span dir="ltr">{formatDate(request.due_at)}</span>
                     </p>
                   ) : null}
                 </li>

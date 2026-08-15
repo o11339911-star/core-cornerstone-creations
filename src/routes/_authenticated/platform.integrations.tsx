@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatDateTime } from "@/lib/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -266,7 +267,7 @@ function PlatformIntegrationsPage() {
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{req.safe_error ?? "—"}</td>
                     <td className="px-3 py-2 text-muted-foreground" dir="ltr">
-                      {new Date(req.created_at).toLocaleString("ar-SA-u-nu-latn")}
+                      {formatDateTime(req.created_at)}
                     </td>
                   </tr>
                 ))}

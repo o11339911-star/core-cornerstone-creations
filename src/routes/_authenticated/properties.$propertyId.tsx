@@ -29,6 +29,7 @@ import {
   SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
+import { formatNumber } from "@/lib/format";
 import {
   addPropertyOwner,
   getDocumentUrl,
@@ -472,7 +473,7 @@ function PropertyProfilePage() {
             <Field label={t("properties.district")} value={p.district ?? "—"} />
             <Field
               label={t("properties.landArea")}
-              value={p.land_area ? p.land_area.toLocaleString("en-US") : "—"}
+              value={formatNumber(p.land_area)}
             />
             <Field label={t("properties.planNo")} value={p.plan_no ?? "—"} />
             <Field

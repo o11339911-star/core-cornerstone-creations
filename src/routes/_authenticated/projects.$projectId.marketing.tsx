@@ -29,6 +29,7 @@ import {
   SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
+import { formatDate, formatMoney } from "@/lib/format";
 import {
   activateMarketingContract,
   approveMarketingVersion,
@@ -71,7 +72,7 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/market
 
 function fmtAmount(value: number | string, currency: string | null) {
   const n = typeof value === "string" ? Number(value) : value;
-  return `${n.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ${currency ?? "SAR"}`;
+  return formatMoney(n, currency ?? "SAR");
 }
 
 function ProjectMarketingPage() {
@@ -505,7 +506,7 @@ function ProjectMarketingPage() {
                   >
                     <span className="truncate text-foreground">{a.document_id}</span>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(a.created_at).toLocaleDateString("ar")}
+                      {formatDate(a.created_at)}
                     </span>
                   </li>
                 ))}

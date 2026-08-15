@@ -16,6 +16,7 @@ import {
   StatCard,
   StatGrid,
 } from "@/components/rakeez";
+import { formatDateTime } from "@/lib/format";
 import {
   approveBreakglass,
   denyBreakglass,
@@ -176,7 +177,7 @@ function BreakglassPage() {
                   <p className="truncate text-sm font-medium text-foreground">{r.reason}</p>
                   <p className="text-xs text-muted-foreground">
                     مشروع {r.project_id.slice(0, 8)} · {STATUS_AR[r.status] ?? r.status}
-                    {r.expires_at ? ` · ينتهي ${new Date(r.expires_at).toLocaleString("ar")}` : ""}
+                    {r.expires_at ? ` · ينتهي ${formatDateTime(r.expires_at)}` : ""}
                   </p>
                 </div>
                 {r.status === "pending" ? (

@@ -1,4 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { formatDate } from "@/lib/format";
 import {
   BadgeCheck,
   Building2,
@@ -86,13 +87,13 @@ function PublicEntityPage() {
               src={profile.logo_url}
               alt={`شعار ${profile.display_name_ar}`}
               loading="lazy"
-              className="size-24 rounded-xl bg-primary-foreground/10 object-contain p-2"
+              className="size-20 rounded-xl border border-border object-contain p-2"
             />
           ) : undefined
         }
       >
         {profile.regions.length > 0 ? (
-          <p className="mt-3 flex flex-wrap items-center gap-2 text-xs text-primary-foreground/85">
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <MapPin className="size-3.5" aria-hidden="true" />
             {profile.regions.join(" · ")}
           </p>
@@ -137,7 +138,7 @@ function PublicEntityPage() {
                       {item.completed_on ? (
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="size-3" aria-hidden="true" />
-                          {new Date(item.completed_on).toLocaleDateString("ar")}
+                          {formatDate(item.completed_on)}
                         </span>
                       ) : null}
                     </div>

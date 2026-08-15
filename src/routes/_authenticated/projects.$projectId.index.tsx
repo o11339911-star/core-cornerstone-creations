@@ -188,8 +188,8 @@ function ProjectOverviewPage() {
         }
         aside={
           <div className="flex flex-col items-center gap-2">
-            <ProgressRing value={percent} onDark label="اكتمال المشروع" />
-            <p className="text-xs text-primary-foreground/75">
+            <ProgressRing value={percent} size={96} label="اكتمال المشروع" />
+            <p className="text-xs text-muted-foreground">
               المراحل {o.completion?.stages_done ?? 0}/{o.completion?.stages_total ?? 0} · الإغلاق{" "}
               {o.completion?.closure_done ?? 0}/{o.completion?.closure_total ?? 0}
             </p>

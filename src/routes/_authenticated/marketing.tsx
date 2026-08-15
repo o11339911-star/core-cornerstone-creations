@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatMoney } from "@/lib/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -159,7 +160,7 @@ function MarketerDashboard() {
                 label="السعر"
                 value={
                   v.listing_price != null
-                    ? `${Number(v.listing_price).toLocaleString("ar-SA")} ${v.price_currency ?? "SAR"}`
+                    ? formatMoney(Number(v.listing_price), v.price_currency ?? "SAR")
                     : "—"
                 }
               />

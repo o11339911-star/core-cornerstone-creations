@@ -14,6 +14,7 @@ import {
   listTemplateImports,
 } from "@/lib/report-templates.functions";
 import { IMPORT_MAX_BYTES, IMPORT_REASON_AR, checkImportFile } from "@/lib/reports/import-rules";
+import { formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/entities/$entityId/report-templates")({
   component: EntityTemplatesPage,
@@ -247,7 +248,7 @@ function EntityTemplatesPage() {
                         {imp.kind.toUpperCase()} — {imp.blocks_created} كتلة
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {imp.status} — {new Date(imp.created_at).toLocaleString("ar")}
+                        {imp.status} — {formatDateTime(imp.created_at)}
                       </p>
                     </div>
                     <Button

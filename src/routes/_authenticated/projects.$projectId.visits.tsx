@@ -17,6 +17,7 @@ import {
 } from "@/components/rakeez";
 import { MapPin, AlertTriangle, ClipboardList } from "lucide-react";
 import { listStages } from "@/lib/stages.functions";
+import { formatDateTime } from "@/lib/format";
 import {
   OBSERVATION_KINDS,
   OBSERVATION_SEVERITIES,
@@ -227,7 +228,7 @@ function VisitsPage() {
                   <li key={v.id} className="flex flex-wrap justify-between gap-2">
                     <span>{v.summary ?? "—"}</span>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(v.visit_start).toLocaleString()}
+                      {formatDateTime(v.visit_start)}
                       {v.location_consent ? ` · ${t(`visits.reasons.${v.location_reason ?? "other"}`)}` : ""}
                     </span>
                   </li>

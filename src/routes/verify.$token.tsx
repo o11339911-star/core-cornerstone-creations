@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { formatDate } from "@/lib/format";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 
 import { PageHero, SectionCard } from "@/components/rakeez";
@@ -44,7 +45,7 @@ function VerifyPage() {
             />
             <Row
               label="تاريخ الاعتماد"
-              value={result.approved_at ? new Date(result.approved_at).toLocaleDateString("ar") : "—"}
+              value={formatDate(result.approved_at)}
             />
             <p className="pt-2 text-xs text-muted-foreground">
               لا يعرض هذا التحقّق محتوى التقرير — للاطلاع على التفاصيل يلزم الدخول بصلاحية.

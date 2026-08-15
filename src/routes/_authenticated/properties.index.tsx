@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable, ErrorState, HeroBadge, PageHero } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { listProperties, type PropertyListItem } from "@/lib/properties.functions";
+import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/properties/")({
   component: PropertiesPage,
@@ -63,7 +64,7 @@ function PropertiesPage() {
       id: "area",
       header: t("properties.landArea"),
       numeric: true,
-      cell: (row: PropertyListItem) => (row.land_area ? row.land_area.toLocaleString("en-US") : "—"),
+      cell: (row: PropertyListItem) => (formatNumber(row.land_area)),
     },
     {
       id: "status",

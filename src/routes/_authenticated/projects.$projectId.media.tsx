@@ -20,6 +20,7 @@ import {
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDateTime } from "@/lib/format";
 import {
   approveMediaAsset,
   attachBlurredMediaVersion,
@@ -72,7 +73,7 @@ const STATUS_KEY: Record<string, string> = {
 
 function fmtDate(value: string | null) {
   if (!value) return "—";
-  return new Date(value).toLocaleString("ar-SA", { numberingSystem: "latn" });
+  return formatDateTime(value);
 }
 
 function ProjectMediaPage() {

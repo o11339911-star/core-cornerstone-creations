@@ -85,11 +85,11 @@
 :root {
   --radius: 0.75rem;
 
-  /* Official identity: #2B4A43 deep olive-green. */
-  --rakeez-green: oklch(0.36 0.034 168);
-  --rakeez-green-deep: oklch(0.29 0.032 168); /* hover / pressed */
-  --rakeez-green-soft: oklch(0.96 0.012 168); /* tinted surfaces */
-  --rakeez-green-tint: oklch(0.92 0.02 168); /* borders / secondary */
+  /* Official identity (Phase 29): petrol green #075F5A on a white ground. */
+  --rakeez-green: oklch(0.439 0.074 188.5); /* #075F5A */
+  --rakeez-green-deep: oklch(0.37 0.062 188.5); /* hover / pressed */
+  --rakeez-green-soft: oklch(0.974 0.006 185.3); /* tinted surfaces */
+  --rakeez-green-tint: oklch(0.928 0.014 186); /* borders / secondary */
 
   /* Legacy aliases from earlier phases — remapped to the green identity so no
      page keeps an off-brand colour. */
@@ -99,29 +99,29 @@
   --rakeez-sand: var(--rakeez-green-soft);
 
   --background: oklch(1 0 0);
-  --foreground: oklch(0.24 0.02 168);
+  --foreground: oklch(0.24 0.006 250); /* charcoal, neutral */
   --card: oklch(1 0 0);
   --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--foreground);
   --primary: var(--rakeez-green);
   --primary-foreground: oklch(1 0 0);
-  --secondary: var(--rakeez-green-soft);
-  --secondary-foreground: var(--rakeez-green);
-  --muted: var(--rakeez-green-soft);
-  --muted-foreground: oklch(0.48 0.018 168);
+  --secondary: oklch(0.972 0.002 250); /* neutral light surface */
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.972 0.002 250);
+  --muted-foreground: oklch(0.52 0.006 250); /* neutral grey copy */
   --accent: var(--rakeez-green-soft);
   --accent-foreground: var(--rakeez-green);
   --destructive: oklch(0.55 0.2 27);
   --destructive-foreground: oklch(1 0 0);
-  --border: var(--rakeez-green-tint);
-  --input: var(--rakeez-green-tint);
+  --border: oklch(0.922 0.003 250); /* neutral divider */
+  --input: oklch(0.9 0.004 250);
   --ring: var(--rakeez-green);
   --chart-1: var(--rakeez-green);
-  --chart-2: oklch(0.52 0.06 168);
-  --chart-3: oklch(0.66 0.07 168);
-  --chart-4: oklch(0.55 0.08 200);
-  --chart-5: oklch(0.62 0.1 120);
+  --chart-2: oklch(0.55 0.075 188);
+  --chart-3: oklch(0.68 0.07 188);
+  --chart-4: oklch(0.62 0.01 250);
+  --chart-5: oklch(0.8 0.008 250);
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--rakeez-green);
@@ -152,17 +152,12 @@
   --info-foreground: oklch(1 0 0);
   --info-soft: oklch(0.95 0.025 225);
 
-  /* Elevation */
-  --shadow-elevation-1: 0 1px 2px 0 color-mix(in oklab, var(--rakeez-green) 10%, transparent);
-  --shadow-elevation-2: 0 12px 32px -12px color-mix(in oklab, var(--rakeez-green) 32%, transparent);
+  /* Elevation — quiet, no heavy shadow walls. */
+  --shadow-elevation-1: 0 1px 2px 0 oklch(0.24 0.006 250 / 6%);
+  --shadow-elevation-2: 0 6px 20px -12px oklch(0.24 0.006 250 / 22%);
 
-  /* Hero surface: official green, deepened diagonally. */
-  --gradient-hero: linear-gradient(
-    135deg,
-    var(--rakeez-green) 0%,
-    var(--rakeez-green-deep) 60%,
-    color-mix(in oklab, var(--rakeez-green-deep) 82%, black) 100%
-  );
+  /* Hero surface: flat identity green (no gradients per the visual brief). */
+  --gradient-hero: var(--rakeez-green);
 }
 
 .dark {

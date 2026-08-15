@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useT } from "@/i18n";
 import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, SectionCard, SoftEmpty, TextAreaField } from "@/components/rakeez";
 import { FileText, MessageSquare } from "lucide-react";
+import { formatDateTime } from "@/lib/format";
 import {
   askForMoreInfo,
   closeRequest,
@@ -222,7 +223,7 @@ function RequestDetailPage() {
                       >
                         <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>{m.author_role_snapshot ?? ""}</span>
-                          <span>{new Date(m.created_at).toLocaleString("ar")}</span>
+                          <span>{formatDateTime(m.created_at)}</span>
                           <span className="rounded-full bg-muted px-2 py-0.5">
                             {t(`requests.visibility.${m.visibility}`)}
                           </span>
@@ -283,7 +284,7 @@ function RequestDetailPage() {
                     <li key={entry.id} className="flex justify-between gap-3 text-sm">
                       <span className="text-foreground">{entry.action}</span>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(entry.created_at).toLocaleString("ar")}
+                        {formatDateTime(entry.created_at)}
                       </span>
                     </li>
                   ))}

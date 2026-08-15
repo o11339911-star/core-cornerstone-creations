@@ -13,6 +13,11 @@ import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ hero */
 
+/**
+ * Page header. White surface, charcoal title, a single thin identity-green
+ * rule — no large colour fields, no gradients (Phase 29 visual brief).
+ * `aside` carries the one primary action of the screen.
+ */
 export function PageHero({
   title,
   subtitle,
@@ -27,22 +32,20 @@ export function PageHero({
   children?: React.ReactNode;
 }) {
   return (
-    <header
-      className="relative overflow-hidden rounded-2xl px-5 py-6 text-primary-foreground shadow-elevated sm:px-8 sm:py-8"
-      style={{ backgroundImage: "var(--gradient-hero)" }}
-    >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-24 -start-16 size-64 rounded-full bg-primary-foreground/10 blur-2xl"
-      />
-      <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+    <header className="border-b border-border pb-5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span aria-hidden="true" className="h-5 w-1 rounded-full bg-primary" />
+            <h1 className="min-w-0 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              {title}
+            </h1>
             {badge}
           </div>
           {subtitle ? (
-            <p className="mt-2 text-sm text-primary-foreground/80">{subtitle}</p>
+            <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+              {subtitle}
+            </p>
           ) : null}
           {children}
         </div>
@@ -52,7 +55,7 @@ export function PageHero({
   );
 }
 
-/** Status pill rendered on the dark hero surface. */
+/** Small status pill sitting next to the page title on a white surface. */
 export function HeroBadge({
   children,
   tone = "neutral",
@@ -61,15 +64,15 @@ export function HeroBadge({
   tone?: "neutral" | "success" | "warning" | "danger";
 }) {
   const tones = {
-    neutral: "bg-primary-foreground/15 text-primary-foreground",
-    success: "bg-success text-success-foreground",
-    warning: "bg-warning text-warning-foreground",
-    danger: "bg-destructive text-destructive-foreground",
+    neutral: "bg-secondary text-muted-foreground",
+    success: "bg-success-soft text-success",
+    warning: "bg-warning-soft text-warning",
+    danger: "bg-destructive/10 text-destructive",
   } as const;
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium tabular-nums",
         tones[tone],
       )}
     >

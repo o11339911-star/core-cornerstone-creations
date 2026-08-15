@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { formatDate } from "@/lib/format";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 
 import { verifyMarketingPackage } from "@/lib/marketing.functions";
@@ -46,7 +47,7 @@ function VerifyMarketingPage() {
           <Row label="القناة" value={result.channel_code ?? "—"} />
           <Row
             label="ينتهي في"
-            value={result.expires_at ? new Date(result.expires_at).toLocaleDateString("ar") : "—"}
+            value={formatDate(result.expires_at)}
           />
           <p className="pt-2 text-xs text-muted-foreground">
             لا يعرض هذا التحقق تفاصيل المشروع أو أي بيانات مالية.
