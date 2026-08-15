@@ -18,6 +18,7 @@ const LINKS = [
   { to: "/platform/breakglass", label: "الوصول الطارئ", icon: ShieldAlert },
   { to: "/platform/integrations", label: "التكاملات", icon: PlugZap },
   { to: "/platform/dsr", label: "طلبات الخصوصية", icon: ShieldCheck },
+  { to: "/platform/breach-playbook", label: "خطة الحوادث", icon: BookLock },
 ] as const;
 
 function PlatformLayout() {
