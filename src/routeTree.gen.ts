@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
@@ -22,6 +23,10 @@ import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
+import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
+import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
+import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
+import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
@@ -78,6 +83,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -115,6 +125,30 @@ const AuthenticatedNNotificationIdRoute =
     id: '/n/$notificationId',
     path: '/n/$notificationId',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformIndexRoute =
+  AuthenticatedPlatformIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformBreakglassRoute =
+  AuthenticatedPlatformBreakglassRouteImport.update({
+    id: '/breakglass',
+    path: '/breakglass',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformQueueRoute =
+  AuthenticatedPlatformQueueRouteImport.update({
+    id: '/queue',
+    path: '/queue',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformStaffRoute =
+  AuthenticatedPlatformStaffRouteImport.update({
+    id: '/staff',
+    path: '/staff',
+    getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedProjectsNewRoute =
   AuthenticatedProjectsNewRouteImport.update({
@@ -273,12 +307,16 @@ export interface FileRoutesByFullPath {
   '/select-account': typeof SelectAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
+  '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/queue': typeof AuthenticatedPlatformQueueRoute
+  '/platform/staff': typeof AuthenticatedPlatformStaffRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -287,6 +325,7 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/platform/': typeof AuthenticatedPlatformIndexRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
@@ -318,6 +357,9 @@ export interface FileRoutesByTo {
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
+  '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/queue': typeof AuthenticatedPlatformQueueRoute
+  '/platform/staff': typeof AuthenticatedPlatformStaffRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -326,6 +368,7 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
+  '/platform': typeof AuthenticatedPlatformIndexRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
@@ -353,12 +396,16 @@ export interface FileRoutesById {
   '/select-account': typeof SelectAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
+  '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
+  '/_authenticated/platform/staff': typeof AuthenticatedPlatformStaffRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -367,6 +414,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/_authenticated/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
@@ -394,12 +442,16 @@ export interface FileRouteTypes {
     | '/select-account'
     | '/dashboard'
     | '/notifications'
+    | '/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
     | '/admin/report-templates'
     | '/n/$notificationId'
+    | '/platform/breakglass'
+    | '/platform/queue'
+    | '/platform/staff'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -408,6 +460,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/security'
     | '/documents/'
+    | '/platform/'
     | '/properties/'
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/report-templates'
@@ -439,6 +492,9 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/admin/report-templates'
     | '/n/$notificationId'
+    | '/platform/breakglass'
+    | '/platform/queue'
+    | '/platform/staff'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -447,6 +503,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/security'
     | '/documents'
+    | '/platform'
     | '/properties'
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/report-templates'
@@ -473,12 +530,16 @@ export interface FileRouteTypes {
     | '/select-account'
     | '/_authenticated/dashboard'
     | '/_authenticated/notifications'
+    | '/_authenticated/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/n/$notificationId'
+    | '/_authenticated/platform/breakglass'
+    | '/_authenticated/platform/queue'
+    | '/_authenticated/platform/staff'
     | '/_authenticated/projects/new'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/properties/new'
@@ -487,6 +548,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/security'
     | '/_authenticated/documents/'
+    | '/_authenticated/platform/'
     | '/_authenticated/properties/'
     | '/_authenticated/entities/$entityId/invitations'
     | '/_authenticated/entities/$entityId/report-templates'
@@ -561,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform': {
+      id: '/_authenticated/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof AuthenticatedPlatformRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/auth/forgot-password': {
       id: '/auth/forgot-password'
       path: '/forgot-password'
@@ -609,6 +678,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/n/$notificationId'
       preLoaderRoute: typeof AuthenticatedNNotificationIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform/': {
+      id: '/_authenticated/platform/'
+      path: '/'
+      fullPath: '/platform/'
+      preLoaderRoute: typeof AuthenticatedPlatformIndexRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/breakglass': {
+      id: '/_authenticated/platform/breakglass'
+      path: '/breakglass'
+      fullPath: '/platform/breakglass'
+      preLoaderRoute: typeof AuthenticatedPlatformBreakglassRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/queue': {
+      id: '/_authenticated/platform/queue'
+      path: '/queue'
+      fullPath: '/platform/queue'
+      preLoaderRoute: typeof AuthenticatedPlatformQueueRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/staff': {
+      id: '/_authenticated/platform/staff'
+      path: '/staff'
+      fullPath: '/platform/staff'
+      preLoaderRoute: typeof AuthenticatedPlatformStaffRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
     }
     '/_authenticated/projects/new': {
       id: '/_authenticated/projects/new'
@@ -788,9 +885,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedPlatformRouteChildren {
+  AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
+  AuthenticatedPlatformQueueRoute: typeof AuthenticatedPlatformQueueRoute
+  AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
+  AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
+}
+
+const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
+  AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
+  AuthenticatedPlatformQueueRoute: AuthenticatedPlatformQueueRoute,
+  AuthenticatedPlatformStaffRoute: AuthenticatedPlatformStaffRoute,
+  AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
+}
+
+const AuthenticatedPlatformRouteWithChildren =
+  AuthenticatedPlatformRoute._addFileChildren(
+    AuthenticatedPlatformRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
   AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
@@ -823,6 +940,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
   AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,

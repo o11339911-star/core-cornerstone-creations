@@ -3141,6 +3141,239 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_breakglass_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          denied_reason: string | null
+          expires_at: string | null
+          grant_id: string | null
+          id: string
+          project_id: string
+          reason: string
+          requested_by: string
+          status: Database["public"]["Enums"]["breakglass_status"]
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          denied_reason?: string | null
+          expires_at?: string | null
+          grant_id?: string | null
+          id?: string
+          project_id: string
+          reason: string
+          requested_by: string
+          status?: Database["public"]["Enums"]["breakglass_status"]
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          denied_reason?: string | null
+          expires_at?: string | null
+          grant_id?: string | null
+          id?: string
+          project_id?: string
+          reason?: string
+          requested_by?: string
+          status?: Database["public"]["Enums"]["breakglass_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_breakglass_requests_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "permission_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_breakglass_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_case_access: {
+        Row: {
+          created_at: string
+          expires_at: string
+          grant_id: string
+          granted_by: string
+          id: string
+          project_id: string
+          queue_item_id: string
+          reason: string
+          revoked_at: string | null
+          staff_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          grant_id: string
+          granted_by: string
+          id?: string
+          project_id: string
+          queue_item_id: string
+          reason: string
+          revoked_at?: string | null
+          staff_user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          grant_id?: string
+          granted_by?: string
+          id?: string
+          project_id?: string
+          queue_item_id?: string
+          reason?: string
+          revoked_at?: string | null
+          staff_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_case_access_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "permission_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_case_access_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_case_access_queue_item_id_fkey"
+            columns: ["queue_item_id"]
+            isOneToOne: false
+            referencedRelation: "platform_queue_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_queue_items: {
+        Row: {
+          assigned_at: string | null
+          assigned_to: string | null
+          close_reason: string | null
+          created_at: string
+          entity_id: string | null
+          id: string
+          priority: number
+          project_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source_id: string
+          source_table: string
+          source_type: Database["public"]["Enums"]["platform_queue_source"]
+          status: Database["public"]["Enums"]["platform_queue_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          close_reason?: string | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          priority?: number
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id: string
+          source_table: string
+          source_type: Database["public"]["Enums"]["platform_queue_source"]
+          status?: Database["public"]["Enums"]["platform_queue_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          close_reason?: string | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          priority?: number
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id?: string
+          source_table?: string
+          source_type?: Database["public"]["Enums"]["platform_queue_source"]
+          status?: Database["public"]["Enums"]["platform_queue_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_queue_items_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "platform_staff"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "platform_queue_items_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_queue_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_staff: {
+        Row: {
+          active: boolean
+          availability: Database["public"]["Enums"]["platform_availability"]
+          created_at: string
+          max_concurrent: number
+          note: string | null
+          role: Database["public"]["Enums"]["platform_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          availability?: Database["public"]["Enums"]["platform_availability"]
+          created_at?: string
+          max_concurrent?: number
+          note?: string | null
+          role?: Database["public"]["Enums"]["platform_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          availability?: Database["public"]["Enums"]["platform_availability"]
+          created_at?: string
+          max_concurrent?: number
+          note?: string | null
+          role?: Database["public"]["Enums"]["platform_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       portfolio_assets: {
         Row: {
           created_at: string
@@ -6331,6 +6564,10 @@ export type Database = {
         }
         Returns: string
       }
+      approve_breakglass: {
+        Args: { _minutes?: number; _request_id: string }
+        Returns: string
+      }
       approve_contract_version: {
         Args: { _note?: string; _version_id: string }
         Returns: string
@@ -6355,6 +6592,7 @@ export type Database = {
         Args: { _template_id: string }
         Returns: string
       }
+      auto_assign_queue_item: { Args: { _item_id: string }; Returns: string }
       build_notification_digest: {
         Args: { _mode?: string }
         Returns: {
@@ -6563,6 +6801,10 @@ export type Database = {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: string
       }
+      deny_breakglass: {
+        Args: { _reason: string; _request_id: string }
+        Returns: undefined
+      }
       end_project_party: {
         Args: { _party_id: string; _reason?: string }
         Returns: number
@@ -6592,6 +6834,15 @@ export type Database = {
         Returns: string
       }
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
+      grant_case_access: {
+        Args: {
+          _item_id: string
+          _minutes: number
+          _reason: string
+          _staff_user_id: string
+        }
+        Returns: string
+      }
       invite_project_party: {
         Args: {
           _ends_on?: string
@@ -6619,6 +6870,68 @@ export type Database = {
         }
         Returns: string
       }
+      list_breakglass_requests: {
+        Args: never
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          denied_reason: string | null
+          expires_at: string | null
+          grant_id: string | null
+          id: string
+          project_id: string
+          reason: string
+          requested_by: string
+          status: Database["public"]["Enums"]["breakglass_status"]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "platform_breakglass_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_platform_staff: {
+        Args: never
+        Returns: {
+          active: boolean
+          availability: Database["public"]["Enums"]["platform_availability"]
+          current_load: number
+          full_name: string
+          max_concurrent: number
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }[]
+      }
+      list_queue_items: {
+        Args: { _mine?: boolean; _status?: string }
+        Returns: {
+          assigned_at: string | null
+          assigned_to: string | null
+          close_reason: string | null
+          created_at: string
+          entity_id: string | null
+          id: string
+          priority: number
+          project_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source_id: string
+          source_table: string
+          source_type: Database["public"]["Enums"]["platform_queue_source"]
+          status: Database["public"]["Enums"]["platform_queue_status"]
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "platform_queue_items"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mark_all_notifications_read: { Args: never; Returns: number }
       mark_notification_read: {
         Args: { _notification_id: string }
@@ -6633,6 +6946,7 @@ export type Database = {
         }
         Returns: number
       }
+      platform_me: { Args: never; Returns: Json }
       post_request_message: {
         Args: {
           _body: string
@@ -6666,6 +6980,10 @@ export type Database = {
           _title: string
         }
         Returns: string
+      }
+      reassign_queue_item: {
+        Args: { _item_id: string; _reason: string; _to_user: string }
+        Returns: undefined
       }
       record_acceptance_inspection: {
         Args: { _acceptance_id: string; _note?: string }
@@ -6729,6 +7047,10 @@ export type Database = {
         Args: { _phase: string; _project_id: string }
         Returns: string
       }
+      request_breakglass: {
+        Args: { _project_id: string; _reason: string }
+        Returns: string
+      }
       request_completion: {
         Args: { _note?: string; _subject_id: string; _subject_kind: string }
         Returns: string
@@ -6748,6 +7070,10 @@ export type Database = {
       resolve_notification_target: {
         Args: { _notification_id: string }
         Returns: Json
+      }
+      resolve_queue_item: {
+        Args: { _item_id: string; _reason: string }
+        Returns: undefined
       }
       respond_to_project_party: {
         Args: { _accept: boolean; _party_id: string }
@@ -6788,6 +7114,7 @@ export type Database = {
         }
         Returns: string
       }
+      revoke_case_access: { Args: { _case_id: string }; Returns: undefined }
       run_duration_scan: { Args: never; Returns: Json }
       save_report_draft: {
         Args: { _content: Json; _page_setup?: Json; _version_id: string }
@@ -6822,6 +7149,14 @@ export type Database = {
           _visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Returns: Database["public"]["Enums"]["doc_visibility"]
+      }
+      set_platform_staff_state: {
+        Args: {
+          _availability: Database["public"]["Enums"]["platform_availability"]
+          _max_concurrent?: number
+          _user_id: string
+        }
+        Returns: undefined
       }
       set_punch_item_status: {
         Args: { _item_id: string; _status: string }
@@ -6936,12 +7271,27 @@ export type Database = {
         | "members"
         | "properties"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
+      breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
         | "entity_private"
         | "requester_private"
         | "party_limited"
         | "project_wide"
         | "public_approved"
+      platform_availability: "available" | "busy" | "on_leave" | "suspended"
+      platform_queue_source:
+        | "entity_verification"
+        | "template_review"
+        | "report"
+        | "support_ticket"
+        | "compliance_task"
+      platform_queue_status:
+        | "open"
+        | "assigned"
+        | "in_progress"
+        | "resolved"
+        | "closed"
+      platform_role: "superadmin" | "reviewer" | "support" | "compliance"
       project_party_role:
         | "design_office"
         | "supervision"
@@ -7105,6 +7455,7 @@ export const Constants = {
         "properties",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
+      breakglass_status: ["pending", "approved", "denied", "expired"],
       doc_visibility: [
         "entity_private",
         "requester_private",
@@ -7112,6 +7463,22 @@ export const Constants = {
         "project_wide",
         "public_approved",
       ],
+      platform_availability: ["available", "busy", "on_leave", "suspended"],
+      platform_queue_source: [
+        "entity_verification",
+        "template_review",
+        "report",
+        "support_ticket",
+        "compliance_task",
+      ],
+      platform_queue_status: [
+        "open",
+        "assigned",
+        "in_progress",
+        "resolved",
+        "closed",
+      ],
+      platform_role: ["superadmin", "reviewer", "support", "compliance"],
       project_party_role: [
         "design_office",
         "supervision",
