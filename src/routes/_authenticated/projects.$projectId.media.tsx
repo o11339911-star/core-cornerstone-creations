@@ -21,6 +21,7 @@ import {
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import {
+import { formatDateTime } from "@/lib/format";
   approveMediaAsset,
   attachBlurredMediaVersion,
   checkInMediaShoot,
@@ -72,7 +73,7 @@ const STATUS_KEY: Record<string, string> = {
 
 function fmtDate(value: string | null) {
   if (!value) return "—";
-  return new Date(value).toLocaleString("ar-SA", { numberingSystem: "latn" });
+  return formatDateTime(value);
 }
 
 function ProjectMediaPage() {

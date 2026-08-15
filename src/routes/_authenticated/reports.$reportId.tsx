@@ -7,6 +7,7 @@ import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, ReportEdito
 import { FileText } from "lucide-react";
 import { pageSetupSchema, reportContentSchema, type ReportContent } from "@/lib/reports/blocks";
 import {
+import { formatDate } from "@/lib/format";
   approveReport,
   createReportVersion,
   exportReportVersion,
@@ -237,7 +238,7 @@ function ReportDetailPage() {
                     <span className="text-xs text-muted-foreground">
                       {VERSION_STATUS[version.status] ?? version.status}
                       {version.approved_at
-                        ? ` · ${new Date(version.approved_at).toLocaleDateString("ar")}`
+                        ? ` · ${formatDate(version.approved_at)}`
                         : ""}
                     </span>
                   </li>

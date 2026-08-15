@@ -313,8 +313,8 @@ function MarketplacePage() {
                         value={
                           l.price_min || l.price_max ? (
                             <span dir="ltr" className="inline-block">
-                              {Number(l.price_min ?? 0).toLocaleString("ar-SA-u-nu-latn")} –{" "}
-                              {Number(l.price_max ?? 0).toLocaleString("ar-SA-u-nu-latn")} SAR
+                              {formatNumber(Number(l.price_min ?? 0))} –{" "}
+                              {formatNumber(Number(l.price_max ?? 0))} SAR
                             </span>
                           ) : (
                             "غير محدد"

@@ -16,6 +16,7 @@ import {
 } from "@/components/rakeez";
 import { MessageSquarePlus, ListChecks } from "lucide-react";
 import {
+import { formatDateTime } from "@/lib/format";
   REQUEST_STATUSES,
   createRequest,
   listRequestTypes,
@@ -180,7 +181,7 @@ function RequestsPage() {
                         {r.request_no} — {r.subject}
                       </Link>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(r.created_at).toLocaleString("ar")}
+                        {formatDateTime(r.created_at)}
                       </p>
                     </div>
                     <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">

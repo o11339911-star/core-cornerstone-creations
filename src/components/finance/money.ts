@@ -5,5 +5,5 @@ export function money(
   maskedLabel: string,
 ): string {
   if (value === null || value === undefined) return maskedLabel;
-  return `${value.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ${currency ?? "SAR"}`.trim();
+  return formatMoney(value, currency);
 }

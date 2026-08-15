@@ -15,6 +15,7 @@ import {
 } from "@/components/rakeez";
 import { Layers, ListChecks, History } from "lucide-react";
 import {
+import { formatDateTime } from "@/lib/format";
   addStageCriterion,
   approveStage,
   listStageCriteria,
@@ -317,7 +318,7 @@ function StagesPage() {
                     <span className="text-muted-foreground">{row.object_type}</span>
                     <span>{row.action}</span>
                     <time dateTime={row.created_at} className="text-xs text-muted-foreground">
-                      {new Date(row.created_at).toLocaleString()}
+                      {formatDateTime(row.created_at)}
                     </time>
                   </li>
                 ))}

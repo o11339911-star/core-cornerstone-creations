@@ -19,6 +19,7 @@ import {
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import {
+import { formatMoney } from "@/lib/format";
   listMarketingContracts,
   listMarketingLeads,
   listMarketingVersions,
@@ -159,7 +160,7 @@ function MarketerDashboard() {
                 label="السعر"
                 value={
                   v.listing_price != null
-                    ? `${Number(v.listing_price).toLocaleString("ar-SA")} ${v.price_currency ?? "SAR"}`
+                    ? formatMoney(Number(v.listing_price), v.price_currency ?? "SAR")
                     : "—"
                 }
               />

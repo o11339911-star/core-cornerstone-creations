@@ -12,6 +12,7 @@ import {
 
 import { PageHero, HeroBadge, SectionCard, SoftEmpty } from "@/components/rakeez/dashboard-kit";
 import { getPublicEntityProfile, type PublicEntityProfile } from "@/lib/entity-public.functions";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/e/$slug")({
   loader: async ({ params }) => {
@@ -137,7 +138,7 @@ function PublicEntityPage() {
                       {item.completed_on ? (
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="size-3" aria-hidden="true" />
-                          {new Date(item.completed_on).toLocaleDateString("ar")}
+                          {formatDate(item.completed_on)}
                         </span>
                       ) : null}
                     </div>

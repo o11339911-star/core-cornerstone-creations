@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState, PageHero, SectionCard, SoftEmpty, StatCard, StatGrid } from "@/components/rakeez";
 import {
+import { formatDateTime } from "@/lib/format";
   listIntegrationRequests,
   listIntegrations,
   runIntegrationCall,
@@ -266,7 +267,7 @@ function PlatformIntegrationsPage() {
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{req.safe_error ?? "—"}</td>
                     <td className="px-3 py-2 text-muted-foreground" dir="ltr">
-                      {new Date(req.created_at).toLocaleString("ar-SA-u-nu-latn")}
+                      {formatDateTime(req.created_at)}
                     </td>
                   </tr>
                 ))}
