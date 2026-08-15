@@ -1,114 +1,97 @@
-# المرحلة 17 — الإشعارات والمدد والتصعيد
+# الدفعة 17-ب — المدد والتصعيد والملخص التجميعي
 
-## المبدأ الحاكم
+## تصحيح مهم قبل البدء (مفحوص في القاعدة، لا مفترض)
 
-متابعة ذكية بلا ضجيج: كل إشعار له **مصدر حدث واضح** داخل قاعدة البيانات (تريغر على تغيّر حالة فعلي، أو مهمة زمنية واحدة محدودة الغرض للتذكيرات/التأخير)، ولكل إشعار **مفتاح تفرّد حقيقي** بفهرس فريد. لا رابط يحمل صلاحية: الرابط معرّفات فقط، والتحقق يحدث عند النقر.
+فحصتُ `pg_proc` للمخططين `private` و`public`: **لا وجود لأي دالة `private.riyadh_now()` أو `private.riyadh_day_bounds()`**. توقيت الرياض مُطبَّق حاليًا في طبقة الواجهة فقط (`src/lib/riyadh-time.ts`). لذلك أول خطوة في هذه الدفعة هي إنشاء هاتين الدالتين كمصدر زمني وحيد في القاعدة (بدل بناء منطق موازٍ داخل كل تريغر) — وهذا موافق لروح طلبك: مصدر زمني واحد، لا منطق مكرّر.
 
-## ما هو موجود فعلًا ويُعاد استخدامه (مفحوص في الملفات لا مفترضًا)
+## الموجود فعلًا ويُعاد استخدامه كما هو
 
-| الأصل الموجود | الاستخدام في المرحلة 17 |
+| الأصل | الاستخدام في 17-ب |
 |---|---|
-| `public.financial_executions.idempotency_key` + `financial_executions_idem_uk` (فهرس فريد) | نفس النمط حرفيًا: `notifications.dedupe_key` + فهرس فريد، لا `select` مسبق |
-| `private.can(_user, _module, _action, _entity, _project)` و`private.can_access_project` | تحديد من يستحق الإشعار ومن يستحق التصعيد، ويُعاد تقييمه **عند فتح الرابط** |
-| `private.can_view_project_finance` | إشعارات المالية لا تحمل أي مبلغ في نصّها؛ الرقم يُرى داخل الصفحة فقط لمن يملك `finance.view` |
-| `getDocumentDownloadUrl` (روابط موقّعة 60 ثانية، فحص عند الإصدار) | نفس المبدأ منقولًا إلى النقر: `resolve_notification_target` تُقيَّم لحظة الفتح |
-| `requests.due_at`, `requests.status` (`draft/submitted/in_review/info_needed/approved/rejected/cancelled/closed`), `decided_at`, `closed_at` | عداد «مدة الرد على الطلب»: يبدأ عند `submitted`، يتوقف عند `info_needed`، يستأنف عند العودة إلى `in_review`، ينتهي عند `decided_at`/`closed_at` |
-| `project_stages.planned_start/planned_end/actual_start/actual_end/status` (`pending/in_progress/submitted/rework/approved/skipped/done`) | عداد «مدة تنفيذ المرحلة»: من `actual_start` (أو `planned_start`) حتى `planned_end`؛ يتوقف في `submitted` (بانتظار المراجع) ويستأنف في `rework` |
-| `payment_milestones.due_date` + `status` (`planned/claimable/claimed/settled/cancelled`) | عداد «استحقاق دفعة»: تذكير قبل `due_date`، تأخير بعده ما لم تكن `settled/cancelled` |
-| `retention_holds.expected_release_date` + `status` | عداد «سريان ضمان/محتجز»: تذكير قبل الإفراج المتوقع، تأخير بعده وهو `active/partially_released` |
-| `contract_extensions` (`requested/under_review/approved/rejected/withdrawn`) و`contracts.status` (فيها `suspended`) | تمديد المدة يعيد حساب العداد بدل إنشاء تاريخ جديد؛ عقد `suspended` يوقف عدادات مشروعه |
-| `entity_memberships.status` و`entity_invitations` | حالة `suspended` للعضوية = لا إشعار فعّال ولا رابط فعّال |
-| `permission_audit_log` + `private.log_finance_event` | تسجيل قرارات الرفض عند فتح رابط بلا صلاحية |
-| `prevent_row_mutation()` | سجل التسليم/التصعيد append-only |
-
-**قاعدة ملزمة:** لا حقل تاريخ استحقاق جديد في هذه المرحلة. كل عدّاد يشتق من الحقول أعلاه. الحقل الجديد الوحيد المسموح هو تاريخ **حالة العدّاد** (توقف/استئناف) لأنه غير موجود.
+| `private.emit_notification(...)` (idempotent، `on conflict (dedupe_key) do nothing`، تسجيل `notification_deliveries`) | **كل** إشعار مدة/تصعيد/Digest يمر عبرها حصرًا — لا `insert` مباشر في `notifications` |
+| `notifications.escalation_of_id` (موجود ومعطّل الاستخدام حتى الآن) | ربط إشعار التصعيد بالإشعار الأصلي |
+| `notification_preferences.digest_mode` (`immediate/daily/weekly/off`) | مدخل منطق الـ Digest |
+| `notification_types.is_mandatory` / `is_security` | الاستثناء الأمني من التجميع |
+| `private.can(...)`, `private.can_access_project/stage/request` | تحديد المستلم، وفلترة محتوى الـ Digest **وقت البناء** |
+| `prevent_row_mutation()` | جعل `escalation_events` سجلًا append-only |
+| حقول المدد القائمة: `requests.due_at/status`, `project_stages.planned_start/planned_end/actual_start/actual_end/status`, `payment_milestones.due_date/status`, `retention_holds.expected_release_date/status` | مصدر `due_at` لكل عداد — **لا حقل تاريخ استحقاق جديد يُخترع** |
 
 ---
 
-## 1) نموذج البيانات
+## 1) الزمن: مصدر واحد
 
-**`notification_types`** (مرجعي ثابت): `code` PK، `category` ∈ `action_required | reminder | overdue | escalation | security | info`، `default_channel='in_app'`، `is_mandatory` bool، `is_security` bool، `subject_key`/`body_key` (مفاتيح i18n لا نص مخزَّن)، `target_kind` ∈ `request | stage | milestone | disbursement | document | financial_document | retention | contract`.
-- الإلزامي/الأمني (`is_mandatory` أو `is_security`) **لا يُعطَّل** بأي تفضيل ولا يدخل الـDigest.
+- `private.riyadh_now() returns timestamptz` — `now()` مُعبَّرًا عنه بمنطقة `Asia/Riyadh`.
+- `private.riyadh_day_bounds(_at timestamptz) returns record(day_start, day_end)` — حدود اليوم بتوقيت الرياض بصيغة `timestamptz` (تحويل `at time zone 'Asia/Riyadh'` ثم العودة).
+- كلاهما `stable`, `security definer`, `set search_path = public`، والتنفيذ ممنوح لـ `authenticated` فقط عند الحاجة (يُستدعيان أساسًا من دوال definer).
+- أي حساب «قبل الاستحقاق بـ N أيام» أو «تأخير بعد N أيام» يُبنى على حدود يوم الرياض لا على UTC.
 
-**`notifications`** (رأس، بلا نص مبني مسبقًا وبلا أي مبلغ):
-`id`, `recipient_user_id`, `type_code`, `project_id`, `entity_id`, `target_kind`, `target_id`, `payload` jsonb (معرّفات وأرقام مرجعية فقط — **ممنوع** مبالغ أو مواقع دقيقة أو أسماء مخفية)، `severity`, `dedupe_key` text not null, `created_at`, `read_at`, `dismissed_at`, `escalation_of_id`.
-- `create unique index notifications_dedupe_uk on public.notifications(dedupe_key);`
-- `dedupe_key` مبني حتميًا: `type_code || ':' || target_id || ':' || event_discriminator || ':' || recipient_user_id` — حيث `event_discriminator` هو مثلًا `idempotency_key` للتنفيذ المالي، أو `version_no` للمستند، أو `bucket` التذكير (`due-3d`, `overdue-d7`).
-- الإدراج دائمًا عبر `private.emit_notification(...)` مع `on conflict (dedupe_key) do nothing`. إعادة المحاولة لا تنشئ صفًا ثانيًا.
+## 2) عدادات المدد — `duration_timers`
 
-**`notification_deliveries`** (append-only): `notification_id`, `channel` ∈ `in_app | email | sms`، `status` ∈ `pending | sent | deferred | suppressed | failed`، `deferred_reason` (`user_suspended`, `digest_batched`, `preference_off`)، `attempted_at`, `sent_at`.
-- في هذه المرحلة يُنفَّذ `in_app` فقط. `email/sms` يُقبلان كقيمة عمود وتبقى صفوفهما `pending` — **لا تكامل مع أي مزوّد بريد/SMS، خارج النطاق صراحة**.
-
-**`notification_preferences`**: `user_id`, `type_code` (أو `category`), `in_app` bool, `digest_mode` ∈ `immediate | daily | weekly | off`.
-- تريغر يرفض تخزين `off` لأي نوع `is_mandatory` أو `is_security` (يرمي `22023`) — الاستثناء مفروض في القاعدة لا في الواجهة.
-
-**`notification_digests`**: `user_id`, `period_start/end` (بحدود يوم الرياض), `sent_at`, `item_count`, وفهرس فريد `(user_id, period_start, digest_mode)`.
-
-**`duration_timers`** (العدّاد المشتق المُجسَّد): `subject_kind` ∈ `request | stage | milestone | retention`، `subject_id`، `project_id`، `started_at`, `due_at` (منسوخ من الحقل الأصلي لا مُخترع)، `paused_at`, `resumed_at`, `total_paused_seconds`, `stopped_at`, `state` ∈ `running | paused | stopped`.
+أعمدة: `id`, `subject_kind` ∈ `request | stage | milestone | retention`, `subject_id`, `project_id`, `entity_id`, `started_at`, `due_at` (منسوخ من الحقل الأصلي)، `paused_at`, `total_paused_seconds` int default 0, `stopped_at`, `state` ∈ `running | paused | stopped`, `last_pre_due_bucket`, `last_overdue_bucket`, `created_at/updated_at`.
 - فريد على `(subject_kind, subject_id)`.
-- يُحدَّث حصريًا بتريغرات على `requests` / `project_stages` / `payment_milestones` / `retention_holds`، مع `due_at` معاد اشتقاقه عند اعتماد `contract_extensions` أو عند `contracts.status='suspended'` (توقف) والعودة إلى `active` (استئناف).
+- **الكتابة حصرًا عبر تريغرات** على `requests` / `project_stages` / `payment_milestones` / `retention_holds`:
+  - بدء: `requests.status → submitted`، `project_stages.actual_start`، إنشاء `payment_milestone`/`retention_hold` بتاريخ استحقاق.
+  - إيقاف مؤقت: `requests.status = info_needed` (انتظار رد الطرف الآخر)، `project_stages.status = submitted` (بانتظار المراجع)، عقد `suspended`.
+  - استئناف: العودة إلى `in_review` / `rework` → يُضاف الفارق إلى `total_paused_seconds` ويُصفَّر `paused_at`.
+  - إيقاف نهائي: `decided_at/closed_at`, `approved/done/skipped`, `settled/cancelled`, إفراج الضمان.
+- إعادة اشتقاق `due_at` عند اعتماد `contract_extensions` (لا تاريخ جديد مُخترع).
+- دالة `private.timer_elapsed_seconds(timer)` تحسب الوقت الفعّال (مستثنيًا فترات التوقف).
 
-**`escalation_policies`** + **`escalation_steps`**: مرتبطة بـ`contract_id` (وإلا افتراضي حسب `project_parties.party_role`): `step_no`, `after_hours`, `target_role` ∈ `supervisor | project_manager | entity_owner`, `target_party_role`.
-- **لا خطوة تصعيد إلى إدارة ركيز**. تريغر يمنع أي `target_role` خارج أطراف المشروع/العقد. تصعيد المنصة يحدث فقط بفعل بشري صريح لاحقًا (خارج نطاق 17).
+### أنواع إشعارات جديدة في `notification_types`
+`duration.pre_due` (reminder، اختياري)، `duration.overdue` (overdue، إلزامي)، `duration.completion_requested` (action_required، إلزامي)، `escalation.raised` (escalation، إلزامي).
 
-**`escalation_events`** (append-only): `notification_id`, `policy_step_id`, `escalated_to_user_id`, `reason`, `created_at`، مع `dedupe_key` فريد (`step + subject + bucket`) لمنع تكرار نفس الدرجة.
+### مُشغّل الفحص الدوري
+- `public.run_duration_scan()` — `security definer`، تُستدعى من مسار `/api/public/cron/duration-scan` محميّ بسرّ HMAC/توكن في الرأس (نمط `public-api-endpoints`)، مع إمكانية تشغيلها يدويًا في الاختبار.
+- لكل عداد `running` مستحق: تنبيه `pre_due` عند دخول نافذة (`due-3d`, `due-1d`) وتنبيه `overdue` عند (`overdue-d1`, `overdue-d3`, `overdue-d7`) — اسم النافذة هو الـ `discriminator` في `emit_notification`، فلا تكرار حتى لو تكرر تشغيل الفحص.
+- التوقف المؤقت يمنع تقدّم النوافذ (الحساب على الوقت الفعّال).
+- المستلمون: المسؤول عن الموضوع (assignee/responsible/approver عبر `stage_roles` و`requests.assignee`) فقط، ولا حمولة تحمل مبالغ.
 
-## 2) التوقيت — Asia/Riyadh
+## 3) التصعيد — سياسة صريحة فقط
 
-- التخزين `timestamptz` بالـUTC حصرًا. لا عمود `timestamp` بلا منطقة.
-- كل اشتقاق حدودي (بداية اليوم، «قبل ٣ أيام»، نافذة الـDigest) يمرّ بدالة واحدة `private.riyadh_day_bounds(_ts)` و`private.riyadh_now()` تستخدمان `at time zone 'Asia/Riyadh'`.
-- التذكيرات تُجدول عند ساعة رياضية ثابتة (٠٨:٠٠ Asia/Riyadh) — لا ساعة UTC عشوائية.
-- الواجهة تعرض دائمًا بتوقيت الرياض عبر مُنسّق موحّد في `src/components/rakeez/` (بنمط `money.ts`).
+- `escalation_policies`: `id`, `entity_id`, `project_id` nullable, `subject_kind`, `contract_id` nullable, `trigger_after_hours`, `is_active`, `created_by`.
+- `escalation_steps`: `policy_id`, `step_no`, `delay_hours`, `target_kind` ∈ `stage_role | project_party_role | user`, `target_role` (مثل `approver`/`supervision`), `target_user_id` nullable. **لا قيمة تعني «إدارة ركيز»**، ولا افتراض عند غياب السياسة.
+- `escalation_events` (append-only عبر `prevent_row_mutation`): `timer_id`, `policy_id`, `step_no`, `resolved_recipient_user_id`, `notification_id`, `raised_at`, `reason`.
+- منطق `run_duration_scan` للتصعيد: يبحث عن سياسة نشطة مطابقة `(subject_kind, project_id/contract_id, entity_id)`. **إن لم تُوجد سياسة ⇒ لا شيء إطلاقًا** (لا صف، لا إشعار) — عدم وجود سياسة ليس خطأ بل سلوك آمن مقصود.
+- عند وجود سياسة: يُحلّ المستلم من `target_kind` (دور في `stage_roles` أو `project_parties`، أو مستخدم محدد). إن تعذّر الحل ⇒ لا تصعيد ويُسجَّل السبب في `escalation_events` بدون مستلم بديل.
+- إشعار التصعيد عبر `emit_notification` بنوع `escalation.raised` مع `escalation_of_id` = الإشعار الأصلي، و`discriminator = policy_id:step_no`.
 
-## 3) مصادر الأحداث (لا Cron عشوائي)
+## 4) الملخص التجميعي — Digest
 
-**فوري بتريغر على تغيّر حالة حقيقي:**
-- `requests`: `submitted` → إشعار للمكلَّف؛ `info_needed` → إشعار «طلب استكمال» لمقدّم الطلب؛ قرار → إشعار للطرفين.
-- `project_stages`: `submitted` → للمراجع؛ `rework` → للمنفّذ؛ `approved` → للمالك.
-- المالية (16-أ/ب): `disbursement_requests` عند كل انتقال، و`financial_executions` باستخدام `idempotency_key` نفسه كـ`event_discriminator`؛ `financial_documents` عند `issued`/`cancelled`؛ `retention_events` عند الإفراج/المصادرة. النص بلا مبالغ.
-- تعليق عضوية أو إنهاء طرف → إشعار أمني (`is_security`, غير قابل للتعطيل).
+- `notification_digests`: `user_id`, `digest_mode`, `period_start`, `period_end` (حدود يوم/أسبوع الرياض)، `item_count`, `built_at`, `sent_at`؛ فريد `(user_id, digest_mode, period_start)`.
+- `notification_digest_items`: `digest_id`, `notification_id`، فريد `(digest_id, notification_id)`.
+- تعديل `private.emit_notification`: بدل الرفض الحالي عند `digest_mode <> 'immediate'`، تُنشأ الإشعار ويُسجَّل التسليم `deferred` بسبب `digest_batched` — **إلا** إذا كان `is_mandatory` أو `is_security` فيبقى `sent` فورًا مهما كان التفضيل. (`digest_mode='off'` مع `in_app=false` يبقى منعًا كاملًا للاختياري فقط.)
+- `public.build_notification_digest(_user_id, _mode)`: تجمع الإشعارات المؤجلة داخل نافذة الرياض، وتُعيد تقييم الصلاحية **وقت البناء** لكل عنصر (`private.can_access_project` / `can_access_*` حسب `target_kind`) وتُسقط ما لا يُصرّح به الآن، ثم تحوّل تسليماتها إلى `sent`.
+- شرط مُبرمج داخل بناء الـ Digest نفسه: `where not (t.is_mandatory or t.is_security)` — الاستثناء مُنفَّذ في مكانين مستقلين (الإصدار والبناء) لا في تريغر التفضيلات وحده.
 
-**مجدول (مهمة واحدة محدودة الغرض، `pg_cron` كل ساعة تستدعي `private.run_duration_sweep()`):**
-- `Reminder`: عند دخول `due_at` نافذة `-7d/-3d/-1d` بتوقيت الرياض، و`state='running'` فقط.
-- `Overdue`: عند تجاوز `due_at` وحالة العدّاد `running` → إشعار + بدء ساعة التصعيد.
-- `Escalation`: عند تجاوز `after_hours` للخطوة التالية دون معالجة.
-- كل نداء يبني `dedupe_key` بـ`bucket` ثابت، فتكرار تشغيل الـsweep لا يولّد صفًا ثانيًا.
+## 5) الأمان والصلاحيات (إلزامي قبل التسليم)
 
-## 4) أمان الرابط والمستخدم الموقوف
+- RLS مفعّلة على كل جدول جديد، مع سياسات قراءة فقط للمستفيد: `duration_timers` لمن يملك وصول المشروع؛ `escalation_policies/steps` لمن يملك `members.manage_members` أو إدارة المشروع؛ `escalation_events` قراءة للمستلم وإدارة المشروع؛ `notification_digests/items` للمالك فقط.
+- كل الكتابة عبر تريغرات/دوال `security definer` مع `set search_path = public` وإعادة فحص `auth.uid()` والصلاحية داخل الدالة (عدا الدوال التي تُستدعى من التريغرات فقط، وهي مُصفَّرة الصلاحيات على `public`).
+- **بعد كل migration:** استعلام `information_schema.role_table_grants` لكل جدول جديد، ثم:
+  ```sql
+  revoke insert, update, delete, truncate on public.<t> from anon, authenticated;
+  revoke select on public.<t> from anon;
+  ```
+  الجداول الوحيدة التي قد تحتفظ بكتابة مباشرة من `authenticated` هي `escalation_policies`/`escalation_steps` إن سمحت سياسة RLS بذلك صراحةً؛ خلاف ذلك تُسحب. أُرفق ناتج الاستعلام في التقرير النهائي.
+- `revoke execute ... from anon, authenticated` على دوال المسح الدوري، مع منح `service_role` فقط.
 
-- الإشعار يخزّن `target_kind` + `target_id` فقط. رابط الواجهة `/n/$notificationId`.
-- `public.resolve_notification_target(_notification_id)` (SECURITY DEFINER) تتحقق **لحظة النداء**: المستلم هو `auth.uid()`، العضوية `active`، و`private.can` تسمح بالوصول للهدف الآن.
-- عند أي فشل: رسالة واحدة عامة `NOT_FOUND_OR_FORBIDDEN` — لا تفرقة بين «غير موجود» و«ممنوع»، ولا كشف اسم مشروع أو رقم مستند. المحاولة تُسجَّل في `permission_audit_log`.
-- عضوية `suspended`: `emit_notification` يكتب الصف لكن التسليم `deferred` بسبب `user_suspended`؛ لا يظهر في الصندوق، و`resolve_notification_target` ترفض. عند إعادة التفعيل تُسلَّم المؤجلات.
+## 6) طبقة التطبيق
 
-## 5) طبقة التطبيق والواجهة
+- `src/lib/durations.functions.ts`: `listProjectTimers`, `listEscalationPolicies`, `upsertEscalationPolicy`, `listEscalationEvents`, `buildMyDigest` — جميعها `createServerFn` مع `requireSupabaseAuth` (نمط `notifications.functions.ts`).
+- `src/routes/api/public/cron/duration-scan.ts`: نقطة الفحص الدوري بتحقق سرّ في الرأس.
+- واجهة: قسم «المدد والتصعيد» داخل صفحة المشروع (عدادات + حالتها + سجل التصعيد)، وتوسعة `settings.notifications` بخيار وضع الـ Digest وعرض الملخص المبني.
+- i18n عربي/إنجليزي لكل النصوص الجديدة.
 
-- `src/lib/notifications.functions.ts`: `listNotifications`, `getUnreadCount`, `markRead`, `markAllRead`, `resolveNotificationTarget`, `getPreferences`, `updatePreferences`, `listTimers` — كلها بـ`requireSupabaseAuth` وقراءة عبر RLS (لا `supabaseAdmin`).
-- جرس في `auth-header.tsx` بعدّاد غير المقروء + لوحة منسدلة.
-- `/notifications` (صندوق + فلاتر)، `/settings/notifications` (تفضيلات مع الإلزامي معطّل الإيقاف ومشروح)، و`/n/$notificationId` (تحويل أو رسالة عامة).
-- شارات المدد داخل صفحات الطلب/المرحلة/المالية: «متبقٍ ٣ أيام» / «متأخر ٥ أيام» بتوقيت الرياض.
-- i18n كامل ar/en، RTL، مفاتيح فقط لا نصوص مخزّنة في القاعدة.
+## 7) بوابة القبول الحية (بحسابات `p17b-*@example.com` وكيان اختبار جديد فقط)
 
-## 6) خارج النطاق صراحة
+1. عداد يبدأ ويتوقف ويُستأنف؛ تحقق من `total_paused_seconds` وصحة حدود الرياض عبر `private.riyadh_day_bounds`.
+2. `duration.pre_due` ثم `duration.overdue` فعليان لعداد حقيقي، مع تشغيل الفحص مرتين لإثبات عدم التكرار.
+3. تصعيد وفق سياسة صريحة ⇒ المستلم هو المحدَّد في `escalation_steps` (يُثبَت بمقارنة `resolved_recipient_user_id`).
+4. عداد متأخر بلا سياسة مطابقة ⇒ صفر صفوف في `escalation_events` وصفر إشعارات تصعيد.
+5. مستخدم `digest_mode='daily'`: إشعار أمني/إلزامي ⇒ تسليم `sent` فورًا.
+6. نفس المستخدم: إشعار اختياري ⇒ `deferred/digest_batched`، ثم يظهر داخل الـ Digest بعد البناء، مع إسقاط عنصر فقد صلاحيته وقت البناء.
 
-مزوّدو البريد/SMS والدفع الفعلي للقنوات، Push/Web-Push، تصعيد تلقائي لإدارة ركيز، محرك SLA تعاقدي قابل للتحرير من المستخدم، وأي حقل تاريخ استحقاق جديد.
+**ضمانة البيانات:** لا مساس بالحسابات الخمسة عشر الدائمة ولا `admin@rakeez.app` ولا أي كيان حقيقي؛ كل الاختبارات على كيان `p17b` جديد فقط.
 
----
-
-## التقسيم المقترح (كما في 15 و16)
-
-**الدفعة 17-أ — الإشعارات والروابط الآمنة:** `notification_types`, `notifications`, `notification_deliveries`, `notification_preferences`, `emit_notification`, `resolve_notification_target`, تريغرات الأحداث الفورية، الجرس والصندوق وصفحة التفضيلات.
-
-**الدفعة 17-ب — المدد والتصعيد والـDigest:** `duration_timers` وتريغرات التوقف/الاستئناف، `run_duration_sweep` والتذكير/التأخير، `escalation_policies/steps/events`, `notification_digests`, شارات المدد في الواجهة.
-
-## بوابة القبول (تُنفَّذ لاحقًا بحسابات `p17a-*` / `p17b-*@example.com` جديدة فقط)
-
-1. نفس الحدث مرتين (إعادة تشغيل التريغر/الـsweep) ⇒ صف إشعار واحد فقط (`dedupe_key`).
-2. تنفيذ صرف بنفس `idempotency_key` مرتين ⇒ إشعار واحد.
-3. حسابات المدد والتذكير عند حدّ يوم رياضي (٢٣:٣٠ رياض) تعطي اليوم الصحيح، والتخزين UTC.
-4. `info_needed` يوقف العدّاد والعودة إلى `in_review` تستأنفه دون احتساب فترة الوقوف.
-5. مستخدم `suspended`: لا إشعار مسلَّم، ورابطه مرفوض؛ وبعد التفعيل تصل المؤجلات.
-6. رابط لمورد فقد المستخدم صلاحيته بعده ⇒ رسالة عامة موحّدة، وتطابق حرفي مع رسالة مورد غير موجود.
-7. تفضيلات: إيقاف نوع اختياري ينجح؛ إيقاف نوع إلزامي/أمني يُرفض من القاعدة بخطأ.
-8. التصعيد يمشي المشرف ← مدير المشروع ← مالك الكيان، ولا يصل أي إشعار لحساب إدارة ركيز.
-9. عضو بلا `finance.view` يرى إشعارًا ماليًا بلا أي مبلغ في النص وفي الصفحة.
+## نطاق مستبعد صراحة
+بريد إلكتروني/SMS فعلي، أي مزوّد خارجي، أي تصعيد افتراضي إلى إدارة المنصة، وأي حقل تاريخ استحقاق جديد خارج الحقول القائمة.
