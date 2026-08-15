@@ -34,17 +34,25 @@ function shapeLine(text: string, rtl: boolean): string {
   );
   if (!runs) return shaped;
   return runs
-    .map((run) => {
+    .map((run, index) => {
       if (ARABIC_RE.test(run)) return run;
       // Reverse only the visible core of a Latin/digit run so the surrounding
       // spaces keep their position and words do not collide with Arabic text.
       const match = /^(\s*)([\s\S]*?)(\s*)$/.exec(run);
       if (!match) return Array.from(run).reverse().join("");
       const [, lead = "", core = "", trail = ""] = match;
+      // Punctuation that directly follows Arabic text (":", "،", "-") belongs
+      // to the Arabic side and must not travel to the other end of the run.
+      const prevIsArabic = index > 0 && ARABIC_RE.test(runs[index - 1] ?? "");
+      const punct = prevIsArabic ? /^([:;,.\-–—!?،؛]+\s*)([\s\S]*)$/.exec(core) : null;
+      if (punct) {
+        const [, head = "", rest = ""] = punct;
+        return `${lead}${head}${Array.from(rest).reverse().join("")}${trail}`;
+      }
       return `${lead}${Array.from(core).reverse().join("")}${trail}`;
-
     })
     .join("");
+
 
 }
 
