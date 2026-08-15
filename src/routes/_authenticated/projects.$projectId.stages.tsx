@@ -139,7 +139,7 @@ function StagesPage() {
 
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <RakeezCard title={t("stages.stage")}>
-          <AsyncBoundary isLoading={stagesQuery.isLoading} error={stagesQuery.error}>
+          <AsyncBoundary isLoading={stagesQuery.isLoading} isError={stagesQuery.isError}>
             {roots.length === 0 ? (
               <EmptyState title={t("stages.noStages")} />
             ) : (
@@ -205,8 +205,6 @@ function StagesPage() {
                   id="stage-percent"
                   label={t("stages.progress")}
                   type="number"
-                  min={0}
-                  max={100}
                   value={percent}
                   onChange={(e) => setPercent(e.target.value)}
                   required
@@ -222,7 +220,7 @@ function StagesPage() {
           ) : null}
 
           <RakeezCard title={t("stages.criteria")}>
-            <AsyncBoundary isLoading={criteriaQuery.isLoading} error={criteriaQuery.error}>
+            <AsyncBoundary isLoading={criteriaQuery.isLoading} isError={criteriaQuery.isError}>
               <ul className="grid gap-2">
                 {(criteriaQuery.data ?? []).map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-3 text-sm">
@@ -295,7 +293,7 @@ function StagesPage() {
           </RakeezCard>
 
           <RakeezCard title={t("stages.timeline")}>
-            <AsyncBoundary isLoading={timelineQuery.isLoading} error={timelineQuery.error}>
+            <AsyncBoundary isLoading={timelineQuery.isLoading} isError={timelineQuery.isError}>
               <ol className="grid gap-2 text-sm">
                 {(timelineQuery.data ?? []).map((row) => (
                   <li key={row.id} className="flex justify-between gap-3">
