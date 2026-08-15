@@ -27,6 +27,7 @@ import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdPartiesRouteImport } from './routes/_authenticated/projects.$projectId.parties'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
+import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -127,6 +128,12 @@ const AuthenticatedProjectsProjectIdStagesRoute =
     path: '/projects/$projectId/stages',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdVisitsRoute =
+  AuthenticatedProjectsProjectIdVisitsRouteImport.update({
+    id: '/projects/$projectId/visits',
+    path: '/projects/$projectId/visits',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -165,6 +173,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -186,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/stages'
+    | '/projects/$projectId/visits'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/stages'
+    | '/projects/$projectId/visits'
   id:
     | '__root__'
     | '/'
@@ -246,6 +258,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/parties'
     | '/_authenticated/projects/$projectId/stages'
+    | '/_authenticated/projects/$projectId/visits'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdStagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/visits': {
+      id: '/_authenticated/projects/$projectId/visits'
+      path: '/projects/$projectId/visits'
+      fullPath: '/projects/$projectId/visits'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdVisitsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -399,6 +419,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
   AuthenticatedProjectsProjectIdPartiesRoute: typeof AuthenticatedProjectsProjectIdPartiesRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
+  AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -419,6 +440,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdPartiesRoute,
   AuthenticatedProjectsProjectIdStagesRoute:
     AuthenticatedProjectsProjectIdStagesRoute,
+  AuthenticatedProjectsProjectIdVisitsRoute:
+    AuthenticatedProjectsProjectIdVisitsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
