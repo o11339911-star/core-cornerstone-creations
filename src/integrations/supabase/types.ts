@@ -132,6 +132,169 @@ export type Database = {
           },
         ]
       }
+      building_licenses: {
+        Row: {
+          authority: string | null
+          created_at: string
+          created_by: string
+          current_version_id: string | null
+          id: string
+          license_number: string | null
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          authority?: string | null
+          created_at?: string
+          created_by: string
+          current_version_id?: string | null
+          id?: string
+          license_number?: string | null
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          authority?: string | null
+          created_at?: string
+          created_by?: string
+          current_version_id?: string | null
+          id?: string
+          license_number?: string | null
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "building_licenses_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "license_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "building_licenses_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "building_licenses_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deed_versions: {
+        Row: {
+          area: number | null
+          created_at: string
+          created_by: string
+          deed_date: string | null
+          deed_id: string
+          extracted_payload: Json | null
+          file_hash: string | null
+          file_path: string | null
+          id: string
+          owner_name_snapshot: string | null
+          source: string
+          version_no: number
+        }
+        Insert: {
+          area?: number | null
+          created_at?: string
+          created_by: string
+          deed_date?: string | null
+          deed_id: string
+          extracted_payload?: Json | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          owner_name_snapshot?: string | null
+          source?: string
+          version_no: number
+        }
+        Update: {
+          area?: number | null
+          created_at?: string
+          created_by?: string
+          deed_date?: string | null
+          deed_id?: string
+          extracted_payload?: Json | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          owner_name_snapshot?: string | null
+          source?: string
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deed_versions_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deeds: {
+        Row: {
+          created_at: string
+          created_by: string
+          current_version_id: string | null
+          deed_number: string | null
+          id: string
+          issuer: string | null
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          current_version_id?: string | null
+          deed_number?: string | null
+          id?: string
+          issuer?: string | null
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          current_version_id?: string | null
+          deed_number?: string | null
+          id?: string
+          issuer?: string | null
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deeds_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "deed_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deeds_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deeds_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           created_at: string
@@ -252,6 +415,110 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      land_boundaries: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          length_m: number | null
+          neighbor_text: string | null
+          order_index: number
+          property_id: string
+          side: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          length_m?: number | null
+          neighbor_text?: string | null
+          order_index?: number
+          property_id: string
+          side: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          length_m?: number | null
+          neighbor_text?: string | null
+          order_index?: number
+          property_id?: string
+          side?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "land_boundaries_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "land_boundaries_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_versions: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_on: string | null
+          extracted_payload: Json | null
+          file_hash: string | null
+          file_path: string | null
+          id: string
+          issued_on: string | null
+          license_id: string
+          scope_text: string | null
+          source: string
+          version_no: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_on?: string | null
+          extracted_payload?: Json | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          issued_on?: string | null
+          license_id: string
+          scope_text?: string | null
+          source?: string
+          version_no: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_on?: string | null
+          extracted_payload?: Json | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          issued_on?: string | null
+          license_id?: string
+          scope_text?: string | null
+          source?: string
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_versions_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "building_licenses"
             referencedColumns: ["id"]
           },
         ]
@@ -666,6 +933,328 @@ export type Database = {
           },
         ]
       }
+      properties: {
+        Row: {
+          approx_lat: number | null
+          approx_lng: number | null
+          city: string | null
+          code: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          district: string | null
+          entity_id: string | null
+          exact_address: string | null
+          exact_lat: number | null
+          exact_lng: number | null
+          id: string
+          kind: string
+          land_area: number | null
+          name: string
+          notes: string | null
+          owner_id: string
+          parcel_no: string | null
+          plan_no: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approx_lat?: number | null
+          approx_lng?: number | null
+          city?: string | null
+          code?: string | null
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          district?: string | null
+          entity_id?: string | null
+          exact_address?: string | null
+          exact_lat?: number | null
+          exact_lng?: number | null
+          id?: string
+          kind: string
+          land_area?: number | null
+          name: string
+          notes?: string | null
+          owner_id: string
+          parcel_no?: string | null
+          plan_no?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approx_lat?: number | null
+          approx_lng?: number | null
+          city?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          district?: string | null
+          entity_id?: string | null
+          exact_address?: string | null
+          exact_lat?: number | null
+          exact_lng?: number | null
+          id?: string
+          kind?: string
+          land_area?: number | null
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          parcel_no?: string | null
+          plan_no?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_completion_rules: {
+        Row: {
+          created_at: string
+          kind: string
+          requirement_code: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          kind: string
+          requirement_code: string
+          weight: number
+        }
+        Update: {
+          created_at?: string
+          kind?: string
+          requirement_code?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      property_owners: {
+        Row: {
+          created_at: string
+          ends_on: string | null
+          id: string
+          national_id_masked: string | null
+          owner_entity_id: string | null
+          owner_name_text: string | null
+          owner_user_id: string | null
+          property_id: string
+          share_percent: number
+          starts_on: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          national_id_masked?: string | null
+          owner_entity_id?: string | null
+          owner_name_text?: string | null
+          owner_user_id?: string | null
+          property_id: string
+          share_percent: number
+          starts_on?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          national_id_masked?: string | null
+          owner_entity_id?: string | null
+          owner_name_text?: string | null
+          owner_user_id?: string | null
+          property_id?: string
+          share_percent?: number
+          starts_on?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_owners_owner_entity_id_fkey"
+            columns: ["owner_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_owners_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_owners_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_projects: {
+        Row: {
+          created_at: string
+          id: string
+          linked_by: string
+          project_id: string
+          property_id: string
+          relation: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          linked_by: string
+          project_id: string
+          property_id: string
+          relation?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          linked_by?: string
+          project_id?: string
+          property_id?: string
+          relation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_projects_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_projects_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_services: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          property_id: string
+          reference_no: string | null
+          service_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          property_id: string
+          reference_no?: string | null
+          service_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          property_id?: string
+          reference_no?: string | null
+          service_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_services_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_services_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_units: {
+        Row: {
+          area: number | null
+          created_at: string
+          floor_no: number | null
+          id: string
+          notes: string | null
+          property_id: string
+          rooms: number | null
+          status: string
+          unit_no: string
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          area?: number | null
+          created_at?: string
+          floor_no?: number | null
+          id?: string
+          notes?: string | null
+          property_id: string
+          rooms?: number | null
+          status?: string
+          unit_no: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: number | null
+          created_at?: string
+          floor_no?: number | null
+          id?: string
+          notes?: string | null
+          property_id?: string
+          rooms?: number | null
+          status?: string
+          unit_no?: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_units_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_units_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           action: Database["public"]["Enums"]["app_action"]
@@ -870,6 +1459,89 @@ export type Database = {
           },
         ]
       }
+      properties_public: {
+        Row: {
+          approx_lat: number | null
+          approx_lng: number | null
+          can_view_exact: boolean | null
+          city: string | null
+          code: string | null
+          completion_percent: number | null
+          created_at: string | null
+          district: string | null
+          entity_id: string | null
+          exact_address: string | null
+          exact_lat: number | null
+          exact_lng: number | null
+          id: string | null
+          kind: string | null
+          land_area: number | null
+          name: string | null
+          notes: string | null
+          owner_id: string | null
+          parcel_no: string | null
+          plan_no: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approx_lat?: number | null
+          approx_lng?: number | null
+          can_view_exact?: never
+          city?: string | null
+          code?: string | null
+          completion_percent?: never
+          created_at?: string | null
+          district?: string | null
+          entity_id?: string | null
+          exact_address?: never
+          exact_lat?: never
+          exact_lng?: never
+          id?: string | null
+          kind?: string | null
+          land_area?: number | null
+          name?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          parcel_no?: string | null
+          plan_no?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approx_lat?: number | null
+          approx_lng?: number | null
+          can_view_exact?: never
+          city?: string | null
+          code?: string | null
+          completion_percent?: never
+          created_at?: string | null
+          district?: string | null
+          entity_id?: string | null
+          exact_address?: never
+          exact_lat?: never
+          exact_lng?: never
+          id?: string | null
+          kind?: string | null
+          land_area?: number | null
+          name?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          parcel_no?: string | null
+          plan_no?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
@@ -894,6 +1566,7 @@ export type Database = {
         }
         Returns: number
       }
+      property_completion: { Args: { _property_id: string }; Returns: number }
     }
     Enums: {
       app_action:
