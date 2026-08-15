@@ -86,6 +86,7 @@ export function HeroBadge({
 export function ProgressRing({
   value,
   size = 128,
+import {
   label,
   onDark = false,
 }: {
@@ -160,6 +161,7 @@ export function ProgressRing({
 
 export function StatCard({
   icon: Icon,
+import {
   label,
   value,
   hint,
@@ -206,6 +208,7 @@ export function StatGrid({ children }: { children: React.ReactNode }) {
 
 export function SectionCard({
   icon: Icon,
+import {
   title,
   count,
   action,
@@ -266,6 +269,7 @@ export function Field({ label, value }: { label: string; value: React.ReactNode 
 /** Designed empty state used inside section cards. */
 export function SoftEmpty({
   icon: Icon,
+import {
   message,
   action,
 }: {

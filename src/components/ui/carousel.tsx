@@ -39,6 +39,7 @@ function useCarousel() {
 }
 
 const Carousel = React.forwardRef<
+import {
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & CarouselProps
 >(({ orientation = "horizontal", opts, setApi, plugins, className, children, ...props }, ref) => {
@@ -232,6 +233,7 @@ CarouselNext.displayName = "CarouselNext";
 
 export {
   type CarouselApi,
+import {
   Carousel,
   CarouselContent,
   CarouselItem,

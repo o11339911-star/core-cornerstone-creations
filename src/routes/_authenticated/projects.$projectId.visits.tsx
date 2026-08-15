@@ -17,7 +17,8 @@ import {
 } from "@/components/rakeez";
 import { MapPin, AlertTriangle, ClipboardList } from "lucide-react";
 import { listStages } from "@/lib/stages.functions";
-import { formatDateTime, import { formatDateTime } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
+import {
   OBSERVATION_KINDS,
   OBSERVATION_SEVERITIES,
   VISIT_REASONS,

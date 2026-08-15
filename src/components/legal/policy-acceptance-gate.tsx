@@ -55,6 +55,7 @@ function DocumentBody({ code }: { code: LegalCode }) {
 
 export function PolicyAcceptanceGate({
   context = "login_gate",
+import {
   children,
 }: {
   context?: "login_gate" | "invitation";

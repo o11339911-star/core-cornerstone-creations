@@ -47,6 +47,7 @@ function useSidebar() {
 }
 
 const SidebarProvider = React.forwardRef<
+import {
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     defaultOpen?: boolean;
@@ -151,6 +152,7 @@ const SidebarProvider = React.forwardRef<
 SidebarProvider.displayName = "SidebarProvider";
 
 const Sidebar = React.forwardRef<
+import {
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     side?: "left" | "right";
@@ -421,6 +423,7 @@ const SidebarGroup = React.forwardRef<HTMLDivElement, React.ComponentProps<"div"
 SidebarGroup.displayName = "SidebarGroup";
 
 const SidebarGroupLabel = React.forwardRef<
+import {
   HTMLDivElement,
   React.ComponentProps<"div"> & { asChild?: boolean }
 >(({ className, asChild = false, ...props }, ref) => {
@@ -442,6 +445,7 @@ const SidebarGroupLabel = React.forwardRef<
 SidebarGroupLabel.displayName = "SidebarGroupLabel";
 
 const SidebarGroupAction = React.forwardRef<
+import {
   HTMLButtonElement,
   React.ComponentProps<"button"> & { asChild?: boolean }
 >(({ className, asChild = false, ...props }, ref) => {
@@ -523,6 +527,7 @@ const sidebarMenuButtonVariants = cva(
 );
 
 const SidebarMenuButton = React.forwardRef<
+import {
   HTMLButtonElement,
   React.ComponentProps<"button"> & {
     asChild?: boolean;
@@ -582,6 +587,7 @@ const SidebarMenuButton = React.forwardRef<
 SidebarMenuButton.displayName = "SidebarMenuButton";
 
 const SidebarMenuAction = React.forwardRef<
+import {
   HTMLButtonElement,
   React.ComponentProps<"button"> & {
     asChild?: boolean;
@@ -633,6 +639,7 @@ const SidebarMenuBadge = React.forwardRef<HTMLDivElement, React.ComponentProps<"
 SidebarMenuBadge.displayName = "SidebarMenuBadge";
 
 const SidebarMenuSkeleton = React.forwardRef<
+import {
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     showIcon?: boolean;
@@ -687,6 +694,7 @@ const SidebarMenuSubItem = React.forwardRef<HTMLLIElement, React.ComponentProps<
 SidebarMenuSubItem.displayName = "SidebarMenuSubItem";
 
 const SidebarMenuSubButton = React.forwardRef<
+import {
   HTMLAnchorElement,
   React.ComponentProps<"a"> & {
     asChild?: boolean;

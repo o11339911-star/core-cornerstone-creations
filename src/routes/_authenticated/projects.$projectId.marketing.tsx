@@ -29,7 +29,8 @@ import {
   SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
-import { formatDate, formatMoney, import { formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import {
   activateMarketingContract,
   approveMarketingVersion,
   createMarketingProfile,

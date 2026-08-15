@@ -32,6 +32,7 @@ export function RakeezCard({
   footer,
   accent = false,
   interactive = false,
+import {
   className,
   contentClassName,
   children,
