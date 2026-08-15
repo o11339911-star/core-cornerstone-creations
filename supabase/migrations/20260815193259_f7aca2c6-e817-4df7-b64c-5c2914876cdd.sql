@@ -1,0 +1,1 @@
+update public.entity_memberships m set role='owner' from auth.users u where u.id=m.user_id and u.email='p28-viewer-a@example.com';
