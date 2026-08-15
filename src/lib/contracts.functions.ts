@@ -93,6 +93,7 @@ export const createContract = createServerFn({ method: "POST" })
         terms_text: data.termsText ?? null,
         source: "original",
         created_by: context.userId,
+        version_no: 0, // replaced by the assign-version trigger
       })
       .select("id")
       .single();
@@ -173,7 +174,7 @@ export const approveContractVersion = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: approvedAt, error } = await context.supabase.rpc("approve_contract_version", {
       _version_id: data.versionId,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { approvedAt: approvedAt as string };
@@ -235,7 +236,7 @@ export const decideContractExtension = createServerFn({ method: "POST" })
     const { data: versionId, error } = await context.supabase.rpc("decide_contract_extension", {
       _extension_id: data.extensionId,
       _approve: data.approve,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { resultingVersionId: (versionId as string | null) ?? null };
@@ -307,7 +308,7 @@ export const decideChangeOrder = createServerFn({ method: "POST" })
     const { data: versionId, error } = await context.supabase.rpc("decide_change_order", {
       _change_order_id: data.changeOrderId,
       _approve: data.approve,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { resultingVersionId: (versionId as string | null) ?? null };
