@@ -17,7 +17,7 @@ import {
 } from "@/lib/report-templates.functions";
 import type { ReportContent } from "@/lib/reports/blocks";
 
-export const Route = createFileRoute("/_authenticated/entities/$entityId/template-imports/$importId")({
+export const Route = createFileRoute("/_authenticated/entities/template-imports/")({
   component: TemplateImportReviewPage,
   head: () => ({
     meta: [

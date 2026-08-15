@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ErrorState } from "@/components/rakeez";
+import { ErrorState, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
+import { ClipboardCheck, ListTodo, PackageCheck, Archive, RotateCcw } from "lucide-react";
 import {
   closeProject,
   decideAcceptance,
@@ -135,19 +136,18 @@ function ClosurePage() {
   const [reopenReason, setReopenReason] = useState("");
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-8 p-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">الاستلام والإغلاق</h1>
-        <p className="text-sm text-muted-foreground">
-          لا يُغلق المشروع إلا باستلام نهائي معتمد، وبلا نواقص مفتوحة، وبعد استيفاء البنود الإلزامية.
-          بعد الإغلاق تصبح بيانات المشروع للقراءة فقط على مستوى القاعدة.
-        </p>
-      </header>
+    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title="الاستلام والإغلاق"
+        subtitle="لا يُغلق المشروع إلا باستلام نهائي معتمد، وبلا نواقص مفتوحة، وبعد استيفاء البنود الإلزامية. بعد الإغلاق تصبح بيانات المشروع للقراءة فقط على مستوى القاعدة."
+      />
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-foreground">الاستلام</h2>
-          <div className="flex gap-2">
+      <SectionCard
+        icon={ClipboardCheck}
+        title="الاستلام"
+        count={acceptances.data?.length ?? 0}
+        action={
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -162,7 +162,8 @@ function ClosurePage() {
               طلب استلام نهائي
             </Button>
           </div>
-        </div>
+        }
+      >
         {acceptances.data && acceptances.data.length > 0 ? (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {acceptances.data.map((a) => (
@@ -223,12 +224,11 @@ function ClosurePage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">لا توجد طلبات استلام بعد.</p>
+          <SoftEmpty icon={ClipboardCheck} message="لا توجد طلبات استلام بعد." />
         )}
-      </section>
+      </SectionCard>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">قائمة تحقق الإغلاق</h2>
+      <SectionCard icon={ListTodo} title="قائمة تحقق الإغلاق" count={items.data?.length ?? 0}>
         {items.data && items.data.length > 0 ? (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {items.data.map((it) => (
@@ -267,14 +267,11 @@ function ClosurePage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            تُنشأ بنود القائمة تلقائيًا عند فتح طلب الاستلام حسب نوع المشروع.
-          </p>
+          <SoftEmpty icon={ListTodo} message="تُنشأ بنود القائمة تلقائيًا عند فتح طلب الاستلام حسب نوع المشروع." />
         )}
-      </section>
+      </SectionCard>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">النواقص</h2>
+      <SectionCard icon={PackageCheck} title="النواقص" count={punch.data?.length ?? 0}>
         <div className="flex flex-wrap gap-2">
           <Input
             value={punchTitle}
@@ -341,16 +338,15 @@ function ClosurePage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">لا توجد نواقص مسجلة.</p>
+          <SoftEmpty icon={PackageCheck} message="لا توجد نواقص مسجلة." />
         )}
-        <p className="text-xs text-muted-foreground">
+        <p className="mt-3 text-xs text-muted-foreground">
           لا يمكن اعتماد أي نقص قبل رفع دليل «قبل» ودليل «بعد»، ولا يجوز أن يغلقه نفس المسؤول عن
           معالجته.
         </p>
-      </section>
+      </SectionCard>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">إغلاق المشروع وأرشفته</h2>
+      <SectionCard icon={Archive} title="إغلاق المشروع وأرشفته">
         <Textarea
           value={closeNote}
           onChange={(e) => setCloseNote(e.target.value)}
@@ -360,10 +356,9 @@ function ClosurePage() {
         <Button onClick={() => close.mutate({ data: { projectId, note: closeNote || null } })}>
           إغلاق نهائي وأرشفة
         </Button>
-      </section>
+      </SectionCard>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">إعادة الفتح</h2>
+      <SectionCard icon={RotateCcw} title="إعادة الفتح" count={reopens.data?.length ?? 0}>
         <Textarea
           value={reopenReason}
           onChange={(e) => setReopenReason(e.target.value)}
@@ -429,10 +424,10 @@ function ClosurePage() {
             ))}
           </ul>
         ) : null}
-        <p className="text-xs text-muted-foreground">
+        <p className="mt-3 text-xs text-muted-foreground">
           لا يعتمد طلب إعادة الفتح من مقدّمه، ويُسجَّل كل قرار في سجل التدقيق.
         </p>
-      </section>
+      </SectionCard>
     </main>
   );
 }

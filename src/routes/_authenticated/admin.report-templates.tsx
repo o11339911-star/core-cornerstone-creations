@@ -2,8 +2,9 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Archive, BookMarked, Edit3, PlusCircle } from "lucide-react";
 
-import { RakeezCard, ReportEditor, UnauthorizedState } from "@/components/rakeez";
+import { CardsSkeleton, PageHero, ReportEditor, SectionCard, SoftEmpty, UnauthorizedState } from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/rakeez/form-field";
 import {
@@ -108,12 +109,16 @@ function RakeezTemplateLibraryPage() {
     }
   };
 
-  if (adminQuery.isLoading) {
-    return <div className="p-8 text-sm">جارٍ التحقق من الصلاحية…</div>;
+  if (adminQuery.isPending) {
+    return (
+      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+        <CardsSkeleton cards={2} />
+      </div>
+    );
   }
   if (!isAdmin) {
     return (
-      <div className="mx-auto max-w-2xl p-8">
+      <div className="mx-auto max-w-2xl px-4 py-10">
         <UnauthorizedState description="هذه الواجهة مخصصة لمشرفي منصة ركيز فقط." />
       </div>
     );
@@ -122,64 +127,76 @@ function RakeezTemplateLibraryPage() {
   const templates = templatesQuery.data ?? [];
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 md:p-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">مكتبة قوالب ركيز</h1>
-        <p className="text-muted-foreground text-sm">
-          إدارة القوالب الافتراضية الجاهزة فقط. هذه الشاشة لا تقرأ أي تقرير أو إصدار أو مرفق أو بيانات مشروع أو كيان.
-        </p>
-      </header>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <PageHero
+        title="مكتبة قوالب ركيز"
+        subtitle="إدارة القوالب الافتراضية الجاهزة فقط. هذه الشاشة لا تقرأ أي تقرير أو إصدار أو مرفق أو بيانات مشروع أو كيان."
+      />
 
       {error ? (
-        <p className="border-destructive/40 bg-destructive/10 text-destructive rounded-md border p-3 text-sm">
+        <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </p>
       ) : null}
-      {message ? <p className="bg-secondary rounded-md border p-3 text-sm">{message}</p> : null}
+      {message ? (
+        <p className="rounded-lg border border-border bg-secondary p-3 text-sm text-foreground">{message}</p>
+      ) : null}
 
-      <RakeezCard title="قوالب ركيز">
-        {templates.length === 0 ? (
-          <p className="text-muted-foreground text-sm">لا توجد قوالب بعد.</p>
-        ) : (
-          <ul className="divide-y">
-            {templates.map((t) => (
-              <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <div className="space-y-0.5">
-                  <p className="font-medium">{t.name_ar}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {t.code ?? "—"} — {STATUS_AR[t.status] ?? t.status}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => load(t.id)}>
-                    تحرير
-                  </Button>
-                  {t.status === "draft" ? (
-                    <Button size="sm" onClick={run(() => activate({ data: { templateId: t.id } }), "تم التفعيل")}>
-                      تفعيل
+      {templatesQuery.isPending ? (
+        <CardsSkeleton cards={2} />
+      ) : (
+        <SectionCard icon={BookMarked} title="قوالب ركيز" count={templates.length}>
+          {templates.length === 0 ? (
+            <SoftEmpty icon={BookMarked} message="لا توجد قوالب بعد." />
+          ) : (
+            <ul className="divide-y divide-border">
+              {templates.map((t) => (
+                <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-foreground">{t.name_ar}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t.code ?? "—"} — {STATUS_AR[t.status] ?? t.status}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="min-h-11" onClick={() => load(t.id)}>
+                      <Edit3 className="me-1 size-3.5" aria-hidden="true" />
+                      تحرير
                     </Button>
-                  ) : null}
-                  {t.status !== "archived" ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={run(() => archive({ data: { templateId: t.id } }), "تمت الأرشفة")}
-                    >
-                      أرشفة
-                    </Button>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </RakeezCard>
+                    {t.status === "draft" ? (
+                      <Button
+                        size="sm"
+                        className="min-h-11"
+                        onClick={run(() => activate({ data: { templateId: t.id } }), "تم التفعيل")}
+                      >
+                        تفعيل
+                      </Button>
+                    ) : null}
+                    {t.status !== "archived" ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="min-h-11"
+                        onClick={run(() => archive({ data: { templateId: t.id } }), "تمت الأرشفة")}
+                      >
+                        <Archive className="me-1 size-3.5" aria-hidden="true" />
+                        أرشفة
+                      </Button>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+      )}
 
-      <RakeezCard
+      <SectionCard
+        icon={PlusCircle}
         title={editingId ? "تعديل قالب ركيز" : "قالب ركيز جديد"}
-        actions={
+        action={
           editingId ? (
-            <Button size="sm" variant="ghost" onClick={reset}>
+            <Button size="sm" variant="ghost" className="min-h-11" onClick={reset}>
               إلغاء التحرير
             </Button>
           ) : null
@@ -200,6 +217,7 @@ function RakeezTemplateLibraryPage() {
         </div>
         <div className="mt-4">
           <Button
+            className="min-h-11"
             disabled={nameAr.trim().length < 2}
             onClick={run(async () => {
               const r = await save({
@@ -218,7 +236,7 @@ function RakeezTemplateLibraryPage() {
             حفظ
           </Button>
         </div>
-      </RakeezCard>
+      </SectionCard>
     </div>
   );
 }
