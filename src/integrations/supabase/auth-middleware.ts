@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/database";
 
-function getServerSupabase() {
+function getServerSupabase(token?: string) {
   const url = process.env["SUPABASE_URL"];
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
 
@@ -17,8 +17,11 @@ function getServerSupabase() {
       autoRefreshToken: false,
       detectSessionInUrl: false,
     },
+    // Act as the calling user so RLS and function grants apply as `authenticated`.
+    ...(token ? { global: { headers: { Authorization: `Bearer ${token}` } } } : {}),
   });
 }
+
 
 export const requireSupabaseAuth = createMiddleware().server(async ({ next, request }) => {
   const authHeader = request.headers.get("authorization") ?? "";
@@ -28,11 +31,13 @@ export const requireSupabaseAuth = createMiddleware().server(async ({ next, requ
     throw new Response("Unauthorized", { status: 401 });
   }
 
-  const supabase = getServerSupabase();
+  const anon = getServerSupabase();
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser(token);
+  } = await anon.auth.getUser(token);
+  const supabase = getServerSupabase(token);
+
 
   if (userError || !user) {
     throw new Response("Unauthorized", { status: 401 });

@@ -17,4 +17,9 @@ declare module "arabic-persian-reshaper" {
   export const PersianShaper: {
     convertArabic(text: string): string;
   };
+  const pkg: {
+    ArabicShaper: { convertArabic(text: string): string; convertArabicBack(text: string): string };
+    PersianShaper: { convertArabic(text: string): string };
+  };
+  export default pkg;
 }
