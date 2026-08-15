@@ -2190,6 +2190,195 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          attempted_at: string
+          channel: string
+          deferred_reason: string | null
+          id: string
+          notification_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempted_at?: string
+          channel: string
+          deferred_reason?: string | null
+          id?: string
+          notification_id: string
+          sent_at?: string | null
+          status: string
+        }
+        Update: {
+          attempted_at?: string
+          channel?: string
+          deferred_reason?: string | null
+          id?: string
+          notification_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          digest_mode: string
+          in_app: boolean
+          type_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_mode?: string
+          in_app?: boolean
+          type_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_mode?: string
+          in_app?: boolean
+          type_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_type_code_fkey"
+            columns: ["type_code"]
+            isOneToOne: false
+            referencedRelation: "notification_types"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      notification_types: {
+        Row: {
+          body_key: string
+          category: string
+          code: string
+          created_at: string
+          default_channel: string
+          is_mandatory: boolean
+          is_security: boolean
+          subject_key: string
+          target_kind: string
+        }
+        Insert: {
+          body_key: string
+          category: string
+          code: string
+          created_at?: string
+          default_channel?: string
+          is_mandatory?: boolean
+          is_security?: boolean
+          subject_key: string
+          target_kind: string
+        }
+        Update: {
+          body_key?: string
+          category?: string
+          code?: string
+          created_at?: string
+          default_channel?: string
+          is_mandatory?: boolean
+          is_security?: boolean
+          subject_key?: string
+          target_kind?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          dedupe_key: string
+          dismissed_at: string | null
+          entity_id: string | null
+          escalation_of_id: string | null
+          id: string
+          payload: Json
+          project_id: string | null
+          read_at: string | null
+          recipient_user_id: string
+          severity: string
+          target_id: string | null
+          target_kind: string
+          type_code: string
+        }
+        Insert: {
+          created_at?: string
+          dedupe_key: string
+          dismissed_at?: string | null
+          entity_id?: string | null
+          escalation_of_id?: string | null
+          id?: string
+          payload?: Json
+          project_id?: string | null
+          read_at?: string | null
+          recipient_user_id: string
+          severity?: string
+          target_id?: string | null
+          target_kind: string
+          type_code: string
+        }
+        Update: {
+          created_at?: string
+          dedupe_key?: string
+          dismissed_at?: string | null
+          entity_id?: string | null
+          escalation_of_id?: string | null
+          id?: string
+          payload?: Json
+          project_id?: string | null
+          read_at?: string | null
+          recipient_user_id?: string
+          severity?: string
+          target_id?: string | null
+          target_kind?: string
+          type_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_escalation_of_id_fkey"
+            columns: ["escalation_of_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_type_code_fkey"
+            columns: ["type_code"]
+            isOneToOne: false
+            referencedRelation: "notification_types"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       observation_actions: {
         Row: {
           action_text: string
@@ -5430,6 +5619,11 @@ export type Database = {
         }
         Returns: string
       }
+      mark_all_notifications_read: { Args: never; Returns: number }
+      mark_notification_read: {
+        Args: { _notification_id: string }
+        Returns: undefined
+      }
       offboard_member: {
         Args: {
           _entity_id: string
@@ -5494,6 +5688,10 @@ export type Database = {
       request_reminder: {
         Args: { _body?: string; _request_id: string }
         Returns: string
+      }
+      resolve_notification_target: {
+        Args: { _notification_id: string }
+        Returns: Json
       }
       respond_to_project_party: {
         Args: { _accept: boolean; _party_id: string }
