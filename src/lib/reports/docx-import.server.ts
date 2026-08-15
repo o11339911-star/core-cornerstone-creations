@@ -74,7 +74,7 @@ function paragraphDir(xml: string): "rtl" | undefined {
 function headingLevel(xml: string): 1 | 2 | 3 | null {
   const m = /<w:pStyle\s+w:val="([^"]+)"/.exec(xml);
   if (!m) return null;
-  const style = m[1].toLowerCase();
+  const style = (m[1] ?? "").toLowerCase();
   if (/^heading ?1$|^title$/.test(style)) return 1;
   if (/^heading ?2$|^subtitle$/.test(style)) return 2;
   if (/^heading ?3$/.test(style)) return 3;
@@ -97,7 +97,8 @@ function scanUnsupported(xml: string, where: string, dropped: DroppedItem[]) {
 function fieldFromText(text: string): string | null {
   const m = /^\{\{\s*field\s*:\s*([a-zA-Z0-9_.]+)\s*\}\}$/.exec(text.trim());
   if (!m) return null;
-  return FIELD_SET.has(m[1]) ? m[1] : null;
+  const src = m[1] ?? "";
+  return FIELD_SET.has(src) ? src : null;
 }
 
 export function parseDocxToBlocks(fileBytes: Uint8Array): ParseResult {
