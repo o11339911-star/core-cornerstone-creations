@@ -2112,32 +2112,62 @@ export type Database = {
       }
       property_services: {
         Row: {
+          account_no: string | null
+          activated_at: string | null
           created_at: string
           id: string
+          installed_at: string | null
+          meter_no: string | null
           notes: string | null
           property_id: string
+          property_unit_id: string | null
+          provider_name: string | null
           reference_no: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          service_code: string | null
           service_type: string
+          source_request_id: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          account_no?: string | null
+          activated_at?: string | null
           created_at?: string
           id?: string
+          installed_at?: string | null
+          meter_no?: string | null
           notes?: string | null
           property_id: string
+          property_unit_id?: string | null
+          provider_name?: string | null
           reference_no?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_code?: string | null
           service_type: string
+          source_request_id?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          account_no?: string | null
+          activated_at?: string | null
           created_at?: string
           id?: string
+          installed_at?: string | null
+          meter_no?: string | null
           notes?: string | null
           property_id?: string
+          property_unit_id?: string | null
+          provider_name?: string | null
           reference_no?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_code?: string | null
           service_type?: string
+          source_request_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -2154,6 +2184,27 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_services_property_unit_id_fkey"
+            columns: ["property_unit_id"]
+            isOneToOne: false
+            referencedRelation: "property_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_services_service_code_fkey"
+            columns: ["service_code"]
+            isOneToOne: false
+            referencedRelation: "service_catalog"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "property_services_source_request_id_fkey"
+            columns: ["source_request_id"]
+            isOneToOne: true
+            referencedRelation: "requests"
             referencedColumns: ["id"]
           },
         ]
@@ -2431,6 +2482,126 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
+      }
+      service_catalog: {
+        Row: {
+          allows_unit_level: boolean
+          category: string
+          code: string
+          created_at: string
+          default_provider_ar: string | null
+          default_provider_en: string | null
+          is_active: boolean
+          is_metered: boolean
+          name_ar: string
+          name_en: string
+          order_index: number
+          requires_unit: boolean
+          updated_at: string
+        }
+        Insert: {
+          allows_unit_level?: boolean
+          category: string
+          code: string
+          created_at?: string
+          default_provider_ar?: string | null
+          default_provider_en?: string | null
+          is_active?: boolean
+          is_metered?: boolean
+          name_ar: string
+          name_en: string
+          order_index?: number
+          requires_unit?: boolean
+          updated_at?: string
+        }
+        Update: {
+          allows_unit_level?: boolean
+          category?: string
+          code?: string
+          created_at?: string
+          default_provider_ar?: string | null
+          default_provider_en?: string | null
+          is_active?: boolean
+          is_metered?: boolean
+          name_ar?: string
+          name_en?: string
+          order_index?: number
+          requires_unit?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_request_details: {
+        Row: {
+          account_no: string | null
+          activated_at: string | null
+          appointment_at: string | null
+          created_at: string
+          external_ref_no: string | null
+          installed_at: string | null
+          meter_no: string | null
+          paid_at: string | null
+          payment_amount: number | null
+          payment_ref: string | null
+          payment_status: string
+          provider_name: string | null
+          request_id: string
+          requirements_note: string | null
+          service_code: string
+          updated_at: string
+        }
+        Insert: {
+          account_no?: string | null
+          activated_at?: string | null
+          appointment_at?: string | null
+          created_at?: string
+          external_ref_no?: string | null
+          installed_at?: string | null
+          meter_no?: string | null
+          paid_at?: string | null
+          payment_amount?: number | null
+          payment_ref?: string | null
+          payment_status?: string
+          provider_name?: string | null
+          request_id: string
+          requirements_note?: string | null
+          service_code: string
+          updated_at?: string
+        }
+        Update: {
+          account_no?: string | null
+          activated_at?: string | null
+          appointment_at?: string | null
+          created_at?: string
+          external_ref_no?: string | null
+          installed_at?: string | null
+          meter_no?: string | null
+          paid_at?: string | null
+          payment_amount?: number | null
+          payment_ref?: string | null
+          payment_status?: string
+          provider_name?: string | null
+          request_id?: string
+          requirements_note?: string | null
+          service_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_request_details_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_request_details_service_code_fkey"
+            columns: ["service_code"]
+            isOneToOne: false
+            referencedRelation: "service_catalog"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       site_visit_locations: {
         Row: {
@@ -3120,6 +3291,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      advance_service_request: {
+        Args: { _note?: string; _request_id: string; _to_status: string }
+        Returns: string
+      }
       approve_contract_version: {
         Args: { _note?: string; _version_id: string }
         Returns: string
@@ -3156,6 +3331,25 @@ export type Database = {
           _property_id?: string
           _property_unit_id?: string
           _request_type_code: string
+          _stage_id?: string
+          _subject: string
+          _submit?: boolean
+        }
+        Returns: string
+      }
+      create_service_request: {
+        Args: {
+          _assigned_entity_id?: string
+          _assigned_user_id?: string
+          _body?: string
+          _due_at?: string
+          _external_ref_no?: string
+          _project_id: string
+          _property_id?: string
+          _property_unit_id?: string
+          _provider_name?: string
+          _requirements_note?: string
+          _service_code: string
           _stage_id?: string
           _subject: string
           _submit?: boolean
@@ -3233,8 +3427,27 @@ export type Database = {
         Args: { _accept: boolean; _party_id: string }
         Returns: string
       }
+      review_and_link_service: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: string
+      }
       submit_stage: {
         Args: { _note?: string; _stage_id: string }
+        Returns: string
+      }
+      update_service_request_details: {
+        Args: {
+          _account_no?: string
+          _appointment_at?: string
+          _external_ref_no?: string
+          _meter_no?: string
+          _payment_amount?: number
+          _payment_ref?: string
+          _payment_status?: string
+          _provider_name?: string
+          _request_id: string
+          _requirements_note?: string
+        }
         Returns: string
       }
     }
