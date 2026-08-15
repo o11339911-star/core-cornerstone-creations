@@ -1545,6 +1545,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      can_view_exact_location: {
+        Args: { _property_id: string }
+        Returns: boolean
+      }
       create_entity_invitation: {
         Args: {
           _email: string
@@ -1567,6 +1571,7 @@ export type Database = {
         Returns: number
       }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      property_exact_location: { Args: { _property_id: string }; Returns: Json }
     }
     Enums: {
       app_action:
