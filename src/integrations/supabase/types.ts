@@ -1416,6 +1416,85 @@ export type Database = {
           },
         ]
       }
+      duration_timers: {
+        Row: {
+          contract_id: string | null
+          created_at: string
+          due_at: string | null
+          entity_id: string | null
+          id: string
+          last_overdue_bucket: string | null
+          last_pre_due_bucket: string | null
+          paused_at: string | null
+          project_id: string | null
+          started_at: string
+          state: string
+          stopped_at: string | null
+          subject_id: string
+          subject_kind: string
+          total_paused_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string
+          due_at?: string | null
+          entity_id?: string | null
+          id?: string
+          last_overdue_bucket?: string | null
+          last_pre_due_bucket?: string | null
+          paused_at?: string | null
+          project_id?: string | null
+          started_at?: string
+          state?: string
+          stopped_at?: string | null
+          subject_id: string
+          subject_kind: string
+          total_paused_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string
+          due_at?: string | null
+          entity_id?: string | null
+          id?: string
+          last_overdue_bucket?: string | null
+          last_pre_due_bucket?: string | null
+          paused_at?: string | null
+          project_id?: string | null
+          started_at?: string
+          state?: string
+          stopped_at?: string | null
+          subject_id?: string
+          subject_kind?: string
+          total_paused_seconds?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duration_timers_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duration_timers_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duration_timers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           created_at: string
@@ -1683,6 +1762,172 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escalation_events: {
+        Row: {
+          id: string
+          notification_id: string | null
+          policy_id: string
+          project_id: string | null
+          raised_at: string
+          reason: string | null
+          resolved_recipient_user_id: string | null
+          step_no: number
+          timer_id: string
+        }
+        Insert: {
+          id?: string
+          notification_id?: string | null
+          policy_id: string
+          project_id?: string | null
+          raised_at?: string
+          reason?: string | null
+          resolved_recipient_user_id?: string | null
+          step_no: number
+          timer_id: string
+        }
+        Update: {
+          id?: string
+          notification_id?: string | null
+          policy_id?: string
+          project_id?: string | null
+          raised_at?: string
+          reason?: string | null
+          resolved_recipient_user_id?: string | null
+          step_no?: number
+          timer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escalation_events_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escalation_events_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "escalation_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escalation_events_timer_id_fkey"
+            columns: ["timer_id"]
+            isOneToOne: false
+            referencedRelation: "duration_timers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escalation_policies: {
+        Row: {
+          contract_id: string | null
+          created_at: string
+          created_by: string
+          entity_id: string
+          id: string
+          is_active: boolean
+          name_ar: string
+          name_en: string
+          project_id: string | null
+          subject_kind: string
+          trigger_after_hours: number
+          updated_at: string
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string
+          created_by: string
+          entity_id: string
+          id?: string
+          is_active?: boolean
+          name_ar: string
+          name_en: string
+          project_id?: string | null
+          subject_kind: string
+          trigger_after_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string
+          entity_id?: string
+          id?: string
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string
+          project_id?: string | null
+          subject_kind?: string
+          trigger_after_hours?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escalation_policies_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escalation_policies_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escalation_policies_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escalation_steps: {
+        Row: {
+          created_at: string
+          delay_hours: number
+          id: string
+          policy_id: string
+          step_no: number
+          target_kind: string
+          target_role: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          delay_hours?: number
+          id?: string
+          policy_id: string
+          step_no: number
+          target_kind: string
+          target_role?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          delay_hours?: number
+          id?: string
+          policy_id?: string
+          step_no?: number
+          target_kind?: string
+          target_role?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escalation_steps_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "escalation_policies"
             referencedColumns: ["id"]
           },
         ]
@@ -2227,6 +2472,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_digest_items: {
+        Row: {
+          created_at: string
+          digest_id: string
+          id: string
+          notification_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_id: string
+          id?: string
+          notification_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_id?: string
+          id?: string
+          notification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_digest_items_digest_id_fkey"
+            columns: ["digest_id"]
+            isOneToOne: false
+            referencedRelation: "notification_digests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_digest_items_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_digests: {
+        Row: {
+          built_at: string
+          digest_mode: string
+          id: string
+          item_count: number
+          period_end: string
+          period_start: string
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          built_at?: string
+          digest_mode: string
+          id?: string
+          item_count?: number
+          period_end: string
+          period_start: string
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          built_at?: string
+          digest_mode?: string
+          id?: string
+          item_count?: number
+          period_end?: string
+          period_start?: string
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {
@@ -5375,6 +5689,13 @@ export type Database = {
         Args: { _template_id: string }
         Returns: string
       }
+      build_notification_digest: {
+        Args: { _mode?: string }
+        Returns: {
+          digest_id: string
+          item_count: number
+        }[]
+      }
       can_access_document_version: {
         Args: {
           _action?: Database["public"]["Enums"]["app_action"]
@@ -5681,6 +6002,10 @@ export type Database = {
         }
         Returns: Json
       }
+      request_completion: {
+        Args: { _note?: string; _subject_id: string; _subject_kind: string }
+        Returns: string
+      }
       request_more_info: {
         Args: { _body: string; _request_id: string }
         Returns: string
@@ -5732,6 +6057,7 @@ export type Database = {
         }
         Returns: string
       }
+      run_duration_scan: { Args: never; Returns: Json }
       save_report_draft: {
         Args: { _content: Json; _page_setup?: Json; _version_id: string }
         Returns: string
@@ -5792,6 +6118,20 @@ export type Database = {
           _provider_name?: string
           _request_id: string
           _requirements_note?: string
+        }
+        Returns: string
+      }
+      upsert_escalation_policy: {
+        Args: {
+          _contract_id?: string
+          _entity_id: string
+          _name_ar: string
+          _name_en: string
+          _policy_id?: string
+          _project_id: string
+          _steps: Json
+          _subject_kind: string
+          _trigger_after_hours: number
         }
         Returns: string
       }
