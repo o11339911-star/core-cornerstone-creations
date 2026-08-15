@@ -13,14 +13,15 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const CONTRACT_TYPES = [
   "design",
   "supervision",
-  "construction",
+  "works",
   "supply",
   "consulting",
+  "service",
   "other",
 ] as const;
 export type ContractType = (typeof CONTRACT_TYPES)[number];
 
-export const CONTRACT_STATUSES = ["draft", "active", "suspended", "closed", "cancelled"] as const;
+export const CONTRACT_STATUSES = ["draft", "active", "suspended", "completed", "terminated"] as const;
 
 const contractSchema = z.object({
   id: z.string().uuid(),
@@ -91,7 +92,7 @@ export const createContract = createServerFn({ method: "POST" })
         starts_on: data.startsOn,
         ends_on: data.endsOn ?? null,
         terms_text: data.termsText ?? null,
-        source: "original",
+        source: "manual",
         created_by: context.userId,
         version_no: 0, // replaced by the assign-version trigger
       })

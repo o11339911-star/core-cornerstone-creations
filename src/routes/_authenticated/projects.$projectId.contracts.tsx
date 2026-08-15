@@ -63,7 +63,7 @@ function ContractsPage() {
   });
 
   const [title, setTitle] = React.useState("");
-  const [type, setType] = React.useState<ContractType>("construction");
+  const [type, setType] = React.useState<ContractType>("works");
   const [startsOn, setStartsOn] = React.useState("");
   const [endsOn, setEndsOn] = React.useState("");
   const [amount, setAmount] = React.useState("");
