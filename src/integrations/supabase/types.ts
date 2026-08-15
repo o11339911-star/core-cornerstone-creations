@@ -1929,6 +1929,364 @@ export type Database = {
         }
         Relationships: []
       }
+      drawing_conversion_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          created_by: string
+          document_version_id: string
+          drawing_id: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          idempotency_key: string
+          provider: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          created_by: string
+          document_version_id: string
+          drawing_id: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_key: string
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          created_by?: string
+          document_version_id?: string
+          drawing_id?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_key?: string
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_conversion_jobs_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drawing_conversion_jobs_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawing_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawing_markups: {
+        Row: {
+          anchor: Json
+          body: string
+          created_at: string
+          created_by: string
+          document_version_id: string
+          drawing_id: string
+          id: string
+          page_no: number
+          request_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          anchor?: Json
+          body: string
+          created_at?: string
+          created_by: string
+          document_version_id: string
+          drawing_id: string
+          id?: string
+          page_no?: number
+          request_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          anchor?: Json
+          body?: string
+          created_at?: string
+          created_by?: string
+          document_version_id?: string
+          drawing_id?: string
+          id?: string
+          page_no?: number
+          request_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_markups_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drawing_markups_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawing_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drawing_markups_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawing_module_settings: {
+        Row: {
+          aps_client_id_env: string
+          aps_client_secret_env: string
+          aps_enabled: boolean
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          aps_client_id_env?: string
+          aps_client_secret_env?: string
+          aps_enabled?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          aps_client_id_env?: string
+          aps_client_secret_env?: string
+          aps_enabled?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      drawing_records: {
+        Row: {
+          created_at: string
+          created_by: string
+          discipline: string
+          document_id: string
+          drawing_no: string
+          id: string
+          owner_entity_id: string
+          project_id: string
+          sheet_no: string | null
+          status: string
+          superseded_by: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          discipline: string
+          document_id: string
+          drawing_no: string
+          id?: string
+          owner_entity_id: string
+          project_id: string
+          sheet_no?: string | null
+          status?: string
+          superseded_by?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          discipline?: string
+          document_id?: string
+          drawing_no?: string
+          id?: string
+          owner_entity_id?: string
+          project_id?: string
+          sheet_no?: string | null
+          status?: string
+          superseded_by?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_records_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: true
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drawing_records_owner_entity_id_fkey"
+            columns: ["owner_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drawing_records_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drawing_records_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "drawing_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawing_status_events: {
+        Row: {
+          actor_id: string
+          created_at: string
+          drawing_id: string
+          from_status: string | null
+          id: string
+          note: string | null
+          to_status: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          drawing_id: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          to_status: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          drawing_id?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_status_events_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawing_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawing_status_transitions: {
+        Row: {
+          from_status: string
+          to_status: string
+        }
+        Insert: {
+          from_status: string
+          to_status: string
+        }
+        Update: {
+          from_status?: string
+          to_status?: string
+        }
+        Relationships: []
+      }
+      drawing_version_meta: {
+        Row: {
+          created_at: string
+          created_by: string
+          document_version_id: string
+          drawing_id: string
+          format: string
+          id: string
+          revision_label: string
+          scan_notes: Json
+          sheet_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          document_version_id: string
+          drawing_id: string
+          format: string
+          id?: string
+          revision_label: string
+          scan_notes?: Json
+          sheet_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          document_version_id?: string
+          drawing_id?: string
+          format?: string
+          id?: string
+          revision_label?: string
+          scan_notes?: Json
+          sheet_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_version_meta_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: true
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drawing_version_meta_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawing_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawing_viewer_state: {
+        Row: {
+          drawing_id: string
+          state: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          drawing_id: string
+          state?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          drawing_id?: string
+          state?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_viewer_state_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawing_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dsr_request_events: {
         Row: {
           actor_id: string | null
@@ -8709,6 +9067,33 @@ export type Database = {
           version_no: number
         }[]
       }
+      add_drawing_markup: {
+        Args: {
+          _anchor?: Json
+          _body: string
+          _document_version_id: string
+          _drawing_id: string
+          _page_no?: number
+        }
+        Returns: string
+      }
+      add_drawing_version: {
+        Args: {
+          _checksum_sha256: string
+          _drawing_id: string
+          _file_ext: string
+          _mime_type: string
+          _revision_label: string
+          _size_bytes: number
+          _supersede_reason?: string
+        }
+        Returns: {
+          storage_bucket: string
+          storage_path: string
+          version_id: string
+          version_no: number
+        }[]
+      }
       add_marketing_contract_unit: {
         Args: { _contract_id: string; _property_unit_id: string }
         Returns: undefined
@@ -8908,6 +9293,17 @@ export type Database = {
           _owner_entity_id: string
           _title: string
           _visibility?: Database["public"]["Enums"]["doc_visibility"]
+        }
+        Returns: string
+      }
+      create_drawing: {
+        Args: {
+          _discipline: string
+          _drawing_no: string
+          _owner_entity_id: string
+          _project_id: string
+          _sheet_no?: string
+          _title: string
         }
         Returns: string
       }
@@ -9122,6 +9518,14 @@ export type Database = {
       end_project_party: {
         Args: { _party_id: string; _reason?: string }
         Returns: number
+      }
+      enqueue_drawing_conversion: {
+        Args: { _document_version_id: string }
+        Returns: {
+          job_id: string
+          provider: string
+          status: string
+        }[]
       }
       entity_license_state: {
         Args: { _entity_id: string }
@@ -9779,6 +10183,10 @@ export type Database = {
         Args: { _body?: string; _request_id: string }
         Returns: string
       }
+      resolve_drawing_markup: {
+        Args: { _markup_id: string }
+        Returns: undefined
+      }
       resolve_notification_target: {
         Args: { _notification_id: string }
         Returns: Json
@@ -9846,6 +10254,10 @@ export type Database = {
         Returns: undefined
       }
       run_duration_scan: { Args: never; Returns: Json }
+      save_drawing_viewer_state: {
+        Args: { _drawing_id: string; _state: Json }
+        Returns: undefined
+      }
       save_report_draft: {
         Args: { _content: Json; _page_setup?: Json; _version_id: string }
         Returns: string
@@ -9879,6 +10291,10 @@ export type Database = {
           _visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Returns: Database["public"]["Enums"]["doc_visibility"]
+      }
+      set_drawing_status: {
+        Args: { _drawing_id: string; _note?: string; _to_status: string }
+        Returns: undefined
       }
       set_entity_public_publish: {
         Args: {
