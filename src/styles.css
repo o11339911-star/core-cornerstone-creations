@@ -8,9 +8,11 @@
  * Rakeez design system.
  *
  * Rakeez (ركيز) means anchor / foundation / focus.
- * The palette is built around deep navy (trust, stability) and warm gold
- * (clarity, optimism) on a soft cream ground.
+ * Official identity: deep olive-green (#2B4A43) as the single primary colour
+ * on a pure white ground. Every surface, state and accent is derived from
+ * that green so future phases inherit the identity automatically.
  */
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -53,10 +55,16 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-rakeez-green: var(--rakeez-green);
+  --color-rakeez-green-deep: var(--rakeez-green-deep);
+  --color-rakeez-green-soft: var(--rakeez-green-soft);
+  /* Legacy aliases kept so earlier phases keep compiling; all resolve to the
+     official green identity. */
   --color-rakeez-navy: var(--rakeez-navy);
   --color-rakeez-gold: var(--rakeez-gold);
   --color-rakeez-cream: var(--rakeez-cream);
   --color-rakeez-sand: var(--rakeez-sand);
+
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-success-soft: var(--success-soft);
@@ -76,42 +84,53 @@
 
 :root {
   --radius: 0.75rem;
-  --rakeez-navy: oklch(0.22 0.07 255);
-  --rakeez-gold: oklch(0.72 0.13 82);
-  --rakeez-cream: oklch(0.97 0.01 85);
-  --rakeez-sand: oklch(0.92 0.02 80);
-  --background: var(--rakeez-cream);
-  --foreground: var(--rakeez-navy);
+
+  /* Official identity: #2B4A43 deep olive-green. */
+  --rakeez-green: oklch(0.36 0.034 168);
+  --rakeez-green-deep: oklch(0.29 0.032 168); /* hover / pressed */
+  --rakeez-green-soft: oklch(0.96 0.012 168); /* tinted surfaces */
+  --rakeez-green-tint: oklch(0.92 0.02 168); /* borders / secondary */
+
+  /* Legacy aliases from earlier phases — remapped to the green identity so no
+     page keeps an off-brand colour. */
+  --rakeez-navy: var(--rakeez-green);
+  --rakeez-gold: var(--rakeez-green-deep);
+  --rakeez-cream: oklch(1 0 0);
+  --rakeez-sand: var(--rakeez-green-soft);
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.24 0.02 168);
   --card: oklch(1 0 0);
-  --card-foreground: var(--rakeez-navy);
+  --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
-  --popover-foreground: var(--rakeez-navy);
-  --primary: var(--rakeez-navy);
-  --primary-foreground: var(--rakeez-cream);
-  --secondary: var(--rakeez-sand);
-  --secondary-foreground: var(--rakeez-navy);
-  --muted: var(--rakeez-sand);
-  --muted-foreground: oklch(0.45 0.04 255);
-  --accent: var(--rakeez-gold);
-  --accent-foreground: var(--rakeez-navy);
-  --destructive: oklch(0.57 0.24 27);
-  --destructive-foreground: oklch(0.98 0.01 85);
-  --border: oklch(0.85 0.02 80);
-  --input: oklch(0.85 0.02 80);
-  --ring: var(--rakeez-gold);
-  --chart-1: var(--rakeez-navy);
-  --chart-2: var(--rakeez-gold);
-  --chart-3: oklch(0.55 0.08 200);
-  --chart-4: oklch(0.65 0.12 300);
-  --chart-5: oklch(0.45 0.06 30);
-  --sidebar: var(--rakeez-cream);
-  --sidebar-foreground: var(--rakeez-navy);
-  --sidebar-primary: var(--rakeez-navy);
-  --sidebar-primary-foreground: var(--rakeez-cream);
-  --sidebar-accent: var(--rakeez-sand);
-  --sidebar-accent-foreground: var(--rakeez-navy);
+  --popover-foreground: var(--foreground);
+  --primary: var(--rakeez-green);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--rakeez-green-soft);
+  --secondary-foreground: var(--rakeez-green);
+  --muted: var(--rakeez-green-soft);
+  --muted-foreground: oklch(0.48 0.018 168);
+  --accent: var(--rakeez-green-soft);
+  --accent-foreground: var(--rakeez-green);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(1 0 0);
+  --border: var(--rakeez-green-tint);
+  --input: var(--rakeez-green-tint);
+  --ring: var(--rakeez-green);
+  --chart-1: var(--rakeez-green);
+  --chart-2: oklch(0.52 0.06 168);
+  --chart-3: oklch(0.66 0.07 168);
+  --chart-4: oklch(0.55 0.08 200);
+  --chart-5: oklch(0.62 0.1 120);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--rakeez-green);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: var(--rakeez-green-soft);
+  --sidebar-accent-foreground: var(--rakeez-green);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+
 
   /* Typography */
   --font-family-sans: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
@@ -121,55 +140,57 @@
   --space-gutter: 1rem;
   --space-section: 6rem;
 
-  /* Status colors */
-  --success: oklch(0.58 0.13 155);
-  --success-foreground: oklch(0.98 0.01 155);
-  --success-soft: oklch(0.94 0.04 155);
-  --warning: oklch(0.62 0.14 70);
-  --warning-foreground: oklch(0.99 0.01 85);
-  --warning-soft: oklch(0.95 0.05 80);
-  --info: oklch(0.55 0.1 235);
-  --info-foreground: oklch(0.98 0.01 235);
-  --info-soft: oklch(0.94 0.03 235);
+  /* Functional status colours — kept semantically distinct, hue-tuned to sit
+     calmly next to the green identity. */
+  --success: oklch(0.52 0.11 152);
+  --success-foreground: oklch(1 0 0);
+  --success-soft: oklch(0.95 0.03 152);
+  --warning: oklch(0.62 0.12 75);
+  --warning-foreground: oklch(1 0 0);
+  --warning-soft: oklch(0.96 0.04 80);
+  --info: oklch(0.52 0.08 225);
+  --info-foreground: oklch(1 0 0);
+  --info-soft: oklch(0.95 0.025 225);
 
   /* Elevation */
-  --shadow-elevation-1: 0 1px 2px 0 color-mix(in oklab, var(--rakeez-navy) 8%, transparent);
-  --shadow-elevation-2: 0 12px 32px -12px color-mix(in oklab, var(--rakeez-navy) 30%, transparent);
+  --shadow-elevation-1: 0 1px 2px 0 color-mix(in oklab, var(--rakeez-green) 10%, transparent);
+  --shadow-elevation-2: 0 12px 32px -12px color-mix(in oklab, var(--rakeez-green) 32%, transparent);
 }
 
 .dark {
-  --background: oklch(0.16 0.04 255);
-  --foreground: var(--rakeez-cream);
-  --card: oklch(0.22 0.06 255);
-  --card-foreground: var(--rakeez-cream);
-  --popover: oklch(0.22 0.06 255);
-  --popover-foreground: var(--rakeez-cream);
-  --primary: var(--rakeez-gold);
-  --primary-foreground: var(--rakeez-navy);
-  --secondary: oklch(0.24 0.05 255);
-  --secondary-foreground: var(--rakeez-cream);
-  --muted: oklch(0.24 0.05 255);
-  --muted-foreground: oklch(0.65 0.04 255);
-  --accent: var(--rakeez-gold);
-  --accent-foreground: var(--rakeez-navy);
-  --destructive: oklch(0.7 0.19 22);
-  --destructive-foreground: var(--rakeez-cream);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: var(--rakeez-gold);
-  --chart-1: var(--rakeez-gold);
-  --chart-2: var(--rakeez-navy);
-  --chart-3: oklch(0.55 0.08 200);
-  --chart-4: oklch(0.65 0.12 300);
-  --chart-5: oklch(0.45 0.06 30);
-  --sidebar: oklch(0.16 0.04 255);
-  --sidebar-foreground: var(--rakeez-cream);
-  --sidebar-primary: var(--rakeez-gold);
-  --sidebar-primary-foreground: var(--rakeez-navy);
-  --sidebar-accent: oklch(0.24 0.05 255);
-  --sidebar-accent-foreground: var(--rakeez-cream);
-  --sidebar-border: oklch(1 0 0 / 12%);
+  --background: oklch(0.19 0.02 168);
+  --foreground: oklch(0.97 0.005 168);
+  --card: oklch(0.24 0.024 168);
+  --card-foreground: oklch(0.97 0.005 168);
+  --popover: oklch(0.24 0.024 168);
+  --popover-foreground: oklch(0.97 0.005 168);
+  --primary: oklch(0.78 0.055 168);
+  --primary-foreground: oklch(0.22 0.03 168);
+  --secondary: oklch(0.27 0.026 168);
+  --secondary-foreground: oklch(0.97 0.005 168);
+  --muted: oklch(0.27 0.026 168);
+  --muted-foreground: oklch(0.72 0.018 168);
+  --accent: oklch(0.3 0.03 168);
+  --accent-foreground: oklch(0.97 0.005 168);
+  --destructive: oklch(0.68 0.18 22);
+  --destructive-foreground: oklch(0.98 0.005 168);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.78 0.055 168);
+  --chart-1: oklch(0.78 0.055 168);
+  --chart-2: oklch(0.62 0.06 168);
+  --chart-3: oklch(0.5 0.05 168);
+  --chart-4: oklch(0.6 0.08 200);
+  --chart-5: oklch(0.66 0.1 120);
+  --sidebar: oklch(0.19 0.02 168);
+  --sidebar-foreground: oklch(0.97 0.005 168);
+  --sidebar-primary: oklch(0.78 0.055 168);
+  --sidebar-primary-foreground: oklch(0.22 0.03 168);
+  --sidebar-accent: oklch(0.27 0.026 168);
+  --sidebar-accent-foreground: oklch(0.97 0.005 168);
+  --sidebar-border: oklch(1 0 0 / 14%);
   --sidebar-ring: var(--ring);
+
 
   --success: oklch(0.68 0.13 155);
   --success-foreground: oklch(0.18 0.04 155);

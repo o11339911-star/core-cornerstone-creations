@@ -6591,6 +6591,7 @@ export type Database = {
         Args: { _hold_id: string; _reason: string }
         Returns: string
       }
+      get_project_overview: { Args: { _project_id: string }; Returns: Json }
       invite_project_party: {
         Args: {
           _ends_on?: string
@@ -6641,6 +6642,7 @@ export type Database = {
         }
         Returns: string
       }
+      project_completion: { Args: { _project_id: string }; Returns: Json }
       property_completion: { Args: { _property_id: string }; Returns: number }
       publish_portfolio_entry: {
         Args: {
@@ -6790,6 +6792,18 @@ export type Database = {
       save_report_draft: {
         Args: { _content: Json; _page_setup?: Json; _version_id: string }
         Returns: string
+      }
+      search_projects: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          city: string
+          code: string
+          district: string
+          match_field: string
+          name: string
+          project_id: string
+          status: string
+        }[]
       }
       set_closure_item_status: {
         Args: {
