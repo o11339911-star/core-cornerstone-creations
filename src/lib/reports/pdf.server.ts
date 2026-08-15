@@ -1,7 +1,9 @@
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import QRCode from "qrcode";
-import { ArabicShaper } from "arabic-persian-reshaper";
+import reshaperPkg from "arabic-persian-reshaper";
+
+const ArabicShaper = (reshaperPkg as { ArabicShaper: { convertArabic(text: string): string } }).ArabicShaper;
 
 import { NOTO_NASKH_ARABIC_BASE64 } from "./font.server";
 import type { RenderLine } from "./render.server";
