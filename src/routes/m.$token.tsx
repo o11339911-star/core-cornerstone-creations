@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Camera, ShieldCheck } from "lucide-react";
 
-import { CardsSkeleton, ErrorState, SoftEmpty } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, Num, SoftEmpty } from "@/components/rakeez";
+import { formatDate } from "@/lib/format";
 import { getPublicMedia } from "@/lib/media.functions";
 
 export const Route = createFileRoute("/m/$token")({
@@ -72,11 +73,7 @@ function PublicMediaPage() {
             <h2 className="text-lg font-semibold text-foreground">{media.data.title}</h2>
             <p className="text-sm text-muted-foreground">
               تاريخ النشر:{" "}
-              <span dir="ltr" className="inline-block">
-                {new Date(media.data.published_at).toLocaleDateString("ar-SA", {
-                  numberingSystem: "latn",
-                })}
-              </span>
+              <Num>{formatDate(media.data.published_at)}</Num>
             </p>
           </div>
         </article>

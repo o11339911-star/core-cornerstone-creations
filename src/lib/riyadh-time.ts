@@ -1,19 +1,10 @@
 /**
- * All timestamps are stored in UTC (timestamptz). Everything the user sees is
- * rendered in Asia/Riyadh — a single formatter so no screen drifts.
+ * @deprecated Phase 29A moved every formatter to `src/lib/format.ts`.
+ * This thin shim stays so older imports keep working; it now delegates to the
+ * central layer (Gregorian calendar, Asia/Riyadh, 24h, Latin digits 0-9).
  */
-const RIYADH = "Asia/Riyadh";
+import { formatDateTime } from "@/lib/format";
 
-export function formatRiyadh(iso: string | null | undefined, locale: string = "ar-SA-u-ca-gregory") {
-  if (!iso) return "—";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat(locale, {
-    timeZone: RIYADH,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+export function formatRiyadh(iso: string | null | undefined): string {
+  return formatDateTime(iso);
 }

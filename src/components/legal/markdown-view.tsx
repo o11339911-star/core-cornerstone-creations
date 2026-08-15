@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { toLatinDigits } from "@/lib/format";
+
 /**
  * Minimal, dependency-free Markdown renderer for the Arabic legal documents.
  * Supports: `##`/`###` headings, `-` lists, `1.` lists, `>` notes, pipe tables,
@@ -121,7 +123,9 @@ function parse(md: string): Block[] {
 }
 
 export function MarkdownView({ source }: { source: string }) {
-  const blocks = React.useMemo(() => parse(source), [source]);
+  // Display-only rule (Phase 29): any Arabic-Indic digit inside a stored
+  // document is rendered as 0-9; the stored text itself is never modified.
+  const blocks = React.useMemo(() => parse(toLatinDigits(source)), [source]);
   return (
     <div className="space-y-4 text-[0.95rem] leading-8 text-muted-foreground">
       {blocks.map((block, index) => {

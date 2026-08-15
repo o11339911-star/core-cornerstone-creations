@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { CalendarClock, CalendarPlus } from "lucide-react";
 
+import { toLatinDigits } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,11 +72,16 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const fmt = (iso: string, tz: string) =>
-  new Intl.DateTimeFormat("ar-SA-u-nu-latn", {
-    timeZone: tz,
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
+  toLatinDigits(
+    new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
+      calendar: "gregory",
+      numberingSystem: "latn",
+      hourCycle: "h23",
+      timeZone: tz,
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(iso)),
+  );
 
 function AppointmentsPage() {
   const qc = useQueryClient();

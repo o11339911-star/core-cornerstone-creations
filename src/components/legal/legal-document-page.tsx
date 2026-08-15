@@ -3,6 +3,7 @@ import { CalendarDays, FileText, Scale, ShieldCheck } from "lucide-react";
 
 import { MarkdownView } from "@/components/legal/markdown-view";
 import { PageHero, HeroBadge } from "@/components/rakeez/dashboard-kit";
+import { formatLongDate } from "@/lib/format";
 import type { LegalDocument } from "@/lib/legal.functions";
 
 const NAV = [
@@ -16,19 +17,8 @@ export const LEGAL_DISCLAIMER =
   "هذه الوثيقة أساس تقني وتشغيلي مشتق من سلوك المنصة الفعلي، وتحتاج مراجعة واعتمادًا من مستشار نظامي سعودي قبل الاعتماد النهائي.";
 
 function formatDate(value: string | null) {
-  if (!value) return "—";
-  try {
-    // Explicit gregory calendar + latin digits keeps SSR and client output
-    // identical (ar-SA defaults to the Islamic calendar only on some ICU builds).
-    return new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: "Asia/Riyadh",
-    }).format(new Date(value));
-  } catch {
-    return value;
-  }
+  // Central layer: Gregorian, Asia/Riyadh, Latin digits — identical on SSR and client.
+  return formatLongDate(value);
 }
 
 export function LegalUnavailable({ title }: { title: string }) {
