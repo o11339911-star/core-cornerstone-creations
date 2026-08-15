@@ -3557,6 +3557,23 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      add_document_version: {
+        Args: {
+          _checksum_sha256: string
+          _document_id: string
+          _file_ext: string
+          _mime_type: string
+          _size_bytes: number
+          _source?: string
+          _supersede_reason?: string
+        }
+        Returns: {
+          storage_bucket: string
+          storage_path: string
+          version_id: string
+          version_no: number
+        }[]
+      }
       advance_service_request: {
         Args: { _note?: string; _request_id: string; _to_status: string }
         Returns: string
@@ -3565,12 +3582,26 @@ export type Database = {
         Args: { _note?: string; _version_id: string }
         Returns: string
       }
+      approve_document: {
+        Args: { _document_id: string; _note?: string }
+        Returns: string
+      }
       approve_stage: {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
       close_request: {
         Args: { _reason?: string; _request_id: string }
+        Returns: string
+      }
+      create_document: {
+        Args: {
+          _category_code: string
+          _description?: string
+          _owner_entity_id: string
+          _title: string
+          _visibility?: Database["public"]["Enums"]["doc_visibility"]
+        }
         Returns: string
       }
       create_entity_invitation: {
@@ -3652,6 +3683,15 @@ export type Database = {
         }
         Returns: string
       }
+      link_document: {
+        Args: {
+          _context_id: string
+          _context_type: string
+          _document_id: string
+          _relation?: string
+        }
+        Returns: string
+      }
       offboard_member: {
         Args: {
           _entity_id: string
@@ -3693,14 +3733,29 @@ export type Database = {
         Args: { _accept: boolean; _party_id: string }
         Returns: string
       }
+      restore_document: { Args: { _document_id: string }; Returns: boolean }
       review_and_link_service: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: string
+      }
+      set_document_visibility: {
+        Args: {
+          _audience_entity_ids?: string[]
+          _audience_user_ids?: string[]
+          _document_id: string
+          _visibility: Database["public"]["Enums"]["doc_visibility"]
+        }
+        Returns: Database["public"]["Enums"]["doc_visibility"]
+      }
+      soft_delete_document: {
+        Args: { _document_id: string; _reason: string }
         Returns: string
       }
       submit_stage: {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
+      unlink_document: { Args: { _link_id: string }; Returns: boolean }
       update_service_request_details: {
         Args: {
           _account_no?: string
