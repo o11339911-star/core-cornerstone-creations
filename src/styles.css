@@ -8,9 +8,11 @@
  * Rakeez design system.
  *
  * Rakeez (ركيز) means anchor / foundation / focus.
- * The palette is built around deep navy (trust, stability) and warm gold
- * (clarity, optimism) on a soft cream ground.
+ * Official identity: deep olive-green (#2B4A43) as the single primary colour
+ * on a pure white ground. Every surface, state and accent is derived from
+ * that green so future phases inherit the identity automatically.
  */
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
