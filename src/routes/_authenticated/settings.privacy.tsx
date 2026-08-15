@@ -8,8 +8,7 @@ import { Download, FileText, ShieldCheck, Inbox } from "lucide-react";
 import { CardsSkeleton, ErrorState, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-import { formatDate } from "@/lib/format";
+import { formatDate, import { formatDate } from "@/lib/format";
   DSR_KINDS,
   evaluateMyErasure,
   exportMyData,

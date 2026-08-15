@@ -29,8 +29,7 @@ import {
   SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
-import {
-import { formatNumber } from "@/lib/format";
+import { formatNumber, import { formatNumber } from "@/lib/format";
   addPropertyOwner,
   getDocumentUrl,
   getPropertyProfile,

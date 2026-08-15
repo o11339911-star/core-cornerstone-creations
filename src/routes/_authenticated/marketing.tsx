@@ -18,8 +18,7 @@ import {
   SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
-import {
-import { formatMoney } from "@/lib/format";
+import { formatMoney, import { formatMoney } from "@/lib/format";
   listMarketingContracts,
   listMarketingLeads,
   listMarketingVersions,
