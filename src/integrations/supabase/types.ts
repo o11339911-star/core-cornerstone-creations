@@ -82,6 +82,121 @@ export type Database = {
           },
         ]
       }
+      permission_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          new_value: Json | null
+          object_id: string | null
+          object_type: string
+          old_value: Json | null
+          target_entity_id: string | null
+          target_project_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          object_id?: string | null
+          object_type: string
+          old_value?: Json | null
+          target_entity_id?: string | null
+          target_project_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          object_id?: string | null
+          object_type?: string
+          old_value?: Json | null
+          target_entity_id?: string | null
+          target_project_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      permission_grants: {
+        Row: {
+          action: Database["public"]["Enums"]["app_action"]
+          created_at: string
+          effect: string
+          expires_at: string | null
+          granted_by: string
+          id: string
+          module: Database["public"]["Enums"]["app_module"]
+          revoked_at: string | null
+          scope_entity_id: string | null
+          scope_project_id: string | null
+          scope_type: string
+          subject_entity_id: string | null
+          subject_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["app_action"]
+          created_at?: string
+          effect?: string
+          expires_at?: string | null
+          granted_by: string
+          id?: string
+          module: Database["public"]["Enums"]["app_module"]
+          revoked_at?: string | null
+          scope_entity_id?: string | null
+          scope_project_id?: string | null
+          scope_type: string
+          subject_entity_id?: string | null
+          subject_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["app_action"]
+          created_at?: string
+          effect?: string
+          expires_at?: string | null
+          granted_by?: string
+          id?: string
+          module?: Database["public"]["Enums"]["app_module"]
+          revoked_at?: string | null
+          scope_entity_id?: string | null
+          scope_project_id?: string | null
+          scope_type?: string
+          subject_entity_id?: string | null
+          subject_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_grants_scope_entity_id_fkey"
+            columns: ["scope_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permission_grants_scope_project_id_fkey"
+            columns: ["scope_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permission_grants_subject_entity_id_fkey"
+            columns: ["subject_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -301,6 +416,27 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          action: Database["public"]["Enums"]["app_action"]
+          created_at: string
+          module: Database["public"]["Enums"]["app_module"]
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["app_action"]
+          created_at?: string
+          module: Database["public"]["Enums"]["app_module"]
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["app_action"]
+          created_at?: string
+          module?: Database["public"]["Enums"]["app_module"]
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
       stage_dependencies: {
         Row: {
           created_at: string
@@ -420,6 +556,25 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      app_action:
+        | "view"
+        | "create"
+        | "update"
+        | "soft_delete"
+        | "approve"
+        | "execute"
+        | "export"
+        | "share"
+        | "manage_members"
+      app_module:
+        | "projects"
+        | "stages"
+        | "contracts"
+        | "documents"
+        | "finance"
+        | "correspondence"
+        | "reports"
+        | "members"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
     }
     CompositeTypes: {
@@ -548,6 +703,27 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_action: [
+        "view",
+        "create",
+        "update",
+        "soft_delete",
+        "approve",
+        "execute",
+        "export",
+        "share",
+        "manage_members",
+      ],
+      app_module: [
+        "projects",
+        "stages",
+        "contracts",
+        "documents",
+        "finance",
+        "correspondence",
+        "reports",
+        "members",
+      ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
     },
   },
