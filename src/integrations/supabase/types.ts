@@ -10073,12 +10073,10 @@ export type Database = {
         Returns: string
       }
       use_advanced_analytics: { Args: { _entity_id: string }; Returns: Json }
-      verify_dsr_identity:
-        | { Args: { _method: string; _request_id: string }; Returns: undefined }
-        | {
-            Args: { _method: string; _note_ar?: string; _request_id: string }
-            Returns: undefined
-          }
+      verify_dsr_identity: {
+        Args: { _method: string; _note_ar?: string; _request_id: string }
+        Returns: undefined
+      }
       verify_marketing_package: { Args: { _token: string }; Returns: Json }
       verify_report: {
         Args: { _token: string }

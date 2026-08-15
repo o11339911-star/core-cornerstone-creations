@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
+import { PolicyAcceptanceGate } from "@/components/legal/policy-acceptance-gate";
 import { CardsSkeleton, ErrorState, PageHero } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,8 @@ import { getMyMemberships, getMyProfile, type MembershipRow } from "@/lib/auth.f
 import { queryClient } from "@/router";
 
 export const Route = createFileRoute("/select-account")({
-  component: SelectAccountPage,
+  ssr: false,
+  component: SelectAccountRoute,
   beforeLoad: async () => {
     // Ensure the user is authenticated before rendering the page.
     const {
@@ -22,6 +24,14 @@ export const Route = createFileRoute("/select-account")({
   },
   errorComponent: ErrorState,
 });
+
+function SelectAccountRoute() {
+  return (
+    <PolicyAcceptanceGate>
+      <SelectAccountPage />
+    </PolicyAcceptanceGate>
+  );
+}
 
 function SelectAccountPage() {
   const t = useT();

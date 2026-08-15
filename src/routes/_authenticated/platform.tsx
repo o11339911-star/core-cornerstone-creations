@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Inbox, PlugZap, ShieldAlert, ShieldCheck, Users } from "lucide-react";
+import { BookLock, Inbox, PlugZap, ShieldAlert, ShieldCheck, Users } from "lucide-react";
 
 import { ErrorState, UnauthorizedState } from "@/components/rakeez";
 import { getPlatformMe } from "@/lib/platform-admin.functions";
@@ -18,6 +18,7 @@ const LINKS = [
   { to: "/platform/breakglass", label: "الوصول الطارئ", icon: ShieldAlert },
   { to: "/platform/integrations", label: "التكاملات", icon: PlugZap },
   { to: "/platform/dsr", label: "طلبات الخصوصية", icon: ShieldCheck },
+  { to: "/platform/breach-playbook", label: "خطة الحوادث", icon: BookLock },
 ] as const;
 
 function PlatformLayout() {
