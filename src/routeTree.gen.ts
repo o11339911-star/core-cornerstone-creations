@@ -28,6 +28,7 @@ import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdPartiesRouteImport } from './routes/_authenticated/projects.$projectId.parties'
 import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './routes/_authenticated/projects.$projectId.requests'
+import { Route as AuthenticatedProjectsProjectIdServicesRouteImport } from './routes/_authenticated/projects.$projectId.services'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
 import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
 
@@ -136,6 +137,12 @@ const AuthenticatedProjectsProjectIdRequestsRoute =
     path: '/projects/$projectId/requests',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdServicesRoute =
+  AuthenticatedProjectsProjectIdServicesRouteImport.update({
+    id: '/projects/$projectId/services',
+    path: '/projects/$projectId/services',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdStagesRoute =
   AuthenticatedProjectsProjectIdStagesRouteImport.update({
     id: '/projects/$projectId/stages',
@@ -168,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
+  '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -190,6 +198,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
+  '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -214,6 +223,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/_authenticated/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
+  '/_authenticated/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/requests'
+    | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
   fileRoutesByTo: FileRoutesByTo
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/requests'
+    | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
   id:
@@ -283,6 +295,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/parties'
     | '/_authenticated/projects/$projectId/requests'
+    | '/_authenticated/projects/$projectId/services'
     | '/_authenticated/projects/$projectId/stages'
     | '/_authenticated/projects/$projectId/visits'
   fileRoutesById: FileRoutesById
@@ -430,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/services': {
+      id: '/_authenticated/projects/$projectId/services'
+      path: '/projects/$projectId/services'
+      fullPath: '/projects/$projectId/services'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdServicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/stages': {
       id: '/_authenticated/projects/$projectId/stages'
       path: '/projects/$projectId/stages'
@@ -460,6 +480,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
   AuthenticatedProjectsProjectIdPartiesRoute: typeof AuthenticatedProjectsProjectIdPartiesRoute
   AuthenticatedProjectsProjectIdRequestsRoute: typeof AuthenticatedProjectsProjectIdRequestsRoute
+  AuthenticatedProjectsProjectIdServicesRoute: typeof AuthenticatedProjectsProjectIdServicesRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -483,6 +504,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdPartiesRoute,
   AuthenticatedProjectsProjectIdRequestsRoute:
     AuthenticatedProjectsProjectIdRequestsRoute,
+  AuthenticatedProjectsProjectIdServicesRoute:
+    AuthenticatedProjectsProjectIdServicesRoute,
   AuthenticatedProjectsProjectIdStagesRoute:
     AuthenticatedProjectsProjectIdStagesRoute,
   AuthenticatedProjectsProjectIdVisitsRoute:

@@ -124,19 +124,21 @@ function ServicesPage() {
             >
               {properties.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.title}
+                  {p.name}
                 </option>
               ))}
             </select>
           </label>
 
           <TextField
+            id="service-subject"
             label={t("requests.subject")}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             required
           />
           <TextAreaField
+            id="service-requirements"
             label={t("services.requirements")}
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
@@ -177,7 +179,7 @@ function ServicesPage() {
 
         <AsyncBoundary
           isLoading={requestsQuery.isLoading}
-          error={requestsQuery.error as Error | null}
+          isError={requestsQuery.isError}
           onRetry={() => void requestsQuery.refetch()}
         >
           {(requestsQuery.data ?? []).length === 0 ? (
