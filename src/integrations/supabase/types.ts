@@ -14,6 +14,124 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_transfers: {
+        Row: {
+          created_at: string
+          from_assignment_id: string
+          from_user_id: string
+          id: string
+          project_id: string
+          reason: string | null
+          to_assignment_id: string | null
+          to_user_id: string | null
+          transferred_by: string
+        }
+        Insert: {
+          created_at?: string
+          from_assignment_id: string
+          from_user_id: string
+          id?: string
+          project_id: string
+          reason?: string | null
+          to_assignment_id?: string | null
+          to_user_id?: string | null
+          transferred_by: string
+        }
+        Update: {
+          created_at?: string
+          from_assignment_id?: string
+          from_user_id?: string
+          id?: string
+          project_id?: string
+          reason?: string | null
+          to_assignment_id?: string | null
+          to_user_id?: string | null
+          transferred_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_transfers_from_assignment_id_fkey"
+            columns: ["from_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "project_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_transfers_from_assignment_id_fkey"
+            columns: ["from_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "project_assignments_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_transfers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_transfers_to_assignment_id_fkey"
+            columns: ["to_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "project_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_transfers_to_assignment_id_fkey"
+            columns: ["to_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "project_assignments_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignment_visibility_audience: {
+        Row: {
+          assignment_id: string
+          audience_entity_id: string | null
+          audience_user_id: string | null
+          created_at: string
+          id: string
+        }
+        Insert: {
+          assignment_id: string
+          audience_entity_id?: string | null
+          audience_user_id?: string | null
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          assignment_id?: string
+          audience_entity_id?: string | null
+          audience_user_id?: string | null
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_visibility_audience_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "project_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_visibility_audience_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "project_assignments_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_visibility_audience_audience_entity_id_fkey"
+            columns: ["audience_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           created_at: string
@@ -40,6 +158,62 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      entity_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          entity_id: string
+          expires_at: string
+          id: string
+          invited_by: string
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          entity_id: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          entity_id?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_invitations_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entity_memberships: {
         Row: {
@@ -226,6 +400,82 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_assignments: {
+        Row: {
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          ends_on: string | null
+          entity_id: string | null
+          id: string
+          job_title_ar: string
+          job_title_en: string
+          project_id: string
+          stage_id: string | null
+          starts_on: string
+          status: string
+          updated_at: string
+          user_id: string
+          visibility: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          ends_on?: string | null
+          entity_id?: string | null
+          id?: string
+          job_title_ar: string
+          job_title_en: string
+          project_id: string
+          stage_id?: string | null
+          starts_on?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          visibility?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          ends_on?: string | null
+          entity_id?: string | null
+          id?: string
+          job_title_ar?: string
+          job_title_en?: string
+          project_id?: string
+          stage_id?: string | null
+          starts_on?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_assignments_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_assignments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_assignments_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_stages: {
         Row: {
@@ -550,10 +800,100 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      project_assignments_public: {
+        Row: {
+          display_name: string | null
+          ends_on: string | null
+          entity_id: string | null
+          id: string | null
+          is_identified: boolean | null
+          job_title_ar: string | null
+          job_title_en: string | null
+          project_id: string | null
+          stage_id: string | null
+          starts_on: string | null
+          status: string | null
+          user_id: string | null
+          visibility: Database["public"]["Enums"]["visibility_level"] | null
+        }
+        Insert: {
+          display_name?: never
+          ends_on?: string | null
+          entity_id?: string | null
+          id?: string | null
+          is_identified?: never
+          job_title_ar?: string | null
+          job_title_en?: string | null
+          project_id?: string | null
+          stage_id?: string | null
+          starts_on?: string | null
+          status?: string | null
+          user_id?: never
+          visibility?: Database["public"]["Enums"]["visibility_level"] | null
+        }
+        Update: {
+          display_name?: never
+          ends_on?: string | null
+          entity_id?: string | null
+          id?: string | null
+          is_identified?: never
+          job_title_ar?: string | null
+          job_title_en?: string | null
+          project_id?: string | null
+          stage_id?: string | null
+          starts_on?: string | null
+          status?: string | null
+          user_id?: never
+          visibility?: Database["public"]["Enums"]["visibility_level"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_assignments_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_assignments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_assignments_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      create_entity_invitation: {
+        Args: {
+          _email: string
+          _entity_id: string
+          _role?: Database["public"]["Enums"]["app_role"]
+          _valid_days?: number
+        }
+        Returns: {
+          invitation_id: string
+          token: string
+        }[]
+      }
+      offboard_member: {
+        Args: {
+          _entity_id: string
+          _reason?: string
+          _replacement_user_id?: string
+          _user_id: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       app_action:
@@ -576,6 +916,7 @@ export type Database = {
         | "reports"
         | "members"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
+      visibility_level: "internal" | "limited" | "project_wide"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -725,6 +1066,7 @@ export const Constants = {
         "members",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
+      visibility_level: ["internal", "limited", "project_wide"],
     },
   },
 } as const
