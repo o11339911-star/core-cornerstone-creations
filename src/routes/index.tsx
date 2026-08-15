@@ -51,43 +51,48 @@ function Hero() {
   const t = useT();
 
   return (
-    <section
-      id="hero"
-      className="relative flex min-h-[80vh] items-center justify-center overflow-hidden"
-    >
-      <img
-        src={heroImage}
-        alt={t("hero.imageAlt")}
-        width={1920}
-        height={1080}
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-      <div className="absolute inset-0 bg-rakeez-navy/70" />
-      <div className="absolute inset-0 bg-gradient-to-t from-rakeez-navy/90 via-transparent to-rakeez-navy/30" />
+    <section id="hero" className="border-b border-border bg-background">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-28">
+        <div className="min-w-0 text-center lg:text-start">
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
+            {t("hero.badge")}
+          </span>
+          <h1 className="mt-6 text-balance text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl">
+            {t("hero.title")}
+          </h1>
+          <p className="mt-6 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground lg:mx-0">
+            {t("hero.subtitle")}
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+            <a
+              href="#contact"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              {t("hero.primaryCta")}
+            </a>
+            <a
+              href="#services"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-card px-6 py-3 text-base font-semibold text-foreground transition-colors hover:bg-secondary"
+            >
+              {t("hero.secondaryCta")}
+            </a>
+          </div>
+        </div>
 
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 lg:px-8">
-        <span className="inline-flex items-center rounded-full border border-rakeez-gold/30 bg-rakeez-gold/10 px-3 py-1 text-sm font-medium text-rakeez-gold backdrop-blur-sm">
-          {t("hero.badge")}
-        </span>
-        <h1 className="mt-6 text-balance text-4xl font-extrabold leading-tight text-rakeez-cream sm:text-5xl lg:text-6xl">
-          {t("hero.title")}
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-balance text-lg leading-relaxed text-rakeez-cream/80">
-          {t("hero.subtitle")}
-        </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="#contact"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-rakeez-gold px-6 py-3 text-base font-semibold text-rakeez-navy shadow-lg transition-all hover:bg-rakeez-gold/90 hover:shadow-xl"
-          >
-            {t("hero.primaryCta")}
-          </a>
-          <a
-            href="#services"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-rakeez-cream/30 bg-rakeez-cream/5 px-6 py-3 text-base font-semibold text-rakeez-cream backdrop-blur-sm transition-all hover:bg-rakeez-cream/10"
-          >
-            {t("hero.secondaryCta")}
-          </a>
+        <div className="relative min-w-0">
+          <div className="aspect-[4/3] overflow-hidden rounded-3xl border border-border bg-secondary shadow-sm">
+            <img
+              src={heroImage}
+              alt={t("hero.imageAlt")}
+              width={1920}
+              height={1080}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-4 -start-4 hidden h-20 w-20 rounded-2xl border border-primary/20 bg-primary/10 lg:block"
+          />
         </div>
       </div>
     </section>
