@@ -185,7 +185,6 @@ export const createDrawing = createServerFn({ method: "POST" })
     z
       .object({
         projectId: uuid,
-        ownerEntityId: uuid,
         drawingNo: z.string().min(1).max(60),
         discipline: z.enum(DRAWING_DISCIPLINES),
         title: z.string().min(2).max(200),
@@ -194,9 +193,17 @@ export const createDrawing = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<string> => {
+    const { data: project, error: projectError } = await context.supabase
+      .from("projects")
+      .select("entity_id")
+      .eq("id", data.projectId)
+      .maybeSingle();
+    if (projectError) throw new Error(projectError.message);
+    if (!project?.entity_id) throw new Error("المشروع غير متاح");
+
     const { data: id, error } = await context.supabase.rpc("create_drawing", {
       _project_id: data.projectId,
-      _owner_entity_id: data.ownerEntityId,
+      _owner_entity_id: project.entity_id,
       _drawing_no: data.drawingNo,
       _discipline: data.discipline,
       _title: data.title,
