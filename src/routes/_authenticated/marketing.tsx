@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatMoney } from "@/lib/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -18,7 +19,6 @@ import {
   SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
-import { formatMoney, import { formatMoney } from "@/lib/format";
   listMarketingContracts,
   listMarketingLeads,
   listMarketingVersions,

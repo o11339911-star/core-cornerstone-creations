@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { formatDate } from "@/lib/format";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 
 import { PageHero, SectionCard } from "@/components/rakeez";
 
 import { verifyReport } from "@/lib/reports.functions";
-import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/verify/$token")({
   ssr: false,

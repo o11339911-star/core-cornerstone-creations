@@ -1,4 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { formatDate } from "@/lib/format";
 import {
   BadgeCheck,
   Building2,
@@ -12,7 +13,6 @@ import {
 
 import { PageHero, HeroBadge, SectionCard, SoftEmpty } from "@/components/rakeez/dashboard-kit";
 import { getPublicEntityProfile, type PublicEntityProfile } from "@/lib/entity-public.functions";
-import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/e/$slug")({
   loader: async ({ params }) => {

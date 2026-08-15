@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { formatDate } from "@/lib/format";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 
 import { verifyMarketingPackage } from "@/lib/marketing.functions";
-import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/mp/$token")({
   ssr: false,
