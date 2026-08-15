@@ -45,17 +45,14 @@ export const listMyDocumentEntities = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("entity_memberships")
-      .select("entity_id, role, entities(id, name_ar, name_en)")
+      .select("entity_id, role, entities(id, name)")
       .eq("user_id", context.userId)
       .eq("status", "active");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => ({
       entity_id: row.entity_id,
       role: row.role,
-      name:
-        (row.entities as { name_ar?: string | null; name_en?: string | null } | null)?.name_ar ??
-        (row.entities as { name_en?: string | null } | null)?.name_en ??
-        "—",
+      name: (row.entities as { name?: string | null } | null)?.name ?? "—",
     }));
   });
 
