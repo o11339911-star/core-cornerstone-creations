@@ -1,0 +1,1 @@
+grant execute on function private.can(uuid, public.app_module, public.app_action, uuid, uuid) to supabase_read_only_user;
