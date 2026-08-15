@@ -187,6 +187,609 @@ export type Database = {
           },
         ]
       }
+      change_order_amounts: {
+        Row: {
+          amount_delta: number
+          change_order_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          amount_delta?: number
+          change_order_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_delta?: number
+          change_order_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_order_amounts_change_order_id_fkey"
+            columns: ["change_order_id"]
+            isOneToOne: true
+            referencedRelation: "change_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      change_orders: {
+        Row: {
+          contract_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          description: string | null
+          duration_delta_days: number
+          id: string
+          requested_by: string
+          resulting_version_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          description?: string | null
+          duration_delta_days?: number
+          id?: string
+          requested_by: string
+          resulting_version_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          description?: string | null
+          duration_delta_days?: number
+          id?: string
+          requested_by?: string
+          resulting_version_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_orders_resulting_version_id_fkey"
+            columns: ["resulting_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_orders_resulting_version_id_fkey"
+            columns: ["resulting_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_extensions: {
+        Row: {
+          contract_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          reason: string | null
+          requested_by: string
+          requested_ends_on: string
+          resulting_version_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          reason?: string | null
+          requested_by: string
+          requested_ends_on: string
+          resulting_version_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          reason?: string | null
+          requested_by?: string
+          requested_ends_on?: string
+          resulting_version_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_extensions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_extensions_resulting_version_id_fkey"
+            columns: ["resulting_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_extensions_resulting_version_id_fkey"
+            columns: ["resulting_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_parties: {
+        Row: {
+          acceptance_note: string | null
+          accepted_at: string | null
+          accepted_by: string | null
+          contract_id: string
+          contract_role: string
+          created_at: string
+          entity_id: string | null
+          id: string
+          project_party_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acceptance_note?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
+          contract_id: string
+          contract_role: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          project_party_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acceptance_note?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
+          contract_id?: string
+          contract_role?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          project_party_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_parties_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parties_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parties_project_party_id_fkey"
+            columns: ["project_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_stages: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          stage_id: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          stage_id: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_stages_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_stages_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_version_amounts: {
+        Row: {
+          amount: number
+          created_at: string
+          payment_terms: string | null
+          updated_at: string
+          version_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          payment_terms?: string | null
+          updated_at?: string
+          version_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          payment_terms?: string | null
+          updated_at?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_version_amounts_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: true
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_version_amounts_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: true
+            referencedRelation: "contract_versions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_versions: {
+        Row: {
+          approval_note: string | null
+          approved_at: string | null
+          approved_by: string | null
+          change_reason: string | null
+          contract_id: string
+          created_at: string
+          created_by: string
+          ends_on: string | null
+          file_hash: string | null
+          file_path: string | null
+          id: string
+          source: string
+          source_change_order_id: string | null
+          source_extension_id: string | null
+          starts_on: string | null
+          terms_text: string | null
+          version_no: number
+        }
+        Insert: {
+          approval_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          change_reason?: string | null
+          contract_id: string
+          created_at?: string
+          created_by: string
+          ends_on?: string | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          source?: string
+          source_change_order_id?: string | null
+          source_extension_id?: string | null
+          starts_on?: string | null
+          terms_text?: string | null
+          version_no: number
+        }
+        Update: {
+          approval_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          change_reason?: string | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string
+          ends_on?: string | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          source?: string
+          source_change_order_id?: string | null
+          source_extension_id?: string | null
+          starts_on?: string | null
+          terms_text?: string | null
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_source_change_order_fkey"
+            columns: ["source_change_order_id"]
+            isOneToOne: false
+            referencedRelation: "change_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_source_extension_fkey"
+            columns: ["source_extension_id"]
+            isOneToOne: false
+            referencedRelation: "contract_extensions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          contract_number: string | null
+          contract_type: string
+          created_at: string
+          created_by: string
+          currency: string
+          current_version_id: string | null
+          deleted_at: string | null
+          id: string
+          project_id: string
+          property_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          contract_number?: string | null
+          contract_type?: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          current_version_id?: string | null
+          deleted_at?: string | null
+          id?: string
+          project_id: string
+          property_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          contract_number?: string | null
+          contract_type?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          current_version_id?: string | null
+          deleted_at?: string | null
+          id?: string
+          project_id?: string
+          property_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_message_audience: {
+        Row: {
+          audience_entity_id: string | null
+          audience_user_id: string | null
+          created_at: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          audience_entity_id?: string | null
+          audience_user_id?: string | null
+          created_at?: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          audience_entity_id?: string | null
+          audience_user_id?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_message_audience_audience_entity_id_fkey"
+            columns: ["audience_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_message_audience_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_messages: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          file_path: string | null
+          id: string
+          thread_id: string
+          visibility: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          thread_id: string
+          visibility?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          thread_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_threads: {
+        Row: {
+          contract_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          project_id: string
+          stage_id: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          project_id: string
+          stage_id?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          project_id?: string
+          stage_id?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_threads_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_threads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_threads_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deed_versions: {
         Row: {
           area: number | null
@@ -1566,6 +2169,35 @@ export type Database = {
       }
     }
     Views: {
+      contract_versions_public: {
+        Row: {
+          amount: number | null
+          approval_note: string | null
+          approved_at: string | null
+          approved_by: string | null
+          can_view_amounts: boolean | null
+          change_reason: string | null
+          contract_id: string | null
+          created_at: string | null
+          ends_on: string | null
+          file_path: string | null
+          id: string | null
+          payment_terms: string | null
+          source: string | null
+          starts_on: string | null
+          terms_text: string | null
+          version_no: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_assignments_public: {
         Row: {
           display_name: string | null
@@ -1674,6 +2306,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      approve_contract_version: {
+        Args: { _note?: string; _version_id: string }
+        Returns: string
+      }
       create_entity_invitation: {
         Args: {
           _email: string
@@ -1685,6 +2321,14 @@ export type Database = {
           invitation_id: string
           token: string
         }[]
+      }
+      decide_change_order: {
+        Args: { _approve: boolean; _change_order_id: string; _note?: string }
+        Returns: string
+      }
+      decide_contract_extension: {
+        Args: { _approve: boolean; _extension_id: string; _note?: string }
+        Returns: string
       }
       end_project_party: {
         Args: { _party_id: string; _reason?: string }
