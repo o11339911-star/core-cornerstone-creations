@@ -134,7 +134,7 @@ function PlatformIntegrationsPage() {
 
   if (integrations.isError) {
     return (
-      <SectionCard title="التكاملات الرسمية">
+      <SectionCard icon={PlugZap} title="التكاملات الرسمية">
         <div className="space-y-3 text-sm text-muted-foreground">
           <p>تعذّر تحميل سجل التكاملات.</p>
           <Button onClick={() => void integrations.refetch()}>إعادة المحاولة</Button>
@@ -146,10 +146,9 @@ function PlatformIntegrationsPage() {
   return (
     <div className="space-y-6">
       <PageHero
-        eyebrow="المرحلة ٢٥"
         title="التكاملات الرسمية والخارجية"
-        description="سجل معلن لكل جهة يمكن الربط معها مستقبلًا: الغرض، السند النظامي، الحقول المتبادلة، وأسماء متغيرات الأسرار فقط. كل النداءات هنا تجريبية موسومة ولا تتصل بأي جهة فعليًا."
-        icon={PlugZap}
+        badge="المرحلة ٢٥"
+        subtitle="سجل معلن لكل جهة يمكن الربط معها مستقبلًا: الغرض، السند النظامي، الحقول المتبادلة، وأسماء متغيرات الأسرار فقط. كل النداءات هنا تجريبية موسومة ولا تتصل بأي جهة فعليًا."
       />
 
       <StatGrid>
@@ -159,7 +158,7 @@ function PlatformIntegrationsPage() {
         <StatCard label="نداءات فاشلة" value={stats.failed} icon={AlertTriangle} />
       </StatGrid>
 
-      <SectionCard title="سجل الجهات" description="لا يُخزَّن أي مفتاح أو سر في القاعدة — أسماء المتغيرات فقط.">
+      <SectionCard icon={PlugZap} title="سجل الجهات" count="لا يُخزَّن أي مفتاح أو سر — أسماء المتغيرات فقط">
         {integrations.isPending ? (
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
@@ -169,8 +168,7 @@ function PlatformIntegrationsPage() {
         ) : (integrations.data ?? []).length === 0 ? (
           <SoftEmpty
             icon={PlugZap}
-            title="لا توجد جهات مسجّلة بعد"
-            description="أضِف جهة إلى السجل لتبدأ بتوثيق الغرض والسند النظامي."
+            message="لا توجد جهات مسجّلة بعد — أضِف جهة لتوثيق الغرض والسند النظامي."
           />
         ) : (
           <ul className="space-y-3">
@@ -227,14 +225,13 @@ function PlatformIntegrationsPage() {
         )}
       </SectionCard>
 
-      <SectionCard title="سجل النداءات" description="رسائل الأخطاء منقّاة من أي معرّفات أو مفاتيح قبل التخزين.">
+      <SectionCard icon={PlayCircle} title="سجل النداءات" count="الأخطاء منقّاة من أي معرّفات أو مفاتيح">
         {requests.isPending ? (
           <Skeleton className="h-40 w-full rounded-xl" />
         ) : (requests.data ?? []).length === 0 ? (
           <SoftEmpty
             icon={PlayCircle}
-            title="لا توجد نداءات مسجّلة"
-            description="نفّذ نداءً تجريبيًا من قائمة الجهات أعلاه ليظهر هنا."
+            message="لا توجد نداءات مسجّلة — نفّذ نداءً تجريبيًا من قائمة الجهات أعلاه."
           />
         ) : (
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
