@@ -36,6 +36,7 @@ import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
+import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenticated/platform.dsr'
 import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/_authenticated/platform.integrations'
 import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
@@ -209,6 +210,12 @@ const AuthenticatedPlatformBreakglassRoute =
   AuthenticatedPlatformBreakglassRouteImport.update({
     id: '/breakglass',
     path: '/breakglass',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformDsrRoute =
+  AuthenticatedPlatformDsrRouteImport.update({
+    id: '/dsr',
+    path: '/dsr',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedPlatformIntegrationsRoute =
@@ -429,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -487,6 +495,7 @@ export interface FileRoutesByTo {
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -549,6 +558,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/_authenticated/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/_authenticated/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/_authenticated/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -611,6 +621,7 @@ export interface FileRouteTypes {
     | '/admin/report-templates'
     | '/n/$notificationId'
     | '/platform/breakglass'
+    | '/platform/dsr'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
@@ -669,6 +680,7 @@ export interface FileRouteTypes {
     | '/admin/report-templates'
     | '/n/$notificationId'
     | '/platform/breakglass'
+    | '/platform/dsr'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
@@ -730,6 +742,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breakglass'
+    | '/_authenticated/platform/dsr'
     | '/_authenticated/platform/integrations'
     | '/_authenticated/platform/queue'
     | '/_authenticated/platform/staff'
@@ -974,6 +987,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformBreakglassRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
+    '/_authenticated/platform/dsr': {
+      id: '/_authenticated/platform/dsr'
+      path: '/dsr'
+      fullPath: '/platform/dsr'
+      preLoaderRoute: typeof AuthenticatedPlatformDsrRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/platform/integrations': {
       id: '/_authenticated/platform/integrations'
       path: '/integrations'
@@ -1203,6 +1223,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
+  AuthenticatedPlatformDsrRoute: typeof AuthenticatedPlatformDsrRoute
   AuthenticatedPlatformIntegrationsRoute: typeof AuthenticatedPlatformIntegrationsRoute
   AuthenticatedPlatformQueueRoute: typeof AuthenticatedPlatformQueueRoute
   AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
@@ -1211,6 +1232,7 @@ interface AuthenticatedPlatformRouteChildren {
 
 const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
   AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
+  AuthenticatedPlatformDsrRoute: AuthenticatedPlatformDsrRoute,
   AuthenticatedPlatformIntegrationsRoute:
     AuthenticatedPlatformIntegrationsRoute,
   AuthenticatedPlatformQueueRoute: AuthenticatedPlatformQueueRoute,
