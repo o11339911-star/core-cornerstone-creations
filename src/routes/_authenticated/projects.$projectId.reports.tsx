@@ -2,8 +2,18 @@ import * as React from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileText } from "lucide-react";
 
-import { AsyncBoundary, EmptyState, RakeezCard, TextField } from "@/components/rakeez";
+import {
+  CardsSkeleton,
+  ErrorState,
+  HeroBadge,
+  PageHero,
+  SectionCard,
+  SoftEmpty,
+  TextField,
+} from "@/components/rakeez";
+import { Button } from "@/components/ui/button";
 import {
   createReport,
   listMyReportEntities,
@@ -85,23 +95,24 @@ function ReportsPage() {
     if (!entityId && entities.length > 0) setEntityId(entities[0]!.entity_id);
   }, [entities, entityId]);
 
+  const reports = reportsQuery.data ?? [];
+
   return (
     <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">التقارير الهندسية</h1>
-        <p className="text-sm text-muted-foreground">
-          تقارير رسمية بإصدارات متسلسلة، تُختم عند الاعتماد وتصدَّر PDF/Word مع رمز تحقّق.
-        </p>
-      </header>
+      <PageHero
+        title="التقارير الهندسية"
+        subtitle="تقارير رسمية بإصدارات متسلسلة، تُختم عند الاعتماد وتصدَّر PDF/Word مع رمز تحقّق."
+        badge={reports.length > 0 ? <HeroBadge>{reports.length} تقرير</HeroBadge> : null}
+      />
 
-      <RakeezCard title="تقرير جديد">
+      <SectionCard icon={FileText} title="تقرير جديد">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-xs text-muted-foreground">
             الكيان المُصدِر
             <select
               value={entityId}
               onChange={(e) => setEntityId(e.target.value)}
-              className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
               {entities.map((entity) => (
                 <option key={entity.entity_id} value={entity.entity_id}>
@@ -115,7 +126,7 @@ function ReportsPage() {
             <select
               value={templateId}
               onChange={(e) => setTemplateId(e.target.value)}
-              className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
               <option value="">بدون قالب</option>
               {(templatesQuery.data ?? []).map((tpl) => (
@@ -133,50 +144,48 @@ function ReportsPage() {
           />
         </div>
         {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
-        <button
+        <Button
           type="button"
           disabled={!entityId || title.trim().length < 2 || createMutation.isPending}
           onClick={() => createMutation.mutate()}
-          className="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+          className="mt-3 min-h-11"
         >
-          إنشاء التقرير
-        </button>
-      </RakeezCard>
+          {createMutation.isPending ? "جارٍ الإنشاء…" : "إنشاء التقرير"}
+        </Button>
+      </SectionCard>
 
-      <AsyncBoundary
-        isLoading={reportsQuery.isLoading}
-        isError={reportsQuery.isError}
-        onRetry={() => void reportsQuery.refetch()}
-      >
-        {(reportsQuery.data ?? []).length === 0 ? (
-          <EmptyState title="لا توجد تقارير" description="ابدأ بإنشاء أول تقرير هندسي لهذا المشروع." />
-        ) : (
-          <ul className="space-y-2">
-            {(reportsQuery.data ?? []).map((report) => (
-              <li key={report.id}>
-                <Link
-                  to="/reports/$reportId"
-                  params={{ reportId: report.id }}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/40"
-                >
-                  <span>
-                    <span className="block font-medium text-foreground">{report.title}</span>
-                    <span className="block text-xs text-muted-foreground">{report.report_number}</span>
+      {reportsQuery.isLoading ? (
+        <CardsSkeleton cards={2} />
+      ) : reportsQuery.isError ? (
+        <ErrorState onRetry={() => void reportsQuery.refetch()} />
+      ) : reports.length === 0 ? (
+        <SoftEmpty icon={FileText} message="لا توجد تقارير — ابدأ بإنشاء أول تقرير هندسي لهذا المشروع." />
+      ) : (
+        <ul className="space-y-2">
+          {reports.map((report) => (
+            <li key={report.id}>
+              <Link
+                to="/reports/$reportId"
+                params={{ reportId: report.id }}
+                className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/40"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-foreground">{report.title}</span>
+                  <span className="block text-xs text-muted-foreground">{report.report_number}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2 text-xs">
+                  {report.is_certified ? (
+                    <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">موثّق</span>
+                  ) : null}
+                  <span className="rounded-full bg-muted px-2 py-1 text-muted-foreground">
+                    {STATUS_LABEL[report.status] ?? report.status}
                   </span>
-                  <span className="flex items-center gap-2 text-xs">
-                    {report.is_certified ? (
-                      <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">موثّق</span>
-                    ) : null}
-                    <span className="rounded-full bg-muted px-2 py-1 text-muted-foreground">
-                      {STATUS_LABEL[report.status] ?? report.status}
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </AsyncBoundary>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }

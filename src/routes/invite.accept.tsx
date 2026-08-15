@@ -1,7 +1,9 @@
 import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { Loader2, MailCheck } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { acceptInvitation } from "@/lib/team.functions";
@@ -55,36 +57,42 @@ function AcceptInvitePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-center">
+      <div className="w-full max-w-md space-y-4 rounded-2xl border border-border bg-card p-8 text-center shadow-card">
+        <span
+          aria-hidden="true"
+          className="mx-auto flex size-12 items-center justify-center rounded-full bg-secondary text-primary"
+        >
+          <MailCheck className="size-6" />
+        </span>
         <h1 className="text-xl font-bold text-foreground">{t("team.acceptTitle")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("team.acceptSubtitle")}</p>
+        <p className="text-sm text-muted-foreground">{t("team.acceptSubtitle")}</p>
 
         {!token ? (
-          <p className="mt-6 text-sm text-destructive">{t("team.missingToken")}</p>
+          <p className="text-sm text-destructive">{t("team.missingToken")}</p>
         ) : signedIn === false ? (
-          <Link
-            to="/auth"
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-          >
-            {t("auth.signIn")}
-          </Link>
+          <Button asChild className="min-h-11 w-full">
+            <Link to="/auth">{t("auth.signIn")}</Link>
+          </Button>
         ) : signedIn ? (
-          <button
+          <Button
             type="button"
             onClick={() => void onAccept()}
             disabled={state === "working" || state === "done"}
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            className="min-h-11 w-full"
           >
-            {state === "working" ? t("common.loading") : t("team.acceptCta")}
-          </button>
+            {state === "working" ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                {t("common.loading")}
+              </span>
+            ) : (
+              t("team.acceptCta")
+            )}
+          </Button>
         ) : null}
 
-        {state === "done" ? (
-          <p className="mt-4 text-sm text-foreground">{t("team.acceptDone")}</p>
-        ) : null}
-        {state === "error" && message ? (
-          <p className="mt-4 text-sm text-destructive">{message}</p>
-        ) : null}
+        {state === "done" ? <p className="text-sm text-foreground">{t("team.acceptDone")}</p> : null}
+        {state === "error" && message ? <p className="text-sm text-destructive">{message}</p> : null}
       </div>
     </div>
   );
