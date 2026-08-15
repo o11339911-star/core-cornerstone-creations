@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { I18nProvider, useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { useLatinDigitInputGuard } from "@/components/rakeez/numeric";
 import { ActiveAccountProvider } from "@/lib/active-account";
 import { queryClient } from "@/router";
 
