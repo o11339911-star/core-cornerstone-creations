@@ -48,7 +48,6 @@ export function DataTable<T>({
   caption,
   isLoading = false,
   isError = false,
-import {
   onRetry,
   emptyTitle,
   emptyDescription,

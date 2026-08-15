@@ -32,12 +32,10 @@ export function FileUploader({
   hint,
   accept,
   multiple = true,
-import {
   maxSizeMb,
   value,
   onFilesChange,
   disabled = false,
-import {
   className,
 }: FileUploaderProps) {
   const t = useT();

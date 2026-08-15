@@ -26,7 +26,6 @@ export type RakeezAccordionProps = {
 export function RakeezAccordion({
   items,
   multiple = false,
-import {
   defaultValue,
   className,
 }: RakeezAccordionProps) {

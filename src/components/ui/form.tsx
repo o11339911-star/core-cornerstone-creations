@@ -119,7 +119,6 @@ const FormControl = React.forwardRef<
 FormControl.displayName = "FormControl";
 
 const FormDescription = React.forwardRef<
-import {
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => {
@@ -137,7 +136,6 @@ import {
 FormDescription.displayName = "FormDescription";
 
 const FormMessage = React.forwardRef<
-import {
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {

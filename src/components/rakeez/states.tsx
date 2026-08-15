@@ -33,11 +33,9 @@ export type StateViewProps = {
 /** Shared shell for every non-content state (empty / error / offline / unauthorized). */
 export function StateView({
   icon: Icon,
-import {
   title,
   description,
   tone = "neutral",
-import {
   action,
   className,
 }: StateViewProps) {
@@ -72,7 +70,6 @@ export function LoadingState({
   title,
   description,
   rows = 3,
-import {
   className,
 }: {
   title?: string | undefined;

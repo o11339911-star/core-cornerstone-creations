@@ -33,7 +33,6 @@ function useChart() {
 }
 
 const ChartContainer = React.forwardRef<
-import {
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     config: ChartConfig;
@@ -94,7 +93,6 @@ ${colorConfig
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
 const ChartTooltipContent = React.forwardRef<
-import {
   HTMLDivElement,
   React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
     React.ComponentProps<"div"> & {
@@ -243,7 +241,6 @@ ChartTooltipContent.displayName = "ChartTooltip";
 const ChartLegend = RechartsPrimitive.Legend;
 
 const ChartLegendContent = React.forwardRef<
-import {
   HTMLDivElement,
   React.ComponentProps<"div"> &
     Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {

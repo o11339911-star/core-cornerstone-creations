@@ -13,7 +13,6 @@ function Calendar({
   showOutsideDays = true,
   captionLayout = "label",
   buttonVariant = "ghost",
-import {
   formatters,
   components,
   ...props
