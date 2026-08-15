@@ -1,0 +1,2 @@
+grant execute on function private.can(uuid, public.app_module, public.app_action, uuid, uuid) to authenticated;
+grant execute on function private.can_marketing(uuid, public.app_action) to authenticated;
