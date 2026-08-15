@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { BellRing } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { ErrorState } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, HeroBadge, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import {
   listNotificationPreferences,
@@ -57,7 +58,7 @@ function NotificationPreferencesPage() {
   const fetchPrefs = useServerFn(listNotificationPreferences);
   const savePref = useServerFn(setNotificationPreference);
 
-  const { data: types = [] } = useQuery({
+  const typesQuery = useQuery({
     queryKey: ["notifications", "types"],
     queryFn: () => fetchTypes(),
   });
@@ -65,6 +66,8 @@ function NotificationPreferencesPage() {
     queryKey: ["notifications", "prefs"],
     queryFn: () => fetchPrefs(),
   });
+
+  const types = typesQuery.data ?? [];
 
   const save = useMutation({
     mutationFn: (vars: { typeCode: string; inApp: boolean }) =>
@@ -86,38 +89,49 @@ function NotificationPreferencesPage() {
     prefs.find((p) => p.type_code === code)?.in_app ?? true;
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-bold text-foreground">{t("notifications.preferences")}</h1>
-      <p className="mt-1 text-sm text-muted-foreground">{t("notifications.prefsSubtitle")}</p>
+    <div className="mx-auto min-h-screen w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={t("notifications.preferences")}
+        subtitle={t("notifications.prefsSubtitle")}
+        badge={<HeroBadge tone="neutral">{types.length}</HeroBadge>}
+      />
 
-      <ul className="mt-6 space-y-3">
-        {types.map((type) => {
-          const locked = type.is_mandatory || type.is_security;
-          return (
-            <li
-              key={type.code}
-              className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-foreground">{TYPE_LABEL_AR[type.code] ?? type.code}</p>
-                <p className="text-xs text-muted-foreground">{type.code}</p>
-              </div>
-              {type.is_security && <Badge variant="destructive">{t("notifications.security")}</Badge>}
-              {type.is_mandatory && !type.is_security && (
-                <Badge variant="secondary">{t("notifications.mandatory")}</Badge>
-              )}
-              <Switch
-                checked={locked ? true : enabledFor(type.code)}
-                disabled={locked || save.isPending}
-                aria-label={`${t("notifications.inApp")} — ${type.code}`}
-                onCheckedChange={(checked) =>
-                  save.mutate({ typeCode: type.code, inApp: checked })
-                }
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </main>
+      <SectionCard icon={BellRing} title={t("notifications.preferences")} count={types.length}>
+        {typesQuery.isLoading ? (
+          <CardsSkeleton cards={2} />
+        ) : types.length === 0 ? (
+          <SoftEmpty icon={BellRing} message={t("notifications.empty")} />
+        ) : (
+          <ul className="space-y-3">
+            {types.map((type) => {
+              const locked = type.is_mandatory || type.is_security;
+              return (
+                <li
+                  key={type.code}
+                  className="flex min-h-11 flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">{TYPE_LABEL_AR[type.code] ?? type.code}</p>
+                    <p className="text-xs text-muted-foreground">{type.code}</p>
+                  </div>
+                  {type.is_security && <Badge variant="destructive">{t("notifications.security")}</Badge>}
+                  {type.is_mandatory && !type.is_security && (
+                    <Badge variant="secondary">{t("notifications.mandatory")}</Badge>
+                  )}
+                  <Switch
+                    checked={locked ? true : enabledFor(type.code)}
+                    disabled={locked || save.isPending}
+                    aria-label={`${t("notifications.inApp")} — ${type.code}`}
+                    onCheckedChange={(checked) =>
+                      save.mutate({ typeCode: type.code, inApp: checked })
+                    }
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </SectionCard>
+    </div>
   );
 }

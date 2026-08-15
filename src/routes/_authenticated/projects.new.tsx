@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ErrorState, FieldShell, LoadingState, TextAreaField, TextField } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, FieldShell, HeroBadge, PageHero, SectionCard, TextAreaField, TextField } from "@/components/rakeez";
+import { FolderPlus } from "lucide-react";
 import { useI18n, useT } from "@/i18n";
 import { useActiveAccount } from "@/lib/active-account";
 import {
@@ -117,23 +118,34 @@ function NewProjectPage() {
     });
   };
 
-  if (templatesQuery.isLoading) return <LoadingState />;
-  if (templatesQuery.isError) return <ErrorState />;
+  if (templatesQuery.isLoading) {
+    return (
+      <div className="mx-auto min-h-screen w-full max-w-3xl px-4 py-8 sm:px-6">
+        <CardsSkeleton cards={2} />
+      </div>
+    );
+  }
+  if (templatesQuery.isError) {
+    return (
+      <div className="mx-auto min-h-screen w-full max-w-3xl px-4 py-8 sm:px-6">
+        <ErrorState onRetry={() => void templatesQuery.refetch()} />
+      </div>
+    );
+  }
 
   const templates = templatesQuery.data ?? [];
   const stages = stagesQuery.data ?? [];
 
   return (
-    <div className="bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <header className="text-start">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {t("projects.newTitle")}
-          </h1>
-          <p className="mt-2 text-muted-foreground">{t("projects.newSubtitle")}</p>
-        </header>
+    <div className="mx-auto min-h-screen w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={t("projects.newTitle")}
+        subtitle={t("projects.newSubtitle")}
+        badge={<HeroBadge tone="neutral">ركيز</HeroBadge>}
+      />
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-6" noValidate>
+      <SectionCard icon={FolderPlus} title={t("projects.newTitle")}>
+        <form onSubmit={onSubmit} className="space-y-6" noValidate>
           <FieldShell
             id="project-type"
             label={t("projects.type")}
@@ -237,7 +249,9 @@ function NewProjectPage() {
                 {t("projects.noTemplateSelected")}
               </p>
             ) : stagesQuery.isLoading ? (
-              <LoadingState className="mt-4" />
+              <div className="mt-4">
+                <CardsSkeleton cards={1} />
+              </div>
             ) : (
               <ol className="mt-4 space-y-2">
                 {stages.map((stage) => (
@@ -282,7 +296,7 @@ function NewProjectPage() {
             {mutation.isPending ? t("projects.creating") : t("projects.submit")}
           </Button>
         </form>
-      </div>
+      </SectionCard>
     </div>
   );
 }

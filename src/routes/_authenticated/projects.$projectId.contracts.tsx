@@ -4,7 +4,23 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import {
+  TextField,
+  AsyncBoundary,
+  SoftEmpty,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  CardsSkeleton,
+} from "@/components/rakeez";
+import {
+  FileSignature,
+  ScrollText,
+  CalendarClock,
+  GitPullRequest,
+  MessageSquare,
+  Layers,
+} from "lucide-react";
 import {
   CONTRACT_TYPES,
   approveContractVersion,
@@ -30,6 +46,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/contracts")({
   component: ContractsPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "عقود المشروع والمراسلات — ركيز" },
@@ -92,13 +109,11 @@ function ContractsPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("contracts.title")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("contracts.subtitle")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero title={t("contracts.title")} subtitle={t("contracts.subtitle")} />
 
-      <RakeezCard title={t("contracts.newTitle")} description={t("contracts.approvalNote")}>
+      <SectionCard icon={FileSignature} title={t("contracts.newTitle")}>
+        <p className="mb-4 text-xs text-muted-foreground">{t("contracts.approvalNote")}</p>
         <form
           className="grid gap-4 sm:grid-cols-2"
           onSubmit={(e) => {
@@ -160,17 +175,17 @@ function ContractsPage() {
           </div>
         </form>
         {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
-      </RakeezCard>
+      </SectionCard>
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">{t("contracts.list")}</h2>
+      <SectionCard icon={Layers} title={t("contracts.list")} count={contractsQuery.data?.length ?? 0}>
         <AsyncBoundary
           isLoading={contractsQuery.isLoading}
           isError={contractsQuery.isError}
           onRetry={() => void contractsQuery.refetch()}
+          loadingFallback={<CardsSkeleton cards={2} />}
         >
           {(contractsQuery.data ?? []).length === 0 ? (
-            <EmptyState title={t("contracts.none")} />
+            <SoftEmpty icon={Layers} message={t("contracts.none")} />
           ) : (
             <ul className="divide-y divide-border rounded-md border border-border">
               {(contractsQuery.data ?? []).map((c) => (
@@ -190,7 +205,7 @@ function ContractsPage() {
             </ul>
           )}
         </AsyncBoundary>
-      </section>
+      </SectionCard>
 
       {selected ? <ContractDetail contractId={selected} projectId={projectId} /> : null}
     </div>
@@ -292,7 +307,8 @@ function ContractDetail({ contractId, projectId }: { contractId: string; project
     <div className="mt-8 grid gap-6">
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <RakeezCard title={t("contracts.versions")} description={t("contracts.versionsHint")}>
+      <SectionCard icon={ScrollText} title={t("contracts.versions")}>
+        <p className="mb-3 text-xs text-muted-foreground">{t("contracts.versionsHint")}</p>
         <ul className="divide-y divide-border text-sm">
           {(versionsQuery.data ?? []).map((v) => (
             <li key={v.id} className="flex flex-wrap items-center gap-3 py-2">
@@ -318,9 +334,10 @@ function ContractDetail({ contractId, projectId }: { contractId: string; project
             </li>
           ))}
         </ul>
-      </RakeezCard>
+      </SectionCard>
 
-      <RakeezCard title={t("contracts.extensions")} description={t("contracts.extensionsHint")}>
+      <SectionCard icon={CalendarClock} title={t("contracts.extensions")}>
+        <p className="mb-3 text-xs text-muted-foreground">{t("contracts.extensionsHint")}</p>
         <form
           className="grid gap-3 sm:grid-cols-3"
           onSubmit={(e) => {
@@ -375,9 +392,10 @@ function ContractDetail({ contractId, projectId }: { contractId: string; project
             </li>
           ))}
         </ul>
-      </RakeezCard>
+      </SectionCard>
 
-      <RakeezCard title={t("contracts.changeOrders")} description={t("contracts.changeOrdersHint")}>
+      <SectionCard icon={GitPullRequest} title={t("contracts.changeOrders")}>
+        <p className="mb-3 text-xs text-muted-foreground">{t("contracts.changeOrdersHint")}</p>
         <form
           className="grid gap-3 sm:grid-cols-4"
           onSubmit={(e) => {
@@ -439,7 +457,7 @@ function ContractDetail({ contractId, projectId }: { contractId: string; project
             </li>
           ))}
         </ul>
-      </RakeezCard>
+      </SectionCard>
 
       <Correspondence projectId={projectId} contractId={contractId} />
     </div>
@@ -493,7 +511,8 @@ function Correspondence({ projectId, contractId }: { projectId: string; contract
   });
 
   return (
-    <RakeezCard title={t("correspondence.title")} description={t("correspondence.hint")}>
+    <SectionCard icon={MessageSquare} title={t("correspondence.title")}>
+      <p className="mb-3 text-xs text-muted-foreground">{t("correspondence.hint")}</p>
       {error ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
       <form
         className="grid gap-3 sm:grid-cols-3"
@@ -581,6 +600,6 @@ function Correspondence({ projectId, contractId }: { projectId: string; contract
           </li>
         ))}
       </ul>
-    </RakeezCard>
+    </SectionCard>
   );
 }

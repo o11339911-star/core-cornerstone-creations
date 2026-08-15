@@ -3,10 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ErrorState, HeroBadge, PageHero, SectionCard } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,6 +27,7 @@ type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 
 export const Route = createFileRoute("/_authenticated/settings/security")({
   component: SecuritySettingsPage,
+  errorComponent: ErrorState,
 });
 
 function SecuritySettingsPage() {
@@ -80,13 +83,14 @@ function SecuritySettingsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-sm">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("common.security")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetSubtitle")}</p>
-        </div>
+    <div className="mx-auto min-h-screen w-full max-w-md space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={t("common.security")}
+        subtitle={t("auth.resetSubtitle")}
+        badge={<HeroBadge tone="neutral">ركيز</HeroBadge>}
+      />
 
+      <SectionCard icon={ShieldCheck} title={t("auth.updatePassword")}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="currentPassword">{t("auth.currentPassword")}</Label>
@@ -95,13 +99,21 @@ function SecuritySettingsPage() {
               type="password"
               autoComplete="current-password"
               dir="ltr"
+              className="min-h-11"
               {...form.register("currentPassword")}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">{t("auth.newPassword")}</Label>
-            <Input id="password" type="password" autoComplete="new-password" dir="ltr" {...form.register("password")} />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              dir="ltr"
+              className="min-h-11"
+              {...form.register("password")}
+            />
           </div>
 
           <div className="space-y-2">
@@ -111,18 +123,23 @@ function SecuritySettingsPage() {
               type="password"
               autoComplete="new-password"
               dir="ltr"
+              className="min-h-11"
               {...form.register("confirmPassword")}
             />
           </div>
 
           {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
-          {success && <div className="rounded-md bg-primary/10 p-3 text-sm text-foreground">{t("auth.passwordUpdated")}</div>}
+          {success && (
+            <div className="rounded-md bg-success-soft p-3 text-sm text-success">
+              {t("auth.passwordUpdated")}
+            </div>
+          )}
 
-          <Button type="submit" className="w-full" disabled={submitting}>
+          <Button type="submit" className="min-h-11 w-full" disabled={submitting}>
             {submitting ? t("common.loading") : t("auth.updatePassword")}
           </Button>
         </form>
-      </div>
+      </SectionCard>
     </div>
   );
 }

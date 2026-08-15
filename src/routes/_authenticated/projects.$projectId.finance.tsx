@@ -4,7 +4,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import {
+  RakeezCard,
+  TextField,
+  AsyncBoundary,
+  SoftEmpty,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  CardsSkeleton,
+} from "@/components/rakeez";
+import { Banknote, PlusCircle, ReceiptText } from "lucide-react";
 import { listContracts } from "@/lib/contracts.functions";
 import { DocumentsTab } from "@/components/finance/DocumentsTab";
 import { RetentionTab } from "@/components/finance/RetentionTab";
@@ -34,6 +44,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/finance")({
   component: FinancePage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "مالية المشروع ودفعات العقد — ركيز" },
@@ -157,10 +168,8 @@ function FinancePage() {
   const tabs = ["milestones", "documents", "retention", "ledger"] as const;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("finance.title")}</h1>
-      </header>
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero title={t("finance.title")} />
 
       <FinanceDisclaimer />
 
@@ -189,7 +198,8 @@ function FinancePage() {
 
       {tab !== "milestones" ? null : (
       <>
-      <RakeezCard className="mt-6" title={t("finance.newMilestone")} description={t("finance.sodHint")}>
+      <SectionCard icon={PlusCircle} title={t("finance.newMilestone")} className="mt-6">
+        <p className="mb-4 text-xs text-muted-foreground">{t("finance.sodHint")}</p>
         <form
 
           className="grid gap-4 sm:grid-cols-2"
@@ -283,10 +293,9 @@ function FinancePage() {
           </div>
         </form>
         {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
-      </RakeezCard>
+      </SectionCard>
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">{t("finance.milestones")}</h2>
+      <SectionCard icon={Banknote} title={t("finance.milestones")} count={milestones.length} className="mt-8">
         {anyMasked ? (
           <p className="mb-2 text-xs text-muted-foreground">{t("finance.maskedHint")}</p>
         ) : null}
@@ -294,9 +303,10 @@ function FinancePage() {
           isLoading={milestonesQuery.isLoading}
           isError={milestonesQuery.isError}
           onRetry={() => void milestonesQuery.refetch()}
+          loadingFallback={<CardsSkeleton cards={2} />}
         >
           {milestones.length === 0 ? (
-            <EmptyState title={t("finance.emptyMilestones")} />
+            <SoftEmpty icon={Banknote} message={t("finance.emptyMilestones")} />
           ) : (
             <ul className="divide-y divide-border rounded-md border border-border">
               {milestones.map((m) => (
@@ -341,12 +351,11 @@ function FinancePage() {
             </ul>
           )}
         </AsyncBoundary>
-      </section>
+      </SectionCard>
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">{t("finance.executions")}</h2>
+      <SectionCard icon={ReceiptText} title={t("finance.executions")} count={executionsQuery.data?.length ?? 0} className="mt-8">
         {(executionsQuery.data ?? []).length === 0 ? (
-          <EmptyState title={t("finance.emptyRequests")} />
+          <SoftEmpty icon={ReceiptText} message={t("finance.emptyRequests")} />
         ) : (
           <ul className="divide-y divide-border rounded-md border border-border">
             {(executionsQuery.data ?? []).map((x) => (
@@ -360,7 +369,7 @@ function FinancePage() {
             ))}
           </ul>
         )}
-      </section>
+      </SectionCard>
       </>
       )}
     </div>

@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { AsyncBoundary, RakeezCard, ReportEditor } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, ReportEditor, SectionCard } from "@/components/rakeez";
+import { FileText } from "lucide-react";
 import { pageSetupSchema, reportContentSchema, type ReportContent } from "@/lib/reports/blocks";
 import {
   approveReport,
@@ -18,6 +19,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/reports/$reportId")({
   component: ReportDetailPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "محرر التقرير الهندسي — ركيز" },
@@ -129,24 +131,32 @@ function ReportDetailPage() {
     }
   };
 
+  if (reportQuery.isLoading) {
+    return (
+      <main className="mx-auto w-full max-w-6xl px-4 py-8">
+        <CardsSkeleton cards={2} />
+      </main>
+    );
+  }
+  if (reportQuery.isError) {
+    return (
+      <main className="mx-auto w-full max-w-6xl px-4 py-8">
+        <ErrorState onRetry={() => void reportQuery.refetch()} />
+      </main>
+    );
+  }
+
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
-      <AsyncBoundary
-        isLoading={reportQuery.isLoading}
-        isError={reportQuery.isError}
-        onRetry={() => void reportQuery.refetch()}
-      >
+      <>
         {report && current ? (
           <>
-            <header className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">{report.title}</h1>
-                <p className="text-sm text-muted-foreground">
-                  {report.report_number} · إصدار {current.version_no} ·{" "}
-                  {VERSION_STATUS[current.status] ?? current.status}
-                  {report.is_certified ? " · موثّق" : ""}
-                </p>
-              </div>
+            <PageHero
+              title={report.title}
+              subtitle={`${report.report_number} · إصدار ${current.version_no}${report.is_certified ? " · موثّق" : ""}`}
+              badge={<HeroBadge tone="neutral">{VERSION_STATUS[current.status] ?? current.status}</HeroBadge>}
+            />
+            <div className="flex flex-wrap justify-end gap-3">
               <div className="flex flex-wrap gap-2">
                 {current.status === "draft" ? (
                   <>
@@ -200,7 +210,7 @@ function ReportDetailPage() {
                   تصدير Word
                 </button>
               </div>
-            </header>
+            </div>
 
             {licenseQuery.data && !licenseQuery.data.is_valid ? (
               <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -219,7 +229,7 @@ function ReportDetailPage() {
               />
             ) : null}
 
-            <RakeezCard title="سجل الإصدارات">
+            <SectionCard icon={FileText} title="سجل الإصدارات" count={versions.length}>
               <ul className="space-y-2 text-sm">
                 {versions.map((version) => (
                   <li key={version.id} className="flex items-center justify-between rounded-md border border-border p-3">
@@ -233,10 +243,10 @@ function ReportDetailPage() {
                   </li>
                 ))}
               </ul>
-            </RakeezCard>
+            </SectionCard>
           </>
         ) : null}
-      </AsyncBoundary>
+      </>
     </main>
   );
 }

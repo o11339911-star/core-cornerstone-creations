@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ErrorState } from "@/components/rakeez";
+import { ErrorState, PageHero, SectionCard, SoftEmpty, CardsSkeleton } from "@/components/rakeez";
+import { ShieldCheck, ShieldPlus } from "lucide-react";
 import { listWarranties, registerWarranty } from "@/lib/warranties.functions";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/warranties")({
@@ -78,17 +79,13 @@ function WarrantiesPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-8 p-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">الضمانات</h1>
-        <p className="text-sm text-muted-foreground">
-          كل ضمان يُنشئ عدّاد مدة في المحرك نفسه المستخدم للمدد والتصعيد، ويُنبّه المسؤولين قبل
-          الانتهاء بـ 90 و30 و7 أيام ثم عند الانتهاء.
-        </p>
-      </header>
+    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title="الضمانات"
+        subtitle="كل ضمان يُنشئ عدّاد مدة في المحرك نفسه المستخدم للمدد والتصعيد، ويُنبّه المسؤولين قبل الانتهاء بـ 90 و30 و7 أيام ثم عند الانتهاء."
+      />
 
-      <section className="space-y-3 rounded-lg border border-border p-4">
-        <h2 className="text-lg font-semibold text-foreground">تسجيل ضمان</h2>
+      <SectionCard icon={ShieldPlus} title="تسجيل ضمان">
         <div className="grid gap-3 sm:grid-cols-3">
           <Input
             value={title}
@@ -119,11 +116,12 @@ function WarrantiesPage() {
         >
           تسجيل الضمان
         </Button>
-      </section>
+      </SectionCard>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">الضمانات المسجلة</h2>
-        {warranties.data && warranties.data.length > 0 ? (
+      <SectionCard icon={ShieldCheck} title="الضمانات المسجلة" count={warranties.data?.length ?? 0}>
+        {warranties.isLoading ? (
+          <CardsSkeleton cards={1} />
+        ) : warranties.data && warranties.data.length > 0 ? (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {warranties.data.map((w) => {
               const left = daysLeft(w.ends_on);
@@ -151,9 +149,9 @@ function WarrantiesPage() {
             })}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">لا توجد ضمانات مسجلة لهذا المشروع.</p>
+          <SoftEmpty icon={ShieldCheck} message="لا توجد ضمانات مسجلة لهذا المشروع." />
         )}
-      </section>
+      </SectionCard>
     </main>
   );
 }

@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BadgeCheck, ShieldAlert } from "lucide-react";
+
+import { PageHero, SectionCard } from "@/components/rakeez";
 
 import { verifyReport } from "@/lib/reports.functions";
 
@@ -28,27 +31,30 @@ function VerifyPage() {
   const result = Route.useLoaderData();
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center gap-4 px-4 py-12">
-      <h1 className="text-2xl font-bold text-foreground">التحقّق من التقرير</h1>
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center gap-5 px-4 py-12">
+      <PageHero title="التحقّق من التقرير" subtitle="تحقّق من صحة تقرير هندسي صادر عبر منصة ركيز." />
       {result ? (
-        <div className="space-y-3 rounded-lg border border-border bg-card p-6">
-          <Row label="رقم التقرير" value={result.report_number} />
-          <Row label="جهة الإصدار" value={result.entity_name} />
-          <Row
-            label="الحالة"
-            value={result.status === "approved" ? "معتمد وموثّق" : "غير معتمد"}
-          />
-          <Row
-            label="تاريخ الاعتماد"
-            value={result.approved_at ? new Date(result.approved_at).toLocaleDateString("ar") : "—"}
-          />
-          <p className="pt-2 text-xs text-muted-foreground">
-            لا يعرض هذا التحقّق محتوى التقرير — للاطلاع على التفاصيل يلزم الدخول بصلاحية.
-          </p>
-        </div>
+        <SectionCard icon={BadgeCheck} title="نتيجة التحقّق">
+          <div className="space-y-3">
+            <Row label="رقم التقرير" value={result.report_number} />
+            <Row label="جهة الإصدار" value={result.entity_name} />
+            <Row
+              label="الحالة"
+              value={result.status === "approved" ? "معتمد وموثّق" : "غير معتمد"}
+            />
+            <Row
+              label="تاريخ الاعتماد"
+              value={result.approved_at ? new Date(result.approved_at).toLocaleDateString("ar") : "—"}
+            />
+            <p className="pt-2 text-xs text-muted-foreground">
+              لا يعرض هذا التحقّق محتوى التقرير — للاطلاع على التفاصيل يلزم الدخول بصلاحية.
+            </p>
+          </div>
+        </SectionCard>
       ) : (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
-          رمز التحقّق غير صالح أو التقرير غير معتمد.
+        <div className="flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
+          <ShieldAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <span>رمز التحقّق غير صالح أو التقرير غير معتمد.</span>
         </div>
       )}
     </main>

@@ -4,7 +4,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import {
+  TextField,
+  AsyncBoundary,
+  SoftEmpty,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  CardsSkeleton,
+} from "@/components/rakeez";
+import { UserPlus, Users } from "lucide-react";
 import {
   PARTY_ACTIONS,
   PARTY_MODULES,
@@ -18,6 +27,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/parties")({
   component: PartiesPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "أطراف المشروع — ركيز" },
@@ -110,13 +120,11 @@ function PartiesPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("parties.title")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("parties.subtitle")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero title={t("parties.title")} subtitle={t("parties.subtitle")} />
 
-      <RakeezCard title={t("parties.inviteTitle")} description={t("parties.inviteHint")}>
+      <SectionCard icon={UserPlus} title={t("parties.inviteTitle")}>
+        <p className="mb-4 text-xs text-muted-foreground">{t("parties.inviteHint")}</p>
         <form
           className="grid gap-4"
           onSubmit={(e) => {
@@ -236,17 +244,17 @@ function PartiesPage() {
 
         {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
         {notice ? <p className="mt-4 text-sm text-muted-foreground">{notice}</p> : null}
-      </RakeezCard>
+      </SectionCard>
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">{t("parties.list")}</h2>
+      <SectionCard icon={Users} title={t("parties.list")} count={partiesQuery.data?.length ?? 0}>
         <AsyncBoundary
           isLoading={partiesQuery.isLoading}
           isError={partiesQuery.isError}
           onRetry={() => void partiesQuery.refetch()}
+          loadingFallback={<CardsSkeleton cards={1} />}
         >
           {(partiesQuery.data ?? []).length === 0 ? (
-            <EmptyState title={t("parties.none")} />
+            <SoftEmpty icon={Users} message={t("parties.none")} />
           ) : (
             <ul className="divide-y divide-border rounded-md border border-border">
               {(partiesQuery.data ?? []).map((p) => (
@@ -272,7 +280,7 @@ function PartiesPage() {
             </ul>
           )}
         </AsyncBoundary>
-      </section>
+      </SectionCard>
     </div>
   );
 }

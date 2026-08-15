@@ -65,8 +65,8 @@ function VerifyMarketingPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <p className="flex items-center justify-between gap-4 border-b border-border/50 pb-2 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground">{value}</span>
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="truncate font-medium text-foreground">{value}</span>
     </p>
   );
 }

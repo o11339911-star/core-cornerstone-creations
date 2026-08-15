@@ -21,6 +21,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
+import { Route as MTokenRouteImport } from './routes/m.$token'
 import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
@@ -48,6 +49,7 @@ import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './r
 import { Route as AuthenticatedProjectsProjectIdDurationsRouteImport } from './routes/_authenticated/projects.$projectId.durations'
 import { Route as AuthenticatedProjectsProjectIdFinanceRouteImport } from './routes/_authenticated/projects.$projectId.finance'
 import { Route as AuthenticatedProjectsProjectIdMarketingRouteImport } from './routes/_authenticated/projects.$projectId.marketing'
+import { Route as AuthenticatedProjectsProjectIdMediaRouteImport } from './routes/_authenticated/projects.$projectId.media'
 import { Route as AuthenticatedProjectsProjectIdPartiesRouteImport } from './routes/_authenticated/projects.$projectId.parties'
 import { Route as AuthenticatedProjectsProjectIdReportsRouteImport } from './routes/_authenticated/projects.$projectId.reports'
 import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './routes/_authenticated/projects.$projectId.requests'
@@ -116,6 +118,11 @@ const ESlugRoute = ESlugRouteImport.update({
 const InviteAcceptRoute = InviteAcceptRouteImport.update({
   id: '/invite/accept',
   path: '/invite/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MTokenRoute = MTokenRouteImport.update({
+  id: '/m/$token',
+  path: '/m/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MpTokenRoute = MpTokenRouteImport.update({
@@ -278,6 +285,12 @@ const AuthenticatedProjectsProjectIdMarketingRoute =
     path: '/projects/$projectId/marketing',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdMediaRoute =
+  AuthenticatedProjectsProjectIdMediaRouteImport.update({
+    id: '/projects/$projectId/media',
+    path: '/projects/$projectId/media',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdPartiesRoute =
   AuthenticatedProjectsProjectIdPartiesRouteImport.update({
     id: '/projects/$projectId/parties',
@@ -345,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -371,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
   '/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
+  '/projects/$projectId/media': typeof AuthenticatedProjectsProjectIdMediaRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -393,6 +408,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -419,6 +435,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
   '/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
+  '/projects/$projectId/media': typeof AuthenticatedProjectsProjectIdMediaRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -444,6 +461,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -470,6 +488,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/_authenticated/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
   '/_authenticated/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
+  '/_authenticated/projects/$projectId/media': typeof AuthenticatedProjectsProjectIdMediaRoute
   '/_authenticated/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/_authenticated/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/_authenticated/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -495,6 +514,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
@@ -521,6 +541,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
     | '/projects/$projectId/marketing'
+    | '/projects/$projectId/media'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/reports'
     | '/projects/$projectId/requests'
@@ -543,6 +564,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
@@ -569,6 +591,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
     | '/projects/$projectId/marketing'
+    | '/projects/$projectId/media'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/reports'
     | '/projects/$projectId/requests'
@@ -593,6 +616,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
@@ -619,6 +643,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/durations'
     | '/_authenticated/projects/$projectId/finance'
     | '/_authenticated/projects/$projectId/marketing'
+    | '/_authenticated/projects/$projectId/media'
     | '/_authenticated/projects/$projectId/parties'
     | '/_authenticated/projects/$projectId/reports'
     | '/_authenticated/projects/$projectId/requests'
@@ -638,6 +663,7 @@ export interface RootRouteChildren {
   SelectAccountRoute: typeof SelectAccountRoute
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
+  MTokenRoute: typeof MTokenRoute
   MpTokenRoute: typeof MpTokenRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
   ApiPublicCronDurationScanRoute: typeof ApiPublicCronDurationScanRoute
@@ -727,6 +753,13 @@ declare module '@tanstack/react-router' {
       path: '/invite/accept'
       fullPath: '/invite/accept'
       preLoaderRoute: typeof InviteAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/m/$token': {
+      id: '/m/$token'
+      path: '/m/$token'
+      fullPath: '/m/$token'
+      preLoaderRoute: typeof MTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mp/$token': {
@@ -918,6 +951,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdMarketingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/media': {
+      id: '/_authenticated/projects/$projectId/media'
+      path: '/projects/$projectId/media'
+      fullPath: '/projects/$projectId/media'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdMediaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/parties': {
       id: '/_authenticated/projects/$projectId/parties'
       path: '/projects/$projectId/parties'
@@ -1028,6 +1068,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdDurationsRoute: typeof AuthenticatedProjectsProjectIdDurationsRoute
   AuthenticatedProjectsProjectIdFinanceRoute: typeof AuthenticatedProjectsProjectIdFinanceRoute
   AuthenticatedProjectsProjectIdMarketingRoute: typeof AuthenticatedProjectsProjectIdMarketingRoute
+  AuthenticatedProjectsProjectIdMediaRoute: typeof AuthenticatedProjectsProjectIdMediaRoute
   AuthenticatedProjectsProjectIdPartiesRoute: typeof AuthenticatedProjectsProjectIdPartiesRoute
   AuthenticatedProjectsProjectIdReportsRoute: typeof AuthenticatedProjectsProjectIdReportsRoute
   AuthenticatedProjectsProjectIdRequestsRoute: typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -1076,6 +1117,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdFinanceRoute,
   AuthenticatedProjectsProjectIdMarketingRoute:
     AuthenticatedProjectsProjectIdMarketingRoute,
+  AuthenticatedProjectsProjectIdMediaRoute:
+    AuthenticatedProjectsProjectIdMediaRoute,
   AuthenticatedProjectsProjectIdPartiesRoute:
     AuthenticatedProjectsProjectIdPartiesRoute,
   AuthenticatedProjectsProjectIdReportsRoute:
@@ -1118,6 +1161,7 @@ const rootRouteChildren: RootRouteChildren = {
   SelectAccountRoute: SelectAccountRoute,
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
+  MTokenRoute: MTokenRoute,
   MpTokenRoute: MpTokenRoute,
   VerifyTokenRoute: VerifyTokenRoute,
   ApiPublicCronDurationScanRoute: ApiPublicCronDurationScanRoute,

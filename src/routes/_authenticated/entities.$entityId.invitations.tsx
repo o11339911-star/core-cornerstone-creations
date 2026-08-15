@@ -2,9 +2,11 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Inbox, Mail } from "lucide-react";
 
 import { useT } from "@/i18n";
-import { AsyncBoundary, EmptyState } from "@/components/rakeez";
+import { Button } from "@/components/ui/button";
+import { CardsSkeleton, ErrorState, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
 import {
   listIncomingPartyInvitations,
   respondToProjectParty,
@@ -54,55 +56,70 @@ function IncomingInvitationsPage() {
     onError: (e: Error) => setError(e.message),
   });
 
+  const rows = invitationsQuery.data ?? [];
+
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {t("parties.incomingTitle")}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("parties.incomingSubtitle")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6 sm:px-6">
+      <PageHero title={t("parties.incomingTitle")} subtitle={t("parties.incomingSubtitle")} />
 
-      {error ? <p className="mb-4 text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
 
-      <AsyncBoundary
-        isLoading={invitationsQuery.isLoading}
-        isError={invitationsQuery.isError}
-        onRetry={() => void invitationsQuery.refetch()}
-      >
-        {(invitationsQuery.data ?? []).length === 0 ? (
-          <EmptyState title={t("parties.noIncoming")} />
-        ) : (
-          <ul className="divide-y divide-border rounded-md border border-border">
-            {(invitationsQuery.data ?? []).map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
-                <span className="font-mono text-xs">{p.project_id.slice(0, 8)}</span>
-                <span>{t(`parties.roles.${p.party_role}`)}</span>
-                <span className="text-muted-foreground">{t(`parties.statuses.${p.status}`)}</span>
-                <span className="truncate text-muted-foreground">{p.scope_text_ar ?? ""}</span>
-                {p.status === "invited" ? (
-                  <span className="ms-auto flex gap-2">
-                    <button
-                      type="button"
-                      className="min-h-11 rounded-md bg-primary px-3 text-primary-foreground"
-                      onClick={() => respondMutation.mutate({ partyId: p.id, accept: true })}
-                    >
-                      {t("parties.accept")}
-                    </button>
-                    <button
-                      type="button"
-                      className="min-h-11 rounded-md border border-input px-3"
-                      onClick={() => respondMutation.mutate({ partyId: p.id, accept: false })}
-                    >
-                      {t("parties.reject")}
-                    </button>
+      {invitationsQuery.isPending ? (
+        <CardsSkeleton cards={2} />
+      ) : invitationsQuery.isError ? (
+        <ErrorState onRetry={() => void invitationsQuery.refetch()} />
+      ) : (
+        <SectionCard icon={Mail} title={t("parties.incomingTitle")} count={rows.length}>
+          {rows.length === 0 ? (
+            <SoftEmpty icon={Inbox} message={t("parties.noIncoming")} />
+          ) : (
+            <ul className="space-y-3">
+              {rows.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:border-primary/30 hover:shadow-card"
+                >
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {p.project_id.slice(0, 8)}
                   </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </AsyncBoundary>
+                  <span className="text-sm font-medium text-foreground">
+                    {t(`parties.roles.${p.party_role}`)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {t(`parties.statuses.${p.status}`)}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {p.scope_text_ar ?? ""}
+                  </span>
+                  {p.status === "invited" ? (
+                    <span className="ms-auto flex gap-2">
+                      <Button
+                        className="min-h-11"
+                        disabled={respondMutation.isPending}
+                        onClick={() => respondMutation.mutate({ partyId: p.id, accept: true })}
+                      >
+                        {t("parties.accept")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="min-h-11"
+                        disabled={respondMutation.isPending}
+                        onClick={() => respondMutation.mutate({ partyId: p.id, accept: false })}
+                      >
+                        {t("parties.reject")}
+                      </Button>
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+      )}
     </div>
   );
 }

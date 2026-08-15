@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextAreaField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, SectionCard, SoftEmpty, TextAreaField } from "@/components/rakeez";
+import { FileText, MessageSquare } from "lucide-react";
 import {
   askForMoreInfo,
   closeRequest,
@@ -16,6 +17,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/requests/$requestId")({
   component: RequestDetailPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "تفاصيل الطلب — ركيز" },
@@ -107,31 +109,38 @@ function RequestDetailPage() {
   const canDecide = ["submitted", "in_review", "info_needed"].includes(status);
   const canClose = ["approved", "rejected"].includes(status);
 
+  if (detailQuery.isLoading) {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+        <CardsSkeleton cards={2} />
+      </div>
+    );
+  }
+  if (detailQuery.error) {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+        <ErrorState onRetry={() => void detailQuery.refetch()} />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <AsyncBoundary
-        isLoading={detailQuery.isLoading}
-        isError={Boolean(detailQuery.error)}
-        onRetry={() => void detailQuery.refetch()}
-      >
+    <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-10 sm:px-6">
+      <>
         {data ? (
           <>
-            <header className="mb-6">
-              <p className="text-xs font-medium text-muted-foreground">{data.request.request_no}</p>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
-                {data.request.subject}
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-full bg-secondary px-3 py-1 text-secondary-foreground">
-                  {t(`requests.statuses.${status}`)}
-                </span>
-                <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-                  {t(`requests.priorities.${data.request.priority}`)}
-                </span>
-              </div>
-            </header>
+            <PageHero
+              title={data.request.subject}
+              subtitle={data.request.request_no}
+              badge={
+                <>
+                  <HeroBadge tone="neutral">{t(`requests.statuses.${status}`)}</HeroBadge>
+                  <HeroBadge tone="warning">{t(`requests.priorities.${data.request.priority}`)}</HeroBadge>
+                </>
+              }
+            />
 
-            <RakeezCard title={t("requests.nextAction")}>
+            <SectionCard icon={FileText} title={t("requests.nextAction")}>
               {error ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
               {canDecide || canClose || isOpen ? (
                 <div className="space-y-3">
@@ -195,12 +204,11 @@ function RequestDetailPage() {
               ) : (
                 <p className="text-sm text-muted-foreground">{t("requests.noAction")}</p>
               )}
-            </RakeezCard>
+            </SectionCard>
 
-            <div className="mt-8">
-              <RakeezCard title={t("requests.conversation")}>
+            <SectionCard icon={MessageSquare} title={t("requests.conversation")} count={data.messages.length}>
                 {data.messages.length === 0 ? (
-                  <EmptyState title={t("requests.empty")} />
+                  <SoftEmpty icon={MessageSquare} message={t("requests.empty")} />
                 ) : (
                   <ul className="space-y-3">
                     {data.messages.map((m) => (
@@ -267,11 +275,9 @@ function RequestDetailPage() {
                     </button>
                   </form>
                 ) : null}
-              </RakeezCard>
-            </div>
+            </SectionCard>
 
-            <div className="mt-8">
-              <RakeezCard title={t("requests.timeline")}>
+            <SectionCard icon={FileText} title={t("requests.timeline")} count={data.timeline.length}>
                 <ol className="space-y-2">
                   {data.timeline.map((entry) => (
                     <li key={entry.id} className="flex justify-between gap-3 text-sm">
@@ -282,11 +288,10 @@ function RequestDetailPage() {
                     </li>
                   ))}
                 </ol>
-              </RakeezCard>
-            </div>
+            </SectionCard>
           </>
         ) : null}
-      </AsyncBoundary>
+      </>
     </div>
   );
 }

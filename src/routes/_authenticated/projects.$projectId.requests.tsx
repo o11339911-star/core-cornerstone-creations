@@ -4,7 +4,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, TextAreaField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import {
+  TextField,
+  TextAreaField,
+  AsyncBoundary,
+  SoftEmpty,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  CardsSkeleton,
+} from "@/components/rakeez";
+import { MessageSquarePlus, ListChecks } from "lucide-react";
 import {
   REQUEST_STATUSES,
   createRequest,
@@ -15,6 +25,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/requests")({
   component: RequestsPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "طلبات المشروع — ركيز" },
@@ -78,13 +89,10 @@ function RequestsPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("requests.title")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("requests.hint")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero title={t("requests.title")} subtitle={t("requests.hint")} />
 
-      <RakeezCard title={t("requests.newRequest")}>
+      <SectionCard icon={MessageSquarePlus} title={t("requests.newRequest")}>
         <form
           className="grid gap-4 sm:grid-cols-2"
           onSubmit={(e) => {
@@ -132,10 +140,9 @@ function RequestsPage() {
             </button>
           </div>
         </form>
-      </RakeezCard>
+      </SectionCard>
 
-      <div className="mt-8">
-        <RakeezCard title={t("requests.list")}>
+      <SectionCard icon={ListChecks} title={t("requests.list")} count={requestsQuery.data?.length ?? 0}>
           <label className="mb-4 flex max-w-xs flex-col gap-1 text-sm">
             <span className="font-medium text-foreground">{t("requests.status")}</span>
             <select
@@ -156,9 +163,10 @@ function RequestsPage() {
             isLoading={requestsQuery.isLoading}
             isError={Boolean(requestsQuery.error)}
             onRetry={() => void requestsQuery.refetch()}
+            loadingFallback={<CardsSkeleton cards={1} />}
           >
             {(requestsQuery.data ?? []).length === 0 ? (
-              <EmptyState title={t("requests.empty")} />
+              <SoftEmpty icon={ListChecks} message={t("requests.empty")} />
             ) : (
               <ul className="divide-y divide-border">
                 {(requestsQuery.data ?? []).map((r) => (
@@ -183,8 +191,7 @@ function RequestsPage() {
               </ul>
             )}
           </AsyncBoundary>
-        </RakeezCard>
-      </div>
+      </SectionCard>
     </div>
   );
 }

@@ -3024,6 +3024,303 @@ export type Database = {
           },
         ]
       }
+      media_asset_versions: {
+        Row: {
+          asset_id: string
+          checksum: string | null
+          created_at: string
+          created_by: string
+          id: string
+          is_blurred: boolean
+          object_path: string
+          version_no: number
+        }
+        Insert: {
+          asset_id: string
+          checksum?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_blurred?: boolean
+          object_path: string
+          version_no: number
+        }
+        Update: {
+          asset_id?: string
+          checksum?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_blurred?: boolean
+          object_path?: string
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_asset_versions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_assets: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          blur_ack_at: string | null
+          blur_ack_by: string | null
+          blur_ack_text: string | null
+          blurred_object_path: string | null
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          project_id: string
+          raw_object_path: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          shoot_id: string
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          blur_ack_at?: string | null
+          blur_ack_by?: string | null
+          blur_ack_text?: string | null
+          blurred_object_path?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          kind?: string
+          project_id: string
+          raw_object_path: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shoot_id: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          blur_ack_at?: string | null
+          blur_ack_by?: string | null
+          blur_ack_text?: string | null
+          blurred_object_path?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          project_id?: string
+          raw_object_path?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shoot_id?: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_shoot_id_fkey"
+            columns: ["shoot_id"]
+            isOneToOne: false
+            referencedRelation: "media_shoot_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_publications: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          project_id: string
+          public_object_path: string
+          public_token: string
+          published_at: string
+          published_by: string
+          revoke_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+          public_object_path: string
+          public_token: string
+          published_at?: string
+          published_by: string
+          revoke_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          public_object_path?: string
+          public_token?: string
+          published_at?: string
+          published_by?: string
+          revoke_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_publications_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_publications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_shoot_attendance: {
+        Row: {
+          accuracy_m: number | null
+          checked_in_at: string
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          shoot_id: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          checked_in_at?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          shoot_id: string
+          user_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          checked_in_at?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          shoot_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_shoot_attendance_shoot_id_fkey"
+            columns: ["shoot_id"]
+            isOneToOne: false
+            referencedRelation: "media_shoot_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_shoot_requests: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          photographer_entity_id: string | null
+          photographer_user_id: string | null
+          project_id: string
+          property_id: string | null
+          requested_by: string
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photographer_entity_id?: string | null
+          photographer_user_id?: string | null
+          project_id: string
+          property_id?: string | null
+          requested_by: string
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photographer_entity_id?: string | null
+          photographer_user_id?: string | null
+          project_id?: string
+          property_id?: string | null
+          requested_by?: string
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_shoot_requests_photographer_entity_id_fkey"
+            columns: ["photographer_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_shoot_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_shoot_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_shoot_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_deliveries: {
         Row: {
           attempted_at: string
@@ -7106,6 +7403,10 @@ export type Database = {
         Args: { _version_id: string }
         Returns: undefined
       }
+      approve_media_asset: {
+        Args: { _approve: boolean; _asset_id: string; _reason?: string }
+        Returns: undefined
+      }
       approve_report: {
         Args: { _note?: string; _version_id: string }
         Returns: string
@@ -7117,6 +7418,24 @@ export type Database = {
       archive_report_template: {
         Args: { _template_id: string }
         Returns: string
+      }
+      assign_media_photographer: {
+        Args: {
+          _photographer_entity_id?: string
+          _photographer_user_id?: string
+          _scheduled_at?: string
+          _shoot_id: string
+        }
+        Returns: undefined
+      }
+      attach_blurred_media_version: {
+        Args: {
+          _ack_text: string
+          _asset_id: string
+          _checksum?: string
+          _object_path: string
+        }
+        Returns: undefined
       }
       auto_assign_queue_item: { Args: { _item_id: string }; Returns: string }
       build_notification_digest: {
@@ -7150,6 +7469,15 @@ export type Database = {
       }
       cancel_retention_hold: {
         Args: { _hold_id: string; _reason: string }
+        Returns: string
+      }
+      check_in_media_shoot: {
+        Args: {
+          _accuracy_m?: number
+          _lat?: number
+          _lng?: number
+          _shoot_id: string
+        }
         Returns: string
       }
       close_project: {
@@ -7398,6 +7726,7 @@ export type Database = {
       }
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
       get_public_entity_profile: { Args: { _slug: string }; Returns: Json }
+      get_public_media: { Args: { _token: string }; Returns: Json }
       grant_case_access: {
         Args: {
           _item_id: string
@@ -7536,6 +7865,10 @@ export type Database = {
       }
       project_completion: { Args: { _project_id: string }; Returns: Json }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      publish_media_asset: {
+        Args: { _asset_id: string; _public_object_path: string }
+        Returns: string
+      }
       publish_portfolio_entry: {
         Args: {
           _is_public?: boolean
@@ -7603,6 +7936,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_media_asset: {
+        Args: {
+          _checksum?: string
+          _kind?: string
+          _raw_object_path: string
+          _shoot_id: string
+          _title: string
+        }
+        Returns: string
+      }
       register_warranty: {
         Args: {
           _document_id?: string
@@ -7644,6 +7987,15 @@ export type Database = {
         Args: { _note?: string; _subject_id: string; _subject_kind: string }
         Returns: string
       }
+      request_media_shoot: {
+        Args: {
+          _notes?: string
+          _project_id: string
+          _property_id?: string
+          _scheduled_at?: string
+        }
+        Returns: string
+      }
       request_more_info: {
         Args: { _body: string; _request_id: string }
         Returns: string
@@ -7660,6 +8012,7 @@ export type Database = {
         Args: { _notification_id: string }
         Returns: Json
       }
+      resolve_public_media_object: { Args: { _token: string }; Returns: string }
       resolve_queue_item: {
         Args: { _item_id: string; _reason: string }
         Returns: undefined
@@ -7687,6 +8040,10 @@ export type Database = {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: string
       }
+      review_media_asset: {
+        Args: { _approve: boolean; _asset_id: string; _reason?: string }
+        Returns: undefined
+      }
       review_report_template: {
         Args: { _note?: string; _template_id: string }
         Returns: string
@@ -7706,6 +8063,10 @@ export type Database = {
       revoke_case_access: { Args: { _case_id: string }; Returns: undefined }
       revoke_marketing_package: {
         Args: { _package_id: string }
+        Returns: undefined
+      }
+      revoke_media_publication: {
+        Args: { _publication_id: string; _reason: string }
         Returns: undefined
       }
       run_duration_scan: { Args: never; Returns: Json }
@@ -7799,6 +8160,7 @@ export type Database = {
         }
         Returns: string
       }
+      submit_media_asset: { Args: { _asset_id: string }; Returns: undefined }
       submit_report_version: { Args: { _version_id: string }; Returns: string }
       submit_stage: {
         Args: { _note?: string; _stage_id: string }
@@ -7892,6 +8254,10 @@ export type Database = {
           status: string
         }[]
       }
+      withdraw_media_asset: {
+        Args: { _asset_id: string; _reason: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_action:
@@ -7916,6 +8282,7 @@ export type Database = {
         | "members"
         | "properties"
         | "marketing"
+        | "media"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
@@ -8100,6 +8467,7 @@ export const Constants = {
         "members",
         "properties",
         "marketing",
+        "media",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       breakglass_status: ["pending", "approved", "denied", "expired"],

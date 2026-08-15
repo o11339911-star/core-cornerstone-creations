@@ -2,8 +2,9 @@ import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { AlertTriangle, ExternalLink, FileText, Layers, Save } from "lucide-react";
 
-import { RakeezCard, ReportEditor } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, PageHero, ReportEditor, SectionCard } from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/rakeez/form-field";
 import {
@@ -126,110 +127,131 @@ function TemplateImportReviewPage() {
     }
   };
 
+  const isLoading = importQuery.isPending || previewQuery.isPending;
+
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-8">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">مراجعة القالب المستورد</h1>
-          <p className="text-muted-foreground text-sm">
-            {record ? `${record.kind.toUpperCase()} — ${record.blocks_created} كتلة مستخرجة` : "جارٍ التحميل…"}
-            {isPdf ? " — التفعيل يتطلب مراجعة بشرية" : ""}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={openSource}>
-            فتح الملف الأصلي (60 ثانية)
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => navigate({ to: "/entities/$entityId/report-templates", params: { entityId } })}
-          >
-            رجوع
-          </Button>
-        </div>
-      </header>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <PageHero
+        title="مراجعة القالب المستورد"
+        subtitle={
+          record
+            ? `${record.kind.toUpperCase()} — ${record.blocks_created} كتلة مستخرجة${isPdf ? " — التفعيل يتطلب مراجعة بشرية" : ""}`
+            : "جارٍ التحميل…"
+        }
+        aside={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" className="min-h-11" onClick={openSource}>
+              <ExternalLink className="me-2 size-4" aria-hidden="true" />
+              فتح الملف الأصلي
+            </Button>
+            <Button
+              variant="secondary"
+              className="min-h-11"
+              onClick={() => navigate({ to: "/entities/$entityId/report-templates", params: { entityId } })}
+            >
+              رجوع
+            </Button>
+          </div>
+        }
+      />
 
       {error ? (
-        <p className="border-destructive/40 bg-destructive/10 text-destructive rounded-md border p-3 text-sm">
+        <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </p>
       ) : null}
-      {message ? <p className="bg-secondary rounded-md border p-3 text-sm">{message}</p> : null}
-
-      {dropped.length > 0 || warnings.length > 0 ? (
-        <RakeezCard title="ما لم يُنقل بنجاح" description="لا يوجد وعد بتطابق بصري كامل مع الملف الأصلي.">
-          <ul className="list-inside list-disc space-y-1 text-sm">
-            {dropped.map((d, i) => (
-              <li key={`d-${i}`}>
-                <span className="font-medium">{d.what}</span> — {d.where}: {d.why}
-              </li>
-            ))}
-            {warnings.map((w, i) => (
-              <li key={`w-${i}`} className="text-muted-foreground">
-                {w}
-              </li>
-            ))}
-          </ul>
-        </RakeezCard>
+      {message ? (
+        <p className="rounded-lg border border-border bg-secondary p-3 text-sm text-foreground">{message}</p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <RakeezCard title="الملف الأصلي (نص مستخرج)" contentClassName="max-h-[70vh] overflow-auto">
-          {previewQuery.isLoading ? (
-            <p className="text-sm">جارٍ التحليل…</p>
-          ) : (
-            <div className="space-y-4">
-              {(previewQuery.data?.pages ?? []).map((page, i) => (
-                <pre
-                  key={i}
-                  className="bg-muted/40 whitespace-pre-wrap rounded-md p-3 text-xs leading-6"
-                  dir="auto"
-                >
-                  {page || "(لا يوجد نص قابل للاستخراج في هذه الصفحة)"}
-                </pre>
-              ))}
+      {isLoading ? (
+        <CardsSkeleton cards={2} />
+      ) : importQuery.isError || previewQuery.isError ? (
+        <ErrorState
+          onRetry={() => {
+            void importQuery.refetch();
+            void previewQuery.refetch();
+          }}
+        />
+      ) : (
+        <>
+          {dropped.length > 0 || warnings.length > 0 ? (
+            <SectionCard icon={AlertTriangle} title="ما لم يُنقل بنجاح">
+              <p className="mb-3 text-xs text-muted-foreground">
+                لا يوجد وعد بتطابق بصري كامل مع الملف الأصلي.
+              </p>
+              <ul className="list-inside list-disc space-y-1 text-sm text-foreground">
+                {dropped.map((d, i) => (
+                  <li key={`d-${i}`}>
+                    <span className="font-medium">{d.what}</span> — {d.where}: {d.why}
+                  </li>
+                ))}
+                {warnings.map((w, i) => (
+                  <li key={`w-${i}`} className="text-muted-foreground">
+                    {w}
+                  </li>
+                ))}
+              </ul>
+            </SectionCard>
+          ) : null}
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <SectionCard icon={FileText} title="الملف الأصلي (نص مستخرج)" className="max-h-[70vh] overflow-auto">
+              <div className="space-y-4">
+                {(previewQuery.data?.pages ?? []).map((page, i) => (
+                  <pre
+                    key={i}
+                    className="whitespace-pre-wrap rounded-md bg-muted/40 p-3 text-xs leading-6"
+                    dir="auto"
+                  >
+                    {page || "(لا يوجد نص قابل للاستخراج في هذه الصفحة)"}
+                  </pre>
+                ))}
+              </div>
+            </SectionCard>
+
+            <SectionCard icon={Layers} title="الكتل المستخرجة (قابلة للتعديل)" className="max-h-[70vh] overflow-auto">
+              {content ? (
+                <ReportEditor content={content} snapshot={{}} onChange={setContent} />
+              ) : (
+                <p className="text-sm text-muted-foreground">جارٍ التحميل…</p>
+              )}
+            </SectionCard>
+          </div>
+
+          <SectionCard icon={Save} title="إنشاء القالب">
+            <p className="mb-4 text-xs text-muted-foreground">القالب المستورد يبدأ دائمًا بحالة مسودة.</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <TextField id="tpl-name-ar" label="اسم القالب (عربي)" value={nameAr} onChange={(e) => setNameAr(e.target.value)} />
+              <TextField id="tpl-name-en" label="اسم القالب (إنجليزي)" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
             </div>
-          )}
-        </RakeezCard>
-
-        <RakeezCard title="الكتل المستخرجة (قابلة للتعديل)" contentClassName="max-h-[70vh] overflow-auto">
-          {content ? (
-            <ReportEditor content={content} snapshot={{}} onChange={setContent} />
-          ) : (
-            <p className="text-sm">جارٍ التحميل…</p>
-          )}
-        </RakeezCard>
-      </div>
-
-      <RakeezCard title="إنشاء القالب" description="القالب المستورد يبدأ دائمًا بحالة مسودة.">
-        <div className="grid gap-4 md:grid-cols-2">
-          <TextField id="tpl-name-ar" label="اسم القالب (عربي)" value={nameAr} onChange={(e) => setNameAr(e.target.value)} />
-          <TextField id="tpl-name-en" label="اسم القالب (إنجليزي)" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button
-            disabled={!content || nameAr.trim().length < 2 || applyMutation.isPending || !!templateId}
-            onClick={() => applyMutation.mutate()}
-          >
-            إنشاء القالب كمسودة
-          </Button>
-          {templateId && isPdf ? (
-            <Button variant="outline" disabled={reviewed} onClick={doReview}>
-              تسجيل المراجعة البشرية
-            </Button>
-          ) : null}
-          {templateId ? (
-            <Button variant="outline" disabled={isPdf && !reviewed} onClick={doActivate}>
-              تفعيل القالب
-            </Button>
-          ) : null}
-        </div>
-        {templateId && isPdf && !reviewed ? (
-          <p className="text-muted-foreground mt-2 text-xs">
-            قوالب PDF لا تُفعَّل قبل تسجيل مراجعة بشرية من صاحب صلاحية داخل الكيان.
-          </p>
-        ) : null}
-      </RakeezCard>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                className="min-h-11"
+                disabled={!content || nameAr.trim().length < 2 || applyMutation.isPending || !!templateId}
+                onClick={() => applyMutation.mutate()}
+              >
+                {applyMutation.isPending ? "جارٍ الإنشاء…" : "إنشاء القالب كمسودة"}
+              </Button>
+              {templateId && isPdf ? (
+                <Button variant="outline" className="min-h-11" disabled={reviewed} onClick={doReview}>
+                  تسجيل المراجعة البشرية
+                </Button>
+              ) : null}
+              {templateId ? (
+                <Button variant="outline" className="min-h-11" disabled={isPdf && !reviewed} onClick={doActivate}>
+                  تفعيل القالب
+                </Button>
+              ) : null}
+            </div>
+            {templateId && isPdf && !reviewed ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                قوالب PDF لا تُفعَّل قبل تسجيل مراجعة بشرية من صاحب صلاحية داخل الكيان.
+              </p>
+            ) : null}
+          </SectionCard>
+        </>
+      )}
     </div>
   );
 }

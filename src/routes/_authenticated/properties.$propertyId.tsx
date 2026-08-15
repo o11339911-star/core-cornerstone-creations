@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Building2, MapPinned } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,12 +16,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  CardsSkeleton,
   DataTable,
   EmptyState,
   ErrorState,
-  LoadingState,
+  FieldGrid,
+  Field,
+  HeroBadge,
+  PageHero,
   RakeezAccordion,
-  RakeezCard,
+  SectionCard,
+  SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import {
@@ -52,15 +58,6 @@ export const Route = createFileRoute("/_authenticated/properties/$propertyId")({
     ],
   }),
 });
-
-function SummaryItem({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="text-start">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-sm font-medium text-foreground">{value ?? "—"}</dd>
-    </div>
-  );
-}
 
 function PropertyProfilePage() {
   const t = useT();
@@ -125,9 +122,19 @@ function PropertyProfilePage() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  if (query.isLoading) return <LoadingState />;
+  if (query.isLoading) {
+    return (
+      <div className="mx-auto min-h-screen w-full max-w-5xl px-4 py-8 sm:px-6">
+        <CardsSkeleton cards={4} />
+      </div>
+    );
+  }
   if (query.isError || !query.data) {
-    return <EmptyState title={t("properties.notFound")} />;
+    return (
+      <div className="mx-auto min-h-screen w-full max-w-5xl px-4 py-8 sm:px-6">
+        <SoftEmpty icon={Building2} message={t("properties.notFound")} />
+      </div>
+    );
   }
 
   const profile: PropertyProfile = query.data;
@@ -168,7 +175,7 @@ function PropertyProfilePage() {
         emptyTitle={t("properties.owners.none")}
       />
       <p className="text-sm text-muted-foreground">
-        {t("properties.owners.total")}: <span className="font-medium">{totalShare}%</span>
+        {t("properties.owners.total")}: <span className="font-medium text-foreground">{totalShare}%</span>
       </p>
       <form
         className="flex flex-wrap items-end gap-3"
@@ -200,7 +207,7 @@ function PropertyProfilePage() {
           />
         </label>
         <Button type="submit" className="min-h-11" disabled={ownerMutation.isPending}>
-          {t("properties.owners.add")}
+          {ownerMutation.isPending ? t("common.loading") : t("properties.owners.add")}
         </Button>
       </form>
     </div>
@@ -213,7 +220,7 @@ function PropertyProfilePage() {
     dateOf: (v: any) => string | null,
   ) =>
     docs.length === 0 ? (
-      <EmptyState title={t("properties.documents.none")} />
+      <SoftEmpty icon={Building2} message={t("properties.documents.none")} />
     ) : (
       <div className="space-y-6">
         {docs.map((doc) => (
@@ -430,7 +437,7 @@ function PropertyProfilePage() {
                 linkMutation.mutate({ data: { propertyId, projectId, relation: "related" } })
               }
             >
-              {t("properties.links.link")}
+              {linkMutation.isPending ? t("common.loading") : t("properties.links.link")}
             </Button>
           </div>
         </div>
@@ -439,59 +446,61 @@ function PropertyProfilePage() {
   ];
 
   return (
-    <div className="bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <header className="text-start">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">{p.name}</h1>
-            <Badge variant="secondary">{t(`properties.kinds.${p.kind}`)}</Badge>
-            <Badge variant="outline">{t(`properties.statuses.${p.status}`)}</Badge>
-          </div>
-        </header>
+    <div className="mx-auto min-h-screen w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={p.name}
+        subtitle={[p.city, p.district].filter(Boolean).join(" / ") || undefined}
+        badge={
+          <>
+            <HeroBadge tone="neutral">{t(`properties.kinds.${p.kind}`)}</HeroBadge>
+            <HeroBadge tone="success">{t(`properties.statuses.${p.status}`)}</HeroBadge>
+          </>
+        }
+      />
 
-        <RakeezCard title={t("properties.completion")} description={t("properties.completionHint")}>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Progress value={p.completion_percent ?? 0} className="h-2" />
-              <span className="text-sm font-medium text-foreground">
-                {p.completion_percent ?? 0}%
-              </span>
-            </div>
-            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <SummaryItem label={t("properties.city")} value={p.city ?? "—"} />
-              <SummaryItem label={t("properties.district")} value={p.district ?? "—"} />
-              <SummaryItem
-                label={t("properties.landArea")}
-                value={p.land_area ? p.land_area.toLocaleString("en-US") : "—"}
-              />
-              <SummaryItem label={t("properties.planNo")} value={p.plan_no ?? "—"} />
-              <SummaryItem
-                label={t("properties.approxLocation")}
-                value={
-                  p.approx_lat != null && p.approx_lng != null
-                    ? `${p.approx_lat}, ${p.approx_lng}`
-                    : "—"
-                }
-              />
-              <SummaryItem
-                label={t("properties.exactLocation")}
-                value={
-                  p.can_view_exact
-                    ? (p.exact_address ??
-                      (p.exact_lat != null ? `${p.exact_lat}, ${p.exact_lng}` : "—"))
-                    : t("properties.exactHidden")
-                }
-              />
-            </dl>
-            {!p.can_view_exact ? (
-              <p className="text-xs text-muted-foreground">{t("properties.exactHiddenHint")}</p>
-            ) : null}
+      <SectionCard icon={MapPinned} title={t("properties.completion")}>
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">{t("properties.completionHint")}</p>
+          <div className="flex items-center gap-4">
+            <Progress value={p.completion_percent ?? 0} className="h-2" />
+            <span className="text-sm font-medium text-foreground">
+              {p.completion_percent ?? 0}%
+            </span>
           </div>
-        </RakeezCard>
+          <FieldGrid>
+            <Field label={t("properties.city")} value={p.city ?? "—"} />
+            <Field label={t("properties.district")} value={p.district ?? "—"} />
+            <Field
+              label={t("properties.landArea")}
+              value={p.land_area ? p.land_area.toLocaleString("en-US") : "—"}
+            />
+            <Field label={t("properties.planNo")} value={p.plan_no ?? "—"} />
+            <Field
+              label={t("properties.approxLocation")}
+              value={
+                p.approx_lat != null && p.approx_lng != null
+                  ? `${p.approx_lat}, ${p.approx_lng}`
+                  : "—"
+              }
+            />
+            <Field
+              label={t("properties.exactLocation")}
+              value={
+                p.can_view_exact
+                  ? (p.exact_address ??
+                    (p.exact_lat != null ? `${p.exact_lat}, ${p.exact_lng}` : "—"))
+                  : t("properties.exactHidden")
+              }
+            />
+          </FieldGrid>
+          {!p.can_view_exact ? (
+            <p className="text-xs text-muted-foreground">{t("properties.exactHiddenHint")}</p>
+          ) : null}
+        </div>
+      </SectionCard>
 
-        {/* Details stay collapsed by default; the summary above is the default view. */}
-        <RakeezAccordion items={items} multiple />
-      </div>
+      {/* Details stay collapsed by default; the summary above is the default view. */}
+      <RakeezAccordion items={items} multiple />
     </div>
   );
 }

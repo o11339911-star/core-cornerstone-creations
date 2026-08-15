@@ -4,7 +4,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, TextAreaField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import {
+  TextField,
+  TextAreaField,
+  AsyncBoundary,
+  SoftEmpty,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  CardsSkeleton,
+} from "@/components/rakeez";
+import { Wrench, ListChecks } from "lucide-react";
 import { listProperties } from "@/lib/properties.functions";
 import {
   SERVICE_STATUSES,
@@ -16,6 +26,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/services")({
   component: ServicesPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "الخدمات والعدادات — ركيز" },
@@ -85,13 +96,10 @@ function ServicesPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:p-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold">{t("services.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("services.hint")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero title={t("services.title")} subtitle={t("services.hint")} />
 
-      <RakeezCard title={t("services.newRequest")}>
+      <SectionCard icon={Wrench} title={t("services.newRequest")}>
         <form
           className="grid gap-4 md:grid-cols-2"
           onSubmit={(e) => {
@@ -156,9 +164,9 @@ function ServicesPage() {
             </button>
           </div>
         </form>
-      </RakeezCard>
+      </SectionCard>
 
-      <RakeezCard title={t("requests.list")}>
+      <SectionCard icon={ListChecks} title={t("requests.list")} count={requestsQuery.data?.length ?? 0}>
         <div className="mb-4">
           <label className="space-y-1 text-sm">
             <span className="font-medium">{t("requests.status")}</span>
@@ -181,9 +189,10 @@ function ServicesPage() {
           isLoading={requestsQuery.isLoading}
           isError={requestsQuery.isError}
           onRetry={() => void requestsQuery.refetch()}
+          loadingFallback={<CardsSkeleton cards={1} />}
         >
           {(requestsQuery.data ?? []).length === 0 ? (
-            <EmptyState title={t("services.empty")} />
+            <SoftEmpty icon={ListChecks} message={t("services.empty")} />
           ) : (
             <ul className="divide-border divide-y">
               {(requestsQuery.data ?? []).map((r) => (
@@ -205,7 +214,7 @@ function ServicesPage() {
             </ul>
           )}
         </AsyncBoundary>
-      </RakeezCard>
+      </SectionCard>
     </div>
   );
 }

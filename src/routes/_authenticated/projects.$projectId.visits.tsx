@@ -4,7 +4,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, TextAreaField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import {
+  RakeezCard,
+  TextField,
+  TextAreaField,
+  AsyncBoundary,
+  SoftEmpty,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  CardsSkeleton,
+} from "@/components/rakeez";
+import { MapPin, AlertTriangle, ClipboardList } from "lucide-react";
 import { listStages } from "@/lib/stages.functions";
 import {
   OBSERVATION_KINDS,
@@ -22,6 +33,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/visits")({
   component: VisitsPage,
+  errorComponent: ErrorState,
   head: () => ({
     meta: [
       { title: "الزيارات الميدانية والملاحظات — ركيز" },
@@ -130,11 +142,8 @@ function VisitsPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("visits.title")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("visits.subtitle")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero title={t("visits.title")} subtitle={t("visits.subtitle")} />
 
       {error ? (
         <p role="alert" className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
@@ -142,7 +151,8 @@ function VisitsPage() {
         </p>
       ) : null}
 
-      <RakeezCard title={t("visits.newVisit")} description={t("visits.locationHint")}>
+      <SectionCard icon={MapPin} title={t("visits.newVisit")}>
+        <p className="mb-4 text-xs text-muted-foreground">{t("visits.locationHint")}</p>
         <form
           className="grid gap-4"
           onSubmit={(e) => {
@@ -201,13 +211,16 @@ function VisitsPage() {
             {t("visits.newVisit")}
           </button>
         </form>
-      </RakeezCard>
+      </SectionCard>
 
-      <div className="mt-6">
-        <RakeezCard title={t("visits.title")}>
-          <AsyncBoundary isLoading={visitsQuery.isLoading} isError={visitsQuery.isError}>
+      <SectionCard icon={ClipboardList} title={t("visits.title")} count={visitsQuery.data?.length ?? 0}>
+          <AsyncBoundary
+            isLoading={visitsQuery.isLoading}
+            isError={visitsQuery.isError}
+            loadingFallback={<CardsSkeleton cards={1} />}
+          >
             {(visitsQuery.data ?? []).length === 0 ? (
-              <EmptyState title={t("visits.noVisits")} />
+              <SoftEmpty icon={ClipboardList} message={t("visits.noVisits")} />
             ) : (
               <ul className="grid gap-2 text-sm">
                 {(visitsQuery.data ?? []).map((v) => (
@@ -222,11 +235,9 @@ function VisitsPage() {
               </ul>
             )}
           </AsyncBoundary>
-        </RakeezCard>
-      </div>
+      </SectionCard>
 
-      <div className="mt-6">
-        <RakeezCard title={t("visits.newObservation")}>
+      <SectionCard icon={AlertTriangle} title={t("visits.newObservation")}>
           <form
             className="grid gap-4"
             onSubmit={(e) => {
@@ -300,13 +311,13 @@ function VisitsPage() {
               {t("visits.newObservation")}
             </button>
           </form>
-        </RakeezCard>
-      </div>
+      </SectionCard>
 
-      <div className="mt-6 grid gap-4">
+      <div className="grid gap-4">
         <AsyncBoundary
           isLoading={observationsQuery.isLoading}
           isError={observationsQuery.isError}
+          loadingFallback={<CardsSkeleton cards={1} />}
         >
           {(observationsQuery.data ?? []).map((o) => (
             <ObservationCard key={o.id} observationId={o.id} title={o.title}
