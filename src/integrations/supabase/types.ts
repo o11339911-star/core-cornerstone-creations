@@ -4424,6 +4424,21 @@ export type Database = {
           },
         ]
       }
+      p25_results: {
+        Row: {
+          outcome: string | null
+          step: string | null
+        }
+        Insert: {
+          outcome?: string | null
+          step?: string | null
+        }
+        Update: {
+          outcome?: string | null
+          step?: string | null
+        }
+        Relationships: []
+      }
       payment_milestone_amounts: {
         Row: {
           amount: number
