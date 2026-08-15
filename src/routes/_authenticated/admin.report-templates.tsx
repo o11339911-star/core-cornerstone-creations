@@ -39,7 +39,6 @@ export const Route = createFileRoute("/_authenticated/admin/report-templates")({
 const STATUS_AR: Record<string, string> = { draft: "مسودة", active: "مفعّل", archived: "مؤرشف" };
 
 const blankContent = (): ReportContent => ({
-  version: 1,
   blocks: [emptyBlock("heading"), emptyBlock("paragraph")],
 });
 
@@ -80,7 +79,7 @@ function RakeezTemplateLibraryPage() {
   const load = async (templateId: string) => {
     setError(null);
     try {
-      const row = (await fetchTemplate({ data: { templateId } })) as {
+      const row = (await fetchTemplate({ data: { templateId } })) as unknown as {
         id: string;
         code: string | null;
         name_ar: string;

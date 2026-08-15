@@ -18,6 +18,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
+import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
@@ -82,6 +83,12 @@ const VerifyTokenRoute = VerifyTokenRouteImport.update({
   path: '/verify/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminReportTemplatesRoute =
+  AuthenticatedAdminReportTemplatesRouteImport.update({
+    id: '/admin/report-templates',
+    path: '/admin/report-templates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
@@ -206,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -235,6 +243,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -266,6 +275,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
+    | '/admin/report-templates'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -326,6 +337,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
+    | '/admin/report-templates'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -356,6 +368,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
+    | '/_authenticated/admin/report-templates'
     | '/_authenticated/projects/new'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/properties/new'
@@ -450,6 +463,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/verify/$token'
       preLoaderRoute: typeof VerifyTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/report-templates': {
+      id: '/_authenticated/admin/report-templates'
+      path: '/admin/report-templates'
+      fullPath: '/admin/report-templates'
+      preLoaderRoute: typeof AuthenticatedAdminReportTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/documents/': {
       id: '/_authenticated/documents/'
@@ -589,6 +609,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
   AuthenticatedPropertiesNewRoute: typeof AuthenticatedPropertiesNewRoute
@@ -612,6 +633,8 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedAdminReportTemplatesRoute:
+    AuthenticatedAdminReportTemplatesRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:
     AuthenticatedPropertiesPropertyIdRoute,
