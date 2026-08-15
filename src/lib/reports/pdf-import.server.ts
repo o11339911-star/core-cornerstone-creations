@@ -95,6 +95,21 @@ function contentStreams(bytes: Uint8Array): string[] {
   return streams;
 }
 
+/**
+ * Some producers emit UTF-8 bytes inside byte strings; those arrive here as
+ * one char per byte. Recover them when the byte pattern is valid UTF-8.
+ */
+function recoverUtf8(input: string): string {
+  if (!/[\u0080-\u00ff]/.test(input)) return input;
+  if ([...input].some((c) => c.charCodeAt(0) > 0xff)) return input;
+  const bytes = Uint8Array.from([...input].map((c) => c.charCodeAt(0)));
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return input;
+  }
+}
+
 function extractLines(bytes: Uint8Array): ExtractedLine[] {
   const lines: ExtractedLine[] = [];
   const streams = contentStreams(bytes);
@@ -103,13 +118,13 @@ function extractLines(bytes: Uint8Array): ExtractedLine[] {
     let size = 12;
     let current = "";
     const push = () => {
-      const text = current.replace(/\s+/g, " ").trim();
+      const text = recoverUtf8(current).replace(/\s+/g, " ").trim();
       if (text) lines.push({ text, size, page: pageIndex + 1 });
       current = "";
     };
 
     const tokenRe =
-      /\/[A-Za-z0-9#+._-]+\s+([\d.]+)\s+Tf|\((?:\\.|[^\\()])*\)|<[0-9a-fA-F\s]*>|\bT[dD]\b|\bT\*\b|\bTJ\b|\bTj\b|\bET\b|\bBT\b/g;
+      /\/[A-Za-z0-9#+._-]+\s+([\d.]+)\s+Tf|\((?:\\.|[^\\()])*\)|<[0-9a-fA-F\s]*>|\bT[dD]\b|\bTm\b|\bT\*\b|\bTJ\b|\bTj\b|\bET\b|\bBT\b/g;
     let m: RegExpExecArray | null;
     while ((m = tokenRe.exec(stream))) {
       const tok = m[0];
@@ -120,7 +135,7 @@ function extractLines(bytes: Uint8Array): ExtractedLine[] {
         current += decodeLiteral(tok.slice(1, -1));
       } else if (tok.startsWith("<")) {
         current += decodeHex(tok.slice(1, -1));
-      } else if (tok === "Td" || tok === "TD" || tok === "T*" || tok === "ET") {
+      } else if (tok === "Td" || tok === "TD" || tok === "Tm" || tok === "T*" || tok === "ET") {
         push();
       }
     }
