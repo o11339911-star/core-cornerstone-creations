@@ -14,12 +14,14 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
+import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
@@ -45,6 +47,7 @@ import { Route as AuthenticatedProjectsProjectIdClosureRouteImport } from './rou
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdDurationsRouteImport } from './routes/_authenticated/projects.$projectId.durations'
 import { Route as AuthenticatedProjectsProjectIdFinanceRouteImport } from './routes/_authenticated/projects.$projectId.finance'
+import { Route as AuthenticatedProjectsProjectIdMarketingRouteImport } from './routes/_authenticated/projects.$projectId.marketing'
 import { Route as AuthenticatedProjectsProjectIdPartiesRouteImport } from './routes/_authenticated/projects.$projectId.parties'
 import { Route as AuthenticatedProjectsProjectIdReportsRouteImport } from './routes/_authenticated/projects.$projectId.reports'
 import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './routes/_authenticated/projects.$projectId.requests'
@@ -79,6 +82,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
@@ -108,6 +116,11 @@ const ESlugRoute = ESlugRouteImport.update({
 const InviteAcceptRoute = InviteAcceptRouteImport.update({
   id: '/invite/accept',
   path: '/invite/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MpTokenRoute = MpTokenRouteImport.update({
+  id: '/mp/$token',
+  path: '/mp/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyTokenRoute = VerifyTokenRouteImport.update({
@@ -259,6 +272,12 @@ const AuthenticatedProjectsProjectIdFinanceRoute =
     path: '/projects/$projectId/finance',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdMarketingRoute =
+  AuthenticatedProjectsProjectIdMarketingRouteImport.update({
+    id: '/projects/$projectId/marketing',
+    path: '/projects/$projectId/marketing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdPartiesRoute =
   AuthenticatedProjectsProjectIdPartiesRouteImport.update({
     id: '/projects/$projectId/parties',
@@ -319,12 +338,14 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/marketing': typeof AuthenticatedMarketingRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -349,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
+  '/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -365,11 +387,13 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/marketing': typeof AuthenticatedMarketingRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -394,6 +418,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
+  '/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -412,12 +437,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -442,6 +469,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/_authenticated/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
+  '/_authenticated/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
   '/_authenticated/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
   '/_authenticated/projects/$projectId/reports': typeof AuthenticatedProjectsProjectIdReportsRoute
   '/_authenticated/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -460,12 +488,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/dashboard'
+    | '/marketing'
     | '/notifications'
     | '/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
     | '/n/$notificationId'
@@ -490,6 +520,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
+    | '/projects/$projectId/marketing'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/reports'
     | '/projects/$projectId/requests'
@@ -506,11 +537,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/dashboard'
+    | '/marketing'
     | '/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
     | '/n/$notificationId'
@@ -535,6 +568,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
+    | '/projects/$projectId/marketing'
     | '/projects/$projectId/parties'
     | '/projects/$projectId/reports'
     | '/projects/$projectId/requests'
@@ -552,12 +586,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/_authenticated/dashboard'
+    | '/_authenticated/marketing'
     | '/_authenticated/notifications'
     | '/_authenticated/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/mp/$token'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/n/$notificationId'
@@ -582,6 +618,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/durations'
     | '/_authenticated/projects/$projectId/finance'
+    | '/_authenticated/projects/$projectId/marketing'
     | '/_authenticated/projects/$projectId/parties'
     | '/_authenticated/projects/$projectId/reports'
     | '/_authenticated/projects/$projectId/requests'
@@ -601,6 +638,7 @@ export interface RootRouteChildren {
   SelectAccountRoute: typeof SelectAccountRoute
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
+  MpTokenRoute: typeof MpTokenRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
   ApiPublicCronDurationScanRoute: typeof ApiPublicCronDurationScanRoute
 }
@@ -640,6 +678,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/marketing': {
+      id: '/_authenticated/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof AuthenticatedMarketingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -682,6 +727,13 @@ declare module '@tanstack/react-router' {
       path: '/invite/accept'
       fullPath: '/invite/accept'
       preLoaderRoute: typeof InviteAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mp/$token': {
+      id: '/mp/$token'
+      path: '/mp/$token'
+      fullPath: '/mp/$token'
+      preLoaderRoute: typeof MpTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify/$token': {
@@ -859,6 +911,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdFinanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/marketing': {
+      id: '/_authenticated/projects/$projectId/marketing'
+      path: '/projects/$projectId/marketing'
+      fullPath: '/projects/$projectId/marketing'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdMarketingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/parties': {
       id: '/_authenticated/projects/$projectId/parties'
       path: '/projects/$projectId/parties'
@@ -946,6 +1005,7 @@ const AuthenticatedPlatformRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
@@ -967,6 +1027,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
   AuthenticatedProjectsProjectIdDurationsRoute: typeof AuthenticatedProjectsProjectIdDurationsRoute
   AuthenticatedProjectsProjectIdFinanceRoute: typeof AuthenticatedProjectsProjectIdFinanceRoute
+  AuthenticatedProjectsProjectIdMarketingRoute: typeof AuthenticatedProjectsProjectIdMarketingRoute
   AuthenticatedProjectsProjectIdPartiesRoute: typeof AuthenticatedProjectsProjectIdPartiesRoute
   AuthenticatedProjectsProjectIdReportsRoute: typeof AuthenticatedProjectsProjectIdReportsRoute
   AuthenticatedProjectsProjectIdRequestsRoute: typeof AuthenticatedProjectsProjectIdRequestsRoute
@@ -980,6 +1041,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedAdminReportTemplatesRoute:
@@ -1012,6 +1074,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdDurationsRoute,
   AuthenticatedProjectsProjectIdFinanceRoute:
     AuthenticatedProjectsProjectIdFinanceRoute,
+  AuthenticatedProjectsProjectIdMarketingRoute:
+    AuthenticatedProjectsProjectIdMarketingRoute,
   AuthenticatedProjectsProjectIdPartiesRoute:
     AuthenticatedProjectsProjectIdPartiesRoute,
   AuthenticatedProjectsProjectIdReportsRoute:
@@ -1054,6 +1118,7 @@ const rootRouteChildren: RootRouteChildren = {
   SelectAccountRoute: SelectAccountRoute,
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
+  MpTokenRoute: MpTokenRoute,
   VerifyTokenRoute: VerifyTokenRoute,
   ApiPublicCronDurationScanRoute: ApiPublicCronDurationScanRoute,
 }
