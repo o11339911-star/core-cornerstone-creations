@@ -179,7 +179,6 @@ export function DocumentsTab({ projectId }: { projectId: string }) {
             id="fd-subtotal"
             label={t("finance.documents.subtotal")}
             type="number"
-            step="0.01"
             value={subtotal}
             onChange={(e) => setSubtotal(e.target.value)}
             required
@@ -188,7 +187,6 @@ export function DocumentsTab({ projectId }: { projectId: string }) {
             id="fd-taxrate"
             label={t("finance.documents.taxRate")}
             type="number"
-            step="0.01"
             value={taxRate}
             onChange={(e) => setTaxRate(e.target.value)}
           />
@@ -196,7 +194,6 @@ export function DocumentsTab({ projectId }: { projectId: string }) {
             id="fd-taxamount"
             label={t("finance.documents.taxAmount")}
             type="number"
-            step="0.01"
             value={taxAmount}
             onChange={(e) => setTaxAmount(e.target.value)}
           />
