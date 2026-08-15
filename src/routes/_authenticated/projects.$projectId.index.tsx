@@ -81,7 +81,7 @@ function ProjectOverviewPage() {
   });
 
   if (query.isPending) return <LoadingState />;
-  if (query.isError) return <ErrorState error={query.error as Error} />;
+  if (query.isError) return <ErrorState description={(query.error as Error).message} />;
   if (!query.data) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-12">
