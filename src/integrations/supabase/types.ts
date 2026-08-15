@@ -942,6 +942,272 @@ export type Database = {
           },
         ]
       }
+      document_audience: {
+        Row: {
+          audience_entity_id: string | null
+          audience_user_id: string | null
+          created_at: string
+          document_id: string
+          id: string
+        }
+        Insert: {
+          audience_entity_id?: string | null
+          audience_user_id?: string | null
+          created_at?: string
+          document_id: string
+          id?: string
+        }
+        Update: {
+          audience_entity_id?: string | null
+          audience_user_id?: string | null
+          created_at?: string
+          document_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_audience_audience_entity_id_fkey"
+            columns: ["audience_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_audience_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_categories: {
+        Row: {
+          allowed_mime: string[]
+          code: string
+          created_at: string
+          group_code: string
+          is_active: boolean
+          max_size_mb: number
+          name_ar: string
+          name_en: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_mime?: string[]
+          code: string
+          created_at?: string
+          group_code: string
+          is_active?: boolean
+          max_size_mb?: number
+          name_ar: string
+          name_en: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_mime?: string[]
+          code?: string
+          created_at?: string
+          group_code?: string
+          is_active?: boolean
+          max_size_mb?: number
+          name_ar?: string
+          name_en?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_links: {
+        Row: {
+          context_id: string
+          context_type: string
+          created_at: string
+          document_id: string
+          id: string
+          linked_by: string
+          relation: string
+        }
+        Insert: {
+          context_id: string
+          context_type: string
+          created_at?: string
+          document_id: string
+          id?: string
+          linked_by: string
+          relation?: string
+        }
+        Update: {
+          context_id?: string
+          context_type?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          linked_by?: string
+          relation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_links_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          checksum_sha256: string
+          created_at: string
+          created_by: string
+          document_id: string
+          file_ext: string
+          id: string
+          mime_type: string
+          original_name_hint: string | null
+          scan_note: string | null
+          scan_status: string
+          size_bytes: number
+          source: string
+          storage_bucket: string
+          storage_path: string
+          supersede_reason: string | null
+          version_no: number
+        }
+        Insert: {
+          checksum_sha256: string
+          created_at?: string
+          created_by: string
+          document_id: string
+          file_ext: string
+          id?: string
+          mime_type: string
+          original_name_hint?: string | null
+          scan_note?: string | null
+          scan_status?: string
+          size_bytes: number
+          source?: string
+          storage_bucket?: string
+          storage_path: string
+          supersede_reason?: string | null
+          version_no: number
+        }
+        Update: {
+          checksum_sha256?: string
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          file_ext?: string
+          id?: string
+          mime_type?: string
+          original_name_hint?: string | null
+          scan_note?: string | null
+          scan_status?: string
+          size_bytes?: number
+          source?: string
+          storage_bucket?: string
+          storage_path?: string
+          supersede_reason?: string | null
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          approval_note: string | null
+          approved_at: string | null
+          approved_by: string | null
+          category_code: string
+          created_at: string
+          created_by: string
+          current_version_id: string | null
+          delete_reason: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          id: string
+          is_deleted: boolean
+          owner_entity_id: string
+          status: string
+          title: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["doc_visibility"]
+        }
+        Insert: {
+          approval_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category_code: string
+          created_at?: string
+          created_by: string
+          current_version_id?: string | null
+          delete_reason?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_deleted?: boolean
+          owner_entity_id: string
+          status?: string
+          title: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
+        }
+        Update: {
+          approval_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category_code?: string
+          created_at?: string
+          created_by?: string
+          current_version_id?: string | null
+          delete_reason?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_deleted?: boolean
+          owner_entity_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "document_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "documents_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_owner_entity_id_fkey"
+            columns: ["owner_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           created_at: string
@@ -3291,6 +3557,23 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      add_document_version: {
+        Args: {
+          _checksum_sha256: string
+          _document_id: string
+          _file_ext: string
+          _mime_type: string
+          _size_bytes: number
+          _source?: string
+          _supersede_reason?: string
+        }
+        Returns: {
+          storage_bucket: string
+          storage_path: string
+          version_id: string
+          version_no: number
+        }[]
+      }
       advance_service_request: {
         Args: { _note?: string; _request_id: string; _to_status: string }
         Returns: string
@@ -3299,12 +3582,26 @@ export type Database = {
         Args: { _note?: string; _version_id: string }
         Returns: string
       }
+      approve_document: {
+        Args: { _document_id: string; _note?: string }
+        Returns: string
+      }
       approve_stage: {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
       close_request: {
         Args: { _reason?: string; _request_id: string }
+        Returns: string
+      }
+      create_document: {
+        Args: {
+          _category_code: string
+          _description?: string
+          _owner_entity_id: string
+          _title: string
+          _visibility?: Database["public"]["Enums"]["doc_visibility"]
+        }
         Returns: string
       }
       create_entity_invitation: {
@@ -3386,6 +3683,15 @@ export type Database = {
         }
         Returns: string
       }
+      link_document: {
+        Args: {
+          _context_id: string
+          _context_type: string
+          _document_id: string
+          _relation?: string
+        }
+        Returns: string
+      }
       offboard_member: {
         Args: {
           _entity_id: string
@@ -3427,14 +3733,29 @@ export type Database = {
         Args: { _accept: boolean; _party_id: string }
         Returns: string
       }
+      restore_document: { Args: { _document_id: string }; Returns: boolean }
       review_and_link_service: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: string
+      }
+      set_document_visibility: {
+        Args: {
+          _audience_entity_ids?: string[]
+          _audience_user_ids?: string[]
+          _document_id: string
+          _visibility: Database["public"]["Enums"]["doc_visibility"]
+        }
+        Returns: Database["public"]["Enums"]["doc_visibility"]
+      }
+      soft_delete_document: {
+        Args: { _document_id: string; _reason: string }
         Returns: string
       }
       submit_stage: {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
+      unlink_document: { Args: { _link_id: string }; Returns: boolean }
       update_service_request_details: {
         Args: {
           _account_no?: string
@@ -3474,6 +3795,12 @@ export type Database = {
         | "members"
         | "properties"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
+      doc_visibility:
+        | "entity_private"
+        | "requester_private"
+        | "party_limited"
+        | "project_wide"
+        | "public_approved"
       project_party_role:
         | "design_office"
         | "supervision"
@@ -3635,6 +3962,13 @@ export const Constants = {
         "properties",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
+      doc_visibility: [
+        "entity_private",
+        "requester_private",
+        "party_limited",
+        "project_wide",
+        "public_approved",
+      ],
       project_party_role: [
         "design_office",
         "supervision",

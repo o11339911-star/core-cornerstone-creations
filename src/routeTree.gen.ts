@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
+import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
@@ -71,6 +72,12 @@ const InviteAcceptRoute = InviteAcceptRouteImport.update({
   path: '/invite/accept',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDocumentsIndexRoute =
+  AuthenticatedDocumentsIndexRouteImport.update({
+    id: '/documents/',
+    path: '/documents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsNewRoute =
   AuthenticatedProjectsNewRouteImport.update({
     id: '/projects/new',
@@ -169,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
@@ -192,6 +200,7 @@ export interface FileRoutesByTo {
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
@@ -217,6 +226,7 @@ export interface FileRoutesById {
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/_authenticated/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/properties/new'
     | '/requests/$requestId'
     | '/settings/security'
+    | '/documents/'
     | '/properties/'
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/team'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/properties/new'
     | '/requests/$requestId'
     | '/settings/security'
+    | '/documents'
     | '/properties'
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/team'
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/_authenticated/properties/new'
     | '/_authenticated/requests/$requestId'
     | '/_authenticated/settings/security'
+    | '/_authenticated/documents/'
     | '/_authenticated/properties/'
     | '/_authenticated/entities/$entityId/invitations'
     | '/_authenticated/entities/$entityId/team'
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/invite/accept'
       preLoaderRoute: typeof InviteAcceptRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/documents/': {
+      id: '/_authenticated/documents/'
+      path: '/documents'
+      fullPath: '/documents/'
+      preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/projects/new': {
       id: '/_authenticated/projects/new'
@@ -474,6 +494,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPropertiesNewRoute: typeof AuthenticatedPropertiesNewRoute
   AuthenticatedRequestsRequestIdRoute: typeof AuthenticatedRequestsRequestIdRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
+  AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
   AuthenticatedEntitiesEntityIdInvitationsRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
@@ -493,6 +514,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesNewRoute: AuthenticatedPropertiesNewRoute,
   AuthenticatedRequestsRequestIdRoute: AuthenticatedRequestsRequestIdRoute,
   AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
+  AuthenticatedDocumentsIndexRoute: AuthenticatedDocumentsIndexRoute,
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
   AuthenticatedEntitiesEntityIdInvitationsRoute:
     AuthenticatedEntitiesEntityIdInvitationsRoute,
