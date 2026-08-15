@@ -149,9 +149,9 @@ export const requestMediaShoot = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<string> => {
     const { data: id, error } = await context.supabase.rpc("request_media_shoot", {
       _project_id: data.projectId,
-      _property_id: data.propertyId,
-      _scheduled_at: data.scheduledAt,
-      _notes: data.notes,
+      _property_id: data.propertyId ?? undefined,
+      _scheduled_at: data.scheduledAt ?? undefined,
+      _notes: data.notes ?? undefined,
     });
     if (error) throw new Error(error.message);
     return id as string;
@@ -172,9 +172,9 @@ export const assignMediaPhotographer = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("assign_media_photographer", {
       _shoot_id: data.shootId,
-      _photographer_entity_id: data.photographerEntityId,
-      _photographer_user_id: data.photographerUserId,
-      _scheduled_at: data.scheduledAt,
+      _photographer_entity_id: data.photographerEntityId ?? undefined,
+      _photographer_user_id: data.photographerUserId ?? undefined,
+      _scheduled_at: data.scheduledAt ?? undefined,
     });
     if (error) throw new Error(error.message);
     return true;
@@ -195,9 +195,9 @@ export const checkInMediaShoot = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("check_in_media_shoot", {
       _shoot_id: data.shootId,
-      _lat: data.lat,
-      _lng: data.lng,
-      _accuracy_m: data.accuracyM,
+      _lat: data.lat ?? undefined,
+      _lng: data.lng ?? undefined,
+      _accuracy_m: data.accuracyM ?? undefined,
     });
     if (error) throw new Error(error.message);
     return true;
@@ -251,7 +251,7 @@ export const registerMediaAsset = createServerFn({ method: "POST" })
       _title: data.title,
       _raw_object_path: data.rawObjectPath,
       _kind: data.kind,
-      _checksum: null,
+      _checksum: undefined,
     });
     if (error) throw new Error(error.message);
     return id as string;
@@ -273,7 +273,7 @@ export const attachBlurredMediaVersion = createServerFn({ method: "POST" })
       _asset_id: data.assetId,
       _object_path: data.objectPath,
       _ack_text: data.ackText,
-      _checksum: null,
+      _checksum: undefined,
     });
     if (error) throw new Error(error.message);
     return true;
@@ -303,7 +303,7 @@ export const reviewMediaAsset = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("review_media_asset", {
       _asset_id: data.assetId,
       _approve: data.approve,
-      _reason: data.reason,
+      _reason: data.reason ?? undefined,
     });
     if (error) throw new Error(error.message);
     return true;
@@ -324,7 +324,7 @@ export const approveMediaAsset = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("approve_media_asset", {
       _asset_id: data.assetId,
       _approve: data.approve,
-      _reason: data.reason,
+      _reason: data.reason ?? undefined,
     });
     if (error) throw new Error(error.message);
     return true;
@@ -338,7 +338,7 @@ export const withdrawMediaAsset = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("withdraw_media_asset", {
       _asset_id: data.assetId,
-      _reason: data.reason,
+      _reason: data.reason ?? undefined,
     });
     if (error) throw new Error(error.message);
     return true;
@@ -385,7 +385,7 @@ export const revokeMediaPublication = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("revoke_media_publication", {
       _publication_id: data.publicationId,
-      _reason: data.reason,
+      _reason: data.reason ?? undefined,
     });
     if (error) throw new Error(error.message);
     return true;
