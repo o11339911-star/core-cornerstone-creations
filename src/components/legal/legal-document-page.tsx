@@ -18,10 +18,13 @@ export const LEGAL_DISCLAIMER =
 function formatDate(value: string | null) {
   if (!value) return "—";
   try {
-    return new Intl.DateTimeFormat("ar-SA-u-nu-latn", {
+    // Explicit gregory calendar + latin digits keeps SSR and client output
+    // identical (ar-SA defaults to the Islamic calendar only on some ICU builds).
+    return new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "Asia/Riyadh",
     }).format(new Date(value));
   } catch {
     return value;
