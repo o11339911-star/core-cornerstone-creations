@@ -207,7 +207,7 @@ export const createDrawing = createServerFn({ method: "POST" })
       _drawing_no: data.drawingNo,
       _discipline: data.discipline,
       _title: data.title,
-      _sheet_no: data.sheetNo ?? undefined,
+      ...(data.sheetNo ? { _sheet_no: data.sheetNo } : {}),
     });
     if (error) throw new Error(error.message);
     return id as string;
@@ -237,7 +237,7 @@ export const startDrawingUpload = createServerFn({ method: "POST" })
       _size_bytes: data.sizeBytes,
       _checksum_sha256: data.checksumSha256,
       _revision_label: data.revisionLabel,
-      _supersede_reason: data.supersedeReason ?? undefined,
+      ...(data.supersedeReason ? { _supersede_reason: data.supersedeReason } : {}),
     });
     if (error) throw new Error(error.message);
     const row = Array.isArray(rows) ? rows[0] : rows;
@@ -297,7 +297,7 @@ export const setDrawingStatus = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("set_drawing_status", {
       _drawing_id: data.drawingId,
       _to_status: data.toStatus,
-      _note: data.note ?? undefined,
+      ...(data.note ? { _note: data.note } : {}),
     });
     if (error) throw new Error(error.message);
     return { ok: true };
