@@ -1,0 +1,28 @@
+
+set session_replication_role = replica;
+delete from public.correspondence_message_audience;
+delete from public.correspondence_messages;
+delete from public.correspondence_threads;
+delete from public.change_order_amounts;
+delete from public.change_orders;
+delete from public.contract_extensions;
+delete from public.contract_parties;
+delete from public.contract_stages;
+delete from public.contract_version_amounts;
+delete from public.contract_versions;
+delete from public.contracts;
+delete from public.project_party_permissions;
+delete from public.project_party_stages;
+delete from public.project_parties;
+delete from public.assignment_visibility_audience;
+delete from public.assignment_transfers;
+delete from public.project_assignments;
+delete from public.stage_dependencies;
+delete from public.project_stages;
+delete from public.projects;
+delete from public.permission_grants;
+delete from public.entity_invitations;
+delete from public.entity_memberships where entity_id <> (select id from public.entities where name = 'كيان ركيز');
+delete from public.entities where name <> 'كيان ركيز';
+delete from public.permission_audit_log;
+set session_replication_role = origin;
