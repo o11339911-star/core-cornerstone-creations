@@ -10120,6 +10120,7 @@ export type Database = {
         | "commerce"
         | "integrations"
         | "privacy"
+        | "drawings"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
@@ -10310,6 +10311,7 @@ export const Constants = {
         "commerce",
         "integrations",
         "privacy",
+        "drawings",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       breakglass_status: ["pending", "approved", "denied", "expired"],
