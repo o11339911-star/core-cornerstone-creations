@@ -43,8 +43,19 @@ function textOf(xml: string): string {
   return out.join("").replace(/\s+/g, " ").trim();
 }
 
+/** Find the next `<tag` occurrence that is a real element start (not a prefix like `<w:pPr`). */
+function findOpen(xml: string, tag: string, from: number): number {
+  let at = from;
+  for (;;) {
+    const idx = xml.indexOf(`<${tag}`, at);
+    if (idx === -1) return -1;
+    const next = xml[idx + tag.length + 1];
+    if (next === undefined || next === ">" || next === "/" || /\s/.test(next)) return idx;
+    at = idx + 1;
+  }
+}
+
 function sliceElement(xml: string, tag: string, start: number): { inner: string; end: number } | null {
-  const openTag = `<${tag}`;
   const closeTag = `</${tag}>`;
   const selfClose = xml.indexOf(">", start);
   if (selfClose === -1) return null;
@@ -52,13 +63,13 @@ function sliceElement(xml: string, tag: string, start: number): { inner: string;
   let depth = 1;
   let i = selfClose + 1;
   while (depth > 0) {
-    const nextOpen = xml.indexOf(openTag, i);
+    const nextOpen = findOpen(xml, tag, i);
     const nextClose = xml.indexOf(closeTag, i);
     if (nextClose === -1) return null;
     if (nextOpen !== -1 && nextOpen < nextClose) {
       const gt = xml.indexOf(">", nextOpen);
       if (gt !== -1 && xml[gt - 1] !== "/") depth += 1;
-      i = gt === -1 ? nextOpen + openTag.length : gt + 1;
+      i = gt === -1 ? nextOpen + tag.length + 1 : gt + 1;
     } else {
       depth -= 1;
       i = nextClose + closeTag.length;
@@ -66,6 +77,7 @@ function sliceElement(xml: string, tag: string, start: number): { inner: string;
   }
   return { inner: xml.slice(selfClose + 1, i - closeTag.length), end: i };
 }
+
 
 function paragraphDir(xml: string): "rtl" | undefined {
   return /<w:bidi(\s[^>]*)?\/?>/.test(xml) || /<w:rtl(\s[^>]*)?\/?>/.test(xml) ? "rtl" : undefined;
