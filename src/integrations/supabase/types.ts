@@ -1687,6 +1687,205 @@ export type Database = {
           },
         ]
       }
+      financial_document_amounts: {
+        Row: {
+          created_at: string
+          currency: string
+          retention_amount: number
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          retention_amount?: number
+          subtotal: number
+          tax_amount?: number
+          tax_rate?: number
+          total: number
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          retention_amount?: number
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_document_amounts_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: true
+            referencedRelation: "financial_document_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_document_versions: {
+        Row: {
+          change_reason: string | null
+          created_at: string
+          created_by: string
+          document_id: string
+          id: string
+          payload: Json
+          version_no: number
+        }
+        Insert: {
+          change_reason?: string | null
+          created_at?: string
+          created_by: string
+          document_id: string
+          id?: string
+          payload?: Json
+          version_no: number
+        }
+        Update: {
+          change_reason?: string | null
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          id?: string
+          payload?: Json
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "financial_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_documents: {
+        Row: {
+          cancel_reason: string | null
+          contract_id: string | null
+          counterparty_party_id: string | null
+          created_at: string
+          created_by: string
+          current_version_id: string | null
+          direction: string
+          disbursement_request_id: string | null
+          doc_number: string | null
+          doc_type: string
+          id: string
+          issue_date: string
+          issuer_party_id: string | null
+          milestone_id: string | null
+          project_id: string
+          references_document_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_reason?: string | null
+          contract_id?: string | null
+          counterparty_party_id?: string | null
+          created_at?: string
+          created_by: string
+          current_version_id?: string | null
+          direction: string
+          disbursement_request_id?: string | null
+          doc_number?: string | null
+          doc_type: string
+          id?: string
+          issue_date?: string
+          issuer_party_id?: string | null
+          milestone_id?: string | null
+          project_id: string
+          references_document_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_reason?: string | null
+          contract_id?: string | null
+          counterparty_party_id?: string | null
+          created_at?: string
+          created_by?: string
+          current_version_id?: string | null
+          direction?: string
+          disbursement_request_id?: string | null
+          doc_number?: string | null
+          doc_type?: string
+          id?: string
+          issue_date?: string
+          issuer_party_id?: string | null
+          milestone_id?: string | null
+          project_id?: string
+          references_document_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_counterparty_party_id_fkey"
+            columns: ["counterparty_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "financial_document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_disbursement_request_id_fkey"
+            columns: ["disbursement_request_id"]
+            isOneToOne: false
+            referencedRelation: "disbursement_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_issuer_party_id_fkey"
+            columns: ["issuer_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "payment_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_documents_references_document_id_fkey"
+            columns: ["references_document_id"]
+            isOneToOne: false
+            referencedRelation: "financial_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_executions: {
         Row: {
           executed_at: string
@@ -1795,6 +1994,145 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_accounts: {
+        Row: {
+          code: string
+          created_at: string
+          name_ar: string
+          name_en: string
+          normal_side: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          name_ar: string
+          name_en: string
+          normal_side: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          name_ar?: string
+          name_en?: string
+          normal_side?: string
+        }
+        Relationships: []
+      }
+      ledger_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entry_date: string
+          id: string
+          is_reversal: boolean
+          memo: string | null
+          project_id: string
+          reverses_entry_id: string | null
+          source_id: string | null
+          source_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          id?: string
+          is_reversal?: boolean
+          memo?: string | null
+          project_id: string
+          reverses_entry_id?: string | null
+          source_id?: string | null
+          source_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          id?: string
+          is_reversal?: boolean
+          memo?: string | null
+          project_id?: string
+          reverses_entry_id?: string | null
+          source_id?: string | null
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_reverses_entry_id_fkey"
+            columns: ["reverses_entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_lines: {
+        Row: {
+          account_code: string
+          amount: number
+          created_at: string
+          currency: string
+          entry_id: string
+          id: string
+          line_no: number
+          memo: string | null
+          party_entity_id: string | null
+          side: string
+        }
+        Insert: {
+          account_code: string
+          amount: number
+          created_at?: string
+          currency?: string
+          entry_id: string
+          id?: string
+          line_no: number
+          memo?: string | null
+          party_entity_id?: string | null
+          side: string
+        }
+        Update: {
+          account_code?: string
+          amount?: number
+          created_at?: string
+          currency?: string
+          entry_id?: string
+          id?: string
+          line_no?: number
+          memo?: string | null
+          party_entity_id?: string | null
+          side?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_lines_account_code_fkey"
+            columns: ["account_code"]
+            isOneToOne: false
+            referencedRelation: "ledger_accounts"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "ledger_lines_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_lines_party_entity_id_fkey"
+            columns: ["party_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
             referencedColumns: ["id"]
           },
         ]
@@ -3756,6 +4094,208 @@ export type Database = {
           },
         ]
       }
+      retention_event_amounts: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          event_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          event_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_event_amounts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "retention_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retention_events: {
+        Row: {
+          acted_at: string
+          acted_by: string
+          document_id: string | null
+          event_date: string
+          event_type: string
+          hold_id: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          acted_at?: string
+          acted_by: string
+          document_id?: string | null
+          event_date?: string
+          event_type: string
+          hold_id: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          acted_at?: string
+          acted_by?: string
+          document_id?: string | null
+          event_date?: string
+          event_type?: string
+          hold_id?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "financial_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_events_hold_id_fkey"
+            columns: ["hold_id"]
+            isOneToOne: false
+            referencedRelation: "retention_holds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retention_hold_amounts: {
+        Row: {
+          created_at: string
+          currency: string
+          held_amount: number
+          hold_id: string
+          released_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          held_amount: number
+          hold_id: string
+          released_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          held_amount?: number
+          hold_id?: string
+          released_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_hold_amounts_hold_id_fkey"
+            columns: ["hold_id"]
+            isOneToOne: true
+            referencedRelation: "retention_holds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retention_holds: {
+        Row: {
+          beneficiary_party_id: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string
+          expected_release_date: string | null
+          hold_start_date: string
+          holder_party_id: string | null
+          id: string
+          kind: string
+          milestone_id: string | null
+          project_id: string
+          release_terms_ar: string | null
+          release_terms_en: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          beneficiary_party_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by: string
+          expected_release_date?: string | null
+          hold_start_date?: string
+          holder_party_id?: string | null
+          id?: string
+          kind?: string
+          milestone_id?: string | null
+          project_id: string
+          release_terms_ar?: string | null
+          release_terms_en?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          beneficiary_party_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string
+          expected_release_date?: string | null
+          hold_start_date?: string
+          holder_party_id?: string | null
+          id?: string
+          kind?: string
+          milestone_id?: string | null
+          project_id?: string
+          release_terms_ar?: string | null
+          release_terms_en?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_holds_beneficiary_party_id_fkey"
+            columns: ["beneficiary_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_holds_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_holds_holder_party_id_fkey"
+            columns: ["holder_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_holds_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "payment_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_holds_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           action: Database["public"]["Enums"]["app_action"]
@@ -4660,9 +5200,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      cancel_financial_document: {
+        Args: { _document_id: string; _reason: string }
+        Returns: string
+      }
       cancel_payment_milestone: {
         Args: { _milestone_id: string; _reason: string }
         Returns: undefined
+      }
+      cancel_retention_hold: {
+        Args: { _hold_id: string; _reason: string }
+        Returns: string
       }
       close_request: {
         Args: { _reason?: string; _request_id: string }
@@ -4698,6 +5246,24 @@ export type Database = {
           _name_ar: string
           _name_en: string
           _page_setup?: Json
+        }
+        Returns: string
+      }
+      create_financial_document: {
+        Args: {
+          _contract_id?: string
+          _direction: string
+          _doc_number?: string
+          _doc_type: string
+          _issue_date?: string
+          _milestone_id?: string
+          _payload?: Json
+          _project_id: string
+          _references_document_id?: string
+          _retention_amount?: number
+          _subtotal: number
+          _tax_amount?: number
+          _tax_rate?: number
         }
         Returns: string
       }
@@ -4747,6 +5313,19 @@ export type Database = {
           _stage_id?: string
           _subject: string
           _submit?: boolean
+        }
+        Returns: string
+      }
+      create_retention_hold: {
+        Args: {
+          _contract_id?: string
+          _expected_release_date?: string
+          _held_amount: number
+          _kind?: string
+          _milestone_id?: string
+          _project_id: string
+          _release_terms_ar?: string
+          _release_terms_en?: string
         }
         Returns: string
       }
@@ -4820,6 +5399,10 @@ export type Database = {
         }
         Returns: Json
       }
+      forfeit_retention: {
+        Args: { _hold_id: string; _reason: string }
+        Returns: string
+      }
       invite_project_party: {
         Args: {
           _ends_on?: string
@@ -4832,6 +5415,10 @@ export type Database = {
           _stage_ids?: string[]
           _starts_on?: string
         }
+        Returns: string
+      }
+      issue_financial_document: {
+        Args: { _document_id: string }
         Returns: string
       }
       link_document: {
@@ -4891,6 +5478,15 @@ export type Database = {
         Args: { _reason: string; _request_id: string }
         Returns: string
       }
+      release_retention: {
+        Args: {
+          _amount: number
+          _document_id?: string
+          _hold_id: string
+          _note?: string
+        }
+        Returns: Json
+      }
       request_more_info: {
         Args: { _body: string; _request_id: string }
         Returns: string
@@ -4914,12 +5510,28 @@ export type Database = {
         }
         Returns: string
       }
+      reverse_ledger_entry: {
+        Args: { _entry_id: string; _reason: string }
+        Returns: string
+      }
       review_and_link_service: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: string
       }
       review_report_template: {
         Args: { _note?: string; _template_id: string }
+        Returns: string
+      }
+      revise_financial_document: {
+        Args: {
+          _change_reason: string
+          _document_id: string
+          _payload?: Json
+          _retention_amount?: number
+          _subtotal: number
+          _tax_amount?: number
+          _tax_rate?: number
+        }
         Returns: string
       }
       save_report_draft: {
