@@ -86,6 +86,7 @@ export function AuthHeader() {
               {user ? (
                 <div className="flex items-center gap-2">
                   {scope && <ActiveScopeBadge scope={scope} />}
+                  <NotificationsBell />
                   <Link
                     to="/settings/security"
                     className="inline-flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"

@@ -21,6 +21,7 @@ import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
+import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
@@ -102,6 +103,12 @@ const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
     path: '/documents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNNotificationIdRoute =
+  AuthenticatedNNotificationIdRouteImport.update({
+    id: '/n/$notificationId',
+    path: '/n/$notificationId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProjectsNewRoute =
@@ -236,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -269,6 +277,7 @@ export interface FileRoutesByTo {
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -304,6 +313,7 @@ export interface FileRoutesById {
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
     | '/invite/accept'
     | '/verify/$token'
     | '/admin/report-templates'
+    | '/n/$notificationId'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -372,6 +383,7 @@ export interface FileRouteTypes {
     | '/invite/accept'
     | '/verify/$token'
     | '/admin/report-templates'
+    | '/n/$notificationId'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -406,6 +418,7 @@ export interface FileRouteTypes {
     | '/invite/accept'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
+    | '/_authenticated/n/$notificationId'
     | '/_authenticated/projects/new'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/properties/new'
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       path: '/documents'
       fullPath: '/documents/'
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/n/$notificationId': {
+      id: '/_authenticated/n/$notificationId'
+      path: '/n/$notificationId'
+      fullPath: '/n/$notificationId'
+      preLoaderRoute: typeof AuthenticatedNNotificationIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/projects/new': {
@@ -671,6 +691,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
+  AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
   AuthenticatedPropertiesNewRoute: typeof AuthenticatedPropertiesNewRoute
@@ -699,6 +720,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
+  AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:
     AuthenticatedPropertiesPropertyIdRoute,
