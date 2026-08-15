@@ -1,0 +1,13 @@
+revoke execute on function public.resolve_notification_target(uuid) from public, anon;
+revoke execute on function public.mark_notification_read(uuid) from public, anon;
+revoke execute on function public.mark_all_notifications_read() from public, anon;
+revoke execute on function public.enforce_notification_preference_guard() from public, anon, authenticated;
+revoke execute on function public.enforce_notification_payload_guard() from public, anon, authenticated;
+revoke execute on function public.notify_request_event() from public, anon, authenticated;
+revoke execute on function public.notify_stage_event() from public, anon, authenticated;
+revoke execute on function public.notify_disbursement_event() from public, anon, authenticated;
+revoke execute on function public.notify_financial_document_event() from public, anon, authenticated;
+revoke execute on function public.notify_membership_suspended() from public, anon, authenticated;
+grant execute on function public.resolve_notification_target(uuid) to authenticated;
+grant execute on function public.mark_notification_read(uuid) to authenticated;
+grant execute on function public.mark_all_notifications_read() to authenticated;
