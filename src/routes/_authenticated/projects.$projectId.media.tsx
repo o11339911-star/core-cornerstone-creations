@@ -238,15 +238,14 @@ function ProjectMediaPage() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6">
       <PageHero
-        icon={Camera}
         title={t("media.title")}
         subtitle={t("media.subtitle")}
-        badges={
-          <>
+        badge={
+          <span className="flex flex-wrap gap-2">
             <HeroBadge>{`${t("media.assets")}: ${assets.data?.length ?? 0}`}</HeroBadge>
             <HeroBadge>{`${t("media.statusOwnerApproved")}: ${approvedCount}`}</HeroBadge>
             <HeroBadge>{`${t("media.publications")}: ${(pubs.data ?? []).filter((p) => !p.revoked_at).length}`}</HeroBadge>
-          </>
+          </span>
         }
       />
 
