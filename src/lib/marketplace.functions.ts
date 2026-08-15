@@ -180,5 +180,5 @@ export const exportEntityData = createServerFn({ method: "POST" })
       _entity_id: data.entityId,
     });
     if (error) throw new Error(error.message);
-    return payload as unknown;
+    return JSON.stringify(payload ?? {});
   });
