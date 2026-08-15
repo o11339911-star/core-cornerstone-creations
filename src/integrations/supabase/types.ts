@@ -944,9 +944,6 @@ export type Database = {
           deleted_at: string | null
           district: string | null
           entity_id: string | null
-          exact_address: string | null
-          exact_lat: number | null
-          exact_lng: number | null
           id: string
           kind: string
           land_area: number | null
@@ -968,9 +965,6 @@ export type Database = {
           deleted_at?: string | null
           district?: string | null
           entity_id?: string | null
-          exact_address?: string | null
-          exact_lat?: number | null
-          exact_lng?: number | null
           id?: string
           kind: string
           land_area?: number | null
@@ -992,9 +986,6 @@ export type Database = {
           deleted_at?: string | null
           district?: string | null
           entity_id?: string | null
-          exact_address?: string | null
-          exact_lat?: number | null
-          exact_lng?: number | null
           id?: string
           kind?: string
           land_area?: number | null
@@ -1036,6 +1027,48 @@ export type Database = {
           weight?: number
         }
         Relationships: []
+      }
+      property_exact_locations: {
+        Row: {
+          created_at: string
+          exact_address: string | null
+          exact_lat: number | null
+          exact_lng: number | null
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exact_address?: string | null
+          exact_lat?: number | null
+          exact_lng?: number | null
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exact_address?: string | null
+          exact_lat?: number | null
+          exact_lng?: number | null
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_exact_locations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_exact_locations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_owners: {
         Row: {
@@ -1484,54 +1517,6 @@ export type Database = {
           status: string | null
           updated_at: string | null
         }
-        Insert: {
-          approx_lat?: number | null
-          approx_lng?: number | null
-          can_view_exact?: never
-          city?: string | null
-          code?: string | null
-          completion_percent?: never
-          created_at?: string | null
-          district?: string | null
-          entity_id?: string | null
-          exact_address?: never
-          exact_lat?: never
-          exact_lng?: never
-          id?: string | null
-          kind?: string | null
-          land_area?: number | null
-          name?: string | null
-          notes?: string | null
-          owner_id?: string | null
-          parcel_no?: string | null
-          plan_no?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          approx_lat?: number | null
-          approx_lng?: number | null
-          can_view_exact?: never
-          city?: string | null
-          code?: string | null
-          completion_percent?: never
-          created_at?: string | null
-          district?: string | null
-          entity_id?: string | null
-          exact_address?: never
-          exact_lat?: never
-          exact_lng?: never
-          id?: string | null
-          kind?: string | null
-          land_area?: number | null
-          name?: string | null
-          notes?: string | null
-          owner_id?: string | null
-          parcel_no?: string | null
-          plan_no?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
         Relationships: [
           {
             foreignKeyName: "properties_entity_id_fkey"
@@ -1545,10 +1530,6 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
-      can_view_exact_location: {
-        Args: { _property_id: string }
-        Returns: boolean
-      }
       create_entity_invitation: {
         Args: {
           _email: string
@@ -1571,7 +1552,6 @@ export type Database = {
         Returns: number
       }
       property_completion: { Args: { _property_id: string }; Returns: number }
-      property_exact_location: { Args: { _property_id: string }; Returns: Json }
     }
     Enums: {
       app_action:
