@@ -19,6 +19,9 @@ const signInSchema = z.object({
 type SignInForm = z.infer<typeof signInSchema>;
 
 export const Route = createFileRoute("/auth")({
+  // Auth pages depend on the browser-only Supabase session; skip SSR to avoid
+  // hydration mismatches between the server shell and the client render.
+  ssr: false,
   component: SignInPage,
   validateSearch: z.object({ redirect: z.string().optional() }),
 });
