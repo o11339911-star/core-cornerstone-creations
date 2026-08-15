@@ -1,83 +1,114 @@
-# الدفعة 16-ب — المستندات المالية والدفتر المحاسبي والضمان
+# المرحلة 17 — الإشعارات والمدد والتصعيد
 
-## الإطار القانوني (نص إلزامي في الواجهة وفي `comment on table`)
+## المبدأ الحاكم
 
-ركيز **سجل تعاقدي ومحاسبي فقط**: لا تحتفظ بأموال، ولا تنفّذ تحويلات، ولا تقدّم خدمة مالية أو ضريبية مرخّصة. المستند المالي هنا **توثيق لما أصدره الطرف خارج المنصة**، والمحتجز/الضمان **تتبّع تعاقدي** لا Custody ولا Escrow، والدفتر **سجل داخلي** لا بديل عن الدفاتر النظامية للمنشأة. حقلا الضريبة مجرد **نسبة ومبلغ يُدخلهما المستخدم** — لا محرك ضريبي ولا احتساب زكوي/ضريبي ولا ربط بهيئة الزكاة والضريبة والجمارك.
+متابعة ذكية بلا ضجيج: كل إشعار له **مصدر حدث واضح** داخل قاعدة البيانات (تريغر على تغيّر حالة فعلي، أو مهمة زمنية واحدة محدودة الغرض للتذكيرات/التأخير)، ولكل إشعار **مفتاح تفرّد حقيقي** بفهرس فريد. لا رابط يحمل صلاحية: الرابط معرّفات فقط، والتحقق يحدث عند النقر.
 
-## ما بُني فعليًا في 16-أ ويُعاد استخدامه كما هو (تم فحصه في الملفات لا افتراضه)
+## ما هو موجود فعلًا ويُعاد استخدامه (مفحوص في الملفات لا مفترضًا)
 
-| الأصل | الاسم الفعلي |
+| الأصل الموجود | الاستخدام في المرحلة 17 |
 |---|---|
-| بوابة الأرقام | `private.can_view_project_finance(_user_id, _project_id)` = `private.can_access_project` **و** `private.can(_user,'finance','view',null,_project)` |
-| منع التعديل | `public.prevent_row_mutation()` (تريغر `before update or delete`، يرمي `42501`، محجوب عن `public/anon/authenticated`) |
-| سجل التدقيق | `private.log_finance_event(_object_type, _object_id, _action, _project_id, _new)` → `permission_audit_log` |
-| فصل الواجبات | `private.require_two_actors(_project_id)` + `private.entity_active_member_count(_entity_id)` |
-| أحداث التنفيذ | `public.financial_executions` (append-only) الناتجة عن `public.execute_disbursement` |
-| الدفعات والطلبات | `public.payment_milestones` / `payment_milestone_amounts`، `public.disbursement_requests` / `disbursement_request_amounts` |
-| نمط الإخفاء | جدول `*_amounts` منفصل، سياسة `select` تشترط `can_view_project_finance`؛ الجدول الرئيسي مرئي بلا أرقام |
-| نمط الكتابة | `grant select` فقط لـ`authenticated` + `revoke insert/update/delete`؛ كل كتابة عبر دوال `security definer` |
-| نمط الإصدارات | `report_versions` / `contract_versions`: رأس + إصدارات append-only + مؤشر `current_version_id` + `superseded_by` |
+| `public.financial_executions.idempotency_key` + `financial_executions_idem_uk` (فهرس فريد) | نفس النمط حرفيًا: `notifications.dedupe_key` + فهرس فريد، لا `select` مسبق |
+| `private.can(_user, _module, _action, _entity, _project)` و`private.can_access_project` | تحديد من يستحق الإشعار ومن يستحق التصعيد، ويُعاد تقييمه **عند فتح الرابط** |
+| `private.can_view_project_finance` | إشعارات المالية لا تحمل أي مبلغ في نصّها؛ الرقم يُرى داخل الصفحة فقط لمن يملك `finance.view` |
+| `getDocumentDownloadUrl` (روابط موقّعة 60 ثانية، فحص عند الإصدار) | نفس المبدأ منقولًا إلى النقر: `resolve_notification_target` تُقيَّم لحظة الفتح |
+| `requests.due_at`, `requests.status` (`draft/submitted/in_review/info_needed/approved/rejected/cancelled/closed`), `decided_at`, `closed_at` | عداد «مدة الرد على الطلب»: يبدأ عند `submitted`، يتوقف عند `info_needed`، يستأنف عند العودة إلى `in_review`، ينتهي عند `decided_at`/`closed_at` |
+| `project_stages.planned_start/planned_end/actual_start/actual_end/status` (`pending/in_progress/submitted/rework/approved/skipped/done`) | عداد «مدة تنفيذ المرحلة»: من `actual_start` (أو `planned_start`) حتى `planned_end`؛ يتوقف في `submitted` (بانتظار المراجع) ويستأنف في `rework` |
+| `payment_milestones.due_date` + `status` (`planned/claimable/claimed/settled/cancelled`) | عداد «استحقاق دفعة»: تذكير قبل `due_date`، تأخير بعده ما لم تكن `settled/cancelled` |
+| `retention_holds.expected_release_date` + `status` | عداد «سريان ضمان/محتجز»: تذكير قبل الإفراج المتوقع، تأخير بعده وهو `active/partially_released` |
+| `contract_extensions` (`requested/under_review/approved/rejected/withdrawn`) و`contracts.status` (فيها `suspended`) | تمديد المدة يعيد حساب العداد بدل إنشاء تاريخ جديد؛ عقد `suspended` يوقف عدادات مشروعه |
+| `entity_memberships.status` و`entity_invitations` | حالة `suspended` للعضوية = لا إشعار فعّال ولا رابط فعّال |
+| `permission_audit_log` + `private.log_finance_event` | تسجيل قرارات الرفض عند فتح رابط بلا صلاحية |
+| `prevent_row_mutation()` | سجل التسليم/التصعيد append-only |
 
-**قاعدة ملزمة للدفعة ب:** لا جدول جديد يحمل مبلغًا في صفّه الرئيسي. كل رقم في جدول `*_amounts` أو `*_lines` محمي بنفس الشرط.
+**قاعدة ملزمة:** لا حقل تاريخ استحقاق جديد في هذه المرحلة. كل عدّاد يشتق من الحقول أعلاه. الحقل الجديد الوحيد المسموح هو تاريخ **حالة العدّاد** (توقف/استئناف) لأنه غير موجود.
 
 ---
 
-## 1) المستندات المالية
+## 1) نموذج البيانات
 
-**`financial_documents`** (رأس، بلا أرقام): `project_id`, `contract_id`, `milestone_id` (اختياري), `disbursement_request_id` (اختياري), `doc_type` ∈ `invoice | tax_invoice | credit_note | debit_note | receipt`, `direction` ∈ `issued | received`, `issuer_party_id`, `counterparty_party_id`, `doc_number` (رقم الطرف الخارجي), `issue_date`, `status` ∈ `draft | issued | superseded | cancelled`, `current_version_id`, `references_document_id` (إشعار دائن يشير للفاتورة الأصلية)، `cancel_reason`.
-- `unique(project_id, doc_type, doc_number)` عند وجود الرقم.
-- `credit_note`/`debit_note` **يجب** أن يحمل `references_document_id` لمستند `issued` في نفس المشروع (check + تحقق داخل الدالة).
+**`notification_types`** (مرجعي ثابت): `code` PK، `category` ∈ `action_required | reminder | overdue | escalation | security | info`، `default_channel='in_app'`، `is_mandatory` bool، `is_security` bool، `subject_key`/`body_key` (مفاتيح i18n لا نص مخزَّن)، `target_kind` ∈ `request | stage | milestone | disbursement | document | financial_document | retention | contract`.
+- الإلزامي/الأمني (`is_mandatory` أو `is_security`) **لا يُعطَّل** بأي تفضيل ولا يدخل الـDigest.
 
-**`financial_document_versions`** (append-only، بنمط `report_versions`): `document_id`, `version_no` (تسلسل تلقائي بتريغر بنمط `assign_deed_version`), `created_by/at`, `change_reason` (إلزامي من الإصدار ٢ فما فوق), `superseded_by` (يُملأ عند إصدار نسخة أحدث), `payload` jsonb للبنود الوصفية بلا مبالغ.
+**`notifications`** (رأس، بلا نص مبني مسبقًا وبلا أي مبلغ):
+`id`, `recipient_user_id`, `type_code`, `project_id`, `entity_id`, `target_kind`, `target_id`, `payload` jsonb (معرّفات وأرقام مرجعية فقط — **ممنوع** مبالغ أو مواقع دقيقة أو أسماء مخفية)، `severity`, `dedupe_key` text not null, `created_at`, `read_at`, `dismissed_at`, `escalation_of_id`.
+- `create unique index notifications_dedupe_uk on public.notifications(dedupe_key);`
+- `dedupe_key` مبني حتميًا: `type_code || ':' || target_id || ':' || event_discriminator || ':' || recipient_user_id` — حيث `event_discriminator` هو مثلًا `idempotency_key` للتنفيذ المالي، أو `version_no` للمستند، أو `bucket` التذكير (`due-3d`, `overdue-d7`).
+- الإدراج دائمًا عبر `private.emit_notification(...)` مع `on conflict (dedupe_key) do nothing`. إعادة المحاولة لا تنشئ صفًا ثانيًا.
 
-**`financial_document_amounts`** (المبالغ، محمية بـ`finance.view`): `version_id` (PK/FK)، `subtotal`, `tax_rate` numeric(5,2), `tax_amount`, `total`, `currency='SAR'`, `retention_amount` اختياري.
-- تريغر توازن بسيط: `total = subtotal + tax_amount` (تسامح ±0.01) و`tax_amount ≈ subtotal * tax_rate/100` **كتحذير لا كقيد** — الرقم المُدخل هو المرجع، ويُذكر صراحة أن المنصة لا تحتسب الضريبة.
-- `prevent_row_mutation` على `update/delete` (المبالغ تُجمَّد مع الإصدار).
+**`notification_deliveries`** (append-only): `notification_id`, `channel` ∈ `in_app | email | sms`، `status` ∈ `pending | sent | deferred | suppressed | failed`، `deferred_reason` (`user_suspended`, `digest_batched`, `preference_off`)، `attempted_at`, `sent_at`.
+- في هذه المرحلة يُنفَّذ `in_app` فقط. `email/sms` يُقبلان كقيمة عمود وتبقى صفوفهما `pending` — **لا تكامل مع أي مزوّد بريد/SMS، خارج النطاق صراحة**.
 
-**التصحيح:** لا `update` على أي إصدار. `revise_financial_document(_document_id, _payload, _amounts, _change_reason)` تنشئ إصدارًا جديدًا، تضبط `superseded_by` على السابق، وتحدّث `current_version_id`. الإصدار القديم يبقى مقروءًا بحالة `superseded`.
+**`notification_preferences`**: `user_id`, `type_code` (أو `category`), `in_app` bool, `digest_mode` ∈ `immediate | daily | weekly | off`.
+- تريغر يرفض تخزين `off` لأي نوع `is_mandatory` أو `is_security` (يرمي `22023`) — الاستثناء مفروض في القاعدة لا في الواجهة.
 
-**دوال:** `create_financial_document`, `revise_financial_document`, `issue_financial_document` (draft → issued، يولّد قيد الدفتر)، `cancel_financial_document(_reason)` (يولّد قيدًا عكسيًا لا حذفًا)، `create_credit_note(_source_document_id, …)`.
+**`notification_digests`**: `user_id`, `period_start/end` (بحدود يوم الرياض), `sent_at`, `item_count`, وفهرس فريد `(user_id, period_start, digest_mode)`.
 
-## 2) الضمان / المحتجز / العربون — تتبّع تعاقدي بحت
+**`duration_timers`** (العدّاد المشتق المُجسَّد): `subject_kind` ∈ `request | stage | milestone | retention`، `subject_id`، `project_id`، `started_at`, `due_at` (منسوخ من الحقل الأصلي لا مُخترع)، `paused_at`, `resumed_at`, `total_paused_seconds`, `stopped_at`, `state` ∈ `running | paused | stopped`.
+- فريد على `(subject_kind, subject_id)`.
+- يُحدَّث حصريًا بتريغرات على `requests` / `project_stages` / `payment_milestones` / `retention_holds`، مع `due_at` معاد اشتقاقه عند اعتماد `contract_extensions` أو عند `contracts.status='suspended'` (توقف) والعودة إلى `active` (استئناف).
 
-**`retention_holds`**: `project_id`, `contract_id`, `milestone_id` (اختياري), `kind` ∈ `retention | advance | guarantee`, `holder_party_id`, `beneficiary_party_id`, `hold_start_date`, `expected_release_date`, `release_terms_ar/en` (نص الشرط التعاقدي), `status` ∈ `active | partially_released | released | forfeited | cancelled`.
-- `comment on table`: "تتبّع تعاقدي لمبالغ متفق على حجزها بين الأطراف خارج المنصة. ركيز لا تحتفظ بهذه الأموال ولا تُعدّ وسيط ضمان."
+**`escalation_policies`** + **`escalation_steps`**: مرتبطة بـ`contract_id` (وإلا افتراضي حسب `project_parties.party_role`): `step_no`, `after_hours`, `target_role` ∈ `supervisor | project_manager | entity_owner`, `target_party_role`.
+- **لا خطوة تصعيد إلى إدارة ركيز**. تريغر يمنع أي `target_role` خارج أطراف المشروع/العقد. تصعيد المنصة يحدث فقط بفعل بشري صريح لاحقًا (خارج نطاق 17).
 
-**`retention_hold_amounts`** (محمي بـ`finance.view`): `held_amount`, `released_amount` (محسوب من الأحداث بتريغر)، `remaining_amount` مولّد، `currency`.
+**`escalation_events`** (append-only): `notification_id`, `policy_step_id`, `escalated_to_user_id`, `reason`, `created_at`، مع `dedupe_key` فريد (`step + subject + bucket`) لمنع تكرار نفس الدرجة.
 
-**`retention_events`** (append-only): `hold_id`, `event_type` ∈ `created | partial_release | full_release | forfeit | cancel`, `event_date`, `note`, `acted_by/at`, `document_id` (مستند مرتبط اختياري)، ومبلغ الحدث في **`retention_event_amounts`** المنفصل المحمي. تريغر `prevent_row_mutation` على الحدث ومبلغه.
-- حارس: مجموع الإفراجات ≤ `held_amount`؛ آخر إفراج يجعل المجموع = المحجوز فيتحول `status` إلى `released` تلقائيًا (لا كتابة يدوية للحالة).
-- دوال: `create_retention_hold`, `release_retention(_hold_id, _amount, _note)`, `forfeit_retention(_reason)`, `cancel_retention_hold(_reason)`.
+## 2) التوقيت — Asia/Riyadh
 
-## 3) الدفتر المحاسبي غير القابل للتعديل
+- التخزين `timestamptz` بالـUTC حصرًا. لا عمود `timestamp` بلا منطقة.
+- كل اشتقاق حدودي (بداية اليوم، «قبل ٣ أيام»، نافذة الـDigest) يمرّ بدالة واحدة `private.riyadh_day_bounds(_ts)` و`private.riyadh_now()` تستخدمان `at time zone 'Asia/Riyadh'`.
+- التذكيرات تُجدول عند ساعة رياضية ثابتة (٠٨:٠٠ Asia/Riyadh) — لا ساعة UTC عشوائية.
+- الواجهة تعرض دائمًا بتوقيت الرياض عبر مُنسّق موحّد في `src/components/rakeez/` (بنمط `money.ts`).
 
-**`ledger_entries`** (رأس القيد): `project_id`, `entry_date`, `source_type` ∈ `financial_execution | document_issue | document_cancel | retention_event | manual_adjustment`, `source_id`, `memo`, `created_by/at`, `reverses_entry_id` (للقيد العكسي), `reversed_by_entry_id`, `is_reversal` bool.
+## 3) مصادر الأحداث (لا Cron عشوائي)
 
-**`ledger_lines`**: `entry_id`, `line_no`, `account_code` (من `ledger_accounts` مرجعي ثابت مصغّر: مستحقات، ذمم، محتجز، ضريبة، مصروف مشروع، تسويات), `side` ∈ `debit | credit`, `amount`, `currency`, `party_id` اختياري.
+**فوري بتريغر على تغيّر حالة حقيقي:**
+- `requests`: `submitted` → إشعار للمكلَّف؛ `info_needed` → إشعار «طلب استكمال» لمقدّم الطلب؛ قرار → إشعار للطرفين.
+- `project_stages`: `submitted` → للمراجع؛ `rework` → للمنفّذ؛ `approved` → للمالك.
+- المالية (16-أ/ب): `disbursement_requests` عند كل انتقال، و`financial_executions` باستخدام `idempotency_key` نفسه كـ`event_discriminator`؛ `financial_documents` عند `issued`/`cancelled`؛ `retention_events` عند الإفراج/المصادرة. النص بلا مبالغ.
+- تعليق عضوية أو إنهاء طرف → إشعار أمني (`is_security`, غير قابل للتعطيل).
 
-**قواعد صارمة:**
-- `prevent_row_mutation` على `update` **و**`delete` للجدولين — يرمي `42501` لأي كاتب بما فيه `service_role` وSQL المباشر (التريغر لا يستثني أحدًا).
-- تريغر توازن `enforce_ledger_balance` مؤجَّل (`constraint trigger ... deferrable initially deferred`) على مستوى القيد: مجموع المدين = مجموع الدائن، وعدد الأسطر ≥ 2، وإلا يفشل الـcommit. قيد غير متوازن مرفوض دائمًا.
-- `revoke insert/update/delete` عن `authenticated` و`anon`؛ الإدخال حصرًا عبر `private.post_ledger_entry(...)` الداخلية.
-- **الأرقام محمية**: `ledger_lines` سياسة `select` تشترط `can_view_project_finance`؛ `ledger_entries` مرئية بلا مبالغ لمن يملك وصول المشروع (يرى وجود القيد لا قيمته).
+**مجدول (مهمة واحدة محدودة الغرض، `pg_cron` كل ساعة تستدعي `private.run_duration_sweep()`):**
+- `Reminder`: عند دخول `due_at` نافذة `-7d/-3d/-1d` بتوقيت الرياض، و`state='running'` فقط.
+- `Overdue`: عند تجاوز `due_at` وحالة العدّاد `running` → إشعار + بدء ساعة التصعيد.
+- `Escalation`: عند تجاوز `after_hours` للخطوة التالية دون معالجة.
+- كل نداء يبني `dedupe_key` بـ`bucket` ثابت، فتكرار تشغيل الـsweep لا يولّد صفًا ثانيًا.
 
-**`reverse_ledger_entry(_entry_id, _reason)`**: تنشئ قيدًا جديدًا يعكس كل سطر (debit↔credit) بنفس المبالغ، `is_reversal=true`, `reverses_entry_id=_entry_id`، وتكتب `reversed_by_entry_id` على الأصل عبر مسار داخلي واحد مسموح (`unique(reverses_entry_id)` + فحص `reversed_by_entry_id is null` وإلا `exception`: "القيد عُكس مسبقًا"). لا تلمس أسطر الأصل ولا مبالغه إطلاقًا. عكس قيدٍ عكسي ممنوع.
+## 4) أمان الرابط والمستخدم الموقوف
 
-**التوليد التلقائي:** تريغر `after insert` على `financial_executions` → قيد صرف؛ `issue_financial_document` → قيد إصدار (مع سطر ضريبة إن وُجد)؛ `cancel_financial_document` وإشعار دائن → `reverse_ledger_entry` على قيد الفاتورة الأصلية؛ أحداث `retention_events` → قيود المحتجز والإفراج.
+- الإشعار يخزّن `target_kind` + `target_id` فقط. رابط الواجهة `/n/$notificationId`.
+- `public.resolve_notification_target(_notification_id)` (SECURITY DEFINER) تتحقق **لحظة النداء**: المستلم هو `auth.uid()`، العضوية `active`، و`private.can` تسمح بالوصول للهدف الآن.
+- عند أي فشل: رسالة واحدة عامة `NOT_FOUND_OR_FORBIDDEN` — لا تفرقة بين «غير موجود» و«ممنوع»، ولا كشف اسم مشروع أو رقم مستند. المحاولة تُسجَّل في `permission_audit_log`.
+- عضوية `suspended`: `emit_notification` يكتب الصف لكن التسليم `deferred` بسبب `user_suspended`؛ لا يظهر في الصندوق، و`resolve_notification_target` ترفض. عند إعادة التفعيل تُسلَّم المؤجلات.
 
-## 4) طبقة التطبيق
+## 5) طبقة التطبيق والواجهة
 
-- `src/lib/finance-ledger.functions.ts` جديد بنفس نمط `src/lib/finance.functions.ts`: قراءات مع `amounts_masked` عند غياب صف المبالغ، وكتابات عبر RPC فقط.
-- توسعة `src/routes/_authenticated/projects.$projectId.finance.tsx` بثلاثة تبويبات: **المستندات** (إصدارات + شارة `superseded`)، **المحتجزات** (شريط تقدم إفراج + سجل أحداث)، **الدفتر** (قيود مع أسطر مدين/دائن، وشارة "قيد عكسي" وربط بالأصل). عند الحجب: `—` مع تلميح "لا تملك صلاحية عرض المبالغ".
-- شارة + سطر تنويه قانوني ثابت أعلى كل تبويب مالي، وترجمات عربية/إنجليزية في `src/i18n/locales`.
+- `src/lib/notifications.functions.ts`: `listNotifications`, `getUnreadCount`, `markRead`, `markAllRead`, `resolveNotificationTarget`, `getPreferences`, `updatePreferences`, `listTimers` — كلها بـ`requireSupabaseAuth` وقراءة عبر RLS (لا `supabaseAdmin`).
+- جرس في `auth-header.tsx` بعدّاد غير المقروء + لوحة منسدلة.
+- `/notifications` (صندوق + فلاتر)، `/settings/notifications` (تفضيلات مع الإلزامي معطّل الإيقاف ومشروح)، و`/n/$notificationId` (تحويل أو رسالة عامة).
+- شارات المدد داخل صفحات الطلب/المرحلة/المالية: «متبقٍ ٣ أيام» / «متأخر ٥ أيام» بتوقيت الرياض.
+- i18n كامل ar/en، RTL، مفاتيح فقط لا نصوص مخزّنة في القاعدة.
 
-## بوابة القبول (تُنفَّذ لاحقًا بحسابات `p16b-*` جديدة فقط، ولا تُلمس الحسابات الدائمة)
+## 6) خارج النطاق صراحة
 
-1. إصدار فاتورة بنسبة ومبلغ ضريبة → ظهور قيد متوازن في الدفتر.
-2. تصحيحها بإصدار جديد → الإصدار القديم `superseded` وما زال مقروءًا، ولا `update` وقع على مبالغه.
-3. إشعار دائن يشير للفاتورة الأصلية → توليد قيد معاكس مرتبط بقيد الفاتورة.
-4. `update` و`delete` مباشرين على `ledger_entries` و`ledger_lines` عبر SQL المباشر وPostgREST → رفض `42501`.
-5. محاولة قيد غير متوازن → فشل عند الـcommit.
-6. `reverse_ledger_entry` تنشئ قيدًا جديدًا والأصل سليم بايتًا؛ تكرار العكس → `exception`.
-7. دورة محتجز: إنشاء → إفراج جزئي → إفراج كامل مع تحول الحالة تلقائيًا، ورفض الإفراج الزائد.
-8. حساب مقاول بلا `finance.view`: يرى المستند والمحتجز والقيد ولا يرى أي رقم (تحقق عبر PostgREST مباشرة لا عبر الواجهة).
+مزوّدو البريد/SMS والدفع الفعلي للقنوات، Push/Web-Push، تصعيد تلقائي لإدارة ركيز، محرك SLA تعاقدي قابل للتحرير من المستخدم، وأي حقل تاريخ استحقاق جديد.
+
+---
+
+## التقسيم المقترح (كما في 15 و16)
+
+**الدفعة 17-أ — الإشعارات والروابط الآمنة:** `notification_types`, `notifications`, `notification_deliveries`, `notification_preferences`, `emit_notification`, `resolve_notification_target`, تريغرات الأحداث الفورية، الجرس والصندوق وصفحة التفضيلات.
+
+**الدفعة 17-ب — المدد والتصعيد والـDigest:** `duration_timers` وتريغرات التوقف/الاستئناف، `run_duration_sweep` والتذكير/التأخير، `escalation_policies/steps/events`, `notification_digests`, شارات المدد في الواجهة.
+
+## بوابة القبول (تُنفَّذ لاحقًا بحسابات `p17a-*` / `p17b-*@example.com` جديدة فقط)
+
+1. نفس الحدث مرتين (إعادة تشغيل التريغر/الـsweep) ⇒ صف إشعار واحد فقط (`dedupe_key`).
+2. تنفيذ صرف بنفس `idempotency_key` مرتين ⇒ إشعار واحد.
+3. حسابات المدد والتذكير عند حدّ يوم رياضي (٢٣:٣٠ رياض) تعطي اليوم الصحيح، والتخزين UTC.
+4. `info_needed` يوقف العدّاد والعودة إلى `in_review` تستأنفه دون احتساب فترة الوقوف.
+5. مستخدم `suspended`: لا إشعار مسلَّم، ورابطه مرفوض؛ وبعد التفعيل تصل المؤجلات.
+6. رابط لمورد فقد المستخدم صلاحيته بعده ⇒ رسالة عامة موحّدة، وتطابق حرفي مع رسالة مورد غير موجود.
+7. تفضيلات: إيقاف نوع اختياري ينجح؛ إيقاف نوع إلزامي/أمني يُرفض من القاعدة بخطأ.
+8. التصعيد يمشي المشرف ← مدير المشروع ← مالك الكيان، ولا يصل أي إشعار لحساب إدارة ركيز.
+9. عضو بلا `finance.view` يرى إشعارًا ماليًا بلا أي مبلغ في النص وفي الصفحة.
