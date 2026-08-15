@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
+import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthIndexRouteImport } from './routes/auth.index'
@@ -90,6 +91,12 @@ const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
   path: '/marketing',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketplaceRoute =
+  AuthenticatedMarketplaceRouteImport.update({
+    id: '/marketplace',
+    path: '/marketplace',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
@@ -358,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/select-account': typeof SelectAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -409,6 +417,7 @@ export interface FileRoutesByTo {
   '/select-account': typeof SelectAccountRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -462,6 +471,7 @@ export interface FileRoutesById {
   '/select-account': typeof SelectAccountRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
+  '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/select-account'
     | '/dashboard'
     | '/marketing'
+    | '/marketplace'
     | '/notifications'
     | '/platform'
     | '/auth/forgot-password'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/select-account'
     | '/dashboard'
     | '/marketing'
+    | '/marketplace'
     | '/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -619,6 +631,7 @@ export interface FileRouteTypes {
     | '/select-account'
     | '/_authenticated/dashboard'
     | '/_authenticated/marketing'
+    | '/_authenticated/marketplace'
     | '/_authenticated/notifications'
     | '/_authenticated/platform'
     | '/auth/forgot-password'
@@ -721,6 +734,13 @@ declare module '@tanstack/react-router' {
       path: '/marketing'
       fullPath: '/marketing'
       preLoaderRoute: typeof AuthenticatedMarketingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/marketplace': {
+      id: '/_authenticated/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof AuthenticatedMarketplaceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -1063,6 +1083,7 @@ const AuthenticatedPlatformRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
+  AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
@@ -1100,6 +1121,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
+  AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedAdminReportTemplatesRoute:
