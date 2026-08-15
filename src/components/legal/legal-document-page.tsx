@@ -56,7 +56,7 @@ export function LegalDocumentPage({ doc }: { doc: LegalDocument }) {
         subtitle="وثيقة نظامية سارية على استخدام منصة ركيز"
         badge={<HeroBadge>النسخة {doc.version}</HeroBadge>}
         aside={
-          <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/10 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground">
             <CalendarDays className="size-4" aria-hidden="true" />
             <span>سارية من {formatDate(doc.effective_date)}</span>
           </div>

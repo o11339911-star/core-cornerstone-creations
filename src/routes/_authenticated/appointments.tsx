@@ -175,7 +175,7 @@ function AppointmentsPage() {
         subtitle="UTC هو المرجع الوحيد للوقت، ويُعرض لكل طرف بمنطقته الزمنية. التذكير مجدول تلقائيًا، والإلغاء يحترم المهلة المعلنة."
         badge={<HeroBadge>المرحلة 24</HeroBadge>}
       >
-        <p className="mt-3 text-sm text-primary-foreground/80">
+        <p className="mt-3 text-sm text-muted-foreground">
           الاتصال المرئي المدمج مؤجَّل ولا يُدَّعى وجوده.
         </p>
       </PageHero>
