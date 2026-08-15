@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
+import { NotificationsBell } from "@/components/notifications-bell";
 import { LanguageToggle } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
