@@ -201,15 +201,18 @@ export const getDrawingsModuleStatus = createServerFn({ method: "GET" })
       .select("aps_enabled, aps_client_id_env, aps_client_secret_env")
       .maybeSingle();
     if (error) throw new Error(error.message);
+
+    // محوّل APS خادمي فقط، ولا يجري أي اتصال شبكي — يقيّم البوابة محليًا.
+    const { evaluateApsGate } = await import("./drawings/aps.server");
+    const gate = evaluateApsGate(Boolean(row?.aps_enabled));
+
     return {
-      apsEnabled: Boolean(row?.aps_enabled),
+      apsSettingEnabled: Boolean(row?.aps_enabled),
+      apsReady: gate.ready,
+      apsReasonKey: gate.reasonKey,
       // أسماء متغيرات البيئة فقط — لا قيم أسرار إطلاقًا.
       apsClientIdEnv: row?.aps_client_id_env ?? "APS_CLIENT_ID",
       apsClientSecretEnv: row?.aps_client_secret_env ?? "APS_CLIENT_SECRET",
-      apsSecretsPresent: Boolean(
-        process.env[row?.aps_client_id_env ?? "APS_CLIENT_ID"] &&
-          process.env[row?.aps_client_secret_env ?? "APS_CLIENT_SECRET"],
-      ),
     };
   });
 
@@ -384,4 +387,43 @@ export const resolveDrawingMarkup = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+/** يحوّل ملاحظة على مخطط إلى طلب معلومة (RFI) ضمن نظام الطلبات والمحادثة القائم. */
+export const convertMarkupToRfi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        markupId: uuid,
+        drawingId: uuid,
+        subject: z.string().min(3).max(200),
+        body: z.string().min(3).max(4000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: drawing, error: drawingError } = await context.supabase
+      .from("drawing_records")
+      .select("project_id, drawing_no")
+      .eq("id", data.drawingId)
+      .maybeSingle();
+    if (drawingError) throw new Error(drawingError.message);
+    if (!drawing?.project_id) throw new Error("المخطط غير متاح");
+
+    const { data: requestId, error: requestError } = await context.supabase.rpc("create_request", {
+      _project_id: drawing.project_id,
+      _request_type_code: "info_request",
+      _subject: data.subject,
+      _body: data.body,
+    });
+    if (requestError) throw new Error(requestError.message);
+
+    const { error: linkError } = await context.supabase.rpc("link_drawing_markup_request", {
+      _markup_id: data.markupId,
+      _request_id: requestId as string,
+    });
+    if (linkError) throw new Error(linkError.message);
+
+    return { requestId: requestId as string };
   });
