@@ -320,10 +320,10 @@ export const createMarketingVersion = createServerFn({ method: "POST" })
     const { data: id, error } = await context.supabase.rpc("create_marketing_version", {
       _profile_id: data.profileId,
       _title_ar: data.titleAr,
-      _title_en: data.titleEn ?? undefined,
-      _description_ar: data.descriptionAr ?? undefined,
-      _description_en: data.descriptionEn ?? undefined,
-      _listing_price: data.listingPrice ?? undefined,
+      ...(data.titleEn ? { _title_en: data.titleEn } : {}),
+      ...(data.descriptionAr ? { _description_ar: data.descriptionAr } : {}),
+      ...(data.descriptionEn ? { _description_en: data.descriptionEn } : {}),
+      ...(data.listingPrice != null ? { _listing_price: data.listingPrice } : {}),
       _price_currency: data.priceCurrency,
       _units_snapshot: [],
     });
@@ -360,8 +360,8 @@ export const issueMarketingPackage = createServerFn({ method: "POST" })
       _version_id: data.versionId,
       _contract_id: data.contractId,
       _expires_at: data.expiresAt,
-      _channel_code: data.channelCode ?? undefined,
-      _watermark_text: data.watermarkText ?? undefined,
+      ...(data.channelCode ? { _channel_code: data.channelCode } : {}),
+      ...(data.watermarkText ? { _watermark_text: data.watermarkText } : {}),
     });
     if (error) throw new Error(error.message);
     return z
@@ -398,10 +398,10 @@ export const recordMarketingLead = createServerFn({ method: "POST" })
     const { data: id, error } = await context.supabase.rpc("record_marketing_lead", {
       _contract_id: data.contractId,
       _full_name: data.fullName,
-      _contact_phone: data.contactPhone ?? undefined,
-      _contact_email: data.contactEmail ?? undefined,
-      _channel_code: data.channelCode ?? undefined,
-      _note: data.note ?? undefined,
+      ...(data.contactPhone ? { _contact_phone: data.contactPhone } : {}),
+      ...(data.contactEmail ? { _contact_email: data.contactEmail } : {}),
+      ...(data.channelCode ? { _channel_code: data.channelCode } : {}),
+      ...(data.note ? { _note: data.note } : {}),
     });
     if (error) throw new Error(error.message);
     return id as string;
