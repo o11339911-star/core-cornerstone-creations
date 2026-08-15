@@ -245,12 +245,17 @@ export const offboardMember = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ transferred: number }> => {
-    const { data: moved, error } = await context.supabase.rpc("offboard_member", {
-      _entity_id: data.entityId,
-      _user_id: data.userId,
-      _replacement_user_id: data.replacementUserId ?? undefined,
-      _reason: data.reason ?? undefined,
-    });
+    const args: {
+      _entity_id: string;
+      _user_id: string;
+      _replacement_user_id?: string;
+      _reason?: string;
+    } = { _entity_id: data.entityId, _user_id: data.userId };
+    if (data.replacementUserId) args._replacement_user_id = data.replacementUserId;
+    if (data.reason) args._reason = data.reason;
+
+    const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
+
 
     if (error) throw new Error(error.message);
     return { transferred: (moved as number) ?? 0 };
