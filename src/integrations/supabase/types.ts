@@ -942,6 +942,214 @@ export type Database = {
           },
         ]
       }
+      disbursement_evidence: {
+        Row: {
+          created_at: string
+          created_by: string
+          document_id: string | null
+          id: string
+          kind: string
+          note: string | null
+          request_id: string
+          site_visit_id: string | null
+          stage_progress_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          document_id?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          request_id: string
+          site_visit_id?: string | null
+          stage_progress_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          document_id?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          request_id?: string
+          site_visit_id?: string | null
+          stage_progress_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disbursement_evidence_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_evidence_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "disbursement_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_evidence_site_visit_id_fkey"
+            columns: ["site_visit_id"]
+            isOneToOne: false
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_evidence_stage_progress_id_fkey"
+            columns: ["stage_progress_id"]
+            isOneToOne: false
+            referencedRelation: "stage_progress"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disbursement_request_amounts: {
+        Row: {
+          created_at: string
+          currency: string
+          gross_amount: number
+          net_amount: number | null
+          request_id: string
+          retention_amount: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          gross_amount: number
+          net_amount?: number | null
+          request_id: string
+          retention_amount?: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          gross_amount?: number
+          net_amount?: number | null
+          request_id?: string
+          retention_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disbursement_request_amounts_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "disbursement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disbursement_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          contract_id: string
+          created_at: string
+          executed_at: string | null
+          executed_by: string | null
+          id: string
+          milestone_id: string
+          note: string | null
+          project_id: string
+          reason_text: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          requested_at: string
+          requested_by: string
+          resubmitted_from: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          stage_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_id: string
+          created_at?: string
+          executed_at?: string | null
+          executed_by?: string | null
+          id?: string
+          milestone_id: string
+          note?: string | null
+          project_id: string
+          reason_text?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          requested_at?: string
+          requested_by: string
+          resubmitted_from?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          stage_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_id?: string
+          created_at?: string
+          executed_at?: string | null
+          executed_by?: string | null
+          id?: string
+          milestone_id?: string
+          note?: string | null
+          project_id?: string
+          reason_text?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          requested_at?: string
+          requested_by?: string
+          resubmitted_from?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          stage_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disbursement_requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_requests_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "payment_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_requests_resubmitted_from_fkey"
+            columns: ["resubmitted_from"]
+            isOneToOne: false
+            referencedRelation: "disbursement_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_requests_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_audience: {
         Row: {
           audience_entity_id: string | null
@@ -1479,6 +1687,67 @@ export type Database = {
           },
         ]
       }
+      financial_executions: {
+        Row: {
+          executed_at: string
+          executed_by: string
+          external_reference: string | null
+          id: string
+          idempotency_key: string
+          method: string
+          milestone_id: string
+          note: string | null
+          project_id: string
+          request_id: string
+        }
+        Insert: {
+          executed_at?: string
+          executed_by: string
+          external_reference?: string | null
+          id?: string
+          idempotency_key: string
+          method?: string
+          milestone_id: string
+          note?: string | null
+          project_id: string
+          request_id: string
+        }
+        Update: {
+          executed_at?: string
+          executed_by?: string
+          external_reference?: string | null
+          id?: string
+          idempotency_key?: string
+          method?: string
+          milestone_id?: string
+          note?: string | null
+          project_id?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_executions_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "payment_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_executions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_executions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "disbursement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       land_boundaries: {
         Row: {
           created_at: string
@@ -1684,6 +1953,141 @@ export type Database = {
             columns: ["visit_id"]
             isOneToOne: false
             referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_milestone_amounts: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          milestone_id: string
+          percent_of_contract: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          milestone_id: string
+          percent_of_contract?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          milestone_id?: string
+          percent_of_contract?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_milestone_amounts_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: true
+            referencedRelation: "payment_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_milestones: {
+        Row: {
+          basis: string
+          cancel_reason: string | null
+          contract_id: string
+          contract_version_id: string | null
+          created_at: string
+          created_by: string
+          due_date: string | null
+          id: string
+          project_id: string
+          seq: number
+          stage_id: string | null
+          status: string
+          supersedes_id: string | null
+          title_ar: string
+          title_en: string | null
+          updated_at: string
+        }
+        Insert: {
+          basis?: string
+          cancel_reason?: string | null
+          contract_id: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          id?: string
+          project_id: string
+          seq: number
+          stage_id?: string | null
+          status?: string
+          supersedes_id?: string | null
+          title_ar: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Update: {
+          basis?: string
+          cancel_reason?: string | null
+          contract_id?: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          project_id?: string
+          seq?: number
+          stage_id?: string | null
+          status?: string
+          supersedes_id?: string | null
+          title_ar?: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_milestones_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_milestones_contract_version_id_fkey"
+            columns: ["contract_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_milestones_contract_version_id_fkey"
+            columns: ["contract_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_milestones_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_milestones_supersedes_id_fkey"
+            columns: ["supersedes_id"]
+            isOneToOne: false
+            referencedRelation: "payment_milestones"
             referencedColumns: ["id"]
           },
         ]
@@ -4222,6 +4626,10 @@ export type Database = {
         Args: { _note?: string; _version_id: string }
         Returns: string
       }
+      approve_disbursement_request: {
+        Args: { _note?: string; _request_id: string }
+        Returns: string
+      }
       approve_document: {
         Args: { _document_id: string; _note?: string }
         Returns: string
@@ -4251,6 +4659,10 @@ export type Database = {
           _version_id: string
         }
         Returns: boolean
+      }
+      cancel_payment_milestone: {
+        Args: { _milestone_id: string; _reason: string }
+        Returns: undefined
       }
       close_request: {
         Args: { _reason?: string; _request_id: string }
@@ -4286,6 +4698,20 @@ export type Database = {
           _name_ar: string
           _name_en: string
           _page_setup?: Json
+        }
+        Returns: string
+      }
+      create_payment_milestone: {
+        Args: {
+          _amount: number
+          _basis?: string
+          _contract_id: string
+          _due_date?: string
+          _percent_of_contract?: number
+          _seq?: number
+          _stage_id?: string
+          _title_ar: string
+          _title_en?: string
         }
         Returns: string
       }
@@ -4384,6 +4810,16 @@ export type Database = {
           reason: string
         }[]
       }
+      execute_disbursement: {
+        Args: {
+          _external_reference?: string
+          _idempotency_key: string
+          _method?: string
+          _note?: string
+          _request_id: string
+        }
+        Returns: Json
+      }
       invite_project_party: {
         Args: {
           _ends_on?: string
@@ -4451,6 +4887,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      reject_disbursement_request: {
+        Args: { _reason: string; _request_id: string }
+        Returns: string
+      }
       request_more_info: {
         Args: { _body: string; _request_id: string }
         Returns: string
@@ -4464,6 +4904,16 @@ export type Database = {
         Returns: string
       }
       restore_document: { Args: { _document_id: string }; Returns: boolean }
+      resubmit_disbursement_request: {
+        Args: {
+          _evidence: Json
+          _gross_amount: number
+          _note?: string
+          _rejected_request_id: string
+          _retention_amount?: number
+        }
+        Returns: string
+      }
       review_and_link_service: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: string
@@ -4487,6 +4937,21 @@ export type Database = {
       }
       soft_delete_document: {
         Args: { _document_id: string; _reason: string }
+        Returns: string
+      }
+      start_disbursement_review: {
+        Args: { _note?: string; _request_id: string }
+        Returns: string
+      }
+      submit_disbursement_request: {
+        Args: {
+          _evidence: Json
+          _gross_amount: number
+          _milestone_id: string
+          _note?: string
+          _resubmitted_from?: string
+          _retention_amount?: number
+        }
         Returns: string
       }
       submit_report_version: { Args: { _version_id: string }; Returns: string }
