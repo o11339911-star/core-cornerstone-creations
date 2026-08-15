@@ -11,6 +11,7 @@ import { getMyMemberships, getMyProfile, type MembershipRow } from "@/lib/auth.f
 import { queryClient } from "@/router";
 
 export const Route = createFileRoute("/select-account")({
+  ssr: false,
   component: SelectAccountRoute,
   beforeLoad: async () => {
     // Ensure the user is authenticated before rendering the page.
