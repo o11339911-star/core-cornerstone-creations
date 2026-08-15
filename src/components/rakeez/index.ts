@@ -22,3 +22,5 @@ export {
   UnauthorizedState,
   useOnlineStatus,
 } from "./states";
+export { ReportEditor } from "./report-editor/ReportEditor";
+export type { ReportEditorProps } from "./report-editor/ReportEditor";

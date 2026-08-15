@@ -1291,6 +1291,62 @@ export type Database = {
           },
         ]
       }
+      entity_licenses: {
+        Row: {
+          authority: string
+          created_at: string
+          created_by: string
+          discipline: string | null
+          entity_id: string
+          expires_on: string | null
+          id: string
+          issued_on: string | null
+          license_number: string
+          status: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          authority: string
+          created_at?: string
+          created_by: string
+          discipline?: string | null
+          entity_id: string
+          expires_on?: string | null
+          id?: string
+          issued_on?: string | null
+          license_number: string
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          authority?: string
+          created_at?: string
+          created_by?: string
+          discipline?: string | null
+          entity_id?: string
+          expires_on?: string | null
+          id?: string
+          issued_on?: string | null
+          license_number?: string
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_licenses_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_memberships: {
         Row: {
           created_at: string
@@ -1325,6 +1381,97 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "entity_memberships_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_profiles: {
+        Row: {
+          address_text: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          cr_number: string | null
+          created_at: string
+          entity_id: string
+          legal_name_ar: string | null
+          legal_name_en: string | null
+          logo_path: string | null
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          address_text?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          cr_number?: string | null
+          created_at?: string
+          entity_id: string
+          legal_name_ar?: string | null
+          legal_name_en?: string | null
+          logo_path?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          address_text?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          cr_number?: string | null
+          created_at?: string
+          entity_id?: string
+          legal_name_ar?: string | null
+          legal_name_en?: string | null
+          logo_path?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_profiles_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: true
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_seals: {
+        Row: {
+          created_at: string
+          created_by: string
+          entity_id: string
+          id: string
+          is_active: boolean
+          storage_bucket: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          entity_id: string
+          id?: string
+          is_active?: boolean
+          storage_bucket?: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          entity_id?: string
+          id?: string
+          is_active?: boolean
+          storage_bucket?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_seals_entity_id_fkey"
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
@@ -2532,6 +2679,384 @@ export type Database = {
           },
         ]
       }
+      report_assets: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          mime_type: string
+          report_id: string
+          size_bytes: number
+          storage_bucket: string
+          storage_path: string
+          uploaded_by: string
+          version_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          mime_type: string
+          report_id: string
+          size_bytes: number
+          storage_bucket?: string
+          storage_path: string
+          uploaded_by: string
+          version_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          mime_type?: string
+          report_id?: string
+          size_bytes?: number
+          storage_bucket?: string
+          storage_path?: string
+          uploaded_by?: string
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_assets_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_assets_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "report_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          detail: Json
+          id: string
+          report_id: string
+          version_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          report_id: string
+          version_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          report_id?: string
+          version_id?: string | null
+        }
+        Relationships: []
+      }
+      report_number_counters: {
+        Row: {
+          entity_id: string
+          last_no: number
+          year: number
+        }
+        Insert: {
+          entity_id: string
+          last_no?: number
+          year: number
+        }
+        Update: {
+          entity_id?: string
+          last_no?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_number_counters_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_templates: {
+        Row: {
+          code: string | null
+          content: Json
+          created_at: string
+          created_by: string | null
+          direction: string
+          entity_id: string | null
+          id: string
+          language: string
+          name_ar: string
+          name_en: string
+          owner_scope: string
+          page_setup: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          entity_id?: string | null
+          id?: string
+          language?: string
+          name_ar: string
+          name_en: string
+          owner_scope: string
+          page_setup?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          entity_id?: string | null
+          id?: string
+          language?: string
+          name_ar?: string
+          name_en?: string
+          owner_scope?: string
+          page_setup?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_templates_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_versions: {
+        Row: {
+          approval_note: string | null
+          approved_at: string | null
+          approved_by: string | null
+          checksum_sha256: string | null
+          content: Json
+          created_at: string
+          created_by: string
+          export_docx_path: string | null
+          export_pdf_path: string | null
+          exported_at: string | null
+          id: string
+          last_edited_by: string | null
+          page_setup: Json
+          report_id: string
+          snapshot: Json | null
+          stamp_applied: boolean
+          status: Database["public"]["Enums"]["report_version_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          updated_at: string
+          verify_token: string
+          version_no: number
+        }
+        Insert: {
+          approval_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          checksum_sha256?: string | null
+          content?: Json
+          created_at?: string
+          created_by: string
+          export_docx_path?: string | null
+          export_pdf_path?: string | null
+          exported_at?: string | null
+          id?: string
+          last_edited_by?: string | null
+          page_setup?: Json
+          report_id: string
+          snapshot?: Json | null
+          stamp_applied?: boolean
+          status?: Database["public"]["Enums"]["report_version_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+          verify_token?: string
+          version_no: number
+        }
+        Update: {
+          approval_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          checksum_sha256?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string
+          export_docx_path?: string | null
+          export_pdf_path?: string | null
+          exported_at?: string | null
+          id?: string
+          last_edited_by?: string | null
+          page_setup?: Json
+          report_id?: string
+          snapshot?: Json | null
+          stamp_applied?: boolean
+          status?: Database["public"]["Enums"]["report_version_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          updated_at?: string
+          verify_token?: string
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_versions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          current_version_id: string | null
+          direction: string
+          entity_id: string
+          id: string
+          is_certified: boolean
+          language: string
+          project_id: string
+          property_id: string | null
+          report_number: string
+          stage_id: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          template_id: string | null
+          title: string
+          updated_at: string
+          visit_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          current_version_id?: string | null
+          direction?: string
+          entity_id: string
+          id?: string
+          is_certified?: boolean
+          language?: string
+          project_id: string
+          property_id?: string | null
+          report_number: string
+          stage_id?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          template_id?: string | null
+          title: string
+          updated_at?: string
+          visit_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          current_version_id?: string | null
+          direction?: string
+          entity_id?: string
+          id?: string
+          is_certified?: boolean
+          language?: string
+          project_id?: string
+          property_id?: string | null
+          report_number?: string
+          stage_id?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "report_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       request_status_transitions: {
         Row: {
           actor_scope: string
@@ -3586,11 +4111,22 @@ export type Database = {
         Args: { _document_id: string; _note?: string }
         Returns: string
       }
+      approve_report: {
+        Args: { _note?: string; _version_id: string }
+        Returns: string
+      }
       approve_stage: {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
       can_access_document_version: {
+        Args: {
+          _action?: Database["public"]["Enums"]["app_action"]
+          _version_id: string
+        }
+        Returns: boolean
+      }
+      can_access_report_version: {
         Args: {
           _action?: Database["public"]["Enums"]["app_action"]
           _version_id: string
@@ -3622,6 +4158,34 @@ export type Database = {
           invitation_id: string
           token: string
         }[]
+      }
+      create_entity_report_template: {
+        Args: {
+          _content: Json
+          _entity_id: string
+          _language: string
+          _name_ar: string
+          _name_en: string
+          _page_setup?: Json
+        }
+        Returns: string
+      }
+      create_report: {
+        Args: {
+          _entity_id: string
+          _language?: string
+          _project_id: string
+          _property_id?: string
+          _stage_id?: string
+          _template_id?: string
+          _title: string
+          _visit_id?: string
+        }
+        Returns: string
+      }
+      create_report_version: {
+        Args: { _reason?: string; _report_id: string }
+        Returns: string
       }
       create_request: {
         Args: {
@@ -3676,6 +4240,16 @@ export type Database = {
         Args: { _party_id: string; _reason?: string }
         Returns: number
       }
+      entity_license_state: {
+        Args: { _entity_id: string }
+        Returns: {
+          expires_on: string
+          has_license: boolean
+          is_valid: boolean
+          license_number: string
+          reason: string
+        }[]
+      }
       invite_project_party: {
         Args: {
           _ends_on?: string
@@ -3728,6 +4302,10 @@ export type Database = {
         }
         Returns: string
       }
+      record_report_export: {
+        Args: { _kind: string; _path: string; _version_id: string }
+        Returns: boolean
+      }
       request_more_info: {
         Args: { _body: string; _request_id: string }
         Returns: string
@@ -3745,6 +4323,10 @@ export type Database = {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: string
       }
+      save_report_draft: {
+        Args: { _content: Json; _page_setup?: Json; _version_id: string }
+        Returns: string
+      }
       set_document_visibility: {
         Args: {
           _audience_entity_ids?: string[]
@@ -3758,6 +4340,7 @@ export type Database = {
         Args: { _document_id: string; _reason: string }
         Returns: string
       }
+      submit_report_version: { Args: { _version_id: string }; Returns: string }
       submit_stage: {
         Args: { _note?: string; _stage_id: string }
         Returns: string
@@ -3777,6 +4360,15 @@ export type Database = {
           _requirements_note?: string
         }
         Returns: string
+      }
+      verify_report: {
+        Args: { _token: string }
+        Returns: {
+          approved_at: string
+          entity_name: string
+          report_number: string
+          status: string
+        }[]
       }
     }
     Enums: {
@@ -3817,6 +4409,8 @@ export type Database = {
         | "accounting"
         | "legal"
         | "supplier"
+      report_status: "draft" | "pending_approval" | "approved" | "superseded"
+      report_version_status: "draft" | "pending_approval" | "approved"
       visibility_level: "internal" | "limited" | "project_wide"
     }
     CompositeTypes: {
@@ -3986,6 +4580,8 @@ export const Constants = {
         "legal",
         "supplier",
       ],
+      report_status: ["draft", "pending_approval", "approved", "superseded"],
+      report_version_status: ["draft", "pending_approval", "approved"],
       visibility_level: ["internal", "limited", "project_wide"],
     },
   },
