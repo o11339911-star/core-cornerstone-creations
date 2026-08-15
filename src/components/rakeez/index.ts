@@ -12,6 +12,7 @@ export { FileUploader } from "./file-uploader";
 export type { FileUploaderProps } from "./file-uploader";
 export { FieldShell, TextField, TextAreaField } from "./form-field";
 export { LanguageToggle } from "./language-toggle";
+export { Num, normalizedInput, useLatinDigitInputGuard } from "./numeric";
 export {
   AsyncBoundary,
   EmptyState,

@@ -72,11 +72,7 @@ function PublicMediaPage() {
             <h2 className="text-lg font-semibold text-foreground">{media.data.title}</h2>
             <p className="text-sm text-muted-foreground">
               تاريخ النشر:{" "}
-              <span dir="ltr" className="inline-block">
-                {new Date(media.data.published_at).toLocaleDateString("ar-SA", {
-                  numberingSystem: "latn",
-                })}
-              </span>
+              <Num>{formatDate(media.data.published_at)}</Num>
             </p>
           </div>
         </article>
