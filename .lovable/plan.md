@@ -1,66 +1,69 @@
-# المرحلة 19 — البحث ولوحة المشروع الموحدة
+# المرحلة 20 — إدارة ركيز الداخلية
 
-## ما تم التحقق منه فعليًا قبل كتابة الخطة
+فصل تشغيل المنصة عن تشغيل مشاريع العملاء: أدوار منصة مستقلة، طابور مراجعة موحّد، توزيع آلي متوازن مقاوم للتزامن، وصول Case-based مؤقت، ووصول طارئ Break-glass بموافقة شخص ثانٍ.
 
-- `public.projects` يحتوي: `code`, `name`, `status`, `city`, `district`, `land_area`, `start_date`, `expected_end_date`, `entity_id`, `owner_id`, `project_template_id`, `closed_at`, `archived_at`, `deleted_at` — فيه رقم المشروع والحي مباشرة.
-- `public.properties` يحتوي `plan_no`, `parcel_no`, `district`, `city`, `code` — أي أن «القطعة والمخطط» موجودان فعليًا ولا يحتاجان جدولًا جديدًا.
-- `public.deeds` يحتوي `deed_number` + `property_id`، ويرتبط بالمشروع عبر `public.property_projects (property_id, project_id, relation)`.
-- `public.building_licenses` يحتوي `license_number`, `authority`, `current_version_id`؛ و`license_versions` فيه `issued_on/expires_on`.
-- دوال الصلاحية القائمة: `private.can(user, module, action, entity_id, project_id)`، `private.can_access_project(user, project_id)`، `private.can_view_project_finance(user, project_id)`، `private.can_access_property`، `private.can_view_exact_location` — كلها SECURITY DEFINER وجاهزة لإعادة الاستخدام. **لن يُكتب أي منطق صلاحية موازٍ.**
-- `public.property_completion(_property_id)` قائمة (اكتمال الملف العقاري) — تُستخدم كما هي داخل قسم الملكية، ولا تُخلط بنسبة اكتمال المشروع.
-- مصادر نسبة اكتمال المشروع موجودة فعليًا: `project_stages(status, is_required, deleted_at)` و`project_closure_items(status, is_required, phase)` من المرحلة 18.
-- لا يوجد حاليًا مسار صفحة مشروع موحدة: الموجود تبويبات منفصلة فقط (`projects.$projectId.stages/contracts/finance/...`)، والجذر `/_authenticated/dashboard` ما زال «قيد الإنشاء».
+## 1) أدوار المنصة (منفصلة تمامًا عن الكيانات)
 
----
+- `platform_admins` القائم يبقى كما هو (لا إدراج أي صف فيه).
+- جدول جديد `platform_staff`: `user_id` (PK)، `role` (نوع جديد `platform_role`: `superadmin` / `reviewer` / `support` / `compliance`)، `availability` (`available` / `busy` / `on_leave` / `suspended`)، `max_concurrent` (حد تشغيلي، افتراضي 5)، `active`، طوابع زمنية.
+- دوال مساعدة في `private`: `is_platform_staff(uid)`، `platform_role(uid)`، `platform_can(uid, action)` — كلها `SECURITY DEFINER` وتقرأ `auth.uid()` عند الاستدعاء من الطبقات العليا.
+- **لا seed إطلاقًا**: الجدول يبقى فارغًا؛ صاحب المشروع يقرر الأعضاء لاحقًا. الاختبارات تُدرج حسابات `p20-*@example.com` مؤقتًا فقط.
+- ربط بمحرك الصلاحيات القائم: `private.can` يُوسَّع بفرع واحد فقط — إن كان المستخدم موظف منصة **ولديه منحة Case-based سارية** على المشروع، يُسمح بالقراءة ضمن نطاق المنحة. الوظيفة وحدها لا تمنح أي وصول.
 
-## 1) طبقة القراءة في القاعدة (تجميع فقط — بلا أي جدول جديد)
+## 2) طابور المراجعة الموحّد
 
-لا جدول بيانات جديد، ولا عمود مخزَّن للنسبة، ولا مادة مُخبّأة (no materialized view).
+جدول `platform_queue_items` يشير للمصادر ولا ينسخ بياناتها:
+- `source_type` (`entity_verification` / `template_review` / `report` / `support_ticket` / `compliance_task`)، `source_table`، `source_id`، `entity_id`، `project_id` (اختياريان للسياق).
+- `status` (`open` / `assigned` / `in_progress` / `resolved` / `closed`)، `priority`، `assigned_to`، `assigned_at`، `resolved_at`، `close_reason`.
+- `unique (source_type, source_id) where status <> 'closed'` — يمنع تكرار عنصر لنفس المصدر.
+- تريغرات على المصادر: عند `entity_profiles.verified_at` يصبح غير NULL، وعند `report_template_imports.status` يصل إلى حالة نهائية، وعند إغلاق `requests` من نوع بلاغ/دعم ⇒ إغلاق العنصر تلقائيًا مع `close_reason = 'source_resolved'`. تريغرات الإنشاء تفتح العنصر عند نشوء الحاجة.
 
-- `public.project_completion(_project_id uuid) returns jsonb` — `stable`, `security definer`, `search_path=public`.
-  - أول سطر فيها: `if not private.can_access_project(auth.uid(), _project_id) then return null; end if;` — أي حساب بلا وصول يحصل على `null`، لا خطأ يكشف الوجود.
-  - تحسبها لحظيًا من الواقع: نسبة المراحل المطلوبة المكتملة (`project_stages` غير المحذوفة، `is_required`) ونسبة بنود الإغلاق المُلبّاة/المُعفاة (`project_closure_items`)، ثم وزن مركّب واحد + التفصيل.
-  - الإرجاع: `{ stages_total, stages_done, closure_total, closure_done, percent }`.
-- `public.get_project_overview(_project_id uuid) returns jsonb` — `stable`, `security definer`.
-  - بوابة الدخول: `private.can_access_project(auth.uid(), _project_id)` وإلا `null`.
-  - تجمّع في استدعاء واحد: الأساسيات، الموقع (الإحداثيات التقريبية فقط ما لم تُرجع `private.can_view_exact_location` صحيحًا)، الملكية (`property_owners` بحصص، والهوية تبقى `national_id_masked`)، الصك والرخصة وآخر إصداراتهما، الأطراف (`project_parties` النشطة)، المشرفون (`project_assignments` عبر الرؤية القائمة)، عدّادات المستندات حسب الحالة، المراحل، الطلبات المفتوحة، الخدمات، والاكتمال.
-  - **القسم المالي**: يُضاف مفتاح `finance` **فقط** إذا `private.can_view_project_finance(auth.uid(), _project_id)` صحيح. غير ذلك المفتاح غير موجود إطلاقًا في الـ JSON — لا `null` ولا صفر ولا إخفاء بالواجهة.
-- `public.search_projects(_q text, _limit int default 20) returns table(...)` — `stable`, `security definer`.
-  - تبحث في: `projects.code`, `projects.name`, `projects.district`, `properties.plan_no`, `properties.parcel_no`, `properties.district`, `deeds.deed_number`, `building_licenses.license_number` (عبر `property_projects`).
-  - **إعادة الفلترة الإلزامية وقت الاستدعاء**: كل صف مرشّح يمر بـ `private.can_access_project(auth.uid(), project_id)` قبل الإرجاع — نفس مبدأ «الصلاحية وقت الفتح» من المرحلة 17. لا نتائج مسرّبة، ولا رسالة «ممنوع» تكشف وجود المشروع.
-  - تستبعد `deleted_at is not null`، وتعيد سبب المطابقة (`match_field`) لعرضه في نتيجة البحث.
-- الصلاحيات بعد المهاجرة (إلزامي في نفس الملف):
-  `revoke all on function ... from public, anon;` ثم `grant execute on function ... to authenticated;` لكل دالة من الثلاث. ثم فحص `information_schema.role_table_grants` و`information_schema.routine_privileges` وسحب أي زائد فورًا، وإرفاق النتيجة في التقرير.
+## 3) التوزيع الآلي المتوازن (مقاوم للسباق)
 
-## 2) طبقة الخادم (app)
+دالة `public.claim_queue_item(_item_id uuid)` و`public.auto_assign_queue_item(_item_id uuid)`:
+1. `pg_advisory_xact_lock(hashtextextended('queue:'||_item_id))` — قفل على مستوى القاعدة.
+2. `select ... for update` على الصف، ورفض إن كان `assigned_to is not null`.
+3. اختيار الموظف: `availability = 'available'` فقط، و`active`، وعدد مهامه المفتوحة `< max_concurrent`، ترتيب تصاعدي حسب الحمل ثم `assigned_at` الأقدم.
+4. فهرس فريد جزئي `unique (source_type, source_id) where status in ('assigned','in_progress')` كضمان ثانٍ.
+5. كل إسناد يُسجَّل في `permission_audit_log` (`object_type='platform_queue_item'`, `action='assign'`).
 
-`src/lib/project-overview.functions.ts` جديد بثلاث دوال `createServerFn` مع `requireSupabaseAuth`:
-- `searchProjects({ q })` → `rpc('search_projects')`.
-- `getProjectOverview({ projectId })` → `rpc('get_project_overview')`؛ ترجع `null` ⇒ الواجهة تعرض «غير موجود» لا «ممنوع».
-- `getProjectCompletion({ projectId })` لإعادة الحساب بعد أي تغيير حالة.
+**إعادة التوزيع**: `public.reassign_queue_item(_item_id, _to_user, _reason)` — `_reason` إلزامي (غير فارغ)، والمنفّذ يجب أن يكون `superadmin` أو صاحب صلاحية إعادة توزيع؛ سجل تدقيق `action='reassign'` مع `old_value`/`new_value`، وإشعار للطرفين عبر `emit_notification`.
 
-مخطط Zod للملخص يجعل `finance` حقلًا **اختياريًا** (`.optional()`) لا nullable — فغيابه هو الحالة الطبيعية لغير المخوّل.
+## 4) وصول Case-based مؤقت
 
-## 3) الواجهة
+- الوصول يُمنح عبر `permission_grants` القائم (لا جدول موازٍ): `subject_user_id` = موظف المنصة، `scope_type='project'`، `expires_at` إلزامي.
+- جدول ربط خفيف `platform_case_access`: `grant_id` ← `permission_grants`، `queue_item_id`، `reason`، `granted_by`، `revoked_at` — لربط المنحة بعنصر الطابور.
+- دالة `public.grant_case_access(_item_id, _staff_user_id, _minutes, _reason)`: تتحقق من دور المانح، ومن أن العنصر مسند لهذا الموظف، وتحد المدة بسقف (مثلاً 24 ساعة)، وتنشئ المنحة + السجل + الإشعار.
+- انتهاء الصلاحية تلقائي بحكم `expires_at` داخل `private.can` (لا cron مطلوب للتحقق)؛ وتُسجَّل حالة الانتهاء عند أول قراءة مرفوضة عبر مهمة تنظيف اختيارية.
 
-- `src/routes/_authenticated/projects.$projectId.tsx` (جديد) — صفحة المشروع الموحدة: رأس ثابت (الاسم، الرقم، الحالة، شريط نسبة الاكتمال)، ثم بطاقات ملخص قابلة للطي (Accordion من مكتبة `rakeez` القائمة): الأساسيات، الموقع، الملكية، الصك والرخصة، الأطراف والمشرفون، المستندات، المراحل، الطلبات، الخدمات، والمالية (تُرسم فقط عند وجود مفتاح `finance`).
-- أسفل الملخص شريط تبويبات يربط إلى الصفحات التفصيلية القائمة كما هي (مراحل/عقود/مالية/طلبات/خدمات/مستندات/زيارات/تقارير/إغلاق/ضمانات/مدد) — لا إعادة كتابة لأي منها.
-- `src/routes/_authenticated/dashboard.tsx` — يستبدل نص «قيد الإنشاء» بلوحة فعلية: شريط بحث موحّد (رقم مشروع/حي/قطعة/مخطط/صك) مع نتائج فورية تنقل إلى صفحة المشروع، وقائمة مشاريعي الأخيرة، وعدّادات المهام المفتوحة من المصادر القائمة.
-- كل النصوص تمر عبر `src/i18n` (ar/en) والألوان من التوكنات الدلالية فقط.
+## 5) Break-glass (وصول طارئ)
 
-## 4) بوابة القبول الحية (حسابات `p19-*@example.com` وكيان ومشروع اختبار جديدان حصرًا)
+جدول `platform_breakglass_requests`: `requested_by`، `project_id`، `reason` (إلزامي)، `status` (`pending` / `approved` / `denied` / `expired`)، `approved_by`، `approved_at`، `expires_at`، `grant_id`.
+- `public.request_breakglass(_project_id, _reason)` — ينشئ طلبًا معلقًا فقط، **بلا أي وصول**، ويُشعر جميع `superadmin`.
+- `public.approve_breakglass(_request_id)` — يرفض إذا كان المعتمد هو الطالب نفسه (فصل واجبات)، ينشئ منحة قصيرة (مثلاً 60 دقيقة) في `permission_grants`، يُشعر فورًا عبر `emit_notification`، ويكتب سجل تدقيق كامل.
+- بلا موافقة ⇒ `private.can` لا يجد منحة ⇒ رفض.
 
-1. البحث برقم المشروع/الحي/القطعة/المخطط/رقم الصك يعيد المشروع الصحيح لمن يملك الوصول.
-2. مستخدم بلا `finance.view` يفتح الملخص ⇒ **مفتاح `finance` غير موجود في استجابة الخادم نفسها** (يُثبت بقراءة الاستجابة، لا بالنظر إلى الشاشة)، وبقية الأقسام تظهر.
-3. نفس المشروع لمستخدم يملك `finance.view` ⇒ القسم المالي يظهر بقيمه.
-4. تغيير حالة مرحلة حقيقية وبند إغلاق حقيقي ⇒ النسبة تتغيّر فعليًا في استدعاءين متتاليين.
-5. البحث بمعرّف/رقم مشروع لا يملك المستخدم وصولًا إليه ⇒ صفر نتائج، وفتح الصفحة مباشرة ⇒ «غير موجود» لا خطأ صلاحية.
-6. `role_table_grants` + `routine_privileges` بعد المهاجرة: لا شيء لـ`anon`/`PUBLIC` على أي كائن جديد.
+## 6) الواجهة (عربية RTL، توكنات الهوية الخضراء فقط)
 
-لن يُمَس أي من الحسابات الخمسة عشر الدائمة ولا `admin@rakeez.app` ولا أي مشروع حقيقي.
+مسارات جديدة تحت `_authenticated/`:
+- `platform.queue.tsx` — الطابور الموحّد: فلاتر بالحالة/النوع/المسند، أزرار «إسناد تلقائي» و«إعادة توزيع» (مع حقل سبب إلزامي).
+- `platform.staff.tsx` — موظفو المنصة: الحالة، الحد التشغيلي، الحمل الحالي.
+- `platform.breakglass.tsx` — طلبات الوصول الطارئ واعتمادها.
+- الوصول لهذه المسارات محجوب لغير موظفي المنصة (تحقق خادمي، وليس إخفاء UI فقط).
+- ملف `src/lib/platform-admin.functions.ts` يغلّف كل الدوال أعلاه عبر `requireSupabaseAuth`.
 
-## ملاحظات تقنية
+## 7) الأمن والصلاحيات
 
-- لا `SECURITY DEFINER` بلا بوابة: كل دالة من الثلاث تبدأ بفحص وصول المستخدم الحقيقي، والتجميع الداخلي فقط هو ما يتجاوز RLS لتفادي عشرات الاستعلامات المتقاطعة.
-- لا تخزين للنسبة: تُحسب في كل استدعاء، فلا خروج عن التزامن.
-- لا تكرار لمصدر: كل حقل في الملخص يُقرأ من جدوله الأصلي بلا نسخ.
+- كل الجداول الجديدة: RLS مفعّلة، القراءة لموظفي المنصة فقط عبر `private.is_platform_staff`، والكتابة عبر دوال `SECURITY DEFINER` حصرًا.
+- بعد المهاجرة مباشرة: `revoke insert, update, delete, truncate ... from anon, authenticated;` و`revoke select ... from anon;` لكل جدول جديد، و`revoke execute ... from anon, public;` لكل دالة جديدة، مع إرفاق ناتج فحص `information_schema.role_table_grants` و`routine_privileges`.
+
+## بوابة القبول (حسابات `p20-*@example.com` فقط)
+
+1. استدعاءان متوازيان لـ`auto_assign_queue_item` على نفس العنصر ⇒ إسناد واحد فقط.
+2. موظف `on_leave` / `suspended` ⇒ لا يستلم إسنادًا.
+3. موظف بلغ `max_concurrent` ⇒ يُتجاوز للأقل حملًا.
+4. موظف منصة بلا منحة ⇒ رفض قراءة المشروع؛ بمنحة ⇒ نجاح؛ بعد إنهاء المدة يدويًا (`expires_at` للماضي) ⇒ رفض.
+5. Break-glass بلا موافقة ⇒ رفض؛ باعتماد من شخص ثانٍ ⇒ نجاح + إشعار + سجل تدقيق؛ اعتماد ذاتي ⇒ رفض.
+6. تعيين `verified_at` لكيان اختبار ⇒ عنصر الطابور يُغلق تلقائيًا.
+
+بعد التحقق تُحذف كل بيانات `p20-*` بالكامل، بما فيها صفوف `platform_staff`، ويُترك الجدول فارغًا.
