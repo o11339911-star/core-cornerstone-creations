@@ -27,6 +27,7 @@ import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/
 import { Route as AuthenticatedPropertiesNewRouteImport } from './routes/_authenticated/properties.new'
 import { Route as AuthenticatedReportsReportIdRouteImport } from './routes/_authenticated/reports.$reportId'
 import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_authenticated/requests.$requestId'
+import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
@@ -139,6 +140,12 @@ const AuthenticatedRequestsRequestIdRoute =
     path: '/requests/$requestId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsNotificationsRoute =
+  AuthenticatedSettingsNotificationsRouteImport.update({
+    id: '/settings/notifications',
+    path: '/settings/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsSecurityRoute =
   AuthenticatedSettingsSecurityRouteImport.update({
     id: '/settings/security',
@@ -234,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
+  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
@@ -266,6 +274,7 @@ export interface FileRoutesByTo {
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
+  '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
@@ -300,6 +309,7 @@ export interface FileRoutesById {
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/_authenticated/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/_authenticated/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
+  '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/properties/new'
     | '/reports/$reportId'
     | '/requests/$requestId'
+    | '/settings/notifications'
     | '/settings/security'
     | '/documents/'
     | '/properties/'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/properties/new'
     | '/reports/$reportId'
     | '/requests/$requestId'
+    | '/settings/notifications'
     | '/settings/security'
     | '/documents'
     | '/properties'
@@ -399,6 +411,7 @@ export interface FileRouteTypes {
     | '/_authenticated/properties/new'
     | '/_authenticated/reports/$reportId'
     | '/_authenticated/requests/$requestId'
+    | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/security'
     | '/_authenticated/documents/'
     | '/_authenticated/properties/'
@@ -553,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsRequestIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/notifications': {
+      id: '/_authenticated/settings/notifications'
+      path: '/settings/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/security': {
       id: '/_authenticated/settings/security'
       path: '/settings/security'
@@ -656,6 +676,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPropertiesNewRoute: typeof AuthenticatedPropertiesNewRoute
   AuthenticatedReportsReportIdRoute: typeof AuthenticatedReportsReportIdRoute
   AuthenticatedRequestsRequestIdRoute: typeof AuthenticatedRequestsRequestIdRoute
+  AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
   AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
@@ -684,6 +705,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesNewRoute: AuthenticatedPropertiesNewRoute,
   AuthenticatedReportsReportIdRoute: AuthenticatedReportsReportIdRoute,
   AuthenticatedRequestsRequestIdRoute: AuthenticatedRequestsRequestIdRoute,
+  AuthenticatedSettingsNotificationsRoute:
+    AuthenticatedSettingsNotificationsRoute,
   AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
   AuthenticatedDocumentsIndexRoute: AuthenticatedDocumentsIndexRoute,
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
