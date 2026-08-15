@@ -3590,6 +3590,13 @@ export type Database = {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
+      can_access_document_version: {
+        Args: {
+          _action?: Database["public"]["Enums"]["app_action"]
+          _version_id: string
+        }
+        Returns: boolean
+      }
       close_request: {
         Args: { _reason?: string; _request_id: string }
         Returns: string
