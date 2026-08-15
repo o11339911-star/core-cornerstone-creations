@@ -26,7 +26,7 @@ export const dsrRequestSchema = z.object({
   identity_method: z.string().nullable(),
   decision_ar: z.string().nullable(),
   restriction_reasons: z.array(z.string()).nullable(),
-  result_ref: z.unknown().nullable(),
+  result_ref: z.record(z.string(), z.any()).nullable(),
   queue_item_id: z.string().uuid().nullable(),
   due_at: z.string().nullable(),
   closed_at: z.string().nullable(),
@@ -160,10 +160,10 @@ export const evaluateMyErasure = createServerFn({ method: "GET" })
 
 export const exportMyData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<unknown> => {
+  .handler(async ({ context }): Promise<Record<string, any>> => {
     const { data, error } = await context.supabase.rpc("export_my_data");
     if (error) throw new Error(error.message);
-    return data;
+    return (data ?? {}) as Record<string, any>;
   });
 
 /* ------------------------------------------------------- transparency */
