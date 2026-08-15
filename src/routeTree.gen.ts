@@ -33,6 +33,7 @@ import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
+import { Route as AuthenticatedDrawingsDrawingIdRouteImport } from './routes/_authenticated/drawings.$drawingId'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
@@ -57,6 +58,7 @@ import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './routes/_authenticated/projects.$projectId.index'
 import { Route as AuthenticatedProjectsProjectIdClosureRouteImport } from './routes/_authenticated/projects.$projectId.closure'
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
+import { Route as AuthenticatedProjectsProjectIdDrawingsRouteImport } from './routes/_authenticated/projects.$projectId.drawings'
 import { Route as AuthenticatedProjectsProjectIdDurationsRouteImport } from './routes/_authenticated/projects.$projectId.durations'
 import { Route as AuthenticatedProjectsProjectIdFinanceRouteImport } from './routes/_authenticated/projects.$projectId.finance'
 import { Route as AuthenticatedProjectsProjectIdMarketingRouteImport } from './routes/_authenticated/projects.$projectId.marketing'
@@ -193,6 +195,12 @@ const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
     path: '/documents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDrawingsDrawingIdRoute =
+  AuthenticatedDrawingsDrawingIdRouteImport.update({
+    id: '/drawings/$drawingId',
+    path: '/drawings/$drawingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedNNotificationIdRoute =
@@ -339,6 +347,12 @@ const AuthenticatedProjectsProjectIdContractsRoute =
     path: '/projects/$projectId/contracts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdDrawingsRoute =
+  AuthenticatedProjectsProjectIdDrawingsRouteImport.update({
+    id: '/projects/$projectId/drawings',
+    path: '/projects/$projectId/drawings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdDurationsRoute =
   AuthenticatedProjectsProjectIdDurationsRouteImport.update({
     id: '/projects/$projectId/durations',
@@ -441,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth/': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -465,6 +480,7 @@ export interface FileRoutesByFullPath {
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
+  '/projects/$projectId/drawings': typeof AuthenticatedProjectsProjectIdDrawingsRoute
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
   '/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
@@ -501,6 +517,7 @@ export interface FileRoutesByTo {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -525,6 +542,7 @@ export interface FileRoutesByTo {
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
+  '/projects/$projectId/drawings': typeof AuthenticatedProjectsProjectIdDrawingsRoute
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
   '/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
@@ -565,6 +583,7 @@ export interface FileRoutesById {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth/': typeof AuthIndexRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/_authenticated/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -589,6 +608,7 @@ export interface FileRoutesById {
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/_authenticated/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
+  '/_authenticated/projects/$projectId/drawings': typeof AuthenticatedProjectsProjectIdDrawingsRoute
   '/_authenticated/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/_authenticated/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
   '/_authenticated/projects/$projectId/marketing': typeof AuthenticatedProjectsProjectIdMarketingRoute
@@ -629,6 +649,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth/'
     | '/admin/report-templates'
+    | '/drawings/$drawingId'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -653,6 +674,7 @@ export interface FileRouteTypes {
     | '/entities/$entityId/team'
     | '/projects/$projectId/closure'
     | '/projects/$projectId/contracts'
+    | '/projects/$projectId/drawings'
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
     | '/projects/$projectId/marketing'
@@ -689,6 +711,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth'
     | '/admin/report-templates'
+    | '/drawings/$drawingId'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -713,6 +736,7 @@ export interface FileRouteTypes {
     | '/entities/$entityId/team'
     | '/projects/$projectId/closure'
     | '/projects/$projectId/contracts'
+    | '/projects/$projectId/drawings'
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
     | '/projects/$projectId/marketing'
@@ -752,6 +776,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth/'
     | '/_authenticated/admin/report-templates'
+    | '/_authenticated/drawings/$drawingId'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
@@ -776,6 +801,7 @@ export interface FileRouteTypes {
     | '/_authenticated/entities/$entityId/team'
     | '/_authenticated/projects/$projectId/closure'
     | '/_authenticated/projects/$projectId/contracts'
+    | '/_authenticated/projects/$projectId/drawings'
     | '/_authenticated/projects/$projectId/durations'
     | '/_authenticated/projects/$projectId/finance'
     | '/_authenticated/projects/$projectId/marketing'
@@ -979,6 +1005,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/drawings/$drawingId': {
+      id: '/_authenticated/drawings/$drawingId'
+      path: '/drawings/$drawingId'
+      fullPath: '/drawings/$drawingId'
+      preLoaderRoute: typeof AuthenticatedDrawingsDrawingIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/n/$notificationId': {
       id: '/_authenticated/n/$notificationId'
       path: '/n/$notificationId'
@@ -1147,6 +1180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdContractsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/drawings': {
+      id: '/_authenticated/projects/$projectId/drawings'
+      path: '/projects/$projectId/drawings'
+      fullPath: '/projects/$projectId/drawings'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdDrawingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/durations': {
       id: '/_authenticated/projects/$projectId/durations'
       path: '/projects/$projectId/durations'
@@ -1276,6 +1316,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
+  AuthenticatedDrawingsDrawingIdRoute: typeof AuthenticatedDrawingsDrawingIdRoute
   AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
@@ -1293,6 +1334,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
   AuthenticatedProjectsProjectIdClosureRoute: typeof AuthenticatedProjectsProjectIdClosureRoute
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
+  AuthenticatedProjectsProjectIdDrawingsRoute: typeof AuthenticatedProjectsProjectIdDrawingsRoute
   AuthenticatedProjectsProjectIdDurationsRoute: typeof AuthenticatedProjectsProjectIdDurationsRoute
   AuthenticatedProjectsProjectIdFinanceRoute: typeof AuthenticatedProjectsProjectIdFinanceRoute
   AuthenticatedProjectsProjectIdMarketingRoute: typeof AuthenticatedProjectsProjectIdMarketingRoute
@@ -1317,6 +1359,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
+  AuthenticatedDrawingsDrawingIdRoute: AuthenticatedDrawingsDrawingIdRoute,
   AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:
@@ -1342,6 +1385,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdClosureRoute,
   AuthenticatedProjectsProjectIdContractsRoute:
     AuthenticatedProjectsProjectIdContractsRoute,
+  AuthenticatedProjectsProjectIdDrawingsRoute:
+    AuthenticatedProjectsProjectIdDrawingsRoute,
   AuthenticatedProjectsProjectIdDurationsRoute:
     AuthenticatedProjectsProjectIdDurationsRoute,
   AuthenticatedProjectsProjectIdFinanceRoute:
