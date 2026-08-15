@@ -1,0 +1,1 @@
+drop function if exists public.verify_dsr_identity(uuid, text);
