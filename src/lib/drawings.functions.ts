@@ -74,6 +74,7 @@ export const drawingMarkupSchema = z.object({
   document_version_id: z.string().uuid(),
   page_no: z.number(),
   body: z.string(),
+  request_id: z.string().uuid().nullable(),
   resolved_at: z.string().nullable(),
   created_by: z.string().uuid(),
   created_at: z.string(),
@@ -96,7 +97,7 @@ const REVISION_COLS =
   "id, drawing_id, document_version_id, revision_label, format, sheet_count, created_by, created_at";
 const EVENT_COLS = "id, drawing_id, from_status, to_status, note, created_at";
 const MARKUP_COLS =
-  "id, drawing_id, document_version_id, page_no, body, resolved_at, created_by, created_at";
+  "id, drawing_id, document_version_id, page_no, body, request_id, resolved_at, created_by, created_at";
 const JOB_COLS = "id, document_version_id, provider, status, error_code, created_at";
 
 /* ------------------------------------------------------------------ reads */
@@ -149,12 +150,46 @@ export const getDrawing = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
     ]);
 
+    const parsedRevisions = z.array(drawingRevisionSchema).parse(revisions.data ?? []);
+    const parsedMarkups = z.array(drawingMarkupSchema).parse(markups.data ?? []);
+
+    const versionIds = parsedRevisions.map((r) => r.document_version_id);
+    const files = versionIds.length
+      ? await context.supabase
+          .from("document_versions")
+          .select("id, file_ext, size_bytes, checksum_sha256, created_at, storage_path")
+          .in("id", versionIds)
+      : { data: [], error: null };
+
+    const requestIds = parsedMarkups
+      .map((m) => m.request_id)
+      .filter((id): id is string => Boolean(id));
+    const linkedRequests = requestIds.length
+      ? await context.supabase
+          .from("requests")
+          .select("id, request_no, subject, status")
+          .in("id", requestIds)
+      : { data: [], error: null };
+
     return {
       drawing: drawingSchema.parse(row),
-      revisions: z.array(drawingRevisionSchema).parse(revisions.data ?? []),
+      revisions: parsedRevisions,
       events: z.array(drawingEventSchema).parse(events.data ?? []),
-      markups: z.array(drawingMarkupSchema).parse(markups.data ?? []),
+      markups: parsedMarkups,
       jobs: z.array(drawingJobSchema).parse(jobs.data ?? []),
+      files: (files.data ?? []).map((f) => ({
+        id: f.id as string,
+        fileExt: (f.file_ext as string) ?? null,
+        sizeBytes: (f.size_bytes as number) ?? null,
+        checksum: (f.checksum_sha256 as string) ?? null,
+        createdAt: (f.created_at as string) ?? null,
+      })),
+      linkedRequests: (linkedRequests.data ?? []).map((r) => ({
+        id: r.id as string,
+        requestNo: (r.request_no as string) ?? null,
+        subject: (r.subject as string) ?? null,
+        status: (r.status as string) ?? null,
+      })),
     };
   });
 
