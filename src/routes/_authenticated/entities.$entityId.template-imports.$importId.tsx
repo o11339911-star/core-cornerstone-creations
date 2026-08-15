@@ -203,8 +203,8 @@ function TemplateImportReviewPage() {
 
       <RakeezCard title="إنشاء القالب" description="القالب المستورد يبدأ دائمًا بحالة مسودة.">
         <div className="grid gap-4 md:grid-cols-2">
-          <TextField label="اسم القالب (عربي)" value={nameAr} onChange={(e) => setNameAr(e.target.value)} />
-          <TextField label="اسم القالب (إنجليزي)" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
+          <TextField id="tpl-name-ar" label="اسم القالب (عربي)" value={nameAr} onChange={(e) => setNameAr(e.target.value)} />
+          <TextField id="tpl-name-en" label="اسم القالب (إنجليزي)" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button
