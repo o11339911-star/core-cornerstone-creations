@@ -107,13 +107,13 @@ function PublicEntityPage() {
                 {profile.bio_ar ?? profile.bio_en}
               </p>
             ) : (
-              <SoftEmpty>لم يضف هذا الكيان نبذة تعريفية بعد.</SoftEmpty>
+              <SoftEmpty icon={Building2} message="لم يضف هذا الكيان نبذة تعريفية بعد." />
             )}
           </SectionCard>
 
           <SectionCard icon={Sparkles} title="سابقة الأعمال" count={profile.portfolio.length}>
             {profile.portfolio.length === 0 ? (
-              <SoftEmpty>لا توجد أعمال منشورة في الملف العام.</SoftEmpty>
+              <SoftEmpty icon={Sparkles} message="لا توجد أعمال منشورة في الملف العام." />
             ) : (
               <ul className="grid gap-3 sm:grid-cols-2">
                 {profile.portfolio.map((item, i) => (
@@ -151,7 +151,7 @@ function PublicEntityPage() {
         <div className="space-y-5">
           <SectionCard icon={Sparkles} title="الخدمات" count={profile.services.length}>
             {profile.services.length === 0 ? (
-              <SoftEmpty>لم تُحدَّد خدمات معلنة.</SoftEmpty>
+              <SoftEmpty icon={Sparkles} message="لم تُحدَّد خدمات معلنة." />
             ) : (
               <ul className="flex flex-wrap gap-2">
                 {profile.services.map((s) => (
@@ -196,7 +196,7 @@ function PublicEntityPage() {
                 ) : null}
               </ul>
             ) : (
-              <SoftEmpty>لم يعلن هذا الكيان وسائل تواصل عامة.</SoftEmpty>
+              <SoftEmpty icon={Mail} message="لم يعلن هذا الكيان وسائل تواصل عامة." />
             )}
           </SectionCard>
 

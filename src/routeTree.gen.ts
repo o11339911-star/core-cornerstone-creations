@@ -18,6 +18,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
@@ -97,6 +98,11 @@ const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => AuthRoute,
+} as any)
+const ESlugRoute = ESlugRouteImport.update({
+  id: '/e/$slug',
+  path: '/e/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const InviteAcceptRoute = InviteAcceptRouteImport.update({
   id: '/invite/accept',
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/e/$slug'
     | '/invite/accept'
     | '/verify/$token'
     | '/admin/report-templates'
@@ -488,6 +498,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/e/$slug'
     | '/invite/accept'
     | '/verify/$token'
     | '/admin/report-templates'
@@ -533,6 +544,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/e/$slug'
     | '/invite/accept'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
@@ -574,6 +586,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   SelectAccountRoute: typeof SelectAccountRoute
+  ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
   ApiPublicCronDurationScanRoute: typeof ApiPublicCronDurationScanRoute
@@ -643,6 +656,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/reset-password'
       preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/e/$slug': {
+      id: '/e/$slug'
+      path: '/e/$slug'
+      fullPath: '/e/$slug'
+      preLoaderRoute: typeof ESlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/invite/accept': {
       id: '/invite/accept'
@@ -1009,6 +1029,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   SelectAccountRoute: SelectAccountRoute,
+  ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
   VerifyTokenRoute: VerifyTokenRoute,
   ApiPublicCronDurationScanRoute: ApiPublicCronDurationScanRoute,
