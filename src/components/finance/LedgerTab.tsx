@@ -2,7 +2,7 @@ import * as React from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useT, useLocale } from "@/i18n";
+import { useT, useI18n } from "@/i18n";
 import { AsyncBoundary, EmptyState } from "@/components/rakeez";
 import { money } from "@/components/finance/money";
 import { listLedgerEntries, reverseLedgerEntry } from "@/lib/finance-ledger.functions";
@@ -13,7 +13,7 @@ import { listLedgerEntries, reverseLedgerEntry } from "@/lib/finance-ledger.func
  */
 export function LedgerTab({ projectId }: { projectId: string }) {
   const t = useT();
-  const { locale } = useLocale();
+  const { locale } = useI18n();
   const queryClient = useQueryClient();
 
   const fetchEntries = useServerFn(listLedgerEntries);
