@@ -180,6 +180,7 @@ function BlockEditor({
         <p className="whitespace-pre-wrap text-sm leading-7">{block.text}</p>
       ) : (
         <TextAreaField
+              id={`${block.id}-f1`}
           label=""
           value={block.text}
           rows={4}
@@ -313,6 +314,7 @@ function BlockEditor({
           </div>
           {!readOnly ? (
             <TextField
+              id={`${block.id}-f2`}
               label="وصف الصورة"
               value={block.caption ?? ""}
               onChange={(e) => onChange({ ...block, caption: e.target.value })}
@@ -332,6 +334,7 @@ function BlockEditor({
               </div>
               {!readOnly ? (
                 <TextField
+              id={`${block.id}-f3`}
                   label=""
                   value={(side === "before" ? block.beforeCaption : block.afterCaption) ?? ""}
                   onChange={(e) =>
@@ -354,6 +357,7 @@ function BlockEditor({
             <p className="text-sm">{block.text}</p>
           ) : (
             <TextAreaField
+              id={`${block.id}-f4`}
               label="تعليق"
               rows={3}
               value={block.text}
@@ -395,6 +399,7 @@ function BlockEditor({
             <p className="font-semibold">{item.title}</p>
           ) : (
             <TextField
+              id={`${block.id}-f5`}
               label="البند"
               value={item.title}
               onChange={(e) => onChange({ ...item, title: e.target.value })}
@@ -444,11 +449,13 @@ function BlockEditor({
             {!readOnly ? (
               <>
                 <TextField
+              id={`${block.id}-f6`}
                   label="المسؤول"
                   value={item.responsible ?? ""}
                   onChange={(e) => onChange({ ...item, responsible: e.target.value })}
                 />
                 <TextField
+              id={`${block.id}-f7`}
                   label="تاريخ الاستحقاق"
                   type="date"
                   value={item.dueDate ?? ""}
@@ -467,6 +474,7 @@ function BlockEditor({
             ) : null
           ) : (
             <TextAreaField
+              id={`${block.id}-f8`}
               label="ملاحظة"
               rows={2}
               value={item.note ?? ""}
