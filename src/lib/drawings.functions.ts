@@ -28,7 +28,8 @@ export const DRAWING_DISCIPLINES = [
   "other",
 ] as const;
 
-export const DRAWING_FORMATS = ["pdf", "dwg", "dxf", "ifc", "zip"] as const;
+// ZIP مرفوضة عمدًا: لا يوجد فحص محتوى موثوق للأرشيف، فلا نقبلها بدل ادّعاء حمايتها.
+export const DRAWING_FORMATS = ["pdf", "dwg", "dxf", "ifc"] as const;
 
 export const drawingSchema = z.object({
   id: z.string().uuid(),
@@ -284,7 +285,7 @@ export const setDrawingStatus = createServerFn({ method: "POST" })
         toStatus: z.enum([
           "under_review",
           "returned",
-          "approved",
+          "approved_internal",
           "issued_for_construction",
           "as_built",
           "superseded",
