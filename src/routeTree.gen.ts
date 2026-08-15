@@ -24,6 +24,10 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
+import { Route as LegalComplaintsRouteImport } from './routes/legal.complaints'
+import { Route as LegalIpRouteImport } from './routes/legal.ip'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as MTokenRouteImport } from './routes/m.$token'
 import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
@@ -32,6 +36,7 @@ import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
+import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenticated/platform.dsr'
 import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/_authenticated/platform.integrations'
 import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
@@ -42,6 +47,7 @@ import { Route as AuthenticatedPropertiesNewRouteImport } from './routes/_authen
 import { Route as AuthenticatedReportsReportIdRouteImport } from './routes/_authenticated/reports.$reportId'
 import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_authenticated/requests.$requestId'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
+import { Route as AuthenticatedSettingsPrivacyRouteImport } from './routes/_authenticated/settings.privacy'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdPublicProfileRouteImport } from './routes/_authenticated/entities.$entityId.public-profile'
@@ -141,6 +147,26 @@ const InviteAcceptRoute = InviteAcceptRouteImport.update({
   path: '/invite/accept',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalComplaintsRoute = LegalComplaintsRouteImport.update({
+  id: '/legal/complaints',
+  path: '/legal/complaints',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalIpRoute = LegalIpRouteImport.update({
+  id: '/legal/ip',
+  path: '/legal/ip',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MTokenRoute = MTokenRouteImport.update({
   id: '/m/$token',
   path: '/m/$token',
@@ -184,6 +210,12 @@ const AuthenticatedPlatformBreakglassRoute =
   AuthenticatedPlatformBreakglassRouteImport.update({
     id: '/breakglass',
     path: '/breakglass',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformDsrRoute =
+  AuthenticatedPlatformDsrRouteImport.update({
+    id: '/dsr',
+    path: '/dsr',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedPlatformIntegrationsRoute =
@@ -244,6 +276,12 @@ const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/settings/notifications',
     path: '/settings/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsPrivacyRoute =
+  AuthenticatedSettingsPrivacyRouteImport.update({
+    id: '/settings/privacy',
+    path: '/settings/privacy',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsSecurityRoute =
@@ -387,6 +425,10 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
+  '/legal/ip': typeof LegalIpRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
@@ -394,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -403,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
@@ -440,6 +484,10 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
+  '/legal/ip': typeof LegalIpRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
@@ -447,6 +495,7 @@ export interface FileRoutesByTo {
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -456,6 +505,7 @@ export interface FileRoutesByTo {
   '/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
@@ -497,6 +547,10 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
+  '/legal/ip': typeof LegalIpRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
@@ -504,6 +558,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/_authenticated/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/_authenticated/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/_authenticated/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -513,6 +568,7 @@ export interface FileRoutesById {
   '/_authenticated/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/_authenticated/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
@@ -554,6 +610,10 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/legal/complaints'
+    | '/legal/ip'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
@@ -561,6 +621,7 @@ export interface FileRouteTypes {
     | '/admin/report-templates'
     | '/n/$notificationId'
     | '/platform/breakglass'
+    | '/platform/dsr'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
@@ -570,6 +631,7 @@ export interface FileRouteTypes {
     | '/reports/$reportId'
     | '/requests/$requestId'
     | '/settings/notifications'
+    | '/settings/privacy'
     | '/settings/security'
     | '/documents/'
     | '/platform/'
@@ -607,6 +669,10 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/legal/complaints'
+    | '/legal/ip'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
@@ -614,6 +680,7 @@ export interface FileRouteTypes {
     | '/admin/report-templates'
     | '/n/$notificationId'
     | '/platform/breakglass'
+    | '/platform/dsr'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
@@ -623,6 +690,7 @@ export interface FileRouteTypes {
     | '/reports/$reportId'
     | '/requests/$requestId'
     | '/settings/notifications'
+    | '/settings/privacy'
     | '/settings/security'
     | '/documents'
     | '/platform'
@@ -663,6 +731,10 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/legal/complaints'
+    | '/legal/ip'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
@@ -670,6 +742,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breakglass'
+    | '/_authenticated/platform/dsr'
     | '/_authenticated/platform/integrations'
     | '/_authenticated/platform/queue'
     | '/_authenticated/platform/staff'
@@ -679,6 +752,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reports/$reportId'
     | '/_authenticated/requests/$requestId'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/settings/privacy'
     | '/_authenticated/settings/security'
     | '/_authenticated/documents/'
     | '/_authenticated/platform/'
@@ -712,6 +786,10 @@ export interface RootRouteChildren {
   SelectAccountRoute: typeof SelectAccountRoute
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
+  LegalComplaintsRoute: typeof LegalComplaintsRoute
+  LegalIpRoute: typeof LegalIpRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
   MTokenRoute: typeof MTokenRoute
   MpTokenRoute: typeof MpTokenRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
@@ -825,6 +903,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteAcceptRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/complaints': {
+      id: '/legal/complaints'
+      path: '/legal/complaints'
+      fullPath: '/legal/complaints'
+      preLoaderRoute: typeof LegalComplaintsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/ip': {
+      id: '/legal/ip'
+      path: '/legal/ip'
+      fullPath: '/legal/ip'
+      preLoaderRoute: typeof LegalIpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/m/$token': {
       id: '/m/$token'
       path: '/m/$token'
@@ -879,6 +985,13 @@ declare module '@tanstack/react-router' {
       path: '/breakglass'
       fullPath: '/platform/breakglass'
       preLoaderRoute: typeof AuthenticatedPlatformBreakglassRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/dsr': {
+      id: '/_authenticated/platform/dsr'
+      path: '/dsr'
+      fullPath: '/platform/dsr'
+      preLoaderRoute: typeof AuthenticatedPlatformDsrRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
     '/_authenticated/platform/integrations': {
@@ -949,6 +1062,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/notifications'
       fullPath: '/settings/notifications'
       preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/privacy': {
+      id: '/_authenticated/settings/privacy'
+      path: '/settings/privacy'
+      fullPath: '/settings/privacy'
+      preLoaderRoute: typeof AuthenticatedSettingsPrivacyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/security': {
@@ -1103,6 +1223,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
+  AuthenticatedPlatformDsrRoute: typeof AuthenticatedPlatformDsrRoute
   AuthenticatedPlatformIntegrationsRoute: typeof AuthenticatedPlatformIntegrationsRoute
   AuthenticatedPlatformQueueRoute: typeof AuthenticatedPlatformQueueRoute
   AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
@@ -1111,6 +1232,7 @@ interface AuthenticatedPlatformRouteChildren {
 
 const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
   AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
+  AuthenticatedPlatformDsrRoute: AuthenticatedPlatformDsrRoute,
   AuthenticatedPlatformIntegrationsRoute:
     AuthenticatedPlatformIntegrationsRoute,
   AuthenticatedPlatformQueueRoute: AuthenticatedPlatformQueueRoute,
@@ -1138,6 +1260,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportsReportIdRoute: typeof AuthenticatedReportsReportIdRoute
   AuthenticatedRequestsRequestIdRoute: typeof AuthenticatedRequestsRequestIdRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsPrivacyRoute: typeof AuthenticatedSettingsPrivacyRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
   AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
@@ -1180,6 +1303,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRequestsRequestIdRoute: AuthenticatedRequestsRequestIdRoute,
   AuthenticatedSettingsNotificationsRoute:
     AuthenticatedSettingsNotificationsRoute,
+  AuthenticatedSettingsPrivacyRoute: AuthenticatedSettingsPrivacyRoute,
   AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
   AuthenticatedDocumentsIndexRoute: AuthenticatedDocumentsIndexRoute,
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
@@ -1247,6 +1371,10 @@ const rootRouteChildren: RootRouteChildren = {
   SelectAccountRoute: SelectAccountRoute,
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
+  LegalComplaintsRoute: LegalComplaintsRoute,
+  LegalIpRoute: LegalIpRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
   MTokenRoute: MTokenRoute,
   MpTokenRoute: MpTokenRoute,
   VerifyTokenRoute: VerifyTokenRoute,

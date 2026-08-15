@@ -1144,6 +1144,126 @@ export type Database = {
           },
         ]
       }
+      data_incidents: {
+        Row: {
+          affected_scope_ar: string
+          authority_notified_at: string | null
+          contained_at: string | null
+          created_at: string
+          data_categories: string[]
+          detected_at: string
+          id: string
+          lessons_ar: string | null
+          notification_required: boolean
+          reported_by: string | null
+          root_cause_ar: string | null
+          severity: string
+          status: string
+          subjects_estimate: number | null
+          subjects_notified_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_scope_ar: string
+          authority_notified_at?: string | null
+          contained_at?: string | null
+          created_at?: string
+          data_categories?: string[]
+          detected_at?: string
+          id?: string
+          lessons_ar?: string | null
+          notification_required?: boolean
+          reported_by?: string | null
+          root_cause_ar?: string | null
+          severity: string
+          status?: string
+          subjects_estimate?: number | null
+          subjects_notified_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_scope_ar?: string
+          authority_notified_at?: string | null
+          contained_at?: string | null
+          created_at?: string
+          data_categories?: string[]
+          detected_at?: string
+          id?: string
+          lessons_ar?: string | null
+          notification_required?: boolean
+          reported_by?: string | null
+          root_cause_ar?: string | null
+          severity?: string
+          status?: string
+          subjects_estimate?: number | null
+          subjects_notified_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      data_processing_register: {
+        Row: {
+          active: boolean
+          activity_ar: string
+          activity_code: string
+          backing_objects: string[]
+          created_at: string
+          cross_border: boolean
+          data_categories: string[]
+          deletion_mechanism_ar: string
+          id: string
+          legal_basis_ar: string
+          module: Database["public"]["Enums"]["app_module"]
+          purpose_ar: string
+          recipients: string[]
+          retention_months: number | null
+          retention_period_ar: string
+          subject_categories: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          activity_ar: string
+          activity_code: string
+          backing_objects?: string[]
+          created_at?: string
+          cross_border?: boolean
+          data_categories?: string[]
+          deletion_mechanism_ar: string
+          id?: string
+          legal_basis_ar: string
+          module: Database["public"]["Enums"]["app_module"]
+          purpose_ar: string
+          recipients?: string[]
+          retention_months?: number | null
+          retention_period_ar: string
+          subject_categories?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          activity_ar?: string
+          activity_code?: string
+          backing_objects?: string[]
+          created_at?: string
+          cross_border?: boolean
+          data_categories?: string[]
+          deletion_mechanism_ar?: string
+          id?: string
+          legal_basis_ar?: string
+          module?: Database["public"]["Enums"]["app_module"]
+          purpose_ar?: string
+          recipients?: string[]
+          retention_months?: number | null
+          retention_period_ar?: string
+          subject_categories?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       deed_versions: {
         Row: {
           area: number | null
@@ -1722,6 +1842,189 @@ export type Database = {
             columns: ["owner_entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dpia_controls: {
+        Row: {
+          control_type: string
+          created_at: string
+          description_ar: string
+          dpia_id: string
+          effectiveness_ar: string
+          id: string
+          object_name: string
+        }
+        Insert: {
+          control_type: string
+          created_at?: string
+          description_ar: string
+          dpia_id: string
+          effectiveness_ar?: string
+          id?: string
+          object_name: string
+        }
+        Update: {
+          control_type?: string
+          created_at?: string
+          description_ar?: string
+          dpia_id?: string
+          effectiveness_ar?: string
+          id?: string
+          object_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dpia_controls_dpia_id_fkey"
+            columns: ["dpia_id"]
+            isOneToOne: false
+            referencedRelation: "dpia_register"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dpia_register: {
+        Row: {
+          assessed_at: string
+          assessed_by: string | null
+          created_at: string
+          id: string
+          module: Database["public"]["Enums"]["app_module"]
+          residual_risk_ar: string
+          review_due_at: string | null
+          risk_level: string
+          risks: Json
+          scope_ar: string
+          scope_code: string
+          updated_at: string
+        }
+        Insert: {
+          assessed_at?: string
+          assessed_by?: string | null
+          created_at?: string
+          id?: string
+          module: Database["public"]["Enums"]["app_module"]
+          residual_risk_ar: string
+          review_due_at?: string | null
+          risk_level?: string
+          risks?: Json
+          scope_ar: string
+          scope_code: string
+          updated_at?: string
+        }
+        Update: {
+          assessed_at?: string
+          assessed_by?: string | null
+          created_at?: string
+          id?: string
+          module?: Database["public"]["Enums"]["app_module"]
+          residual_risk_ar?: string
+          review_due_at?: string | null
+          risk_level?: string
+          risks?: Json
+          scope_ar?: string
+          scope_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dsr_request_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          note_ar: string | null
+          request_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note_ar?: string | null
+          request_id: string
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note_ar?: string | null
+          request_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dsr_request_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "dsr_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dsr_requests: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          decision_ar: string | null
+          details_ar: string
+          due_at: string
+          id: string
+          identity_method: string | null
+          identity_verified_at: string | null
+          kind: string
+          queue_item_id: string | null
+          restriction_reasons: string[]
+          result_ref: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          decision_ar?: string | null
+          details_ar: string
+          due_at?: string
+          id?: string
+          identity_method?: string | null
+          identity_verified_at?: string | null
+          kind: string
+          queue_item_id?: string | null
+          restriction_reasons?: string[]
+          result_ref?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          decision_ar?: string | null
+          details_ar?: string
+          due_at?: string
+          id?: string
+          identity_method?: string | null
+          identity_verified_at?: string | null
+          kind?: string
+          queue_item_id?: string | null
+          restriction_reasons?: string[]
+          result_ref?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dsr_requests_queue_item_id_fkey"
+            columns: ["queue_item_id"]
+            isOneToOne: false
+            referencedRelation: "platform_queue_items"
             referencedColumns: ["id"]
           },
         ]
@@ -3117,6 +3420,83 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      legal_document_versions: {
+        Row: {
+          body_md: string
+          created_at: string
+          created_by: string | null
+          document_id: string
+          effective_date: string
+          id: string
+          is_current: boolean
+          published_at: string | null
+          requires_acceptance: boolean
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          body_md: string
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          effective_date: string
+          id?: string
+          is_current?: boolean
+          published_at?: string | null
+          requires_acceptance?: boolean
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          body_md?: string
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          effective_date?: string
+          id?: string
+          is_current?: boolean
+          published_at?: string | null
+          requires_acceptance?: boolean
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_documents: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          slug: string
+          title_ar: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          slug: string
+          title_ar: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          slug?: string
+          title_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       license_versions: {
         Row: {
@@ -4924,6 +5304,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      policy_acceptances: {
+        Row: {
+          accepted_at: string
+          context: string
+          created_at: string
+          document_id: string
+          id: string
+          ip_hash: string | null
+          user_agent_hash: string | null
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          context?: string
+          created_at?: string
+          document_id: string
+          id?: string
+          ip_hash?: string | null
+          user_agent_hash?: string | null
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          accepted_at?: string
+          context?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          ip_hash?: string | null
+          user_agent_hash?: string | null
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_acceptances_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_acceptances_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_document_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       portfolio_assets: {
         Row: {
@@ -8245,6 +8676,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      accept_policies: {
+        Args: { _context?: string; _version_ids: string[] }
+        Returns: number
+      }
       activate_marketing_contract: {
         Args: { _contract_id: string }
         Returns: undefined
@@ -8431,6 +8866,10 @@ export type Database = {
           _shoot_id: string
         }
         Returns: string
+      }
+      close_dsr_request: {
+        Args: { _note_ar: string; _request_id: string }
+        Returns: undefined
       }
       close_project: {
         Args: { _note?: string; _project_id: string }
@@ -8658,6 +9097,16 @@ export type Database = {
         Args: { _approve: boolean; _extension_id: string; _note?: string }
         Returns: string
       }
+      decide_dsr_request: {
+        Args: {
+          _decision_ar: string
+          _outcome: string
+          _request_id: string
+          _restrictions?: string[]
+          _result_ref?: Json
+        }
+        Returns: undefined
+      }
       decide_project_reopen: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: undefined
@@ -8684,6 +9133,10 @@ export type Database = {
           reason: string
         }[]
       }
+      evaluate_erasure_constraints: {
+        Args: { _user_id?: string }
+        Returns: Json
+      }
       execute_disbursement: {
         Args: {
           _external_reference?: string
@@ -8695,10 +9148,31 @@ export type Database = {
         Returns: Json
       }
       export_entity_data: { Args: { _entity_id: string }; Returns: Json }
+      export_my_data: { Args: never; Returns: Json }
       forfeit_retention: {
         Args: { _hold_id: string; _reason: string }
         Returns: string
       }
+      get_dsr_events: {
+        Args: { _request_id: string }
+        Returns: {
+          actor_id: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          note_ar: string | null
+          request_id: string
+          to_status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "dsr_request_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_dsr_timer: { Args: { _request_id: string }; Returns: Json }
+      get_legal_document: { Args: { _code: string }; Returns: Json }
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
       get_public_entity_profile: { Args: { _slug: string }; Returns: Json }
       get_public_media: { Args: { _token: string }; Returns: Json }
@@ -8779,6 +9253,108 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      list_data_incidents: {
+        Args: never
+        Returns: {
+          affected_scope_ar: string
+          authority_notified_at: string | null
+          contained_at: string | null
+          created_at: string
+          data_categories: string[]
+          detected_at: string
+          id: string
+          lessons_ar: string | null
+          notification_required: boolean
+          reported_by: string | null
+          root_cause_ar: string | null
+          severity: string
+          status: string
+          subjects_estimate: number | null
+          subjects_notified_at: string | null
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "data_incidents"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_data_processing_register: {
+        Args: never
+        Returns: {
+          active: boolean
+          activity_ar: string
+          activity_code: string
+          backing_objects: string[]
+          created_at: string
+          cross_border: boolean
+          data_categories: string[]
+          deletion_mechanism_ar: string
+          id: string
+          legal_basis_ar: string
+          module: Database["public"]["Enums"]["app_module"]
+          purpose_ar: string
+          recipients: string[]
+          retention_months: number | null
+          retention_period_ar: string
+          subject_categories: string[]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "data_processing_register"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_dpia: { Args: never; Returns: Json }
+      list_dpia_register: { Args: never; Returns: Json }
+      list_dsr_events: {
+        Args: { _request_id: string }
+        Returns: {
+          actor_id: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          note_ar: string | null
+          request_id: string
+          to_status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "dsr_request_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_dsr_requests: {
+        Args: { _status?: string }
+        Returns: {
+          closed_at: string | null
+          created_at: string
+          decision_ar: string | null
+          details_ar: string
+          due_at: string
+          id: string
+          identity_method: string | null
+          identity_verified_at: string | null
+          kind: string
+          queue_item_id: string | null
+          restriction_reasons: string[]
+          result_ref: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "dsr_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       list_integration_requests: {
         Args: { _code?: string; _limit?: number }
         Returns: {
@@ -8839,6 +9415,52 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      list_legal_documents: {
+        Args: never
+        Returns: {
+          code: string
+          effective_date: string
+          slug: string
+          title_ar: string
+          version: string
+        }[]
+      }
+      list_my_dsr_requests: {
+        Args: never
+        Returns: {
+          closed_at: string | null
+          created_at: string
+          decision_ar: string | null
+          details_ar: string
+          due_at: string
+          id: string
+          identity_method: string | null
+          identity_verified_at: string | null
+          kind: string
+          queue_item_id: string | null
+          restriction_reasons: string[]
+          result_ref: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "dsr_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_my_policy_acceptances: {
+        Args: never
+        Returns: {
+          accepted_at: string
+          code: string
+          context: string
+          title_ar: string
+          version: string
+        }[]
+      }
       list_platform_staff: {
         Args: never
         Returns: {
@@ -8850,6 +9472,34 @@ export type Database = {
           role: Database["public"]["Enums"]["platform_role"]
           user_id: string
         }[]
+      }
+      list_processing_register: {
+        Args: never
+        Returns: {
+          active: boolean
+          activity_ar: string
+          activity_code: string
+          backing_objects: string[]
+          created_at: string
+          cross_border: boolean
+          data_categories: string[]
+          deletion_mechanism_ar: string
+          id: string
+          legal_basis_ar: string
+          module: Database["public"]["Enums"]["app_module"]
+          purpose_ar: string
+          recipients: string[]
+          retention_months: number | null
+          retention_period_ar: string
+          subject_categories: string[]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "data_processing_register"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       list_queue_items: {
         Args: { _mine?: boolean; _status?: string }
@@ -8878,6 +9528,17 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      log_data_incident: {
+        Args: {
+          _affected_scope_ar: string
+          _data_categories?: string[]
+          _notification_required?: boolean
+          _severity: string
+          _subjects_estimate?: number
+          _title: string
+        }
+        Returns: string
+      }
       mark_all_notifications_read: { Args: never; Returns: number }
       mark_notification_read: {
         Args: { _notification_id: string }
@@ -8895,6 +9556,17 @@ export type Database = {
       open_store: {
         Args: { _country_code: string; _entity_id: string; _name: string }
         Returns: string
+      }
+      pending_policy_acceptances: {
+        Args: never
+        Returns: {
+          code: string
+          document_id: string
+          effective_date: string
+          title_ar: string
+          version: string
+          version_id: string
+        }[]
       }
       place_order: {
         Args: { _cart_id: string; _payment_method: string }
@@ -8925,6 +9597,16 @@ export type Database = {
           _requester_timezone: string
           _starts_at: string
           _title: string
+        }
+        Returns: string
+      }
+      publish_legal_version: {
+        Args: {
+          _body_md: string
+          _code: string
+          _effective_date: string
+          _requires_acceptance?: boolean
+          _version: string
         }
         Returns: string
       }
@@ -9050,6 +9732,19 @@ export type Database = {
           _note?: string
         }
         Returns: Json
+      }
+      report_data_incident: {
+        Args: {
+          _affected_scope_ar: string
+          _data_categories?: string[]
+          _detected_at: string
+          _notification_required?: boolean
+          _root_cause_ar?: string
+          _severity: string
+          _subjects_estimate?: number
+          _title: string
+        }
+        Returns: string
       }
       request_acceptance: {
         Args: { _phase: string; _project_id: string }
@@ -9238,6 +9933,7 @@ export type Database = {
         Args: { _note?: string; _request_id: string }
         Returns: string
       }
+      start_dsr_review: { Args: { _request_id: string }; Returns: undefined }
       submit_disbursement_request: {
         Args: {
           _evidence: Json
@@ -9247,6 +9943,10 @@ export type Database = {
           _resubmitted_from?: string
           _retention_amount?: number
         }
+        Returns: string
+      }
+      submit_dsr_request: {
+        Args: { _details_ar: string; _kind: string }
         Returns: string
       }
       submit_media_asset: { Args: { _asset_id: string }; Returns: undefined }
@@ -9260,6 +9960,17 @@ export type Database = {
         Returns: undefined
       }
       unlink_document: { Args: { _link_id: string }; Returns: boolean }
+      update_data_incident: {
+        Args: {
+          _authority_notified_at?: string
+          _contained_at?: string
+          _incident_id: string
+          _lessons_ar?: string
+          _status?: string
+          _subjects_notified_at?: string
+        }
+        Returns: undefined
+      }
       update_marketing_lead_stage: {
         Args: { _lead_id: string; _stage: string }
         Returns: undefined
@@ -9362,6 +10073,12 @@ export type Database = {
         Returns: string
       }
       use_advanced_analytics: { Args: { _entity_id: string }; Returns: Json }
+      verify_dsr_identity:
+        | { Args: { _method: string; _request_id: string }; Returns: undefined }
+        | {
+            Args: { _method: string; _note_ar?: string; _request_id: string }
+            Returns: undefined
+          }
       verify_marketing_package: { Args: { _token: string }; Returns: Json }
       verify_report: {
         Args: { _token: string }
@@ -9404,6 +10121,7 @@ export type Database = {
         | "marketplace"
         | "commerce"
         | "integrations"
+        | "privacy"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
@@ -9419,6 +10137,7 @@ export type Database = {
         | "report"
         | "support_ticket"
         | "compliance_task"
+        | "dsr_request"
       platform_queue_status:
         | "open"
         | "assigned"
@@ -9592,6 +10311,7 @@ export const Constants = {
         "marketplace",
         "commerce",
         "integrations",
+        "privacy",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       breakglass_status: ["pending", "approved", "denied", "expired"],
@@ -9609,6 +10329,7 @@ export const Constants = {
         "report",
         "support_ticket",
         "compliance_task",
+        "dsr_request",
       ],
       platform_queue_status: [
         "open",
