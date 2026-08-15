@@ -27,7 +27,7 @@ const notificationSchema = z.object({
   entity_id: z.string().uuid().nullable(),
   target_kind: z.string(),
   target_id: z.string().uuid().nullable(),
-  payload: z.record(z.string(), z.unknown()).nullable(),
+  payload: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).nullable(),
   severity: z.string(),
   created_at: z.string(),
   read_at: z.string().nullable(),
