@@ -150,7 +150,7 @@ function DocumentsPage() {
       const { supabase } = await import("@/integrations/supabase/client");
       const upload = await supabase.storage
         .from(reserved.storage_bucket)
-        .upload(reserved.storage_path, file, { contentType: file.type || undefined });
+        .upload(reserved.storage_path, file, ...(file.type ? [{ contentType: file.type }] : []));
       if (upload.error) throw new Error(upload.error.message);
       return documentId;
     },
@@ -382,7 +382,7 @@ function DocumentsPage() {
 
         <DataTable
           columns={columns}
-          data={documentsQuery.data ?? []}
+          rows={documentsQuery.data ?? []}
           isLoading={documentsQuery.isLoading}
           emptyTitle="لا توجد مستندات بعد"
           emptyDescription="ابدأ برفع أول مستند إلى مكتبة الكيان."

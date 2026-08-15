@@ -169,7 +169,7 @@ export const createDocument = createServerFn({ method: "POST" })
       _owner_entity_id: data.ownerEntityId,
       _category_code: data.categoryCode,
       _title: data.title,
-      _description: data.description ?? undefined,
+      ...(data.description ? { _description: data.description } : {}),
       _visibility: data.visibility ?? "entity_private",
     });
     if (error) throw new Error(error.message);
@@ -199,7 +199,7 @@ export const reserveDocumentVersion = createServerFn({ method: "POST" })
       _mime_type: data.mimeType,
       _size_bytes: data.sizeBytes,
       _checksum_sha256: data.checksumSha256.toLowerCase(),
-      _supersede_reason: data.supersedeReason ?? undefined,
+      ...(data.supersedeReason ? { _supersede_reason: data.supersedeReason } : {}),
       _source: data.source ?? "upload",
     });
     if (error) throw new Error(error.message);
@@ -303,7 +303,7 @@ export const approveDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("approve_document", {
       _document_id: data.documentId,
-      _note: data.note ?? undefined,
+      ...(data.note ? { _note: data.note } : {}),
     });
     if (error) throw new Error(error.message);
     return { ok: true };
