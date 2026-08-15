@@ -32,14 +32,17 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 const MATCH_AR: Record<string, string> = {
-  code: "رقم المشروع",
-  name: "اسم المشروع",
+  project_code: "رقم المشروع",
+  project_name: "اسم المشروع",
+  project: "المشروع",
   district: "الحي",
+  property_district: "حي العقار",
   parcel_no: "رقم القطعة",
   plan_no: "رقم المخطط",
   deed_number: "رقم الصك",
   license_number: "رقم الرخصة",
 };
+
 
 const STATUS_AR: Record<string, string> = {
   draft: "مسودة",
