@@ -1,78 +1,62 @@
-# المرحلة 7 — الملف العقاري الموحد (خطة)
+# المرحلة 9 — أطراف المشروع (كيانات خارجية) والدعوات ودورة الوصول
 
-الهدف: بناء "ملف عقاري" مستقل عن المشروع، يجمع الصكوك والرخص والحدود والوحدات، مع إصدارات لا تُحذف، ونسبة اكتمال محسوبة ديناميكيًا.
+## 1. الفكرة في سطر
+مالك المشروع يدعو **كيانًا كاملاً** (مكتب تصميم، إشراف، مقاول، فاحص، تأمين، محاسبة، قانوني، مورد) للمشاركة في مشروع محدد، يحدد له نطاق عمل ومراحل وصلاحيات دقيقة، ثم يدير مدير ذلك الكيان فريقه بنفسه داخل هذا النطاق فقط.
 
-## 1. نموذج البيانات
+## 2. ما هو موجود فعلاً ولن يُعاد بناؤه
+مؤكَّد من قراءة القاعدة الحالية:
+- `permission_grants` يدعم أصلاً `subject_entity_id` (منح على مستوى كيان) و`scope_project_id` (نطاق مشروع)، و`private.entity_ceiling` يستخدمها كسقف للكيان الخارجي — هذا هو محرك الصلاحيات الذي ستُبنى عليه المرحلة، بلا نظام موازٍ.
+- `private.can` يعرف مسار المنح والإسنادات؛ ما ينقصه فقط: اعتبار الطرف المقبول مصدر صلاحية، وتقييد الوصول بالمراحل المتفق عليها.
+- `project_assignments` (المرحلة 6) هو آلية إسناد الأفراد الوحيدة، و`offboard_member` هو نمط الأرشفة، و`permission_audit_log` هو سجل التدقيق. الثلاثة تُستخدم كما هي.
+- لا يوجد بعد جدول مستندات عام في المشروع (المستندات الحالية خاصة بالعقار: صكوك ورخص). لذلك أرشفة "المستندات التي رفعها الطرف" في هذه المرحلة تعني: تثبيت هوية الطرف على مساهماته الحالية القابلة للربط (الإسنادات والمراحل)، وترك ربط جدول المستندات العام لمرحلته عند إنشائه.
 
-### properties (العقار)
-- الملكية على نمط ADR-0001: `owner_id` (auth.users) + `entity_id` (nullable) — كما في `projects`.
-- الحقول: `kind` (land / villa / building / compound / unit_block)، `name`، `code`، `status`، `city`، `district`، `land_area`، `plan_no`، `parcel_no`، `notes`.
-- الموقع مفصول لعمودين بصلاحيات مختلفة (بند 3):
-  - `approx_lat` / `approx_lng` — موقع تقريبي (عرض عام لأطراف المشروع).
-  - `exact_lat` / `exact_lng` / `exact_address` — دقيق، لا يظهر إلا لمن يملك صلاحية عرضه.
-- `created_by`, `created_at`, `updated_at`, `deleted_at` (soft delete).
+## 3. جدول واحد جديد + جدولان مساعدان
 
-### property_owners (الملاك ونسبهم)
-- `property_id`, `owner_user_id` (nullable), `owner_entity_id` (nullable), `owner_name_text` (لمالك خارجي بلا حساب), `national_id_masked`, `share_percent numeric(6,3)`, `starts_on`, `ends_on`.
-- منع تجاوز 100%: trigger `enforce_owner_share_total` يجمع النسب الفعّالة (`ends_on is null` وغير محذوفة) بعد كل insert/update ويرفض إذا تجاوز 100. مع `CHECK (share_percent > 0 AND share_percent <= 100)`.
+### `project_parties` (الأساسي)
+- `project_id`, `party_entity_id` (الكيان المدعو), `party_role` (design_office / supervision / contractor / inspector / insurance / accounting / legal / supplier)
+- `scope_text_ar` / `scope_text_en` (نطاق العمل), `starts_on`, `ends_on`
+- `status`: invited / accepted / rejected / ended / cancelled
+- `invited_by`, `responded_by`, `responded_at`, `ended_at`, `end_reason`
+- قيد: طرف فعّال واحد لكل (مشروع + كيان + دور).
 
-### المستندات وإصداراتها
-نمط موحّد: جدول رأس (هوية المستند) + جدول إصدارات (append-only).
-- `deeds`: `property_id`, `deed_number`, `issuer`, `current_version_id`.
-- `deed_versions`: `deed_id`, `version_no`, `deed_date`, `area`, `owner_name_snapshot`, `file_path` (Storage), `file_hash`, `source` (`manual` | `extracted`), `extracted_payload jsonb` (يُملأ لاحقًا يدويًا أو بتحليل — لا تحليل الآن)، `created_by`, `created_at`.
-- `building_licenses`: `property_id`, `license_number`, `authority`, `current_version_id`.
-- `license_versions`: `license_id`, `version_no`, `issued_on`, `expires_on`, `scope_text`, `file_path`, `source`, `extracted_payload`, `created_by`.
-- قاعدة الإصدارات (بند 4): تريجر يمنع `UPDATE`/`DELETE` على جداول `*_versions` (append-only)، وأي استبدال = صف جديد بـ `version_no + 1` ثم تحديث `current_version_id` في الرأس فقط.
+### `project_party_stages`
+ربط الطرف بالمراحل المسموح له بها من `project_stages`. لا صف = لا مرحلة (deny by default). هذا هو أساس العزل في البند 5.
 
-### land_boundaries
-- `property_id`, `side` (north/south/east/west/other), `length_m`, `description`, `neighbor_text`, `order_index`.
+### `project_party_permissions`
+لا يخزّن صلاحيات بنفسه؛ يربط صف الطرف بصفوف `permission_grants` التي أنشأها مالك المشروع له (`subject_entity_id = party_entity_id`, `scope_type='project'`). الغرض: سحب كل المنح دفعة واحدة عند الإنهاء، وعرضها في الواجهة كوحدة واحدة.
 
-### property_units
-- `property_id`, `unit_no`, `unit_type` (apartment/floor/shop/villa)، `floor_no`, `area`, `rooms`, `status` (planned/available/sold/rented)، `notes`.
+كل الجداول: GRANT للأدوار المناسبة + RLS + `updated_at` trigger + تسجيل في `permission_audit_log`.
 
-### property_services (هيكل فقط — التفعيل في المرحلة 13)
-- `property_id`, `service_type` (electricity/water/sewage/telecom/gas)، `status` (`not_started` افتراضيًا)، `reference_no`, `notes`.
-- بلا منطق تشغيل ولا واجهة تفاعلية الآن؛ عرض قراءة فقط.
+## 4. دورة حياة الدعوة
+1. **دعوة**: مالك المشروع (أو من يملك `manage_members` على المشروع) ينشئ صف `project_parties` بحالة `invited` مع الدور والنطاق والمراحل والصلاحيات المطلوبة. الصلاحيات تُكتب فورًا كـ`permission_grants` لكن **لا تسري** قبل القبول (يتحقق `private.can` من حالة الطرف).
+2. **رد الكيان**: مالك/مسؤول الكيان المدعو فقط يستطيع `accept` أو `reject` عبر دالة `respond_to_project_party` (SECURITY DEFINER مع فحص داخلي حقيقي لـ`private.has_role`).
+3. **بعد القبول**: مدير الكيان المقبول يسند أعضاءه عبر `project_assignments` الحالية — بشرط أن يكونوا أعضاء فعّالين في كيانه، وأن تكون المرحلة ضمن `project_party_stages`. يُفرض هذا بـtrigger على `project_assignments`، لا بمنطق واجهة.
+4. **إنهاء**: `end_project_party` يوقف الوصول فورًا (status=ended، سحب كل المنح المرتبطة، إنهاء إسنادات أعضاء الكيان في هذا المشروع بحالة `ended` أو `transferred` مع صف في `assignment_transfers`) — بلا أي حذف، على نمط `offboard_member`.
 
-### property_projects (جدول الربط — بند 2)
-- `property_id`, `project_id`, `relation` (`primary` | `related`)، `linked_by`, `created_at`، فريد على (property_id, project_id).
-- لا مفتاح صلب من `projects` إلى `properties`؛ العقار قد يخدم أكثر من مشروع والعكس.
+## 5. العزل (البند الحاسم)
+يُضاف إلى محرك المرحلة 5، لا بجانبه:
+- `private.party_ceiling(user, module, action, project)`: صلاحية العضو الخارجي = سقف كيانه المقبول في هذا المشروع ∩ منحه الشخصية ∩ مراحل الطرف.
+- `private.can` يُعدَّل ليعترف بمسار الطرف المقبول فقط، ويُهمل الأطراف بحالة invited/rejected/ended/cancelled.
+- `private.can_access_project` يبقى صحيحًا للعضو الخارجي، لكن قراءات التفاصيل تُقيَّد:
+  - المراحل: يرى فقط مراحل `project_party_stages`.
+  - العقار: يرى العقار المرتبط بالمشروع ببياناته الأساسية فقط — **الموقع الدقيق يبقى محجوبًا** (لا يُمنح `view_exact` تلقائيًا)، وهذا امتداد لما تم إثباته في المرحلة 7.
+  - الوحدات والحدود والمستندات: مرتبطة بالمراحل/النطاق نفسه.
+  - أعضاء المشروع: يرى الأسماء حسب `visibility` القائم من المرحلة 6، دون كشف إضافي.
+- سقف صارم: لا يستطيع مالك المشروع منح الطرف الخارجي ما لا يملكه هو (يُفرض عبر `validate_permission_grant` القائم).
 
-## 2. الصلاحيات (امتداد المرحلتين 5 و6)
-- إضافة قيمة `properties` إلى `app_module`، وتغذية `role_permissions` بها بنفس نمط `projects`.
-- دالة `private.can_access_property(uid, property_id)`: مالك العقار، أو قيادة الكيان المالك، أو مستخدم لديه وصول لمشروع مرتبط بالعقار عبر `property_projects` (باستخدام `private.can_access_project` الحالية)، أو منحة صريحة في `permission_grants`.
-- الموقع الدقيق: عرضه يتطلب `private.can(uid,'properties','view_exact')` — عمليًا عبر view `properties_public` يُظهر الأعمدة التقريبية دومًا ويُخفي الدقيقة (NULL) لغير المصرح لهم، بنفس نمط قناع الأسماء في المرحلة 6.
-- RLS على كل الجداول + GRANT صريح لـ authenticated و service_role، وحذف = soft delete (لا سياسة DELETE).
+## 6. الطبقة الخادمية والواجهة
+- `src/lib/project-parties.functions.ts`: دعوة طرف، تعديل نطاقه ومراحله وصلاحياته، رد الكيان، إنهاء الطرف، قوائم القراءة (أطراف المشروع / دعواتي الواردة ككيان).
+- صفحة `projects/$projectId/parties`: جدول الأطراف بحالاتها + نموذج دعوة (كيان، دور، نطاق، مراحل، مصفوفة صلاحيات قسم×فعل) + إنهاء طرف.
+- صفحة `entities/$entityId/incoming-invitations`: دعوات المشاريع الواردة للكيان مع قبول/رفض.
+- مفاتيح i18n عربي/إنجليزي كاملة، وبنفس مكونات `rakeez` القائمة.
 
-## 3. نسبة الاكتمال (بند 5)
-- دالة `public.property_completion(_property_id uuid) returns numeric` + view `property_completion_view`.
-- الأوزان تعتمد على `properties.kind` عبر جدول مرجعي `property_completion_rules(kind, requirement_code, weight)`، ليتغير المطلوب بين أرض/فيلا/مبنى/مجمع دون تعديل كود.
-- المتطلبات المُقاسة: بيانات أساسية، ملاك بمجموع 100%، صك بإصدار حالي، رخصة (حيث تلزم)، حدود الأرض الأربعة، وحدات (للمباني/المجمعات فقط).
-- لا عمود ثابت يُحدَّث يدويًا.
+## 7. الاختبارات الحية قبل إعلان الاكتمال
+1. دعوة كيان خارجي → قبل القبول لا يرى أي شيء من المشروع (نتيجة فعلية = 0 صفوف).
+2. بعد القبول: يرى المشروع والمراحل المسموحة فقط، ولا يرى المراحل الأخرى ولا الموقع الدقيق للعقار.
+3. مدير الكيان الخارجي يسند عضوًا من كيانه → ينجح؛ ومحاولة إسناد شخص من خارج كيانه أو لمرحلة خارج النطاق → تفشل.
+4. رفض الدعوة، ودعوة ملغاة/منتهية → لا تمنح أي وصول.
+5. إنهاء الطرف: توقف الوصول فورًا لكل أعضائه، مع بقاء إسناداته السابقة وسجلاته كما هي (أرشفة لا حذف) وظهورها في `permission_audit_log`.
+6. حذف كل بيانات الاختبار، ثم Supabase Advisors ومراجعة أي دالة SECURITY DEFINER جديدة للتأكد من احتوائها فحصًا داخليًا حقيقيًا.
 
-## 4. الطبقة الخادمية
-`src/lib/properties.functions.ts` (wrapper رفيع فقط، بنفس نمط `projects.functions.ts` و`team.functions.ts`):
-- `listProperties`, `getPropertyProfile` (ملخص + اكتمال + عدّادات التبويبات)، `createProperty`, `updatePropertyBasics`.
-- `upsertPropertyOwners` (يتحقق من 100% قبل الإرسال ويعتمد على التريجر كخط دفاع أخير).
-- `addDeedVersion`, `addLicenseVersion` (إنشاء الرأس عند الحاجة + إصدار جديد).
-- `setLandBoundaries`, `upsertUnits`, `linkPropertyToProject`, `unlinkPropertyFromProject`.
-- التخزين: bucket خاص `property-documents` بمسار `{property_id}/{doc_type}/{version_id}`، رفع/تنزيل عبر signed URLs من دالة خادمية تتحقق من `can_access_property` — لا bucket عام.
-
-## 5. الواجهة (بند 7)
-- `/properties` — قائمة العقارات (RakeezDataTable) مع نسبة الاكتمال.
-- `/properties/new` — إنشاء مختصر (نوع، اسم، مدينة/حي، مساحة).
-- `/properties/$propertyId` — الملف العقاري:
-  - أعلى الصفحة: بطاقة ملخص موحدة (النوع، الموقع التقريبي، المساحة، الملاك، حالة الصك/الرخصة، شريط نسبة الاكتمال، المشاريع المرتبطة).
-  - أسفلها: Accordion تبويبات **مطوية افتراضيًا**: الملاك • الصك والإصدارات • الرخص والإصدارات • حدود الأرض • الوحدات • الخدمات (قراءة فقط) • المشاريع المرتبطة.
-- مفاتيح i18n جديدة في `src/i18n/locales/ar.ts` و`en.ts` (ar المرجع).
-
-## 6. خارج النطاق
-- أي استخراج/تحليل ذكاء اصطناعي لبيانات الصك — الحقول موجودة (`extracted_payload`, `source`) لكن لا معالجة الآن.
-- تفعيل منطق `property_services` (المرحلة 13).
-- لا نشر، ولا لمس GitHub.
-
-## 7. ترتيب التنفيذ
-1. Migration واحدة: الجداول + GRANT + RLS + التريجرات + الدوال + قواعد الاكتمال + bucket التخزين وسياساته.
-2. تحديث الأنواع، ثم `properties.functions.ts`.
-3. مفاتيح i18n ثم صفحات الواجهة الثلاث.
-4. اختبار حي: نسب ملكية > 100% مرفوضة، إصدار جديد لا يمس الأصل، إخفاء الموقع الدقيق لغير المصرح، عزل الوصول عبر الربط بمشروع، احتساب الاكتمال لنوعين مختلفين — ثم حذف بيانات الاختبار وتشغيل Supabase Advisors.
+## 8. خارج النطاق
+لا مراسلات، لا عقود، لا رفع مستندات عامة، لا إشعارات بريد — الدعوة تُقبل من داخل المنصة بحساب الكيان المدعو.
