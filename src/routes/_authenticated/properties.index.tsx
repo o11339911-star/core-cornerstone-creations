@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DataTable, ErrorState } from "@/components/rakeez";
+import { DataTable, ErrorState, HeroBadge, PageHero } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { listProperties, type PropertyListItem } from "@/lib/properties.functions";
 
@@ -80,36 +81,31 @@ function PropertiesPage() {
   ];
 
   return (
-    <div className="bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="text-start">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              {t("properties.title")}
-            </h1>
-            <p className="mt-2 text-muted-foreground">{t("properties.subtitle")}</p>
-          </div>
-          <Button asChild className="min-h-11">
+    <div className="mx-auto min-h-screen w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={t("properties.title")}
+        subtitle={t("properties.subtitle")}
+        badge={<HeroBadge tone="neutral">{query.data?.length ?? 0}</HeroBadge>}
+        aside={
+          <Button asChild className="min-h-11" variant="secondary">
             <Link to="/properties/new">{t("properties.add")}</Link>
           </Button>
-        </header>
+        }
+      />
 
-        <div className="mt-8">
-          <DataTable
-            columns={columns}
-            rows={query.data ?? []}
-            getRowId={(row) => row.id}
-            isLoading={query.isLoading}
-            isError={query.isError}
-            onRetry={() => void query.refetch()}
-            emptyTitle={t("properties.none")}
-            emptyDescription={t("properties.noneDescription")}
-            onRowClick={(row) =>
-              navigate({ to: "/properties/$propertyId", params: { propertyId: row.id } })
-            }
-          />
-        </div>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={query.data ?? []}
+        getRowId={(row) => row.id}
+        isLoading={query.isLoading}
+        isError={query.isError}
+        onRetry={() => void query.refetch()}
+        emptyTitle={t("properties.none")}
+        emptyDescription={t("properties.noneDescription")}
+        onRowClick={(row) =>
+          navigate({ to: "/properties/$propertyId", params: { propertyId: row.id } })
+        }
+      />
     </div>
   );
 }

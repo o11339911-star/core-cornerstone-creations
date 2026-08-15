@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ErrorState, FieldShell, TextAreaField, TextField } from "@/components/rakeez";
+import {
+  ErrorState,
+  FieldShell,
+  HeroBadge,
+  PageHero,
+  SectionCard,
+  TextAreaField,
+  TextField,
+} from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { useActiveAccount } from "@/lib/active-account";
 import { PROPERTY_KINDS, createProperty, type PropertyKind } from "@/lib/properties.functions";
@@ -95,124 +104,125 @@ function NewPropertyPage() {
   };
 
   return (
-    <div className="bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <header className="text-start">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {t("properties.newTitle")}
-          </h1>
-          <p className="mt-2 text-muted-foreground">{t("properties.newSubtitle")}</p>
-        </header>
+    <div className="mx-auto min-h-screen w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={t("properties.newTitle")}
+        subtitle={t("properties.newSubtitle")}
+        badge={<HeroBadge tone="neutral">{t("properties.title")}</HeroBadge>}
+      />
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-6" noValidate>
-          <FieldShell id="property-kind" label={t("properties.kind")} error={errors.kind} required>
-            {(aria) => (
-              <Select value={kind} onValueChange={(value) => setKind(value as PropertyKind)}>
-                <SelectTrigger
-                  id={aria.id}
-                  aria-describedby={aria["aria-describedby"]}
-                  aria-invalid={aria["aria-invalid"]}
-                  className="min-h-11"
-                >
-                  <SelectValue placeholder={t("properties.kind")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROPERTY_KINDS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`properties.kinds.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </FieldShell>
+      <form onSubmit={onSubmit} className="space-y-6" noValidate>
+        <SectionCard icon={Building2} title={t("properties.newTitle")}>
+          <div className="space-y-6">
+            <FieldShell id="property-kind" label={t("properties.kind")} error={errors.kind} required>
+              {(aria) => (
+                <Select value={kind} onValueChange={(value) => setKind(value as PropertyKind)}>
+                  <SelectTrigger
+                    id={aria.id}
+                    aria-describedby={aria["aria-describedby"]}
+                    aria-invalid={aria["aria-invalid"]}
+                    className="min-h-11"
+                  >
+                    <SelectValue placeholder={t("properties.kind")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROPERTY_KINDS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`properties.kinds.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </FieldShell>
 
-          <TextField
-            id="property-name"
-            label={t("properties.name")}
-            placeholder={t("properties.namePlaceholder")}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            error={errors.name}
-            required
-          />
+            <TextField
+              id="property-name"
+              label={t("properties.name")}
+              placeholder={t("properties.namePlaceholder")}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              error={errors.name}
+              required
+            />
 
-          <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{t("properties.scope")}: </span>
-            {scope?.kind === "entity" ? scope.entityId : t("properties.scopePersonal")}
-          </div>
+            <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{t("properties.scope")}: </span>
+              {scope?.kind === "entity" ? scope.entityId : t("properties.scopePersonal")}
+            </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <TextField
-              id="property-city"
-              label={t("properties.city")}
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-            />
-            <TextField
-              id="property-district"
-              label={t("properties.district")}
-              value={district}
-              onChange={(event) => setDistrict(event.target.value)}
-            />
-            <TextField
-              id="property-area"
-              label={t("properties.landArea")}
-              type="number"
-              value={landArea}
-              onChange={(event) => setLandArea(event.target.value)}
-            />
-            <TextField
-              id="property-plan"
-              label={t("properties.planNo")}
-              value={planNo}
-              onChange={(event) => setPlanNo(event.target.value)}
-            />
-            <TextField
-              id="property-parcel"
-              label={t("properties.parcelNo")}
-              value={parcelNo}
-              onChange={(event) => setParcelNo(event.target.value)}
-            />
-          </div>
-
-          <fieldset className="rounded-xl border border-border p-4">
-            <legend className="px-2 text-sm font-medium text-foreground">
-              {t("properties.approxLocation")}
-            </legend>
             <div className="grid gap-6 sm:grid-cols-2">
               <TextField
-                id="property-lat"
-                label={t("properties.latitude")}
-                type="number"
-                value={approxLat}
-                onChange={(event) => setApproxLat(event.target.value)}
+                id="property-city"
+                label={t("properties.city")}
+                value={city}
+                onChange={(event) => setCity(event.target.value)}
               />
               <TextField
-                id="property-lng"
-                label={t("properties.longitude")}
+                id="property-district"
+                label={t("properties.district")}
+                value={district}
+                onChange={(event) => setDistrict(event.target.value)}
+              />
+              <TextField
+                id="property-area"
+                label={t("properties.landArea")}
                 type="number"
-                value={approxLng}
-                onChange={(event) => setApproxLng(event.target.value)}
+                value={landArea}
+                onChange={(event) => setLandArea(event.target.value)}
+              />
+              <TextField
+                id="property-plan"
+                label={t("properties.planNo")}
+                value={planNo}
+                onChange={(event) => setPlanNo(event.target.value)}
+              />
+              <TextField
+                id="property-parcel"
+                label={t("properties.parcelNo")}
+                value={parcelNo}
+                onChange={(event) => setParcelNo(event.target.value)}
               />
             </div>
-          </fieldset>
 
-          <TextAreaField
-            id="property-notes"
-            label={t("properties.notes")}
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            rows={4}
-          />
+            <fieldset className="rounded-xl border border-border p-4">
+              <legend className="px-2 text-sm font-medium text-foreground">
+                {t("properties.approxLocation")}
+              </legend>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <TextField
+                  id="property-lat"
+                  label={t("properties.latitude")}
+                  type="number"
+                  value={approxLat}
+                  onChange={(event) => setApproxLat(event.target.value)}
+                />
+                <TextField
+                  id="property-lng"
+                  label={t("properties.longitude")}
+                  type="number"
+                  value={approxLng}
+                  onChange={(event) => setApproxLng(event.target.value)}
+                />
+              </div>
+            </fieldset>
 
-          <div className="flex justify-end">
-            <Button type="submit" className="min-h-11" disabled={mutation.isPending}>
-              {mutation.isPending ? t("properties.creating") : t("properties.submit")}
-            </Button>
+            <TextAreaField
+              id="property-notes"
+              label={t("properties.notes")}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              rows={4}
+            />
           </div>
-        </form>
-      </div>
+        </SectionCard>
+
+        <div className="flex justify-end">
+          <Button type="submit" className="min-h-11 w-full sm:w-auto" disabled={mutation.isPending}>
+            {mutation.isPending ? t("properties.creating") : t("properties.submit")}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

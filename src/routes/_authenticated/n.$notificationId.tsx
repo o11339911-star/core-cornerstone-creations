@@ -2,8 +2,10 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { BellRing } from "lucide-react";
 
-import { ErrorState } from "@/components/rakeez";
+import { ErrorState, SoftEmpty } from "@/components/rakeez";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useT } from "@/i18n";
 import {
   markNotificationRead,
@@ -65,24 +67,27 @@ function NotificationTargetPage() {
 
   if (isLoading) {
     return (
-      <main className="mx-auto max-w-lg px-4 py-16 text-center">
-        <p className="text-sm text-muted-foreground">{t("notifications.linkChecking")}</p>
+      <main className="mx-auto max-w-lg space-y-3 px-4 py-16" role="status" aria-busy="true">
+        <Skeleton className="mx-auto h-6 w-48 rounded-md" />
+        <Skeleton className="mx-auto h-4 w-64 rounded-md" />
       </main>
     );
   }
 
   if (!data?.ok) {
     return (
-      <main className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-foreground">{t("notifications.linkDenied")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("notifications.linkDeniedHint")}</p>
+      <main className="mx-auto max-w-lg px-4 py-16">
+        <SoftEmpty icon={BellRing} message={t("notifications.linkDenied")} />
+        <p className="mt-3 text-center text-sm text-muted-foreground">
+          {t("notifications.linkDeniedHint")}
+        </p>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-16 text-center">
-      <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+    <main className="mx-auto max-w-lg space-y-3 px-4 py-16" role="status" aria-busy="true">
+      <Skeleton className="mx-auto h-6 w-48 rounded-md" />
     </main>
   );
 }
