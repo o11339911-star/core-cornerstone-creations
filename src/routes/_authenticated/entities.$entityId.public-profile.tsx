@@ -180,46 +180,55 @@ function PublicProfilePage() {
           <RakeezCard title="بيانات العرض">
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
+                id="epp-displayNameAr"
                 label="الاسم التجاري (عربي)"
                 value={form.displayNameAr}
                 onChange={(e) => setForm((f) => ({ ...f, displayNameAr: e.target.value }))}
               />
               <TextField
+                id="epp-displayNameEn"
                 label="الاسم التجاري (إنجليزي)"
                 value={form.displayNameEn}
                 onChange={(e) => setForm((f) => ({ ...f, displayNameEn: e.target.value }))}
               />
               <TextField
+                id="epp-activityAr"
                 label="النشاط"
                 value={form.activityAr}
                 onChange={(e) => setForm((f) => ({ ...f, activityAr: e.target.value }))}
               />
               <TextField
+                id="epp-logoUrl"
                 label="رابط الشعار (https فقط)"
                 value={form.logoUrl}
                 onChange={(e) => setForm((f) => ({ ...f, logoUrl: e.target.value }))}
               />
               <TextField
+                id="epp-services"
                 label="الخدمات (افصل بفاصلة)"
                 value={form.services}
                 onChange={(e) => setForm((f) => ({ ...f, services: e.target.value }))}
               />
               <TextField
+                id="epp-regions"
                 label="المناطق (افصل بفاصلة)"
                 value={form.regions}
                 onChange={(e) => setForm((f) => ({ ...f, regions: e.target.value }))}
               />
               <TextField
+                id="epp-websiteUrl"
                 label="الموقع الإلكتروني"
                 value={form.websiteUrl}
                 onChange={(e) => setForm((f) => ({ ...f, websiteUrl: e.target.value }))}
               />
               <TextField
+                id="epp-publicEmail"
                 label="بريد معلَن (اختياري)"
                 value={form.publicEmail}
                 onChange={(e) => setForm((f) => ({ ...f, publicEmail: e.target.value }))}
               />
               <TextField
+                id="epp-publicPhone"
                 label="جوال معلَن (اختياري)"
                 value={form.publicPhone}
                 onChange={(e) => setForm((f) => ({ ...f, publicPhone: e.target.value }))}
@@ -227,6 +236,7 @@ function PublicProfilePage() {
             </div>
             <div className="mt-4">
               <TextAreaField
+                id="epp-bioAr"
                 label="نبذة"
                 rows={5}
                 value={form.bioAr}
@@ -272,7 +282,8 @@ function PublicProfilePage() {
                 <div className="flex items-end gap-3">
                   <div className="flex-1">
                     <TextField
-                      label="الرابط المختصر"
+                      id="epp-slug"
+                label="الرابط المختصر"
                       value={slugInput}
                       onChange={(e) => setSlugInput(e.target.value)}
                     />
