@@ -1,4 +1,3 @@
-import {
   AlignmentType,
   Document,
   Footer,
