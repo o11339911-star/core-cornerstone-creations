@@ -84,42 +84,53 @@
 
 :root {
   --radius: 0.75rem;
-  --rakeez-navy: oklch(0.22 0.07 255);
-  --rakeez-gold: oklch(0.72 0.13 82);
-  --rakeez-cream: oklch(0.97 0.01 85);
-  --rakeez-sand: oklch(0.92 0.02 80);
-  --background: var(--rakeez-cream);
-  --foreground: var(--rakeez-navy);
+
+  /* Official identity: #2B4A43 deep olive-green. */
+  --rakeez-green: oklch(0.36 0.034 168);
+  --rakeez-green-deep: oklch(0.29 0.032 168); /* hover / pressed */
+  --rakeez-green-soft: oklch(0.96 0.012 168); /* tinted surfaces */
+  --rakeez-green-tint: oklch(0.92 0.02 168); /* borders / secondary */
+
+  /* Legacy aliases from earlier phases — remapped to the green identity so no
+     page keeps an off-brand colour. */
+  --rakeez-navy: var(--rakeez-green);
+  --rakeez-gold: var(--rakeez-green-deep);
+  --rakeez-cream: oklch(1 0 0);
+  --rakeez-sand: var(--rakeez-green-soft);
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.24 0.02 168);
   --card: oklch(1 0 0);
-  --card-foreground: var(--rakeez-navy);
+  --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
-  --popover-foreground: var(--rakeez-navy);
-  --primary: var(--rakeez-navy);
-  --primary-foreground: var(--rakeez-cream);
-  --secondary: var(--rakeez-sand);
-  --secondary-foreground: var(--rakeez-navy);
-  --muted: var(--rakeez-sand);
-  --muted-foreground: oklch(0.45 0.04 255);
-  --accent: var(--rakeez-gold);
-  --accent-foreground: var(--rakeez-navy);
-  --destructive: oklch(0.57 0.24 27);
-  --destructive-foreground: oklch(0.98 0.01 85);
-  --border: oklch(0.85 0.02 80);
-  --input: oklch(0.85 0.02 80);
-  --ring: var(--rakeez-gold);
-  --chart-1: var(--rakeez-navy);
-  --chart-2: var(--rakeez-gold);
-  --chart-3: oklch(0.55 0.08 200);
-  --chart-4: oklch(0.65 0.12 300);
-  --chart-5: oklch(0.45 0.06 30);
-  --sidebar: var(--rakeez-cream);
-  --sidebar-foreground: var(--rakeez-navy);
-  --sidebar-primary: var(--rakeez-navy);
-  --sidebar-primary-foreground: var(--rakeez-cream);
-  --sidebar-accent: var(--rakeez-sand);
-  --sidebar-accent-foreground: var(--rakeez-navy);
+  --popover-foreground: var(--foreground);
+  --primary: var(--rakeez-green);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--rakeez-green-soft);
+  --secondary-foreground: var(--rakeez-green);
+  --muted: var(--rakeez-green-soft);
+  --muted-foreground: oklch(0.48 0.018 168);
+  --accent: var(--rakeez-green-soft);
+  --accent-foreground: var(--rakeez-green);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(1 0 0);
+  --border: var(--rakeez-green-tint);
+  --input: var(--rakeez-green-tint);
+  --ring: var(--rakeez-green);
+  --chart-1: var(--rakeez-green);
+  --chart-2: oklch(0.52 0.06 168);
+  --chart-3: oklch(0.66 0.07 168);
+  --chart-4: oklch(0.55 0.08 200);
+  --chart-5: oklch(0.62 0.1 120);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--rakeez-green);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: var(--rakeez-green-soft);
+  --sidebar-accent-foreground: var(--rakeez-green);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+
 
   /* Typography */
   --font-family-sans: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
