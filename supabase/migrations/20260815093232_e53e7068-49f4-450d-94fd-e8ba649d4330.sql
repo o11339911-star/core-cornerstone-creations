@@ -1,0 +1,12 @@
+revoke insert, update, delete, truncate, references on public.payment_milestones from authenticated, anon;
+revoke insert, update, delete, truncate, references on public.payment_milestone_amounts from authenticated, anon;
+revoke insert, update, delete, truncate, references on public.disbursement_requests from authenticated, anon;
+revoke insert, update, delete, truncate, references on public.disbursement_request_amounts from authenticated, anon;
+revoke insert, update, delete, truncate, references on public.disbursement_evidence from authenticated, anon;
+revoke insert, update, delete, truncate, references on public.financial_executions from authenticated, anon;
+revoke select on public.payment_milestones from anon;
+revoke select on public.payment_milestone_amounts from anon;
+revoke select on public.disbursement_requests from anon;
+revoke select on public.disbursement_request_amounts from anon;
+revoke select on public.disbursement_evidence from anon;
+revoke select on public.financial_executions from anon;
