@@ -174,7 +174,7 @@ export const approveContractVersion = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: approvedAt, error } = await context.supabase.rpc("approve_contract_version", {
       _version_id: data.versionId,
-      _note: data.note ?? undefined,
+      ...(data.note ? { _note: data.note } : {}),
     });
     if (error) throw new Error(error.message);
     return { approvedAt: approvedAt as string };
@@ -236,7 +236,7 @@ export const decideContractExtension = createServerFn({ method: "POST" })
     const { data: versionId, error } = await context.supabase.rpc("decide_contract_extension", {
       _extension_id: data.extensionId,
       _approve: data.approve,
-      _note: data.note ?? undefined,
+      ...(data.note ? { _note: data.note } : {}),
     });
     if (error) throw new Error(error.message);
     return { resultingVersionId: (versionId as string | null) ?? null };
@@ -308,7 +308,7 @@ export const decideChangeOrder = createServerFn({ method: "POST" })
     const { data: versionId, error } = await context.supabase.rpc("decide_change_order", {
       _change_order_id: data.changeOrderId,
       _approve: data.approve,
-      _note: data.note ?? undefined,
+      ...(data.note ? { _note: data.note } : {}),
     });
     if (error) throw new Error(error.message);
     return { resultingVersionId: (versionId as string | null) ?? null };
