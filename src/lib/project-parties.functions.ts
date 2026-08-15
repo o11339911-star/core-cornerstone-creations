@@ -155,18 +155,30 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: id, error } = await context.supabase.rpc("invite_project_party", {
+    const args: {
+      _project_id: string;
+      _party_entity_id: string;
+      _party_role: PartyRole;
+      _starts_on: string;
+      _stage_ids: string[];
+      _permissions: { module: string; action: string }[];
+      _scope_text_ar?: string;
+      _scope_text_en?: string;
+      _ends_on?: string;
+    } = {
       _project_id: data.projectId,
       _party_entity_id: data.partyEntityId,
       _party_role: data.partyRole,
-      _scope_text_ar: data.scopeTextAr ?? undefined,
-      _scope_text_en: data.scopeTextEn ?? undefined,
       _starts_on: data.startsOn ?? new Date().toISOString().slice(0, 10),
-      _ends_on: data.endsOn ?? undefined,
-
       _stage_ids: data.stageIds,
       _permissions: data.permissions,
-    });
+    };
+    if (data.scopeTextAr) args._scope_text_ar = data.scopeTextAr;
+    if (data.scopeTextEn) args._scope_text_en = data.scopeTextEn;
+    if (data.endsOn) args._ends_on = data.endsOn;
+
+    const { data: id, error } = await context.supabase.rpc("invite_project_party", args);
+
 
     if (error) throw new Error(error.message);
     return { id: id as string };
