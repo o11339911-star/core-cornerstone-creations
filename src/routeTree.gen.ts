@@ -24,6 +24,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
+import { Route as LegalComplaintsRouteImport } from './routes/legal.complaints'
 import { Route as LegalIpRouteImport } from './routes/legal.ip'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
@@ -142,6 +143,11 @@ const ESlugRoute = ESlugRouteImport.update({
 const InviteAcceptRoute = InviteAcceptRouteImport.update({
   id: '/invite/accept',
   path: '/invite/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalComplaintsRoute = LegalComplaintsRouteImport.update({
+  id: '/legal/complaints',
+  path: '/legal/complaints',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalIpRoute = LegalIpRouteImport.update({
@@ -405,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
   '/legal/ip': typeof LegalIpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -461,6 +468,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
   '/legal/ip': typeof LegalIpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -521,6 +529,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/legal/complaints': typeof LegalComplaintsRoute
   '/legal/ip': typeof LegalIpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -581,6 +590,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/legal/complaints'
     | '/legal/ip'
     | '/legal/privacy'
     | '/legal/terms'
@@ -637,6 +647,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/legal/complaints'
     | '/legal/ip'
     | '/legal/privacy'
     | '/legal/terms'
@@ -696,6 +707,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/legal/complaints'
     | '/legal/ip'
     | '/legal/privacy'
     | '/legal/terms'
@@ -748,6 +760,7 @@ export interface RootRouteChildren {
   SelectAccountRoute: typeof SelectAccountRoute
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
+  LegalComplaintsRoute: typeof LegalComplaintsRoute
   LegalIpRoute: typeof LegalIpRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
@@ -862,6 +875,13 @@ declare module '@tanstack/react-router' {
       path: '/invite/accept'
       fullPath: '/invite/accept'
       preLoaderRoute: typeof InviteAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/complaints': {
+      id: '/legal/complaints'
+      path: '/legal/complaints'
+      fullPath: '/legal/complaints'
+      preLoaderRoute: typeof LegalComplaintsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/ip': {
@@ -1307,6 +1327,7 @@ const rootRouteChildren: RootRouteChildren = {
   SelectAccountRoute: SelectAccountRoute,
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
+  LegalComplaintsRoute: LegalComplaintsRoute,
   LegalIpRoute: LegalIpRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
