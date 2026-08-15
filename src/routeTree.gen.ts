@@ -25,6 +25,7 @@ import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-passw
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as MTokenRouteImport } from './routes/m.$token'
 import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
@@ -145,6 +146,11 @@ const InviteAcceptRoute = InviteAcceptRouteImport.update({
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MTokenRoute = MTokenRouteImport.update({
@@ -394,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
@@ -448,6 +455,7 @@ export interface FileRoutesByTo {
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
@@ -506,6 +514,7 @@ export interface FileRoutesById {
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/m/$token': typeof MTokenRoute
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
@@ -564,6 +573,7 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/invite/accept'
     | '/legal/privacy'
+    | '/legal/terms'
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
@@ -618,6 +628,7 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/invite/accept'
     | '/legal/privacy'
+    | '/legal/terms'
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
@@ -675,6 +686,7 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/invite/accept'
     | '/legal/privacy'
+    | '/legal/terms'
     | '/m/$token'
     | '/mp/$token'
     | '/verify/$token'
@@ -725,6 +737,7 @@ export interface RootRouteChildren {
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
   MTokenRoute: typeof MTokenRoute
   MpTokenRoute: typeof MpTokenRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
@@ -843,6 +856,13 @@ declare module '@tanstack/react-router' {
       path: '/legal/privacy'
       fullPath: '/legal/privacy'
       preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/m/$token': {
@@ -1268,6 +1288,7 @@ const rootRouteChildren: RootRouteChildren = {
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
   MTokenRoute: MTokenRoute,
   MpTokenRoute: MpTokenRoute,
   VerifyTokenRoute: VerifyTokenRoute,
