@@ -158,10 +158,10 @@ export function parseDocxToBlocks(fileBytes: Uint8Array): ParseResult {
   };
 
   while (i < body.length) {
-    const pAt = body.indexOf("<w:p", i);
-    const tblAt = body.indexOf("<w:tbl", i);
-    const pValid = pAt !== -1 && /^<w:p[ >/]/.test(body.slice(pAt, pAt + 5));
-    const tblValid = tblAt !== -1 && /^<w:tbl[ >]/.test(body.slice(tblAt, tblAt + 7));
+    const pAt = findOpen(body, "w:p", i);
+    const tblAt = findOpen(body, "w:tbl", i);
+    const pValid = pAt !== -1;
+    const tblValid = tblAt !== -1;
     if (!pValid && !tblValid) break;
 
     if (tblValid && (!pValid || tblAt < pAt)) {
@@ -171,15 +171,15 @@ export function parseDocxToBlocks(fileBytes: Uint8Array): ParseResult {
       const rows: string[][] = [];
       let j = 0;
       while (j < el.inner.length) {
-        const trAt = el.inner.indexOf("<w:tr", j);
-        if (trAt === -1 || !/^<w:tr[ >]/.test(el.inner.slice(trAt, trAt + 6))) break;
+        const trAt = findOpen(el.inner, "w:tr", j);
+        if (trAt === -1) break;
         const tr = sliceElement(el.inner, "w:tr", trAt);
         if (!tr) break;
         const cells: string[] = [];
         let k = 0;
         while (k < tr.inner.length) {
-          const tcAt = tr.inner.indexOf("<w:tc", k);
-          if (tcAt === -1 || !/^<w:tc[ >]/.test(tr.inner.slice(tcAt, tcAt + 6))) break;
+          const tcAt = findOpen(tr.inner, "w:tc", k);
+          if (tcAt === -1) break;
           const tc = sliceElement(tr.inner, "w:tc", tcAt);
           if (!tc) break;
           cells.push(textOf(tc.inner).slice(0, 1000));
