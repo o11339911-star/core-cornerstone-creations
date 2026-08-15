@@ -116,10 +116,11 @@ function extractLines(bytes: Uint8Array): ExtractedLine[] {
 
   streams.forEach((stream, pageIndex) => {
     let size = 12;
+    let lineSize = 12;
     let current = "";
     const push = () => {
       const text = recoverUtf8(current).replace(/\s+/g, " ").trim();
-      if (text) lines.push({ text, size, page: pageIndex + 1 });
+      if (text) lines.push({ text, size: lineSize, page: pageIndex + 1 });
       current = "";
     };
 
@@ -132,8 +133,10 @@ function extractLines(bytes: Uint8Array): ExtractedLine[] {
         const parsed = Number(m[1]);
         if (Number.isFinite(parsed) && parsed > 0) size = parsed;
       } else if (tok.startsWith("(")) {
+        if (!current) lineSize = size;
         current += decodeLiteral(tok.slice(1, -1));
       } else if (tok.startsWith("<")) {
+        if (!current) lineSize = size;
         current += decodeHex(tok.slice(1, -1));
       } else if (tok === "Td" || tok === "TD" || tok === "Tm" || tok === "T*" || tok === "ET") {
         push();
