@@ -1,85 +1,68 @@
-# المرحلة 22 — التسويق العقاري والتعاقد مع المسوق
+# المرحلة 23 — تصوير 360 درجة
 
-مسار تسويقي معزول تمامًا عن المسار الإنشائي: ملف تسويق يملكه مالك المشروع، عقد تسويق مع مسوّق مرخّص، إصدارات محتوى append-only باعتماد المالك، وحقيبة تسويق خارجية موقّعة قابلة للتحقق العام.
+## الهدف
+دورة كاملة لتصوير 360: طلب تصوير بموعد ومصوّر وإثبات حضور ← رفع أصول خام خاصة ← طمس إلزامي ← مراجعة المسوّق ← اعتماد المالك ← نشر داخلي أو برابط خارجي محدود المدة، مع فصل صارم بين التخزين الخاص للأصل الخام والنسخة العامة المعتمدة.
 
-## المبدأ الأمني الحاكم
+## إفصاح عن القدرات (صدق تقني)
+لا تتوفر في بيئة التشغيل (Cloudflare Worker) مكتبة معالجة صور موثوقة (sharp/canvas غير مدعومة)، ولا معالجة بانوراما 360. لذلك **الطمس يدوي**: المصوّر أو المسوّق يرفع نسخة مطموسة منفصلة ويوقّع إقرارًا إلزاميًا (طُمست الوجوه واللوحات وأي بيانات حساسة). القاعدة تفرض وجود ملف مطموس + إقرار قبل السماح بالمراجعة والاعتماد؛ لا ادعاء بأتمتة غير موجودة.
 
-المسوّق **ليس** طرف مشروع (`project_parties`) ولا عضو كيان في مشروع العميل. لو أُدخل في `project_parties` لالتقط سقف الطرف الخارجي في `private.can` عبر `party_ceiling` وانفتحت له وحدات أخرى. لذلك:
+## ما سيُبنى
 
-- وحدة جديدة في `app_module`: `marketing` فقط، مع صفوف `role_permissions` لها.
-- فرع جديد مستقل في `private.can` يُفعَّل **حصريًا** عندما `_module = 'marketing'` — أي طلب لوحدة أخرى (contracts / finance / reports / stages / documents) لا يمر عبر هذا الفرع إطلاقًا ويسقط إلى منطق الرفض القائم. مطابقة الوحدة والفعل معًا (درس المرحلة 20).
-- الأفعال المسموحة للمسوّق: `view` دائمًا، و`update`/`create` على بيانات تشغيله فقط (العملاء المحتملون وتقاريره)، **ولا** `approve` ولا أي تعديل على السعر/الوصف.
+### 1) التخزين — فصل مسارين
+- دلو خاص جديد `media-360-raw` (خاص): الأصل الخام والنسخة المطموسة قبل الاعتماد. سياسات `storage.objects` تقيّده بأعضاء كيان المشروع والمصوّر المعيّن فقط، والتنزيل عبر رابط موقّع قصير (60 ثانية) من دالة خادمية كنمط المستندات القائم.
+- دلو عام جديد `media-360-public` (عام): **لا يُكتب فيه إلا** عبر دالة `publish_media_asset` التي تنسخ النسخة المطموسة المعتمدة فقط، باسم ملف عشوائي لا يشتق من أي مسار خاص. لا يُقدَّم أي ملف عام من الدلو الخاص إطلاقًا.
+- ملاحظة: إن رفض إعداد مساحة العمل الدلاء العامة، البديل المعتمد هو تقديم النسخة المعتمدة عبر رابط موقّع مؤقت يولَّد لحظيًا من دالة عامة تتحقق من الرمز والمدة — لا يتغير أي مبدأ أمني.
 
-```text
-private.can(user, module, action, project)
-  ├─ owner? → true                     (كما هو)
-  ├─ explicit deny → false             (كما هو)
-  ├─ platform staff (view فقط)         (كما هو)
-  ├─ marketing branch [جديد]
-  │    شرط الدخول: _module = 'marketing'  ← وإلا لا يُقيَّم أصلاً
-  │    عقد تسويق status='active' + within period + المسوّق طرفه
-  │    ∩ action ضمن مصفوفة أفعال المسوّق
-  ├─ party_ceiling                     (كما هو — لا يشمل المسوّق)
-  └─ عضوية/إسناد/منح                   (كما هو)
-```
+### 2) الجداول (public، مع GRANT/REVOKE في نفس الهجرة)
+- `media_shoot_requests`: المشروع، الوحدة (`property_units`)، الكيان المصوّر، حالة (`requested/scheduled/checked_in/completed/cancelled`)، الموعد، ملاحظات.
+- `media_shoot_attendance`: إثبات الحضور — وقت تسجيل الوصول، موقع تقريبي (تقريب إحداثيات كنمط `site_visit_locations`)، أو مسار صورة إثبات في الدلو الخاص.
+- `media_assets`: الطلب، الوحدة، الغرفة (`room_kind` من قائمة: غرفة/صالة/مطبخ/دورة مياه/خارجي...)، `status` صراحةً `raw → blurred → reviewed → approved` (+ `rejected`, `revoked`)، حقوق الاستخدام (`internal/external/both`)، `publish_until`.
+- `media_asset_versions`: append-only — كل إصدار بمساره الخاص ونوعه (`raw`/`blurred`)، والإقرار (`blur_ack`, `blur_ack_by`, `blur_ack_at`).
+- `media_publications`: نقاط النشر — نوع (`internal`/`external_link`)، رمز عشوائي 32 بايت، `expires_at`، `revoked_at`، مسار النسخة العامة.
+- `media_review_events`: أثر مراجعة/اعتماد/إلغاء (من، متى، سبب).
 
-## طبقة البيانات
+### 3) الدوال (SECURITY DEFINER، كل الكتابة عبرها)
+`create_shoot_request`, `schedule_shoot`, `check_in_shoot`, `upload_media_version` (يفرض أن `blurred` يحتاج إقرارًا)، `mark_asset_blurred`, `marketer_review_asset`, `owner_approve_asset`, `revoke_asset_approval`, `publish_media_asset`, `revoke_publication`, و`public.verify_media_publication(token)` عامة بلا جلسة.
 
-كل الجداول: RLS مفعّلة deny-by-default، الكتابة حصرًا عبر دوال محروسة، ثم `revoke insert, update, delete, truncate ... from anon, authenticated` و`revoke select ... from anon`.
+القواعد التي تفرضها القاعدة نفسها (لا الواجهة):
+- نشر أصل حالته ليست `approved` ⇒ خطأ `MEDIA_ASSET_NOT_APPROVED`.
+- تخطي خطوة (اعتماد قبل مراجعة، مراجعة قبل وجود نسخة مطموسة + إقرار) ⇒ رفض بترتيب حالات صريح (جدول انتقالات كنمط `request_status_transitions`).
+- المراجع (المسوّق) والمعتمد (المالك) لا يكونان نفس المستخدم — فصل أدوار حقيقي، والمراجعة تتطلب عقد تسويق ساري من بنية المرحلة 22.
+- `revoke_asset_approval` يضع كل منشورات الأصل في حالة مسحوبة فورًا ويعيده إلى `reviewed`.
+- انتهاء `publish_until` يُلغي الظهور تلقائيًا (شرط زمني داخل الدالة العامة، لا اعتماد على مهمة دورية)، مع `duration_timers` (subject_kind = `media_publication`) للتنبيه قبل الانتهاء عبر محرك الإشعارات القائم.
 
-| الجدول | المحتوى |
-|---|---|
-| `marketing_profiles` | ملف التسويق لمشروع واحد: `project_id` فريد، `owner_entity_id`، `readiness_basis` (`ready` \| `off_plan`)، `status` (`draft` \| `active` \| `suspended` \| `closed`)، `channel_mode` (`internal` \| `external` \| `both`) |
-| `marketing_contracts` | العقد: `profile_id`، `marketer_entity_id`، `exclusivity` (`exclusive` \| `non_exclusive`)، `starts_on`/`ends_on`، `channels[]`، `price_authority` (`owner_fixed` \| `range` \| `negotiable`)، `content_rights`/`lead_rights`/`report_rights`، `termination_terms`، `status` (`draft` \| `active` \| `suspended` \| `terminated` \| `expired`)، `terminated_at`/`terminated_by`/`termination_reason` |
-| `marketing_contract_amounts` | المبالغ منفصلة وفق نمط المنصة: `kind` (`commission_percent` \| `commission_fixed` \| `budget`)، `amount`، `currency` |
-| `marketing_contract_units` | الوحدات المشمولة: `contract_id` + `property_unit_id` |
-| `marketing_versions` | **append-only**: `version_no`، `title_ar/en`، `description_ar/en`، `listing_price`، `price_currency`، `units_snapshot jsonb`، `status` (`draft` \| `approved` \| `superseded`)، `created_by`، `approved_by`/`approved_at`. تريجر `prevent_row_mutation` على UPDATE/DELETE بعد الاعتماد |
-| `marketing_assets` | ربط بمستندات النشر فقط: تريجر بنفس منطق `enforce_portfolio_asset_public` (`status='approved'` و`visibility='public_approved'` و`is_deleted=false`) |
-| `marketing_leads` | العملاء المحتملون: `contract_id`، `channel_code`، بيانات الاتصال، `stage`. **تبقى ملكًا للمالك بعد الإنهاء** |
-| `marketing_packages` | الحقيبة الخارجية: `version_id`، `package_no`، `verify_token` (فريد)، `license_number_snapshot`، `expires_at`، `channel_code`، `watermark_text`، `revoked_at` |
+### 4) الصلاحيات
+- إضافة وحدة `media` إلى `app_module` وتعبئة `role_permissions` لها.
+- فرع جديد في `private.can` **يطابق الوحدة والفعل معًا**: المصوّر يحصل على `media/view` و`media/create` لطلبه فقط؛ المسوّق `media/view` + `approve` (مراجعة) ضمن عقده الساري؛ المالك كامل. لا يمنح أي فرع media وصولًا لوحدة أخرى ولا العكس.
+- سحب `EXECUTE` من `PUBLIC` لكل دالة جديدة في `public` و`private`، ثم منح صريح، ثم تشغيل استعلام فحص دوال سياسات RLS للتأكد من أن كل دالة `private.*` مستخدمة في سياسة لديها EXECUTE لـ`authenticated`.
+- REVOKE على كل جدول جديد: لا `insert/update/delete/truncate` لـ`anon`/`authenticated`، ولا `select` لـ`anon`.
 
-الرخص: تُخزَّن رخصة فال وترخيص الإعلان في `entity_licenses` القائم (`authority`/`discipline`/`expires_on`/`verified_at`) — لا جدول جديد. حالة الصلاحية تُقرأ عبر `entity_license_state` القائمة.
+### 5) الاستجابة العامة
+`verify_media_publication` تبني JSON بقائمة سماح صريحة: رقم النشر، عنوان الوحدة/الغرفة، رابط العرض العام، تاريخ الانتهاء، اسم الكيان المصوّر. **بلا أي uuid داخلي، بلا مسار تخزين خاص، بلا بيانات مالك أو مالية**. الرمز غير الموجود/المنتهي/المسحوب ⇒ `null` موحد (لا تمييز بينها من الخارج) مع حالة عرض عربية موحدة في الواجهة.
 
-## قواعد الأعمال المفروضة في القاعدة (لا في الواجهة)
+### 6) الواجهات (معيار التصميم الدائم)
+- `projects/$projectId/media` — المالك: الطلبات، الجدولة، الأصول بحالاتها، الاعتماد/الإلغاء، النشر ومدة الصلاحية والروابط.
+- `media` — لوحة المصوّر: طلباته، تسجيل الوصول، رفع الخام والمطموس مع الإقرار.
+- تبويب مراجعة داخل لوحة المسوّق القائمة (قراءة + مراجعة فقط، بلا اعتماد).
+- `/m/$token` — صفحة عامة لعرض الأصل المعتمد بنمط `/mp/$token`.
+- كلها بـ`dashboard-kit`، الهوية الخضراء، i18n عربي/إنجليزي، RTL، حالات تحميل/فارغ/خطأ مصممة، وجوال أولًا.
 
-1. **الجاهزية (بوابة 1)** — تريجر عند إنشاء/تفعيل ملف التسويق:
-   - `readiness_basis='ready'` ⇒ يجب أن يكون المشروع `closed`/`archived` أو له `project_acceptances` نهائي `accepted`.
-   - `readiness_basis='off_plan'` ⇒ يجب وجود رخصة بناء سارية في `building_licenses` **و** رخصة بيع على الخارطة (وافي) سارية موثّقة للكيان المالك.
-   - غير ذلك ⇒ `MARKETING_PROJECT_NOT_READY`.
-2. **الرخصة (بوابة 6)** — `marketing_packages` لا يُنشأ ولا يُوصف بأنه مرخّص إلا إذا أعادت `entity_license_state` للمسوّق `VALID` لحظة الإصدار؛ الرقم يُلقَط snapshot. رخصة منتهية ⇒ `MARKETER_LICENSE_INVALID`. لا يوجد أي عمود «مرخّص» يُكتب يدويًا.
-3. **الإصدارات (بوابة 3)** — السعر والوصف والوحدات موجودة **فقط** في `marketing_versions`. لا عمود سعر في `marketing_profiles`. اعتماد الإصدار محصور بـ`approve` على `marketing` (المالك/قيادة كيانه)، والمسوّق لا يملك `approve` في `role_permissions` ولا في فرع `can`. اعتماد إصدار جديد ⇒ السابق `superseded`.
-4. **الإنهاء الفوري (بوابة 4)** — فرع المسوّق يشترط `status='active'` و`now()` داخل `[starts_on, ends_on]`؛ الإنهاء يكتب `status='terminated'` فيصبح كل استعلام لاحق مرفوضًا دون أي إبطال كاش. `marketing_leads` غير مرتبطة بحياة العقد وتبقى مقروءة للمالك.
-5. **المدد** — `duration_timers` يُوسَّع بـ`subject_kind` جديدين: `marketing_contract` (تنبيه قبل `ends_on`) و`marketing_license` (تنبيه قبل انتهاء الرخصة)، مع أنواع إشعارات جديدة عبر `private.emit_notification`.
-6. **التدقيق** — توسيع `permission_audit_log.object_type` بـ`marketing_profiles`, `marketing_contracts`, `marketing_versions`, `marketing_packages`.
+## بوابة القبول الحية (حسابات وكيانات ومشروع `p23-*` حصرًا)
+1. دورة كاملة: طلب ← موعد ← إثبات حضور ← رفع خام.
+2. نشر أصل `raw` ⇒ رفض من القاعدة (نص الخطأ مرفق).
+3. تخطي المراجعة ⇒ رفض؛ ثم مراجعة المسوّق ثم اعتماد المالك ⇒ نجاح؛ إلغاء الاعتماد ⇒ سحب كل المنشورات فورًا (استعلام إثبات).
+4. الرابط الخارجي كزائر بلا جلسة: يعمل ضمن المدة، ثم بعد الانتهاء/السحب حالة موحدة، والرمز الخاطئ `null`.
+5. محاولة تنزيل مسار الأصل الخام كـ`anon` وكمستخدم من كيان خارجي ⇒ رفض (إخراج فعلي).
+6. فحص تسرب على الاستجابة العامة: صفر uuid، صفر مسار خاص، صفر بيانات مالك.
+7. مصفوفة `private.can` الفعلية للمصوّر وللمسوّق عبر كل الوحدات (إثبات رفض).
 
-## الدوال
+لا مساس بأي حساب دائم ولا بـ`admin@rakeez.app`؛ تنظيف `p23-*` يبقى لك بعد تحققك المستقل.
 
-محروسة، `security definer`, `search_path=public`, فحص `auth.uid()` أولًا، ثم `private.can`:
-
-`create_marketing_profile`, `set_marketing_profile_status`, `create_marketing_contract`, `set_marketing_contract_amounts`, `activate_marketing_contract`, `terminate_marketing_contract`, `create_marketing_version`, `approve_marketing_version`, `link_marketing_asset`, `issue_marketing_package`, `revoke_marketing_package`, `record_marketing_lead`, `update_marketing_lead_stage`.
-
-دالة عامة واحدة بدور `anon` (استثناء مقصود ثانٍ بعد `verify_report` و`get_public_entity_profile`):
-
-`public.verify_marketing_package(_token text)` — بناء JSON صريح حقلًا حقلًا (لا `to_jsonb(row)`)، وتعيد فقط: رقم الحزمة، اسم المشروع التسويقي، اسم جهة التسويق، رقم الترخيص، `expires_at`، والحالة (`valid` \| `expired` \| `revoked`). **بلا أي uuid، بلا سعر، بلا بيانات عملاء، بلا معرّفات داخلية.** لا وجود ⇒ `null` موحّد.
-
-## الواجهة
-
-- `src/routes/_authenticated/projects.$projectId.marketing.tsx` — لوحة المالك: حالة الجاهزية، الإصدارات واعتمادها، العقود ومبالغها، الوحدات، الأصول المعتمدة، إصدار الحقائب، والعملاء المحتملون.
-- `src/routes/_authenticated/marketing.index.tsx` — لوحة المسوّق: عقوده السارية فقط، الملف المعتمد للقراءة، تسجيل العملاء المحتملين. لا روابط لأي وحدة أخرى.
-- `src/routes/mp.$token.tsx` — صفحة تحقق عامة من الحقيبة (نمط `verify.$token.tsx`)، هدف رمز QR، مع وسوم SEO/OG بالحقول العامة فقط.
-- `src/lib/marketing.functions.ts` — طبقة `createServerFn`؛ الدالة العامة بلا `requireSupabaseAuth`، والباقي بها.
-- إعادة استخدام `dashboard-kit` والهوية الخضراء القائمة.
-
-## بوابة القبول الحية (حسابات `p22-*@example.com` وكيانات/مشاريع اختبار جديدة حصرًا)
-
-1. ملف تسويق لمشروع نشط بلا متطلبات البيع على الخارطة ⇒ رفض `MARKETING_PROJECT_NOT_READY`؛ ولمشروع مغلق باستلام نهائي ⇒ نجاح؛ ولمشروع نشط برخصة بناء + وافي ساريتين ⇒ نجاح.
-2. المسوّق المتعاقد يقرأ الملف المعتمد بنجاح؛ ثم محاولات حية على `contracts`, `finance`, `reports`, `stages`, `documents` لنفس المشروع ⇒ رفض كامل. يُرفق ناتج `private.can` لكل وحدة إثباتًا لانحصار الفرع الجديد في `marketing`.
-3. المسوّق يحاول تعديل السعر/الوصف مباشرة (UPDATE على الجدول و`approve_marketing_version`) ⇒ رفض؛ المالك يعتمد إصدارًا جديدًا ⇒ يظهر للمسوّق فورًا والسابق `superseded`.
-4. قبل الإنهاء: قراءة ناجحة. بعد `terminate_marketing_contract`: نفس الاستعلام ⇒ رفض؛ و`marketing_leads` تبقى مقروءة للمالك (عدد الصفوف قبل/بعد).
-5. حقيبة خارجية: إصدار برقم وصلاحية ورمز؛ `verify_marketing_package` بدور `anon` حقيقي ⇒ `valid`؛ بعد تعديل `expires_at` إلى الماضي ⇒ `expired`؛ بعد السحب ⇒ `revoked`؛ ورمز غير موجود ⇒ `null`.
-6. رخصة فال منتهية للمسوّق ⇒ `issue_marketing_package` ترفض بـ`MARKETER_LICENSE_INVALID`، ولا يوجد مسار يصف الحملة بأنها مرخصة.
-7. فحص تسرّب على استجابة `verify_marketing_package` الخام: بزرع سعر وبريد عميل محتمل ومعرّفات، ثم مطابقة نصية ⇒ صفر تسرّب.
-
-## بعد كل migration
-
-سحب `execute` عن `PUBLIC` و`anon` لكل دالة جديدة في المخططين (`public` و`private`) ثم منح صريح، وسحب صلاحيات الجداول الزائدة، وإرفاق ناتج `pg_proc.proacl` و`pg_class.relacl` قبل/بعد. لا يُمس أي حساب أو كيان دائم ولا `admin@rakeez.app`.
+## ترتيب التنفيذ
+1. هجرة الأنواع والصلاحيات (`media` في `app_module` + `role_permissions` + فرع `private.can`).
+2. هجرة الجداول + GRANT/REVOKE + RLS.
+3. إنشاء الدلوين وسياسات `storage.objects`.
+4. هجرة الدوال + سحب PUBLIC + فحص دوال السياسات.
+5. طبقة `src/lib/media.functions.ts`.
+6. الواجهات الثلاث + الصفحة العامة.
+7. تشغيل بوابة القبول كاملة وإرفاق المخرجات الفعلية.
