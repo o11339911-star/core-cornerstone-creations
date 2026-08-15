@@ -21,6 +21,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
+import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
@@ -115,6 +116,11 @@ const ESlugRoute = ESlugRouteImport.update({
 const InviteAcceptRoute = InviteAcceptRouteImport.update({
   id: '/invite/accept',
   path: '/invite/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MpTokenRoute = MpTokenRouteImport.update({
+  id: '/mp/$token',
+  path: '/mp/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyTokenRoute = VerifyTokenRouteImport.update({
@@ -339,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -386,6 +393,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -436,6 +444,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
+  '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -486,6 +495,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
     | '/n/$notificationId'
@@ -533,6 +543,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
     | '/n/$notificationId'
@@ -582,6 +593,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/e/$slug'
     | '/invite/accept'
+    | '/mp/$token'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/n/$notificationId'
@@ -626,6 +638,7 @@ export interface RootRouteChildren {
   SelectAccountRoute: typeof SelectAccountRoute
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
+  MpTokenRoute: typeof MpTokenRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
   ApiPublicCronDurationScanRoute: typeof ApiPublicCronDurationScanRoute
 }
@@ -714,6 +727,13 @@ declare module '@tanstack/react-router' {
       path: '/invite/accept'
       fullPath: '/invite/accept'
       preLoaderRoute: typeof InviteAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mp/$token': {
+      id: '/mp/$token'
+      path: '/mp/$token'
+      fullPath: '/mp/$token'
+      preLoaderRoute: typeof MpTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify/$token': {
@@ -1098,6 +1118,7 @@ const rootRouteChildren: RootRouteChildren = {
   SelectAccountRoute: SelectAccountRoute,
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
+  MpTokenRoute: MpTokenRoute,
   VerifyTokenRoute: VerifyTokenRoute,
   ApiPublicCronDurationScanRoute: ApiPublicCronDurationScanRoute,
 }
