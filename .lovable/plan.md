@@ -1,72 +1,122 @@
-# المرحلة 26 — المتطلبات النظامية والخصوصية (جاهزية إطلاق لا صفحات شكلية)
+# المرحلة 27 — الأمن المتقدم والاستمرارية (خطة فقط)
 
-## 0) المبدأ الحاكم
-كل ما يُكتب هنا مشتق من بنية المنصة الفعلية: صفوف سجل المعالجة وDPIA تسمّي الجداول والدوال والقيود الحقيقية الموجودة في القاعدة (مثل `private.can`, `entity_public_profiles`, `property_exact_locations`, `media_asset_versions`, `integration_registry`, `sanitize_error`). لا نص عام منسوخ. وتنويه إلزامي — تقني/تشغيلي يحتاج مراجعة مستشار نظامي سعودي — يظهر في التقرير وفي الصفحات القانونية.
+## 0) الحالة الحالية بالأدلة (مُتحقَّق منها الآن)
 
-**ملاحظة على الوضع القائم (متحقَّق منه):** لا توجد اليوم صفحة تسجيل حساب ذاتي — `src/routes/auth.index.tsx` دخول فقط، والانضمام عبر `invite.accept.tsx`. لذلك «القبول عند التسجيل» يُنفَّذ في نقطتين: قبول السياسات ضمن قبول الدعوة، وبوابة قبول إلزامية عند الدخول لأي مستخدم لم يقبل النسخة السارية. كذلك لا يوجد اليوم أي checkbox مسبق التحديد في التطبيق (فحص شامل) عدا مربع «مقروء فقط» معطّل توضيحي في `projects.new.tsx` — سيوثَّق كغير موافقة.
+- **RLS**: صفر جدول في `public` بلا RLS (استعلام على `pg_class.relrowsecurity` أعاد قائمة فارغة).
+- **محرك الصلاحيات**: 107 دوال في مخطط `private` بينها `private.can` و`private.sanitize_error` (موجودة ومؤكدة).
+- **الجلسات**: 164 جلسة نشطة و190 refresh token في `auth`، و16 مستخدمًا. **لا واجهة في التطبيق لعرض أو إلغاء الجلسات** (لا وجود لأي كود جلسات/أجهزة).
+- **MFA**: `auth.mfa_factors` = 0 صفوف، ولا يوجد أي كود MFA/AAL/enroll في `src` (بحث نصي شامل أعاد صفرًا). أي ادعاء بوجود MFA اليوم غير صحيح.
+- **CAPTCHA**: لا وجود لأي تكامل captcha في الكود.
+- **بوابة الدخول**: `src/routes/_authenticated/route.tsx` تتحقق من `supabase.auth.getUser()` ثم `PolicyAcceptanceGate`، ولا تفحص مستوى توثيق (AAL) ولا حداثة الجلسة.
+- **الاستجابة للحوادث**: `data_incidents` موجود (0 صفوف) و`/platform/breach-playbook` موجودة كوثيقة داخلية.
+- **التكاملات**: `integration_registry` فيه 6 تكاملات mock بأسماء متغيرات بيئة فقط، و`sanitize_error` تُنظّف الرسائل.
+- **الاعتماديات**: لا مكتبة أمنية إضافية؛ لكن `input-otp` و`qrcode` موجودتان بالفعل — تكفيان لواجهة TOTP دون تثبيت جديد.
+- **حالة غير محسومة (لن أدّعيها)**: تفعيل MFA على مستوى مشروع Supabase (TOTP)، وسياسة انتهاء الجلسة، وCAPTCHA على مسارات GoTrue، وسياسة النسخ الاحتياطي وقابلية PITR — كلها إعدادات لوحة Supabase/Cloud لا تظهر في القاعدة ولا في الكود. **الدفعة 27A تبدأ بالتحقق منها فعليًا قبل أي بناء.**
 
-## 1) القاعدة — migration واحدة (CREATE → GRANT → RLS → POLICY → REVOKE)
+## 1) المخاطر مرتّبة
 
-### `legal_documents` + `legal_document_versions`
-- `legal_documents`: `code` (`privacy`, `terms`, `ip`, `complaints`) فريد، `title_ar`, `slug`.
-- `legal_document_versions`: `document_id`, `version` (نص مثل `1.0`)، `body_md`, `effective_date`, `published_at`, `requires_acceptance bool`, `is_current bool` — فهرس فريد جزئي على `(document_id) where is_current`.
-- قراءة: **عامة** لـ`anon`+`authenticated` للنسخ المنشورة فقط (`published_at is not null`) — هذه الصفحات عامة بالتصميم. الكتابة: موظفو المنصة عبر دوال SECURITY DEFINER.
+**Critical**
+- لا عامل ثانٍ لأي دور حساس: تسريب كلمة مرور واحدة لمالك كيان أو موظف منصة = سيطرة كاملة على بياناته (لا يوجد حاجز AAL2 على `/platform/*` ولا على المالية).
+- لا مسار إلغاء جلسة: 164 جلسة حية بلا أي وسيلة داخل المنتج لإبطال جلسة مسروقة.
 
-### `policy_acceptances`
-`user_id`, `document_id`, `version_id`, `accepted_at`, `ip_hash`, `user_agent_hash`, `context` (`invite_accept`/`login_gate`) — فريد `(user_id, version_id)`. المستخدم يقرأ صفوفه فقط؛ موظفو المنصة يقرأون الكل. الكتابة عبر `accept_policies(_version_ids uuid[])` فقط.
-- دالة `pending_policy_acceptances()` تُرجع النسخ السارية `requires_acceptance` التي لم يقبلها المستخدم ⇒ محرّك بوابة الدخول.
-- **موافقات منفصلة**: صف قبول مستقل لكل وثيقة — لا موافقة واحدة تغطي أغراضًا متعددة.
+**High**
+- لا Rate Limiting/CAPTCHA على الدخول واستعادة كلمة المرور والدعوات → تخمين وحشوّ بيانات الاعتماد.
+- لا اختبار استعادة موثّق ولا RPO/RTO معلنان — الاستمرارية غير مثبتة.
+- لا تنبيهات أمنية تشغيلية (فشل دخول متكرر، تصعيد صلاحية، وصول طارئ) رغم وجود `data_incidents`.
 
-### `data_processing_register`
-الأعمدة: `activity_code` فريد، `module app_module`, `purpose_ar`, `legal_basis_ar`, `data_categories text[]`, `subject_categories text[]`, `recipients text[]`, `retention_period_ar`, `retention_months int`, `deletion_mechanism_ar`, `backing_objects text[]` (أسماء الجداول/الدوال الحقيقية)، `cross_border bool default false`, `active bool`.
-يُملأ بصفوف واقعية تغطي: الحسابات والملفات الشخصية، الكيانات والعضويات والدعوات، المشاريع والمراحل والزيارات (مواقع دقيقة)، العقود والمستندات، المالية والدفتر، المراسلات والطلبات، الإشعارات، التسويق والملفات العامة، الوسائط 360، السوق والمواعيد والتجارة، التكاملات الرسمية، وسجلات التدقيق والصلاحيات.
+**Medium**
+- لا فحص اعتماديات دوري ولا SAST في المسار.
+- الرفع والرسائل بلا حدّ معدل على مستوى التطبيق.
+- عدم وجود سياسة تدوير أسرار مكتوبة (رغم صحة القاعدة: أسماء متغيرات فقط في القاعدة).
 
-### `dpia_register` + `dpia_controls`
-`dpia_register`: `module`, `scope_ar`, `risk_level` (`high`/`medium`)، `risks jsonb`, `residual_risk_ar`, `assessed_at`, `review_due_at`, `assessed_by`.
-`dpia_controls`: `dpia_id`, `control_type` (`rls_policy`/`db_function`/`constraint`/`trigger`/`app_guard`)، `object_name` (الاسم الحقيقي في القاعدة)، `description_ar`, `effectiveness_ar`.
-تُملأ للوحدات عالية المخاطر القائمة فعلًا: المالية (SoD)، المواقع الدقيقة (`property_exact_locations`, `enforce_visit_location_consent`)، الهويات المقنّعة، الوسائط 360 (التمويه اليدوي وسحب الروابط)، التكاملات (`sanitize_error`, حارس الأسرار).
+**Low**
+- لا سجل «آخر دخول/آخر جهاز» ظاهر للمستخدم.
+- لا صفحة أمان موحّدة للمستخدم تجمع كلمة المرور والجلسات والعامل الثاني.
 
-### `dsr_requests` (+ `dsr_request_events`)
-`dsr_requests`: `user_id`, `kind` (`access`/`rectification`/`erasure`/`export`)، `status` (`submitted`→`identity_verification`→`in_review`→`fulfilled`/`partially_fulfilled`/`rejected`/`closed`)، `details_ar`, `identity_verified_at`, `identity_method`, `decision_ar`, `restriction_reasons text[]`, `result_ref` (مرجع التصدير)، `queue_item_id`, `due_at`, `closed_at`.
-- تريغر `enforce_dsr_status_flow` بجدول انتقالات صريح (على نمط `enforce_request_status_flow` القائم).
-- `dsr_request_events` سجل تدقيق append-only لكل انتقال مع الفاعل والسبب.
-- المدد عبر `duration_timers` القائمة: مؤقّت يبدأ عند التقديم بموعد استحقاق 30 يومًا ويتوقف عند الإغلاق.
-- مصدر طابور جديد `dsr_request` يُضاف إلى نوع `platform_queue_source`، وينشئ عنصر طابور تلقائيًا عند التقديم.
-- **قيد الحذف**: `evaluate_erasure_constraints(_user_id)` تفحص العضويات النشطة، أطراف المشاريع، العقود السارية، والقيود المالية/الدفترية وتُرجع أسبابًا مهيكلة ⇒ القرار يصبح «تنفيذ جزئي مع تقييد موثق» بدل حذف أعمى.
-- `export_my_data()` تعيد حزمة JSON من بيانات صاحب الطلب فقط (بالبناء على `export_entity_data` القائمة كنمط) موسومة بالتاريخ والنطاق.
+## 2) نموذج التهديد وحدود الثقة (يوثَّق في 27A)
 
-### `data_incidents`
-`title`, `severity` (`low/medium/high/critical`)، `detected_at`, `contained_at`, `affected_scope_ar`, `data_categories text[]`, `subjects_estimate int`, `root_cause_ar`, `notification_required bool`, `authority_notified_at`, `subjects_notified_at`, `status` (`open/contained/closed`)، `lessons_ar`. موظفو المنصة فقط قراءةً وكتابةً عبر دوال.
+```text
+المستخدم/الجهاز  ──(كلمة مرور + [مفقود: عامل ثانٍ])──▶  Supabase Auth
+       │                                                     │ JWT
+       ▼                                                     ▼
+الحساب النشط (active-account) ──▶ الكيان ──▶ المشروع ──▶ RLS + private.can
+                                                          │
+                                          Storage (سياسات objects) │ Server Fns
+                                                          ▼
+                                              التكاملات الخارجية (mock حاليًا)
+```
+كل حد ثقة يُوثَّق بـ: من يعبره، ما الذي يتحقق عنده، وأين الفجوة اليوم.
 
-### الوصول والصلاحيات (إلزامي في نفس الـmigrations)
-- فرع جديد في `private.can` لوحدة `privacy` يطابق **الوحدة والفعل معًا** (موظفو المنصة فقط للسجلات الإدارية؛ لا يرث أي دور مشروع شيئًا).
-- لكل جدول جديد: `grant` بالحد الأدنى، ثم `revoke insert, update, delete, truncate on ... from anon, authenticated`، و`revoke select from anon` عدا `legal_documents(+versions)` المنشورة.
-- كل دالة جديدة: `revoke execute ... from public` ثم منح صريح لـ`authenticated` (و`anon` فقط لقارئ الصفحات القانونية العام)، ثم تشغيل فحص دوال السياسات على `public` **و`storage.objects`** معًا وإرفاق ناتجه.
+## 3) الدفعات
 
-## 2) الدوال (SECURITY DEFINER)
-`accept_policies`, `pending_policy_acceptances`, `get_legal_document(code)` (عامة)، `publish_legal_version`, `submit_dsr_request`, `verify_dsr_identity`, `decide_dsr_request`, `fulfil_dsr_request`, `close_dsr_request`, `list_my_dsr_requests`, `list_dsr_requests` (منصة)، `export_my_data`, `evaluate_erasure_constraints`, `log_data_incident`, `list_data_processing_register`, `list_dpia`.
+### 27A — نموذج التهديد + التحقق من القدرات الفعلية (بلا migrations)
+- وثيقة `.lovable/security/threat-model.md` بحدود الثقة أعلاه وجدول الفجوات.
+- تقرير قدرات فعلي: هل TOTP مفعّل في مشروع Supabase؟ ما مدة صلاحية التوكن وسياسة انتهاء الجلسة؟ هل CAPTCHA متاح على GoTrue؟ ما وضع النسخ الاحتياطي/PITR؟ — يُثبت بالمشاهدة لا بالافتراض.
+- تشغيل Lovable/Supabase security scan + `supabase--linter` وإرفاق الناتج.
+- **رجوع**: حذف الوثائق فقط. صفر أثر تشغيلي.
 
-## 3) التطبيق
-- `src/lib/legal.functions.ts` — الصفحات القانونية + القبول + الحالة المعلّقة.
-- `src/lib/dsr.functions.ts` — تقديم/متابعة/معالجة الطلبات والتصدير.
-- المسارات العامة (بلا جلسة، head مستقل لكل واحدة): `/legal/privacy`, `/legal/terms`, `/legal/ip`, `/legal/complaints` — تعرض النسخة السارية مع رقم النسخة وتاريخ السريان، والتنويه القانوني ظاهرًا، وعرض Markdown بالهوية الخضراء وRTL.
-- بوابة القبول: مكوّن في `src/routes/_authenticated/route.tsx` يعرض شاشة قبول إلزامية عند وجود نسخ معلّقة (قبول مستقل لكل وثيقة، بلا تحديد مسبق)، مع مثله داخل `invite.accept.tsx`.
-- `/settings/privacy` للمستخدم: تقديم طلب DSR، متابعة الحالة والمدة، تنزيل حزمة التصدير، وعرض سجل قبولاته.
-- `/platform/dsr` لموظفي المنصة: طابور طلبات الخصوصية، تحقق الهوية، القرار، الإغلاق الموثق.
-- `/platform/privacy` (تبويب جديد): سجل المعالجة وDPIA وسجل الحوادث للعرض والتصفية.
-- **مراجعة الموافقات القائمة**: تدقيق نقاط النشر العام، سابقة الأعمال، والتسويق للتأكد من الفصل وعدم التحديد المسبق، مع إصلاح أي انحراف في نفس الدفعة.
-- وثيقة `.lovable/legal/breach-response-plan.md`: أدوار، عتبات الإخطار، خط زمني، قوالب الإخطار، وربطها بجدول `data_incidents`.
-- `off_plan`: توثيق أن البيع على الخارطة يبقى مغلقًا بقيد المرحلة 22 كصف في سجل المعالجة/DPIA وكبند في شروط الاستخدام (متطلب ترخيص «وافي»).
-- معيار ركيز الكامل في كل صفحة: skeleton مطابق للتخطيط، `SoftEmpty`، خطأ عربي بزر إعادة، بطاقات على الجوال، أرقام latn معزولة، صفر نص إنجليزي مسرّب.
+### 27B — الجلسات والأجهزة (المخاطرة الأدنى، القيمة الأعلى)
+- صفحة `/settings/security` تُوسَّع: قائمة الجلسات (من `auth.sessions` عبر دالة SECURITY DEFINER تُرجع صفوف المستخدم فقط: معرّف مختصر، آخر نشاط، تقريب الجهاز/الوكيل، هل هي الجلسة الحالية) + «إنهاء هذه الجلسة» + «إنهاء كل الجلسات الأخرى».
+- دوال: `list_my_sessions()`, `revoke_my_session(_id)`, `revoke_my_other_sessions()` — كلها بـ `revoke execute from public` ثم منح `authenticated` فقط.
+- **خطر انقطاع**: صفر إذا استُثنيت الجلسة الحالية دائمًا؛ يُختبر صراحةً.
+- **رجوع**: حذف الدوال + إخفاء القسم.
 
-## 4) بوابة القبول الحية (`p26-*@example.com` حصرًا، البيانات تبقى)
-1. حساب `p26-user` جديد ⇒ صف قبول لكل وثيقة بنسخة محددة؛ نشر نسخة `1.1` للخصوصية ⇒ بوابة قبول جديدة عند الدخول.
-2. طلب تصدير كامل: تقديم ← تحقق هوية ← عنصر طابور `dsr_request` ← تنفيذ بحزمة JSON ← إغلاق، مع مؤقّت `duration_timers` مسجَّل.
-3. طلب حذف لحساب `p26-active` في مشاريع نشطة ⇒ `evaluate_erasure_constraints` تُرجع الأسباب، والقرار «تنفيذ جزئي مقيّد» موثق في `dsr_request_events`.
-4. الصفحات القانونية الأربع تُفتح بجلسة anon حقيقية.
-5. عدّ صفوف سجل المعالجة وDPIA وإرفاق مطابقتها لأسماء الكائنات الحقيقية.
-6. فحص نقاط الموافقة: صفر checkbox مسبق التحديد.
-7. فحص الصلاحيات: `role_table_grants` + `routine_privileges` + فحص دوال السياسات على `public` و`storage`.
+### 27C — MFA اختياري ثم إلزامي بالتدرّج
+- **لا تفعيل إجباري في هذه الدفعة.** أولًا: تسجيل TOTP اختياري في `/settings/security` باستخدام `supabase.auth.mfa.enroll/challenge/verify` (`qrcode` + `input-otp` موجودتان)، مع رموز احتياطية إن دعمها المشروع؛ وإلا يوثَّق غيابها بصدق.
+- ثانيًا: جدول `mfa_enforcement` (نطاق: platform_staff / entity owner / أدوار مالية) بحالة `advisory` → `grace` (بتاريخ) → `required`، وبوابة تطبيقية تقرأ AAL من الجلسة وتمنع `/platform/*` والعمليات المالية فقط عند `required`.
+- **دون تعطيل أي حساب قائم**: البدء بـ`advisory` لكل النطاقات، وأي انتقال إلى `required` قرار مالك مكتوب مع مهلة لا تقل عن 14 يومًا وتنبيه داخل التطبيق.
+- **رجوع**: إرجاع الحالة إلى `advisory` (تغيير صف واحد) — لا يفقد أحد الوصول.
 
-## 5) خارج النطاق
-لا حذف أو تعديل لأي بيانات دائمة أو `admin@rakeez.app`، ولا اعتماد قانوني نهائي — التنويه إلزامي في التقرير والصفحات.
+### 27D — الحد من المعدل وCAPTCHA
+- ما يمكن فعلًا: CAPTCHA على مسارات GoTrue إن أتاحها المشروع (إعداد لوحة، بلا كود)، وحدّ معدل داخل قاعدة البيانات لمسارات نحن نملكها: `security_rate_events` (bucket = المستخدم أو تجزئة IP، الفعل، النافذة) + `private.rate_limit(_key,_action,_limit,_window)` تُستدعى داخل دوال الدعوات والرسائل والرفع وطلبات DSR.
+- ما لا يمكن ادعاؤه: حدّ معدل حقيقي على مستوى الشبكة/الحافة يحتاج طبقة خارجية (WAF/Cloudflare) — يُوثَّق كقرار مالك.
+- **رجوع**: تعطيل الدالة (ترجع دائمًا `true`) ثم حذف الجدول.
+
+### 27E — الأسرار والاعتماديات والفحص الساكن
+- جرد أسماء متغيرات البيئة فقط + جدول جدولة تدوير (بلا تدوير فعلي وبلا عرض أي قيمة)، مع تريغر الكشف القائم في `integration_registry` كضابط.
+- `bun audit` + فحص اعتماديات + Lovable dependency scan، وتقرير قابل للتكرار.
+- **رجوع**: وثائق فقط.
+
+### 27F — Logging والمراقبة والتنبيهات
+- `security_events` (append-only: نوع الحدث، الفاعل، الكيان، النتيجة، تجزئة IP/UA — **بلا محتوى حساس ولا رسائل خام**، كل نص خطأ يمر عبر `sanitize_error`).
+- تصنيفات: فشل دخول متكرر، إلغاء جلسة، تسجيل/إلغاء MFA، استخدام Break-glass، تصعيد صلاحية، رفض RLS متكرر.
+- لوحة `/platform/security` للموظفين فقط + قاعدة تصعيد تفتح مسودة صف في `data_incidents` عند تجاوز عتبة.
+- **رجوع**: إخفاء اللوحة + إيقاف الكتابة (الجدول append-only يبقى غير ضار).
+
+### 27G — الاستمرارية والاستجابة للحوادث وNCA
+- إعلان RPO/RTO مقترحين (مثلًا RPO ≤ 24h بالنسخ اليومية، أو ≤ دقائق مع PITR إن ثبت توفره) — **يُحسم بعد نتيجة 27A لا قبله**.
+- إجراء اختبار استعادة موثّق (على مشروع/نسخة اختبار، لا على الإنتاج) وقائمة تحقق زمنية.
+- ربط `data_incidents` بالبلاي‑بوك القائم: من يعلن، متى، خلال كم، ومن يبلّغ الجهات.
+- مصفوفة ضوابط NCA ECC المنطبقة (إدارة الهوية، تسجيل الأحداث، إدارة الثغرات، النسخ الاحتياطي، أمن التطبيقات، أطراف ثالثة) مع الحالة والفجوة والدفعة المعالِجة.
+- **تصريح صريح**: لا شيء مما نفّذناه يعادل اختبار اختراق؛ يُوصى باختبار احترافي مستقل قبل أي إطلاق حساس، ويُدرج كبند موافقة مالك.
+
+### 27H — اختبارات العزل السلبية
+مجموعة اختبارات حية دائمة (بحسابات `p27-*` تُنشأ وتُنظَّف، **بلا أي بيانات حقيقية وبلا مساس بالبيانات الدائمة أو `admin@rakeez.app`**) تثبت الرفض عبر: مستخدم↔مستخدم، كيان↔كيان، مشروع↔مشروع، طرف مشروع خارج نطاقه، ملفات Storage عبر المستأجرين، anon على كل دالة جديدة، ومستخدم بلا AAL2 على مسار محمي.
+
+## 4) الملفات والكائنات المتوقع تأثرها
+
+- كود: `src/routes/_authenticated/settings.security.tsx` (توسيع)، `src/routes/_authenticated/route.tsx` (بوابة AAL فقط في 27C)، `src/lib/*.functions.ts` جديدة (`sessions`, `mfa`, `security`)، `src/routes/_authenticated/platform.security.tsx` جديدة، `platform.tsx` (رابط).
+- جداول جديدة: `mfa_enforcement`, `security_rate_events`, `security_events` — كل واحدة بترتيب CREATE → GRANT → RLS → POLICY ثم `revoke insert,update,delete,truncate from anon, authenticated` و`revoke select from anon`.
+- دوال جديدة: كلها `revoke execute from public` ثم منح `authenticated` أو موظفي المنصة فقط، يتبعها فحص دوال السياسات على `public` **و`storage.objects`** معًا وإرفاق ناتجه.
+- `private.can`: فرع جديد لوحدة الأمن يطابق **الوحدة والفعل معًا** (لا الفعل وحده).
+
+## 5) الرجوع لكل migration
+كل دفعة migration واحدة قابلة للعكس بنص عكسي مكتوب مسبقًا (drop policy → drop function → drop table)، ولا تلمس أي جدول قائم إلا بإضافة عمود قابل للـnull. **لا migration في هذه المرحلة تحذف بيانات أو جلسات.**
+
+## 6) اختبارات القبول (نموذج لكل دفعة)
+- **إيجابي**: المستخدم يرى جلساته فقط ويُنهي جلسة أخرى بنجاح؛ يسجّل TOTP ويدخل بنجاح؛ موظف المنصة يرى لوحة الأمن.
+- **سلبي**: مستخدم لا يرى جلسة غيره ولا يُنهيها؛ `anon` يُرفض على كل دالة جديدة؛ تجاوز حد المعدل يُرجع رفضًا مصوغًا بلا تفاصيل داخلية؛ إنهاء «الجلسات الأخرى» لا يُخرج الجلسة الحالية؛ لا رسالة خطأ خام تصل لأي سجل.
+
+## 7) الترتيب الموصى به
+27A ← 27B ← 27D ← 27F ← 27C ← 27E ← 27G ← 27H
+(الجلسات وحدّ المعدل والسجلات أولًا لأنها بلا خطر انقطاع؛ MFA بعدها لأنه الأعلى أثرًا على المستخدمين؛ العزل السلبي في النهاية ليغطي كل ما بُني.)
+
+## 8) قرارات تحتاج موافقة المالك
+1. متى ينتقل MFA من `advisory` إلى `required`، ولأي أدوار بالضبط، وبمهلة كم يومًا؟
+2. هل نتعاقد على طبقة حافة خارجية (WAF/Cloudflare) لحدّ معدل حقيقي، أم نكتفي بحدّ داخل القاعدة؟
+3. قيم RPO/RTO المعتمدة، وهل نفعّل PITR (تكلفة إضافية) إن كان متاحًا؟
+4. جهة اختبار الاختراق المستقلة وتوقيته قبل الإطلاق.
+5. حسابات `p27-*` مؤقتة تُحذف بعد التحقق — تأكيد الموافقة.
+6. هل تُخزَّن تجزئة IP (لا IP خام) في `security_events`؟ التوصية: نعم، تجزئة فقط.
+
+**تنويه إلزامي**: هذه خطة تقنية/تشغيلية ولا تُغني عن مراجعة مستشار نظامي/أمني سعودي معتمد.
