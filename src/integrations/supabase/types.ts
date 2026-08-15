@@ -2742,6 +2742,192 @@ export type Database = {
           },
         ]
       }
+      integration_failure_counters: {
+        Row: {
+          failure_count: number
+          integration_id: string
+          last_notified_at: string | null
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          failure_count?: number
+          integration_id: string
+          last_notified_at?: string | null
+          updated_at?: string
+          window_started_at?: string
+        }
+        Update: {
+          failure_count?: number
+          integration_id?: string
+          last_notified_at?: string | null
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_failure_counters_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: true
+            referencedRelation: "integration_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_registry: {
+        Row: {
+          active: boolean
+          agreement_status: string
+          code: string
+          created_at: string
+          exchanged_fields: Json
+          failure_threshold: number
+          id: string
+          idempotency_scope: string
+          legal_basis: string | null
+          live_approval_ref: string | null
+          provider_name_ar: string
+          provider_name_en: string
+          purpose: string
+          rate_limit_per_minute: number
+          retry_policy: Json
+          secret_env_names: string[]
+          status: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          active?: boolean
+          agreement_status?: string
+          code: string
+          created_at?: string
+          exchanged_fields?: Json
+          failure_threshold?: number
+          id?: string
+          idempotency_scope?: string
+          legal_basis?: string | null
+          live_approval_ref?: string | null
+          provider_name_ar: string
+          provider_name_en: string
+          purpose: string
+          rate_limit_per_minute?: number
+          retry_policy?: Json
+          secret_env_names?: string[]
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          active?: boolean
+          agreement_status?: string
+          code?: string
+          created_at?: string
+          exchanged_fields?: Json
+          failure_threshold?: number
+          id?: string
+          idempotency_scope?: string
+          legal_basis?: string | null
+          live_approval_ref?: string | null
+          provider_name_ar?: string
+          provider_name_en?: string
+          purpose?: string
+          rate_limit_per_minute?: number
+          retry_policy?: Json
+          secret_env_names?: string[]
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      integration_requests: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          direction: string
+          entity_id: string | null
+          first_attempt_at: string | null
+          id: string
+          idempotency_key: string
+          integration_id: string
+          last_attempt_at: string | null
+          max_attempts: number
+          operation: string
+          project_id: string | null
+          request_payload: Json
+          response_payload: Json | null
+          safe_error: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          entity_id?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          idempotency_key: string
+          integration_id: string
+          last_attempt_at?: string | null
+          max_attempts?: number
+          operation: string
+          project_id?: string | null
+          request_payload?: Json
+          response_payload?: Json | null
+          safe_error?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          entity_id?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          idempotency_key?: string
+          integration_id?: string
+          last_attempt_at?: string | null
+          max_attempts?: number
+          operation?: string
+          project_id?: string | null
+          request_payload?: Json
+          response_payload?: Json | null
+          safe_error?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_requests_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_requests_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integration_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       land_boundaries: {
         Row: {
           created_at: string
@@ -4237,6 +4423,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      p25_results: {
+        Row: {
+          outcome: string | null
+          step: string | null
+        }
+        Insert: {
+          outcome?: string | null
+          step?: string | null
+        }
+        Update: {
+          outcome?: string | null
+          step?: string | null
+        }
+        Relationships: []
       }
       payment_milestone_amounts: {
         Row: {
@@ -8189,6 +8390,17 @@ export type Database = {
         Returns: undefined
       }
       auto_assign_queue_item: { Args: { _item_id: string }; Returns: string }
+      begin_integration_request: {
+        Args: {
+          _code: string
+          _entity_id?: string
+          _idempotency_key: string
+          _operation: string
+          _payload?: Json
+          _project_id?: string
+        }
+        Returns: Json
+      }
       build_notification_digest: {
         Args: { _mode?: string }
         Returns: {
@@ -8246,6 +8458,15 @@ export type Database = {
       complete_appointment: {
         Args: { _appointment_id: string }
         Returns: undefined
+      }
+      complete_integration_request: {
+        Args: {
+          _error?: string
+          _ok: boolean
+          _request_id: string
+          _response?: Json
+        }
+        Returns: Json
       }
       confirm_appointment: {
         Args: { _appointment_id: string }
@@ -8569,6 +8790,66 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "platform_breakglass_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_integration_requests: {
+        Args: { _code?: string; _limit?: number }
+        Returns: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          direction: string
+          entity_id: string | null
+          first_attempt_at: string | null
+          id: string
+          idempotency_key: string
+          integration_id: string
+          last_attempt_at: string | null
+          max_attempts: number
+          operation: string
+          project_id: string | null
+          request_payload: Json
+          response_payload: Json | null
+          safe_error: string | null
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "integration_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_integrations: {
+        Args: never
+        Returns: {
+          active: boolean
+          agreement_status: string
+          code: string
+          created_at: string
+          exchanged_fields: Json
+          failure_threshold: number
+          id: string
+          idempotency_scope: string
+          legal_basis: string | null
+          live_approval_ref: string | null
+          provider_name_ar: string
+          provider_name_en: string
+          purpose: string
+          rate_limit_per_minute: number
+          retry_policy: Json
+          secret_env_names: string[]
+          status: string
+          updated_at: string
+          webhook_url: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "integration_registry"
           isOneToOne: false
           isSetofReturn: true
         }
@@ -8931,6 +9212,10 @@ export type Database = {
         Args: { _entity_id: string; _slug: string }
         Returns: string
       }
+      set_integration_status: {
+        Args: { _code: string; _status: string }
+        Returns: undefined
+      }
       set_marketing_contract_amount: {
         Args: {
           _amount: number
@@ -9062,6 +9347,23 @@ export type Database = {
         }
         Returns: string
       }
+      upsert_integration: {
+        Args: {
+          _agreement_status?: string
+          _code: string
+          _exchanged_fields?: Json
+          _failure_threshold?: number
+          _legal_basis?: string
+          _provider_name_ar: string
+          _provider_name_en: string
+          _purpose: string
+          _rate_limit_per_minute?: number
+          _retry_policy?: Json
+          _secret_env_names?: string[]
+          _webhook_url?: string
+        }
+        Returns: string
+      }
       upsert_rakeez_template: {
         Args: {
           _code: string
@@ -9116,6 +9418,7 @@ export type Database = {
         | "media"
         | "marketplace"
         | "commerce"
+        | "integrations"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
@@ -9303,6 +9606,7 @@ export const Constants = {
         "media",
         "marketplace",
         "commerce",
+        "integrations",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       breakglass_status: ["pending", "approved", "denied", "expired"],

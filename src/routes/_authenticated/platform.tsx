@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Inbox, ShieldAlert, Users } from "lucide-react";
+import { Inbox, PlugZap, ShieldAlert, Users } from "lucide-react";
 
 import { ErrorState, UnauthorizedState } from "@/components/rakeez";
 import { getPlatformMe } from "@/lib/platform-admin.functions";
@@ -16,6 +16,7 @@ const LINKS = [
   { to: "/platform/queue", label: "طابور المراجعة", icon: Inbox },
   { to: "/platform/staff", label: "فريق المنصة", icon: Users },
   { to: "/platform/breakglass", label: "الوصول الطارئ", icon: ShieldAlert },
+  { to: "/platform/integrations", label: "التكاملات", icon: PlugZap },
 ] as const;
 
 function PlatformLayout() {
