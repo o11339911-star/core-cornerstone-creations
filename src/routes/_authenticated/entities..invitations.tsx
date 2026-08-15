@@ -12,7 +12,7 @@ import {
   respondToProjectParty,
 } from "@/lib/project-parties.functions";
 
-export const Route = createFileRoute("/_authenticated/entities/$entityId/invitations")({
+export const Route = createFileRoute("/_authenticated/entities/invitations")({
   component: IncomingInvitationsPage,
   head: () => ({
     meta: [

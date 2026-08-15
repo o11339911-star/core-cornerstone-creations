@@ -25,7 +25,7 @@ import {
   revokeInvitation,
 } from "@/lib/team.functions";
 
-export const Route = createFileRoute("/_authenticated/entities/$entityId/team")({
+export const Route = createFileRoute("/_authenticated/entities/team")({
   component: TeamPage,
   head: () => ({
     meta: [

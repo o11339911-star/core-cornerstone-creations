@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Badge } from "@/components/ui/badge";
-import { ErrorState } from "@/components/rakeez";
+import { ErrorState, PageHero, SectionCard, SoftEmpty, CardsSkeleton } from "@/components/rakeez";
+import { Timer, ShieldAlert, History } from "lucide-react";
 import {
   listEscalationEvents,
   listEscalationPolicies,
@@ -67,18 +68,16 @@ function DurationsPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-8 p-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-foreground">المدد والتصعيد</h1>
-        <p className="text-sm text-muted-foreground">
-          كل المدد تُحسب بتوقيت الرياض من مصدر زمني واحد في القاعدة. التصعيد لا يحدث إلا بوجود سياسة
-          صريحة تحدد الجهة المستلمة.
-        </p>
-      </header>
+    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title="المدد والتصعيد"
+        subtitle="كل المدد تُحسب بتوقيت الرياض من مصدر زمني واحد في القاعدة. التصعيد لا يحدث إلا بوجود سياسة صريحة تحدد الجهة المستلمة."
+      />
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">عدادات المدد</h2>
-        {timers.data && timers.data.length > 0 ? (
+      <SectionCard icon={Timer} title="عدادات المدد" count={timers.data?.length ?? 0}>
+        {timers.isLoading ? (
+          <CardsSkeleton cards={1} />
+        ) : timers.data && timers.data.length > 0 ? (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {timers.data.map((t) => (
               <li key={t.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
@@ -101,13 +100,14 @@ function DurationsPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">لا توجد عدادات نشطة لهذا المشروع.</p>
+          <SoftEmpty icon={Timer} message="لا توجد عدادات نشطة لهذا المشروع." />
         )}
-      </section>
+      </SectionCard>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">سياسات التصعيد</h2>
-        {policies.data && policies.data.length > 0 ? (
+      <SectionCard icon={ShieldAlert} title="سياسات التصعيد" count={policies.data?.length ?? 0}>
+        {policies.isLoading ? (
+          <CardsSkeleton cards={1} />
+        ) : policies.data && policies.data.length > 0 ? (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {policies.data.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3 p-4">
@@ -125,15 +125,14 @@ function DurationsPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            لا توجد سياسة تصعيد لهذا المشروع — لن يُصعَّد أي تأخر إلى أي جهة.
-          </p>
+          <SoftEmpty icon={ShieldAlert} message="لا توجد سياسة تصعيد لهذا المشروع — لن يُصعَّد أي تأخر إلى أي جهة." />
         )}
-      </section>
+      </SectionCard>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">سجل التصعيد</h2>
-        {events.data && events.data.length > 0 ? (
+      <SectionCard icon={History} title="سجل التصعيد" count={events.data?.length ?? 0}>
+        {events.isLoading ? (
+          <CardsSkeleton cards={1} />
+        ) : events.data && events.data.length > 0 ? (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {events.data.map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-3 p-4 text-sm">
@@ -146,9 +145,9 @@ function DurationsPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">لا توجد أحداث تصعيد.</p>
+          <SoftEmpty icon={History} message="لا توجد أحداث تصعيد." />
         )}
-      </section>
+      </SectionCard>
     </main>
   );
 }

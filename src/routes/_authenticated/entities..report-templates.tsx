@@ -15,7 +15,7 @@ import {
 } from "@/lib/report-templates.functions";
 import { IMPORT_MAX_BYTES, IMPORT_REASON_AR, checkImportFile } from "@/lib/reports/import-rules";
 
-export const Route = createFileRoute("/_authenticated/entities/$entityId/report-templates")({
+export const Route = createFileRoute("/_authenticated/entities/report-templates")({
   component: EntityTemplatesPage,
   head: () => ({
     meta: [

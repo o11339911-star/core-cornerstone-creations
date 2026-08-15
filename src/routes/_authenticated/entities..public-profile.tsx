@@ -14,7 +14,7 @@ import {
   setEntitySlug,
 } from "@/lib/entity-public.functions";
 
-export const Route = createFileRoute("/_authenticated/entities/$entityId/public-profile")({
+export const Route = createFileRoute("/_authenticated/entities/public-profile")({
   component: PublicProfilePage,
   head: () => ({
     meta: [

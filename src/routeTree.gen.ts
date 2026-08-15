@@ -25,6 +25,10 @@ import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
+import { Route as AuthenticatedEntitiesInvitationsRouteImport } from './routes/_authenticated/entities..invitations'
+import { Route as AuthenticatedEntitiesPublicProfileRouteImport } from './routes/_authenticated/entities..public-profile'
+import { Route as AuthenticatedEntitiesReportTemplatesRouteImport } from './routes/_authenticated/entities..report-templates'
+import { Route as AuthenticatedEntitiesTeamRouteImport } from './routes/_authenticated/entities..team'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
@@ -138,6 +142,30 @@ const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
     path: '/documents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntitiesInvitationsRoute =
+  AuthenticatedEntitiesInvitationsRouteImport.update({
+    id: '/entities/invitations',
+    path: '/entities/invitations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntitiesPublicProfileRoute =
+  AuthenticatedEntitiesPublicProfileRouteImport.update({
+    id: '/entities/public-profile',
+    path: '/entities/public-profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntitiesReportTemplatesRoute =
+  AuthenticatedEntitiesReportTemplatesRouteImport.update({
+    id: '/entities/report-templates',
+    path: '/entities/report-templates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntitiesTeamRoute =
+  AuthenticatedEntitiesTeamRouteImport.update({
+    id: '/entities/team',
+    path: '/entities/team',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedNNotificationIdRoute =
@@ -348,6 +376,10 @@ export interface FileRoutesByFullPath {
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/entities/invitations': typeof AuthenticatedEntitiesInvitationsRoute
+  '/entities/public-profile': typeof AuthenticatedEntitiesPublicProfileRoute
+  '/entities/report-templates': typeof AuthenticatedEntitiesReportTemplatesRoute
+  '/entities/team': typeof AuthenticatedEntitiesTeamRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
@@ -396,6 +428,10 @@ export interface FileRoutesByTo {
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/entities/invitations': typeof AuthenticatedEntitiesInvitationsRoute
+  '/entities/public-profile': typeof AuthenticatedEntitiesPublicProfileRoute
+  '/entities/report-templates': typeof AuthenticatedEntitiesReportTemplatesRoute
+  '/entities/team': typeof AuthenticatedEntitiesTeamRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
@@ -447,6 +483,10 @@ export interface FileRoutesById {
   '/mp/$token': typeof MpTokenRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/_authenticated/entities/invitations': typeof AuthenticatedEntitiesInvitationsRoute
+  '/_authenticated/entities/public-profile': typeof AuthenticatedEntitiesPublicProfileRoute
+  '/_authenticated/entities/report-templates': typeof AuthenticatedEntitiesReportTemplatesRoute
+  '/_authenticated/entities/team': typeof AuthenticatedEntitiesTeamRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
@@ -498,6 +538,10 @@ export interface FileRouteTypes {
     | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
+    | '/entities/invitations'
+    | '/entities/public-profile'
+    | '/entities/report-templates'
+    | '/entities/team'
     | '/n/$notificationId'
     | '/platform/breakglass'
     | '/platform/queue'
@@ -546,6 +590,10 @@ export interface FileRouteTypes {
     | '/mp/$token'
     | '/verify/$token'
     | '/admin/report-templates'
+    | '/entities/invitations'
+    | '/entities/public-profile'
+    | '/entities/report-templates'
+    | '/entities/team'
     | '/n/$notificationId'
     | '/platform/breakglass'
     | '/platform/queue'
@@ -596,6 +644,10 @@ export interface FileRouteTypes {
     | '/mp/$token'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
+    | '/_authenticated/entities/invitations'
+    | '/_authenticated/entities/public-profile'
+    | '/_authenticated/entities/report-templates'
+    | '/_authenticated/entities/team'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breakglass'
     | '/_authenticated/platform/queue'
@@ -755,6 +807,34 @@ declare module '@tanstack/react-router' {
       path: '/documents'
       fullPath: '/documents/'
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entities/invitations': {
+      id: '/_authenticated/entities/invitations'
+      path: '/entities/invitations'
+      fullPath: '/entities/invitations'
+      preLoaderRoute: typeof AuthenticatedEntitiesInvitationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entities/public-profile': {
+      id: '/_authenticated/entities/public-profile'
+      path: '/entities/public-profile'
+      fullPath: '/entities/public-profile'
+      preLoaderRoute: typeof AuthenticatedEntitiesPublicProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entities/report-templates': {
+      id: '/_authenticated/entities/report-templates'
+      path: '/entities/report-templates'
+      fullPath: '/entities/report-templates'
+      preLoaderRoute: typeof AuthenticatedEntitiesReportTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entities/team': {
+      id: '/_authenticated/entities/team'
+      path: '/entities/team'
+      fullPath: '/entities/team'
+      preLoaderRoute: typeof AuthenticatedEntitiesTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/n/$notificationId': {
@@ -1009,6 +1089,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
+  AuthenticatedEntitiesInvitationsRoute: typeof AuthenticatedEntitiesInvitationsRoute
+  AuthenticatedEntitiesPublicProfileRoute: typeof AuthenticatedEntitiesPublicProfileRoute
+  AuthenticatedEntitiesReportTemplatesRoute: typeof AuthenticatedEntitiesReportTemplatesRoute
+  AuthenticatedEntitiesTeamRoute: typeof AuthenticatedEntitiesTeamRoute
   AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
@@ -1046,6 +1130,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
+  AuthenticatedEntitiesInvitationsRoute: AuthenticatedEntitiesInvitationsRoute,
+  AuthenticatedEntitiesPublicProfileRoute:
+    AuthenticatedEntitiesPublicProfileRoute,
+  AuthenticatedEntitiesReportTemplatesRoute:
+    AuthenticatedEntitiesReportTemplatesRoute,
+  AuthenticatedEntitiesTeamRoute: AuthenticatedEntitiesTeamRoute,
   AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:

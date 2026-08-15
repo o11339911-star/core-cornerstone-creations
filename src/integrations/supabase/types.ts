@@ -3024,6 +3024,303 @@ export type Database = {
           },
         ]
       }
+      media_asset_versions: {
+        Row: {
+          asset_id: string
+          checksum: string | null
+          created_at: string
+          created_by: string
+          id: string
+          is_blurred: boolean
+          object_path: string
+          version_no: number
+        }
+        Insert: {
+          asset_id: string
+          checksum?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_blurred?: boolean
+          object_path: string
+          version_no: number
+        }
+        Update: {
+          asset_id?: string
+          checksum?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_blurred?: boolean
+          object_path?: string
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_asset_versions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_assets: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          blur_ack_at: string | null
+          blur_ack_by: string | null
+          blur_ack_text: string | null
+          blurred_object_path: string | null
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          project_id: string
+          raw_object_path: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          shoot_id: string
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          blur_ack_at?: string | null
+          blur_ack_by?: string | null
+          blur_ack_text?: string | null
+          blurred_object_path?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          kind?: string
+          project_id: string
+          raw_object_path: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shoot_id: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          blur_ack_at?: string | null
+          blur_ack_by?: string | null
+          blur_ack_text?: string | null
+          blurred_object_path?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          project_id?: string
+          raw_object_path?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shoot_id?: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_shoot_id_fkey"
+            columns: ["shoot_id"]
+            isOneToOne: false
+            referencedRelation: "media_shoot_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_publications: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          project_id: string
+          public_object_path: string
+          public_token: string
+          published_at: string
+          published_by: string
+          revoke_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+          public_object_path: string
+          public_token: string
+          published_at?: string
+          published_by: string
+          revoke_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          public_object_path?: string
+          public_token?: string
+          published_at?: string
+          published_by?: string
+          revoke_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_publications_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_publications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_shoot_attendance: {
+        Row: {
+          accuracy_m: number | null
+          checked_in_at: string
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          shoot_id: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          checked_in_at?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          shoot_id: string
+          user_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          checked_in_at?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          shoot_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_shoot_attendance_shoot_id_fkey"
+            columns: ["shoot_id"]
+            isOneToOne: false
+            referencedRelation: "media_shoot_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_shoot_requests: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          photographer_entity_id: string | null
+          photographer_user_id: string | null
+          project_id: string
+          property_id: string | null
+          requested_by: string
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photographer_entity_id?: string | null
+          photographer_user_id?: string | null
+          project_id: string
+          property_id?: string | null
+          requested_by: string
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photographer_entity_id?: string | null
+          photographer_user_id?: string | null
+          project_id?: string
+          property_id?: string | null
+          requested_by?: string
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_shoot_requests_photographer_entity_id_fkey"
+            columns: ["photographer_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_shoot_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_shoot_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_shoot_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_deliveries: {
         Row: {
           attempted_at: string

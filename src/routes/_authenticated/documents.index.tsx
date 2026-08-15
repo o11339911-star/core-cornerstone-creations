@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DataTable, ErrorState } from "@/components/rakeez";
+import { DataTable, ErrorState, HeroBadge, PageHero, SectionCard } from "@/components/rakeez";
+import { FileText, UploadCloud } from "lucide-react";
 import {
   DOC_VISIBILITIES,
   approveDocument,
@@ -261,16 +262,14 @@ function DocumentsPage() {
   ];
 
   return (
-    <div className="space-y-8 p-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">مكتبة المستندات</h1>
-        <p className="text-sm text-muted-foreground">
-          أرشيف موحّد للتقارير والمخططات والشهادات، بإصدارات غير قابلة للتعديل ورؤية محددة لكل مستند.
-        </p>
-      </header>
+    <div className="mx-auto min-h-screen w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title="مكتبة المستندات"
+        subtitle="أرشيف موحّد للتقارير والمخططات والشهادات، بإصدارات غير قابلة للتعديل ورؤية محددة لكل مستند."
+        badge={<HeroBadge tone="neutral">{documentsQuery.data?.length ?? 0}</HeroBadge>}
+      />
 
-      <section className="rounded-lg border border-border bg-card p-5">
-        <h2 className="mb-4 text-lg font-medium text-foreground">إضافة مستند جديد</h2>
+      <SectionCard icon={UploadCloud} title="إضافة مستند جديد">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label>الكيان المالك</Label>
@@ -354,19 +353,21 @@ function DocumentsPage() {
           </div>
         </div>
         <Button
-          className="mt-4"
+          className="mt-4 min-h-11"
           onClick={() => uploadMutation.mutate()}
           disabled={uploadMutation.isPending}
         >
           {uploadMutation.isPending ? "جارٍ الرفع…" : "رفع المستند"}
         </Button>
-      </section>
+      </SectionCard>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-medium text-foreground">المستندات المتاحة لك</h2>
+      <SectionCard
+        icon={FileText}
+        title="المستندات المتاحة لك"
+        count={documentsQuery.data?.length ?? 0}
+        action={
           <Select value={filterVisibility} onValueChange={setFilterVisibility}>
-            <SelectTrigger className="w-56">
+            <SelectTrigger className="min-h-11 w-56">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -378,8 +379,8 @@ function DocumentsPage() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-
+        }
+      >
         <DataTable
           columns={columns}
           rows={documentsQuery.data ?? []}
@@ -388,7 +389,7 @@ function DocumentsPage() {
           emptyDescription="ابدأ برفع أول مستند إلى مكتبة الكيان."
           getRowId={(row: DocumentListItem) => row.id}
         />
-      </section>
+      </SectionCard>
     </div>
   );
 }
