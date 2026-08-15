@@ -226,6 +226,10 @@ function ProjectMarketingPage() {
   }
 
   const approvedVersions = (versions.data ?? []).filter((v) => v.status === "approved");
+  const versionIds = new Set((versions.data ?? []).map((v) => v.id));
+  const contractIds = new Set((contracts.data ?? []).map((c) => c.id));
+  const scopedPackages = scopedPackages.filter((p) => versionIds.has(p.version_id));
+  const scopedLeads = scopedLeads.filter((l) => contractIds.has(l.contract_id));
   const activeContracts = (contracts.data ?? []).filter((c) => c.status === "active");
 
   return (
@@ -512,15 +516,15 @@ function ProjectMarketingPage() {
           <SectionCard
             icon={Package}
             title={t("marketing.packages")}
-            count={packages.data?.length ?? 0}
+            count={scopedPackages.length}
           >
             {packages.isLoading ? (
               <CardsSkeleton cards={1} />
-            ) : (packages.data ?? []).length === 0 ? (
+            ) : scopedPackages.length === 0 ? (
               <SoftEmpty icon={Package} message={t("marketing.noPackages")} />
             ) : (
               <ul className="space-y-2">
-                {(packages.data ?? []).map((p) => (
+                {scopedPackages.map((p) => (
                   <li
                     key={p.id}
                     className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3"
@@ -563,14 +567,14 @@ function ProjectMarketingPage() {
             )}
           </SectionCard>
 
-          <SectionCard icon={Users} title={t("marketing.leads")} count={leads.data?.length ?? 0}>
+          <SectionCard icon={Users} title={t("marketing.leads")} count={scopedLeads.length}>
             {leads.isLoading ? (
               <CardsSkeleton cards={1} />
-            ) : (leads.data ?? []).length === 0 ? (
+            ) : scopedLeads.length === 0 ? (
               <SoftEmpty icon={Users} message={t("marketing.noLeads")} />
             ) : (
               <ul className="space-y-2">
-                {(leads.data ?? []).map((l) => (
+                {scopedLeads.map((l) => (
                   <li
                     key={l.id}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm"
