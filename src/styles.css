@@ -55,10 +55,16 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-rakeez-green: var(--rakeez-green);
+  --color-rakeez-green-deep: var(--rakeez-green-deep);
+  --color-rakeez-green-soft: var(--rakeez-green-soft);
+  /* Legacy aliases kept so earlier phases keep compiling; all resolve to the
+     official green identity. */
   --color-rakeez-navy: var(--rakeez-navy);
   --color-rakeez-gold: var(--rakeez-gold);
   --color-rakeez-cream: var(--rakeez-cream);
   --color-rakeez-sand: var(--rakeez-sand);
+
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-success-soft: var(--success-soft);
