@@ -1,101 +1,85 @@
-# المرحلة 21 — ملفات الكيانات ومواقعها العامة
+# المرحلة 22 — التسويق العقاري والتعاقد مع المسوق
 
-الهدف: ملف عام اختياري (opt-in) لكل كيان على مسار `/e/{slug}`، يعمل بدون تسجيل دخول، بحقول عامة allowlist فقط، مع سابقة أعمال منشورة من `portfolio_entries` القائمة.
+مسار تسويقي معزول تمامًا عن المسار الإنشائي: ملف تسويق يملكه مالك المشروع، عقد تسويق مع مسوّق مرخّص، إصدارات محتوى append-only باعتماد المالك، وحقيبة تسويق خارجية موقّعة قابلة للتحقق العام.
 
-## 1. طبقة البيانات
+## المبدأ الأمني الحاكم
 
-جدول جديد واحد فقط: `public.entity_public_profiles` (سجل واحد لكل كيان، منفصل تمامًا عن `entity_profiles` الذي يحوي بيانات حساسة: `cr_number`, `contact_email`, `contact_phone`, `address_text`).
+المسوّق **ليس** طرف مشروع (`project_parties`) ولا عضو كيان في مشروع العميل. لو أُدخل في `project_parties` لالتقط سقف الطرف الخارجي في `private.can` عبر `party_ceiling` وانفتحت له وحدات أخرى. لذلك:
 
-الحقول (كلها عامة بطبيعتها):
-- `entity_id` (PK، مرجع `entities`)
-- `slug` (فريد، lowercase)
-- `display_name_ar` / `display_name_en` — الاسم التجاري المعروض
-- `activity_ar` / `activity_en` — النشاط
-- `services` (text[]) — الخدمات
-- `regions` (text[]) — المناطق (مستوى مدينة/منطقة فقط، لا عناوين دقيقة)
-- `bio_ar` / `bio_en` — نبذة
-- `logo_url` (رابط عام فقط، لا مسار تخزين خاص)
-- `website_url`, `public_email`, `public_phone` — اختيارية، يدخلها الكيان صراحة كوسائل تواصل معلنة (مستقلة عن الحقول الخاصة في `entity_profiles`؛ خالية افتراضيًا)
-- `is_published` (boolean، افتراضي false)
-- `portfolio_opt_in` (boolean، افتراضي false) — موافقة نشر سابقة الأعمال
-- `published_at`, `created_at`, `updated_at`
+- وحدة جديدة في `app_module`: `marketing` فقط، مع صفوف `role_permissions` لها.
+- فرع جديد مستقل في `private.can` يُفعَّل **حصريًا** عندما `_module = 'marketing'` — أي طلب لوحدة أخرى (contracts / finance / reports / stages / documents) لا يمر عبر هذا الفرع إطلاقًا ويسقط إلى منطق الرفض القائم. مطابقة الوحدة والفعل معًا (درس المرحلة 20).
+- الأفعال المسموحة للمسوّق: `view` دائمًا، و`update`/`create` على بيانات تشغيله فقط (العملاء المحتملون وتقاريره)، **ولا** `approve` ولا أي تعديل على السعر/الوصف.
 
-ملاحظة صريحة: علامة التوثيق **لا تُخزن هنا**؛ تُشتق للعرض فقط من `entity_profiles.verified_at IS NOT NULL`.
-
-GRANTs: `SELECT/INSERT/UPDATE` لـ`authenticated` فقط عبر سياسات RLS المرتبطة بصلاحية إدارة الكيان (`private.can(..., 'members','manage_members')` أو ما يعادلها للكيان)، و`ALL` لـ`service_role`. **لا أي grant لـ`anon`** — الوصول العام يمر عبر الدالة العامة حصرًا.
-
-RLS deny-by-default:
-- قراءة/تعديل: أعضاء الكيان المصرّح لهم فقط.
-- لا سياسة `anon` إطلاقًا.
-
-## 2. توليد الـslug
-
-دالة `private.generate_entity_slug(_name text)`:
-- تطبيع (lowercase، إزالة التشكيل، استبدال المسافات بـ`-`، إزالة الرموز، دعم النقل الحرفي للعربية أو fallback إلى `entity`).
-- عند التعارض: إلحاق `-2`, `-3`… حتى يتوفر slug فريد (حلقة على `EXISTS`).
-- تغيير الـslug لاحقًا: عبر دالة `public.set_entity_slug(entity_id, slug)` مع فحص `auth.uid()` وصلاحية إدارة الكيان، وقيد فريد على مستوى الجدول.
-
-## 3. الدالة العامة الآمنة
-
-`public.get_public_entity_profile(_slug text) returns jsonb`
-- `SECURITY DEFINER`, `STABLE`, `SET search_path = public`.
-- الاستثناء المقصود الثاني (بعد `verify_report`): `GRANT EXECUTE TO anon, authenticated`. لا تفحص `auth.uid()` لأنها قراءة allowlist عامة صرفة.
-- تعيد `NULL` إذا: لا وجود للـslug، أو `is_published = false`، أو الكيان محذوف/غير نشط — **بنفس المخرجة تمامًا** (لا كشف وجود، لا رسالة خطأ مختلفة).
-- بناء JSON حقلًا حقلًا بـ`jsonb_build_object` — **ممنوع** `to_jsonb(row)` أو `row_to_json`.
-- المفاتيح المُعادة (allowlist نهائية): `slug, display_name_ar, display_name_en, activity_ar, activity_en, services, regions, bio_ar, bio_en, logo_url, website_url, public_email, public_phone, is_verified, portfolio`.
-- **لا يُعاد** `entity_id` ولا أي uuid داخلي إطلاقًا (المفتاح الوحيد للعرض هو الـslug).
-- `is_verified` = `entity_profiles.verified_at IS NOT NULL` — قيمة عرض فقط.
-- `portfolio`: مصفوفة تُبنى فقط إذا `portfolio_opt_in = true`، من `portfolio_entries` حيث `entity_id` مطابق و`is_public = true`، بحقول: `title_ar, title_en, summary_ar, summary_en, project_type_code, city, district, completed_on`. لا `project_id`، لا `id`، لا أي معرّف.
-
-دالة مساعدة `private.public_portfolio_json(_entity_id uuid)` لبناء المصفوفة، بـEXECUTE مسحوب من PUBLIC.
-
-## 4. دوال الإدارة (مسجّلي الدخول)
-
-`public.upsert_entity_public_profile(...)` و`public.set_entity_public_publish(entity_id, is_published, portfolio_opt_in)`:
-- `SECURITY DEFINER` + فحص `auth.uid()` + فحص صلاحية إدارة الكيان عبر محرك `private.can`.
-- إنشاء slug تلقائيًا عند أول upsert إن لم يوجد.
-- تسجيل في `permission_audit_log` عند تغيير حالة النشر (مع توسعة قيود الجدول للأفعال/الكائنات الجديدة إن لزم).
-
-## 5. سحب الصلاحيات (إلزامي بعد الـmigration)
-
-في نهاية نفس الـmigration:
-```sql
-revoke all on function <كل دالة جديدة> from public;
+```text
+private.can(user, module, action, project)
+  ├─ owner? → true                     (كما هو)
+  ├─ explicit deny → false             (كما هو)
+  ├─ platform staff (view فقط)         (كما هو)
+  ├─ marketing branch [جديد]
+  │    شرط الدخول: _module = 'marketing'  ← وإلا لا يُقيَّم أصلاً
+  │    عقد تسويق status='active' + within period + المسوّق طرفه
+  │    ∩ action ضمن مصفوفة أفعال المسوّق
+  ├─ party_ceiling                     (كما هو — لا يشمل المسوّق)
+  └─ عضوية/إسناد/منح                   (كما هو)
 ```
-لكل دالة في `public` و`private` على حد سواء، ثم منح EXECUTE صراحة:
-- `get_public_entity_profile` → `anon, authenticated`
-- دوال الإدارة → `authenticated` فقط
-- دوال `private.*` → لا أحد (تُستدعى من definer فقط)
 
-ثم `revoke insert, update, delete, truncate ... from anon` وتحقق من `information_schema.role_table_grants` و`routine_privileges` وإرفاق النتيجة.
+## طبقة البيانات
 
-**تطبيق درس المرحلة 20**: أي فرع صلاحية جديد يطابق الوحدة والفعل معًا (`module` و`action`)، لا الفعل وحده.
+كل الجداول: RLS مفعّلة deny-by-default، الكتابة حصرًا عبر دوال محروسة، ثم `revoke insert, update, delete, truncate ... from anon, authenticated` و`revoke select ... from anon`.
 
-## 6. الواجهة
+| الجدول | المحتوى |
+|---|---|
+| `marketing_profiles` | ملف التسويق لمشروع واحد: `project_id` فريد، `owner_entity_id`، `readiness_basis` (`ready` \| `off_plan`)، `status` (`draft` \| `active` \| `suspended` \| `closed`)، `channel_mode` (`internal` \| `external` \| `both`) |
+| `marketing_contracts` | العقد: `profile_id`، `marketer_entity_id`، `exclusivity` (`exclusive` \| `non_exclusive`)، `starts_on`/`ends_on`، `channels[]`، `price_authority` (`owner_fixed` \| `range` \| `negotiable`)، `content_rights`/`lead_rights`/`report_rights`، `termination_terms`، `status` (`draft` \| `active` \| `suspended` \| `terminated` \| `expired`)، `terminated_at`/`terminated_by`/`termination_reason` |
+| `marketing_contract_amounts` | المبالغ منفصلة وفق نمط المنصة: `kind` (`commission_percent` \| `commission_fixed` \| `budget`)، `amount`، `currency` |
+| `marketing_contract_units` | الوحدات المشمولة: `contract_id` + `property_unit_id` |
+| `marketing_versions` | **append-only**: `version_no`، `title_ar/en`، `description_ar/en`، `listing_price`، `price_currency`، `units_snapshot jsonb`، `status` (`draft` \| `approved` \| `superseded`)، `created_by`، `approved_by`/`approved_at`. تريجر `prevent_row_mutation` على UPDATE/DELETE بعد الاعتماد |
+| `marketing_assets` | ربط بمستندات النشر فقط: تريجر بنفس منطق `enforce_portfolio_asset_public` (`status='approved'` و`visibility='public_approved'` و`is_deleted=false`) |
+| `marketing_leads` | العملاء المحتملون: `contract_id`، `channel_code`، بيانات الاتصال، `stage`. **تبقى ملكًا للمالك بعد الإنهاء** |
+| `marketing_packages` | الحقيبة الخارجية: `version_id`، `package_no`، `verify_token` (فريد)، `license_number_snapshot`، `expires_at`، `channel_code`، `watermark_text`، `revoked_at` |
 
-- `src/lib/entity-public.functions.ts`: 
-  - `getPublicEntityProfile` — server fn عام (بلا `requireSupabaseAuth`) يستخدم عميل publishable داخل الـhandler ويستدعي الـRPC. صالح للاستدعاء من loader عام أثناء SSR.
-  - `getMyEntityPublicProfile` / `saveEntityPublicProfile` / `setPublishState` — محمية بـ`requireSupabaseAuth`.
-- `src/routes/e.$slug.tsx` — صفحة عامة خارج `_authenticated`:
-  - loader يستدعي الدالة العامة؛ `notFound()` عند `null`، مع `errorComponent` و`notFoundComponent`.
-  - `head()` خاص بالصفحة: title/description/og:title/og:description من الحقول العامة فقط (+ `og:image` من `logo_url` فقط إن كان رابط https مطلق).
-  - تصميم بالهوية الخضراء ومكوّنات `dashboard-kit` القائمة: هيدر بالشعار والاسم والنشاط وشارة توثيق (بصرية فقط)، شرائح الخدمات والمناطق، نبذة، شبكة بطاقات سابقة الأعمال.
-  - حالة فارغة مصممة (لا سابقة أعمال منشورة / لا نبذة) وحالة ممتلئة.
-- `src/routes/_authenticated/entity.public-profile.tsx` — نموذج تحرير الملف العام + مفتاح تفعيل النشر + مفتاح موافقة نشر سابقة الأعمال + معاينة الرابط `/e/{slug}` وزر تعديل الـslug.
+الرخص: تُخزَّن رخصة فال وترخيص الإعلان في `entity_licenses` القائم (`authority`/`discipline`/`expires_on`/`verified_at`) — لا جدول جديد. حالة الصلاحية تُقرأ عبر `entity_license_state` القائمة.
 
-## 7. التحقق من بوابة القبول
+## قواعد الأعمال المفروضة في القاعدة (لا في الواجهة)
 
-حساب/كيان اختبار جديد حصرًا (`p21-*@example.com` + كيان `p21`). ممنوع لمس الحسابات الدائمة أو `admin@rakeez.app`.
+1. **الجاهزية (بوابة 1)** — تريجر عند إنشاء/تفعيل ملف التسويق:
+   - `readiness_basis='ready'` ⇒ يجب أن يكون المشروع `closed`/`archived` أو له `project_acceptances` نهائي `accepted`.
+   - `readiness_basis='off_plan'` ⇒ يجب وجود رخصة بناء سارية في `building_licenses` **و** رخصة بيع على الخارطة (وافي) سارية موثّقة للكيان المالك.
+   - غير ذلك ⇒ `MARKETING_PROJECT_NOT_READY`.
+2. **الرخصة (بوابة 6)** — `marketing_packages` لا يُنشأ ولا يُوصف بأنه مرخّص إلا إذا أعادت `entity_license_state` للمسوّق `VALID` لحظة الإصدار؛ الرقم يُلقَط snapshot. رخصة منتهية ⇒ `MARKETER_LICENSE_INVALID`. لا يوجد أي عمود «مرخّص» يُكتب يدويًا.
+3. **الإصدارات (بوابة 3)** — السعر والوصف والوحدات موجودة **فقط** في `marketing_versions`. لا عمود سعر في `marketing_profiles`. اعتماد الإصدار محصور بـ`approve` على `marketing` (المالك/قيادة كيانه)، والمسوّق لا يملك `approve` في `role_permissions` ولا في فرع `can`. اعتماد إصدار جديد ⇒ السابق `superseded`.
+4. **الإنهاء الفوري (بوابة 4)** — فرع المسوّق يشترط `status='active'` و`now()` داخل `[starts_on, ends_on]`؛ الإنهاء يكتب `status='terminated'` فيصبح كل استعلام لاحق مرفوضًا دون أي إبطال كاش. `marketing_leads` غير مرتبطة بحياة العقد وتبقى مقروءة للمالك.
+5. **المدد** — `duration_timers` يُوسَّع بـ`subject_kind` جديدين: `marketing_contract` (تنبيه قبل `ends_on`) و`marketing_license` (تنبيه قبل انتهاء الرخصة)، مع أنواع إشعارات جديدة عبر `private.emit_notification`.
+6. **التدقيق** — توسيع `permission_audit_log.object_type` بـ`marketing_profiles`, `marketing_contracts`, `marketing_versions`, `marketing_packages`.
 
-1. كيان غير منشور ⇒ `get_public_entity_profile` تعيد `NULL` (استدعاء كـ`anon`).
-2. بعد التفعيل ⇒ الصفحة `/e/{slug}` تُحمّل بلا جلسة (تحقق بـPlaywright من متصفح بلا session) وتعرض الحقول.
-3. **فحص التسرب**: التقاط JSON الخام من الـRPC وفحصه نصيًا مقابل قيم مزروعة عمدًا في `entity_profiles` (بريد، جوال، cr_number، عنوان) وقيم `entity_id`/`tenant_id`/`project_id` — يجب ألا يظهر أي منها. الفحص آلي بمطابقة نصية على كل قيمة حساسة معروفة، وإرفاق النتيجة.
-4. مدخل سابقة أعمال `is_public=false` لا يظهر؛ `true` يظهر. وإيقاف `portfolio_opt_in` يخفي المصفوفة كاملة.
-5. علامة التوثيق تظهر للموثق فقط + إثبات بالبحث في الكود/القاعدة أن `verified_at` و`is_verified` لا يظهران في أي شرط صلاحية أو ترتيب أو أهلية.
-6. إنشاء كيانين بنفس الاسم ⇒ slug ثانٍ فريد تلقائيًا.
+## الدوال
 
-## ملاحظات تقنية
+محروسة، `security definer`, `search_path=public`, فحص `auth.uid()` أولًا، ثم `private.can`:
 
-- لا جداول جديدة لسابقة الأعمال — إعادة استخدام `portfolio_entries` و`portfolio_assets` القائمة من المرحلة 18.
-- `logo_url` عام منفصل عن `entity_profiles.logo_path` (مسار تخزين خاص) لتفادي تسريب مسارات داخلية.
-- الصفحة العامة SSR-on (لا `ssr: false`) لتعمل روابط المشاركة وSEO.
+`create_marketing_profile`, `set_marketing_profile_status`, `create_marketing_contract`, `set_marketing_contract_amounts`, `activate_marketing_contract`, `terminate_marketing_contract`, `create_marketing_version`, `approve_marketing_version`, `link_marketing_asset`, `issue_marketing_package`, `revoke_marketing_package`, `record_marketing_lead`, `update_marketing_lead_stage`.
+
+دالة عامة واحدة بدور `anon` (استثناء مقصود ثانٍ بعد `verify_report` و`get_public_entity_profile`):
+
+`public.verify_marketing_package(_token text)` — بناء JSON صريح حقلًا حقلًا (لا `to_jsonb(row)`)، وتعيد فقط: رقم الحزمة، اسم المشروع التسويقي، اسم جهة التسويق، رقم الترخيص، `expires_at`، والحالة (`valid` \| `expired` \| `revoked`). **بلا أي uuid، بلا سعر، بلا بيانات عملاء، بلا معرّفات داخلية.** لا وجود ⇒ `null` موحّد.
+
+## الواجهة
+
+- `src/routes/_authenticated/projects.$projectId.marketing.tsx` — لوحة المالك: حالة الجاهزية، الإصدارات واعتمادها، العقود ومبالغها، الوحدات، الأصول المعتمدة، إصدار الحقائب، والعملاء المحتملون.
+- `src/routes/_authenticated/marketing.index.tsx` — لوحة المسوّق: عقوده السارية فقط، الملف المعتمد للقراءة، تسجيل العملاء المحتملين. لا روابط لأي وحدة أخرى.
+- `src/routes/mp.$token.tsx` — صفحة تحقق عامة من الحقيبة (نمط `verify.$token.tsx`)، هدف رمز QR، مع وسوم SEO/OG بالحقول العامة فقط.
+- `src/lib/marketing.functions.ts` — طبقة `createServerFn`؛ الدالة العامة بلا `requireSupabaseAuth`، والباقي بها.
+- إعادة استخدام `dashboard-kit` والهوية الخضراء القائمة.
+
+## بوابة القبول الحية (حسابات `p22-*@example.com` وكيانات/مشاريع اختبار جديدة حصرًا)
+
+1. ملف تسويق لمشروع نشط بلا متطلبات البيع على الخارطة ⇒ رفض `MARKETING_PROJECT_NOT_READY`؛ ولمشروع مغلق باستلام نهائي ⇒ نجاح؛ ولمشروع نشط برخصة بناء + وافي ساريتين ⇒ نجاح.
+2. المسوّق المتعاقد يقرأ الملف المعتمد بنجاح؛ ثم محاولات حية على `contracts`, `finance`, `reports`, `stages`, `documents` لنفس المشروع ⇒ رفض كامل. يُرفق ناتج `private.can` لكل وحدة إثباتًا لانحصار الفرع الجديد في `marketing`.
+3. المسوّق يحاول تعديل السعر/الوصف مباشرة (UPDATE على الجدول و`approve_marketing_version`) ⇒ رفض؛ المالك يعتمد إصدارًا جديدًا ⇒ يظهر للمسوّق فورًا والسابق `superseded`.
+4. قبل الإنهاء: قراءة ناجحة. بعد `terminate_marketing_contract`: نفس الاستعلام ⇒ رفض؛ و`marketing_leads` تبقى مقروءة للمالك (عدد الصفوف قبل/بعد).
+5. حقيبة خارجية: إصدار برقم وصلاحية ورمز؛ `verify_marketing_package` بدور `anon` حقيقي ⇒ `valid`؛ بعد تعديل `expires_at` إلى الماضي ⇒ `expired`؛ بعد السحب ⇒ `revoked`؛ ورمز غير موجود ⇒ `null`.
+6. رخصة فال منتهية للمسوّق ⇒ `issue_marketing_package` ترفض بـ`MARKETER_LICENSE_INVALID`، ولا يوجد مسار يصف الحملة بأنها مرخصة.
+7. فحص تسرّب على استجابة `verify_marketing_package` الخام: بزرع سعر وبريد عميل محتمل ومعرّفات، ثم مطابقة نصية ⇒ صفر تسرّب.
+
+## بعد كل migration
+
+سحب `execute` عن `PUBLIC` و`anon` لكل دالة جديدة في المخططين (`public` و`private`) ثم منح صريح، وسحب صلاحيات الجداول الزائدة، وإرفاق ناتج `pg_proc.proacl` و`pg_class.relacl` قبل/بعد. لا يُمس أي حساب أو كيان دائم ولا `admin@rakeez.app`.
