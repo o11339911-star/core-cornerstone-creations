@@ -2,9 +2,20 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Copy, Send, UserCog, UserPlus, Users } from "lucide-react";
 
 import { useT } from "@/i18n";
-import { RakeezCard, TextField, AsyncBoundary, EmptyState } from "@/components/rakeez";
+import { Button } from "@/components/ui/button";
+import { TextField } from "@/components/rakeez";
+import {
+  CardsSkeleton,
+  ErrorState,
+  PageHero,
+  SectionCard,
+  SoftEmpty,
+  StatCard,
+  StatGrid,
+} from "@/components/rakeez";
 import {
   APP_ROLES,
   createInvitation,
@@ -84,132 +95,140 @@ function TeamPage() {
     onError: (e: Error) => setError(e.message),
   });
 
+  const isLoading = membersQuery.isPending || invitesQuery.isPending;
+  const isError = membersQuery.isError || invitesQuery.isError;
+  const memberRows = membersQuery.data ?? [];
+  const inviteRows = invitesQuery.data ?? [];
+  const activeMembers = memberRows.filter((m) => m.status === "active").length;
+  const pendingInvites = inviteRows.filter((i) => i.status === "pending").length;
+
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("team.title")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("team.subtitle")}</p>
-      </header>
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 sm:px-6">
+      <PageHero title={t("team.title")} subtitle={t("team.subtitle")} />
 
-      <RakeezCard title={t("team.inviteTitle")} description={t("team.inviteHint")}>
-        <form
-          className="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end"
-          onSubmit={(e) => {
-            e.preventDefault();
-            inviteMutation.mutate();
+      {isLoading ? (
+        <CardsSkeleton cards={2} />
+      ) : isError ? (
+        <ErrorState
+          onRetry={() => {
+            void membersQuery.refetch();
+            void invitesQuery.refetch();
           }}
-        >
-          <TextField
-            id="invite-email"
-            label={t("team.email")}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-foreground">{t("team.role")}</span>
-            <select
-              className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-              value={role}
-              onChange={(e) => setRole(e.target.value as (typeof APP_ROLES)[number])}
+        />
+      ) : (
+        <>
+          <StatGrid>
+            <StatCard icon={Users} label={t("team.members")} value={memberRows.length} tone="primary" />
+            <StatCard icon={UserCog} label="أعضاء نشِطون" value={activeMembers} tone="success" />
+            <StatCard icon={Send} label={t("team.invitations")} value={pendingInvites} tone="warning" />
+          </StatGrid>
+
+          <SectionCard icon={UserPlus} title={t("team.inviteTitle")}>
+            <p className="mb-4 text-xs text-muted-foreground">{t("team.inviteHint")}</p>
+            <form
+              className="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end"
+              onSubmit={(e) => {
+                e.preventDefault();
+                inviteMutation.mutate();
+              }}
             >
-              {APP_ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {t(`team.roles.${r}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            disabled={inviteMutation.isPending}
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-          >
-            {t("team.sendInvite")}
-          </button>
-        </form>
+              <TextField
+                id="invite-email"
+                label={t("team.email")}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium text-foreground">{t("team.role")}</span>
+                <select
+                  className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as (typeof APP_ROLES)[number])}
+                >
+                  {APP_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {t(`team.roles.${r}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Button type="submit" className="min-h-11" disabled={inviteMutation.isPending}>
+                {inviteMutation.isPending ? t("common.loading") : t("team.sendInvite")}
+              </Button>
+            </form>
 
-        {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
+            {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
 
-        {link ? (
-          <div className="mt-4 rounded-md border border-border bg-muted/50 p-3">
-            <p className="text-sm font-medium text-foreground">{t("team.copyLinkHint")}</p>
-            <code className="mt-2 block break-all text-xs text-muted-foreground">{link}</code>
-            <button
-              type="button"
-              className="mt-3 inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm"
-              onClick={() => void navigator.clipboard.writeText(link)}
-            >
-              {t("team.copyLink")}
-            </button>
-          </div>
-        ) : null}
-      </RakeezCard>
+            {link ? (
+              <div className="mt-4 rounded-xl border border-border bg-muted/50 p-3">
+                <p className="text-sm font-medium text-foreground">{t("team.copyLinkHint")}</p>
+                <code className="mt-2 block break-all text-xs text-muted-foreground">{link}</code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-3 min-h-11"
+                  onClick={() => void navigator.clipboard.writeText(link)}
+                >
+                  <Copy className="me-2 size-4" aria-hidden="true" />
+                  {t("team.copyLink")}
+                </Button>
+              </div>
+            ) : null}
+          </SectionCard>
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">{t("team.invitations")}</h2>
-        <AsyncBoundary
-          isLoading={invitesQuery.isLoading}
-          isError={invitesQuery.isError}
-          onRetry={() => void invitesQuery.refetch()}
-        >
-          {(invitesQuery.data ?? []).length === 0 ? (
-            <EmptyState title={t("team.noInvitations")} />
-          ) : (
-            <ul className="divide-y divide-border rounded-md border border-border">
-              {(invitesQuery.data ?? []).map((inv) => (
-                <li key={inv.id} className="flex items-center justify-between gap-3 p-3 text-sm">
-                  <span className="truncate">{inv.email}</span>
-                  <span className="text-muted-foreground">{t(`team.roles.${inv.role}`)}</span>
-                  <span className="text-muted-foreground">{t(`team.status.${inv.status}`)}</span>
-                  {inv.status === "pending" ? (
-                    <button
-                      type="button"
-                      className="min-h-11 rounded-md border border-input px-3"
-                      onClick={() => revokeMutation.mutate(inv.id)}
-                    >
-                      {t("team.revoke")}
-                    </button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </AsyncBoundary>
-      </section>
+          <SectionCard icon={Send} title={t("team.invitations")} count={inviteRows.length}>
+            {inviteRows.length === 0 ? (
+              <SoftEmpty icon={Send} message={t("team.noInvitations")} />
+            ) : (
+              <ul className="divide-y divide-border rounded-xl border border-border">
+                {inviteRows.map((inv) => (
+                  <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                    <span className="truncate">{inv.email}</span>
+                    <span className="text-muted-foreground">{t(`team.roles.${inv.role}`)}</span>
+                    <span className="text-muted-foreground">{t(`team.status.${inv.status}`)}</span>
+                    {inv.status === "pending" ? (
+                      <Button
+                        variant="outline"
+                        className="min-h-11"
+                        onClick={() => revokeMutation.mutate(inv.id)}
+                      >
+                        {t("team.revoke")}
+                      </Button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">{t("team.members")}</h2>
-        <AsyncBoundary
-          isLoading={membersQuery.isLoading}
-          isError={membersQuery.isError}
-          onRetry={() => void membersQuery.refetch()}
-        >
-          {(membersQuery.data ?? []).length === 0 ? (
-            <EmptyState title={t("team.noMembers")} />
-          ) : (
-            <ul className="divide-y divide-border rounded-md border border-border">
-              {(membersQuery.data ?? []).map((m) => (
-                <li key={m.id} className="flex items-center justify-between gap-3 p-3 text-sm">
-                  <span className="truncate font-mono text-xs">{m.user_id.slice(0, 8)}</span>
-                  <span>{t(`team.roles.${m.role}`)}</span>
-                  <span className="text-muted-foreground">{m.status}</span>
-                  {m.status === "active" ? (
-                    <button
-                      type="button"
-                      className="min-h-11 rounded-md border border-input px-3"
-                      onClick={() => offboardMutation.mutate(m.user_id)}
-                    >
-                      {t("team.offboard")}
-                    </button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </AsyncBoundary>
-      </section>
+          <SectionCard icon={Users} title={t("team.members")} count={memberRows.length}>
+            {memberRows.length === 0 ? (
+              <SoftEmpty icon={Users} message={t("team.noMembers")} />
+            ) : (
+              <ul className="divide-y divide-border rounded-xl border border-border">
+                {memberRows.map((m) => (
+                  <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                    <span className="truncate font-mono text-xs">{m.user_id.slice(0, 8)}</span>
+                    <span>{t(`team.roles.${m.role}`)}</span>
+                    <span className="text-muted-foreground">{m.status}</span>
+                    {m.status === "active" ? (
+                      <Button
+                        variant="outline"
+                        className="min-h-11"
+                        onClick={() => offboardMutation.mutate(m.user_id)}
+                      >
+                        {t("team.offboard")}
+                      </Button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+        </>
+      )}
     </div>
   );
 }

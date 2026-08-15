@@ -2,8 +2,9 @@ import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Archive, FileUp, History, LayoutTemplate, UploadCloud } from "lucide-react";
 
-import { RakeezCard } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, PageHero, SectionCard, SoftEmpty, StatCard, StatGrid } from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import {
   activateTemplate,
@@ -127,117 +128,148 @@ function EntityTemplatesPage() {
 
   const templates = templatesQuery.data ?? [];
   const imports = importsQuery.data ?? [];
+  const isLoading = templatesQuery.isPending || importsQuery.isPending;
+  const isError = templatesQuery.isError || importsQuery.isError;
+  const activeCount = templates.filter((t) => t.status === "active").length;
+  const draftCount = templates.filter((t) => t.status === "draft").length;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 md:p-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">قوالب التقارير</h1>
-        <p className="text-muted-foreground text-sm">
-          استورد قالبًا من ملف Word (DOCX) أو PDF. القالب المستورد يبدأ دائمًا كمسودة، وقوالب PDF لا تُفعَّل قبل مراجعة
-          بشرية.
-        </p>
-      </header>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <PageHero
+        title="قوالب التقارير"
+        subtitle="استورد قالبًا من ملف Word (DOCX) أو PDF. القالب المستورد يبدأ دائمًا كمسودة، وقوالب PDF لا تُفعَّل قبل مراجعة بشرية."
+        aside={
+          <Button className="min-h-11" onClick={() => inputRef.current?.click()}>
+            <UploadCloud className="me-2 size-4" aria-hidden="true" />
+            استيراد ملف
+          </Button>
+        }
+      />
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) uploadMutation.mutate(file);
+          e.target.value = "";
+        }}
+      />
 
       {error ? (
-        <p className="border-destructive/40 bg-destructive/10 text-destructive rounded-md border p-3 text-sm">
+        <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </p>
       ) : null}
       {message ? (
-        <p className="bg-secondary rounded-md border p-3 text-sm">{message}</p>
+        <p className="rounded-lg border border-border bg-secondary p-3 text-sm text-foreground">{message}</p>
+      ) : null}
+      {uploadMutation.isPending ? (
+        <p className="text-sm text-muted-foreground">جارٍ التحليل…</p>
       ) : null}
 
-      <RakeezCard title="استيراد ملف" description="يُقبل DOCX أو PDF فقط، بحد أقصى 15 ميجابايت.">
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            className="text-sm"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) uploadMutation.mutate(file);
-              e.target.value = "";
-            }}
-          />
-          <span className="text-muted-foreground text-xs">
-            الحد الأقصى {(IMPORT_MAX_BYTES / (1024 * 1024)).toFixed(0)} ميجابايت
-          </span>
-          {uploadMutation.isPending ? <span className="text-sm">جارٍ التحليل…</span> : null}
-        </div>
-      </RakeezCard>
+      {isLoading ? (
+        <CardsSkeleton cards={2} />
+      ) : isError ? (
+        <ErrorState
+          onRetry={() => {
+            void templatesQuery.refetch();
+            void importsQuery.refetch();
+          }}
+        />
+      ) : (
+        <>
+          <StatGrid>
+            <StatCard icon={LayoutTemplate} label="إجمالي القوالب" value={templates.length} tone="primary" />
+            <StatCard icon={LayoutTemplate} label="مفعّل" value={activeCount} tone="success" />
+            <StatCard icon={FileUp} label="مسودة" value={draftCount} tone="warning" />
+            <StatCard
+              icon={FileUp}
+              label="الحد الأقصى للملف"
+              value={`${(IMPORT_MAX_BYTES / (1024 * 1024)).toFixed(0)} م.ب`}
+              tone="info"
+            />
+          </StatGrid>
 
-      <RakeezCard title="قوالب الكيان">
-        {templates.length === 0 ? (
-          <p className="text-muted-foreground text-sm">لا توجد قوالب بعد.</p>
-        ) : (
-          <ul className="divide-y">
-            {templates.map((t) => (
-              <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <div className="space-y-0.5">
-                  <p className="font-medium">{t.name_ar}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {SOURCE_AR[t.source] ?? t.source} — {STATUS_AR[t.status] ?? t.status}
-                    {t.reviewed_at ? " — تمت المراجعة" : ""}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  {t.status === "draft" ? (
-                    <Button
-                      size="sm"
-                      onClick={run(() => activate({ data: { templateId: t.id } }), "تم تفعيل القالب")}
-                    >
-                      تفعيل
-                    </Button>
-                  ) : null}
-                  {t.status !== "archived" ? (
+          <SectionCard icon={LayoutTemplate} title="قوالب الكيان" count={templates.length}>
+            {templates.length === 0 ? (
+              <SoftEmpty icon={LayoutTemplate} message="لا توجد قوالب بعد." />
+            ) : (
+              <ul className="divide-y divide-border">
+                {templates.map((t) => (
+                  <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="space-y-0.5">
+                      <p className="font-medium text-foreground">{t.name_ar}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {SOURCE_AR[t.source] ?? t.source} — {STATUS_AR[t.status] ?? t.status}
+                        {t.reviewed_at ? " — تمت المراجعة" : ""}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {t.status === "draft" ? (
+                        <Button
+                          size="sm"
+                          className="min-h-11"
+                          onClick={run(() => activate({ data: { templateId: t.id } }), "تم تفعيل القالب")}
+                        >
+                          تفعيل
+                        </Button>
+                      ) : null}
+                      {t.status !== "archived" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="min-h-11"
+                          onClick={run(() => archive({ data: { templateId: t.id } }), "تمت أرشفة القالب")}
+                        >
+                          <Archive className="me-1 size-3.5" aria-hidden="true" />
+                          أرشفة
+                        </Button>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+
+          <SectionCard icon={History} title="سجلات الاستيراد" count={imports.length}>
+            {imports.length === 0 ? (
+              <SoftEmpty icon={History} message="لا توجد عمليات استيراد." />
+            ) : (
+              <ul className="divide-y divide-border">
+                {imports.map((imp) => (
+                  <li key={imp.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div className="space-y-0.5">
+                      <p className="font-medium text-foreground">
+                        {imp.kind.toUpperCase()} — {imp.blocks_created} كتلة
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {imp.status} — {new Date(imp.created_at).toLocaleString("ar")}
+                      </p>
+                    </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={run(() => archive({ data: { templateId: t.id } }), "تمت أرشفة القالب")}
+                      className="min-h-11"
+                      onClick={() =>
+                        navigate({
+                          to: "/entities/$entityId/template-imports/$importId",
+                          params: { entityId, importId: imp.id },
+                        })
+                      }
                     >
-                      أرشفة
+                      فتح المراجعة
                     </Button>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </RakeezCard>
-
-      <RakeezCard title="سجلات الاستيراد">
-        {imports.length === 0 ? (
-          <p className="text-muted-foreground text-sm">لا توجد عمليات استيراد.</p>
-        ) : (
-          <ul className="divide-y">
-            {imports.map((imp) => (
-              <li key={imp.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <div className="space-y-0.5">
-                  <p className="font-medium">
-                    {imp.kind.toUpperCase()} — {imp.blocks_created} كتلة
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {imp.status} — {new Date(imp.created_at).toLocaleString("ar")}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    navigate({
-                      to: "/entities/$entityId/template-imports/$importId",
-                      params: { entityId, importId: imp.id },
-                    })
-                  }
-                >
-                  فتح المراجعة
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </RakeezCard>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+        </>
+      )}
     </div>
   );
 }

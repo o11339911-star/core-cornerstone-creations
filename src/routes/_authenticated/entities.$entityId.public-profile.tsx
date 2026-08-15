@@ -2,8 +2,9 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Globe2, Link2, ShieldCheck } from "lucide-react";
 
-import { RakeezCard, TextField, TextAreaField, AsyncBoundary } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, PageHero, SectionCard, TextAreaField, TextField } from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -162,22 +163,19 @@ function PublicProfilePage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-5 px-4 py-6">
-      <header>
-        <h1 className="text-2xl font-bold text-foreground">الملف العام للكيان</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          حقول عامة فقط. الملف غير منشور افتراضيًا، ولا يُعرض أي بريد أو جوال أو مستند خاص
-          مالم تُدخله هنا صراحة كوسيلة تواصل معلنة.
-        </p>
-      </header>
+    <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6 sm:px-6">
+      <PageHero
+        title="الملف العام للكيان"
+        subtitle="حقول عامة فقط. الملف غير منشور افتراضيًا، ولا يُعرض أي بريد أو جوال أو مستند خاص مالم تُدخله هنا صراحة كوسيلة تواصل معلنة."
+      />
 
-      <AsyncBoundary
-        isLoading={profileQuery.isLoading}
-        isError={profileQuery.isError}
-        onRetry={() => void profileQuery.refetch()}
-      >
-        <div className="space-y-5">
-          <RakeezCard title="بيانات العرض">
+      {profileQuery.isPending ? (
+        <CardsSkeleton cards={2} />
+      ) : profileQuery.isError ? (
+        <ErrorState onRetry={() => void profileQuery.refetch()} />
+      ) : (
+        <div className="space-y-6">
+          <SectionCard icon={Globe2} title="بيانات العرض">
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
                 id="epp-displayNameAr"
@@ -245,16 +243,17 @@ function PublicProfilePage() {
             </div>
             <div className="mt-4 flex justify-end">
               <Button
+                className="min-h-11"
                 onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending || form.displayNameAr.trim().length < 2}
               >
-                حفظ
+                {saveMutation.isPending ? "جارٍ الحفظ…" : "حفظ"}
               </Button>
             </div>
-          </RakeezCard>
+          </SectionCard>
 
           {row ? (
-            <RakeezCard title="النشر">
+            <SectionCard icon={ShieldCheck} title="النشر">
               <div className="space-y-4">
                 <label className="flex items-center justify-between gap-4 text-sm">
                   <span className="text-foreground">تفعيل نشر الملف العام</span>
@@ -283,20 +282,22 @@ function PublicProfilePage() {
                   <div className="flex-1">
                     <TextField
                       id="epp-slug"
-                label="الرابط المختصر"
+                      label="الرابط المختصر"
                       value={slugInput}
                       onChange={(e) => setSlugInput(e.target.value)}
                     />
                   </div>
                   <Button
                     variant="outline"
+                    className="min-h-11"
                     onClick={() => slugMutation.mutate()}
                     disabled={slugMutation.isPending || slugInput.trim().length < 2}
                   >
                     تحديث الرابط
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Link2 className="size-3.5" aria-hidden="true" />
                   الرابط العام:{" "}
                   <a
                     className="text-primary underline-offset-4 hover:underline"
@@ -306,13 +307,13 @@ function PublicProfilePage() {
                   </a>
                 </p>
               </div>
-            </RakeezCard>
+            </SectionCard>
           ) : null}
 
           {notice ? <p className="text-sm text-success">{notice}</p> : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </div>
-      </AsyncBoundary>
+      )}
     </main>
   );
 }
