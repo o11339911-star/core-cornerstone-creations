@@ -228,8 +228,8 @@ function ProjectMarketingPage() {
   const approvedVersions = (versions.data ?? []).filter((v) => v.status === "approved");
   const versionIds = new Set((versions.data ?? []).map((v) => v.id));
   const contractIds = new Set((contracts.data ?? []).map((c) => c.id));
-  const scopedPackages = scopedPackages.filter((p) => versionIds.has(p.version_id));
-  const scopedLeads = scopedLeads.filter((l) => contractIds.has(l.contract_id));
+  const scopedPackages = (packages.data ?? []).filter((pkg) => versionIds.has(pkg.version_id));
+  const scopedLeads = (leads.data ?? []).filter((lead) => contractIds.has(lead.contract_id));
   const activeContracts = (contracts.data ?? []).filter((c) => c.status === "active");
 
   return (
