@@ -7403,6 +7403,10 @@ export type Database = {
         Args: { _version_id: string }
         Returns: undefined
       }
+      approve_media_asset: {
+        Args: { _approve: boolean; _asset_id: string; _reason?: string }
+        Returns: undefined
+      }
       approve_report: {
         Args: { _note?: string; _version_id: string }
         Returns: string
@@ -7414,6 +7418,24 @@ export type Database = {
       archive_report_template: {
         Args: { _template_id: string }
         Returns: string
+      }
+      assign_media_photographer: {
+        Args: {
+          _photographer_entity_id?: string
+          _photographer_user_id?: string
+          _scheduled_at?: string
+          _shoot_id: string
+        }
+        Returns: undefined
+      }
+      attach_blurred_media_version: {
+        Args: {
+          _ack_text: string
+          _asset_id: string
+          _checksum?: string
+          _object_path: string
+        }
+        Returns: undefined
       }
       auto_assign_queue_item: { Args: { _item_id: string }; Returns: string }
       build_notification_digest: {
@@ -7447,6 +7469,15 @@ export type Database = {
       }
       cancel_retention_hold: {
         Args: { _hold_id: string; _reason: string }
+        Returns: string
+      }
+      check_in_media_shoot: {
+        Args: {
+          _accuracy_m?: number
+          _lat?: number
+          _lng?: number
+          _shoot_id: string
+        }
         Returns: string
       }
       close_project: {
@@ -7695,6 +7726,7 @@ export type Database = {
       }
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
       get_public_entity_profile: { Args: { _slug: string }; Returns: Json }
+      get_public_media: { Args: { _token: string }; Returns: Json }
       grant_case_access: {
         Args: {
           _item_id: string
@@ -7833,6 +7865,10 @@ export type Database = {
       }
       project_completion: { Args: { _project_id: string }; Returns: Json }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      publish_media_asset: {
+        Args: { _asset_id: string; _public_object_path: string }
+        Returns: string
+      }
       publish_portfolio_entry: {
         Args: {
           _is_public?: boolean
@@ -7900,6 +7936,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_media_asset: {
+        Args: {
+          _checksum?: string
+          _kind?: string
+          _raw_object_path: string
+          _shoot_id: string
+          _title: string
+        }
+        Returns: string
+      }
       register_warranty: {
         Args: {
           _document_id?: string
@@ -7941,6 +7987,15 @@ export type Database = {
         Args: { _note?: string; _subject_id: string; _subject_kind: string }
         Returns: string
       }
+      request_media_shoot: {
+        Args: {
+          _notes?: string
+          _project_id: string
+          _property_id?: string
+          _scheduled_at?: string
+        }
+        Returns: string
+      }
       request_more_info: {
         Args: { _body: string; _request_id: string }
         Returns: string
@@ -7957,6 +8012,7 @@ export type Database = {
         Args: { _notification_id: string }
         Returns: Json
       }
+      resolve_public_media_object: { Args: { _token: string }; Returns: string }
       resolve_queue_item: {
         Args: { _item_id: string; _reason: string }
         Returns: undefined
@@ -7984,6 +8040,10 @@ export type Database = {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: string
       }
+      review_media_asset: {
+        Args: { _approve: boolean; _asset_id: string; _reason?: string }
+        Returns: undefined
+      }
       review_report_template: {
         Args: { _note?: string; _template_id: string }
         Returns: string
@@ -8003,6 +8063,10 @@ export type Database = {
       revoke_case_access: { Args: { _case_id: string }; Returns: undefined }
       revoke_marketing_package: {
         Args: { _package_id: string }
+        Returns: undefined
+      }
+      revoke_media_publication: {
+        Args: { _publication_id: string; _reason: string }
         Returns: undefined
       }
       run_duration_scan: { Args: never; Returns: Json }
@@ -8096,6 +8160,7 @@ export type Database = {
         }
         Returns: string
       }
+      submit_media_asset: { Args: { _asset_id: string }; Returns: undefined }
       submit_report_version: { Args: { _version_id: string }; Returns: string }
       submit_stage: {
         Args: { _note?: string; _stage_id: string }
@@ -8188,6 +8253,10 @@ export type Database = {
           report_number: string
           status: string
         }[]
+      }
+      withdraw_media_asset: {
+        Args: { _asset_id: string; _reason: string }
+        Returns: undefined
       }
     }
     Enums: {
