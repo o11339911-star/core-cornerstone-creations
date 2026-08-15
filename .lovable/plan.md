@@ -1,88 +1,84 @@
-# المرحلة 11 — المراحل والتنفيذ والزيارات الميدانية
+# المرحلة 12 — الطلبات والمحادثة الموحدة
 
-## 1. المبدأ العام
+## 1. الهدف
+طبقة "طلب" عامة (`requests`) تصلح أساسًا لكل أنواع الطلبات لاحقًا (خدمات في المرحلة 13، صرف مالي في المرحلة 16)، بحيث:
+- رقم الطلب واحد ثابت طوال دورة حياته.
+- كل نقاش الطلب يجري في سلسلة مراسلات واحدة من المرحلة 10 — بدون جدول محادثة موازٍ.
+- التذكير أو طلب الاستكمال = رسالة جديدة + تغيير حالة، وليس طلبًا جديدًا.
 
-المرحلة تُدار كـ"وحدة تنفيذ" لها أصحاب أدوار، وسجل تنفيذ يومي، وزيارات ميدانية موثّقة، وملاحظات فنية بدورة حياة واضحة، ولا تُغلق إلا باستيفاء معايير إكمال معلنة + اعتماد صريح من شخص غير المنفّذ.
+## 2. ما هو موجود فعلًا (تم التحقق منه)
+- `correspondence_threads`: `project_id` (إلزامي)، `contract_id`، `stage_id`، `subject`، `status`، `created_by`، توقيتات.
+- `correspondence_messages`: `thread_id`، `author_id`، `body`، `file_path`، `visibility` بقيد `shared | party_limited | internal_note`، `created_at` — لا تحديث ولا حذف (append-only).
+- `correspondence_message_audience`: تحديد جمهور محدد للرسالة (مستخدم أو كيان).
+- `permission_audit_log`: قيد `object_type` يسمح حاليًا بـ20 نوعًا، لا يتضمن `requests`؛ قيد `action` يسمح بـ `insert/update/revoke/delete/status_change`.
 
-لا نكرر ما هو قائم: `project_stages` و`stage_dependencies` (المرحلة 4) هما مصدر الحقيقة للمراحل والتبعيات، و`private.can` (المرحلة 5) هو محرك الصلاحية الوحيد، و`permission_audit_log` (المرحلة 5) هو سجل التدقيق الوحيد.
-
-## 2. تعديلات على الموجود (توسيع لا استبدال)
-
-- `project_stages`: إضافة `parent_stage_id` (مرحلة فرعية داخل مرحلة رئيسية، مع منع الدوران عبر تريجر ومنع تجاوز مستويين)، و`actual_start` / `actual_end`، و`completion_note`، و`approved_by` / `approved_at`.
-- توسيع قيم `project_stages.status` لتشمل دورة حياة أوضح: `pending → in_progress → submitted → approved` مع `rework` و`skipped`. الانتقالات المسموحة تُفرض بتريجر (لا قفزة من `pending` إلى `approved`).
-- `permission_audit_log`: توسيع قائمة `object_type` لتشمل كيانات هذه المرحلة (`project_stages`, `stage_roles`, `stage_progress`, `site_visits`, `stage_observations`, `observation_actions`, `stage_attachments`)، وتوسيع `action` بقيمة `status_change`. لا جدول تدقيق موازٍ.
+النتيجة: `correspondence_messages` كافٍ للمرسل والوقت والرؤية والمرفق. الناقص فقط: **دور المرسل وقت الإرسال** (يُشتق حاليًا ولا يُحفظ)، ودعم أكثر من مرفق لرسالة واحدة.
 
 ## 3. الجداول الجديدة
 
-- `stage_roles` — من يشغل أي دور على المرحلة: `stage_id`, `user_id`, `entity_id`, `role` ∈ (`responsible`, `executor`, `reviewer`, `approver`), `assigned_by`, `starts_on`, `ends_on`, `status`.
-- `stage_completion_criteria` — معايير الإكمال: `stage_id`, `code`, `label_ar/en`, `is_required`, `evidence_type` ∈ (`file`, `visit`, `checklist`, `text`), `weight`.
-- `stage_criteria_results` — استيفاء المعيار: `criterion_id`, `satisfied`, `evidence_attachment_id`, `evidence_visit_id`, `note`, `recorded_by`.
-- `stage_progress` — تحديثات التقدّم: `stage_id`, `percent` (0-100)، `note`, `reported_by`, `reported_at` (سطر لكل تحديث، غير قابل للتعديل أو الحذف).
-- `site_visits` — الزيارة الميدانية: `stage_id`, `project_id`, `visited_by`, `visit_start`, `visit_end`, `summary`, `weather_note`, `location_consent` (منطقي، افتراضي false)، `location_reason` ∈ (`inspection`, `handover`, `incident`, `other`).
-- `site_visit_locations` — الإحداثيات الدقيقة في جدول منفصل (نفس نمط `property_exact_locations` من المرحلة 7): `visit_id`, `lat`, `lng`, `accuracy_m`. لا يُكتب سطر هنا إلا مع `location_consent = true` وسبب مذكور (تريجر يفرض ذلك).
-- `stage_observations` — ملاحظة فنية / عدم مطابقة: `stage_id`, `visit_id`, `kind` ∈ (`note`, `nonconformity`), `severity` ∈ (`low`, `medium`, `high`, `critical`), `title`, `body`, `status`, `raised_by`, `due_on`.
-- `observation_actions` — الإجراء التصحيحي: `observation_id`, `action_text`, `assigned_to`, `due_on`, `status`, `completed_at`, `completed_by`.
-- `observation_reinspections` — إعادة الفحص: `observation_id`, `action_id`, `inspected_by`, `result` ∈ (`passed`, `failed`), `note`, `visit_id`.
-- `stage_attachments` — المرفقات والصور: `stage_id`, `visit_id`, `observation_id`, `file_path`, `file_hash`, `mime_type`, `kind` ∈ (`photo`, `document`, `report`), `uploaded_by`. الملفات نفسها في bucket خاص.
+### `request_types` (مرجعي، قابل للتوسعة بلا migration جديدة لكل نوع)
+`code` (PK نصي)، `name_ar`، `name_en`، `module` (app_module)، `requires_stage`، `requires_unit`، `is_active`، ترتيب العرض.
+تُزرع أنواع المرحلة 12 الأساسية فقط: `info_request`، `document_request`، `approval_request`، `general_request`. المرحلتان 13 و16 تضيفان صفوفًا لا جداول.
 
-## 4. دورات الحالة
+### `requests`
+- `id`، `request_no` (مسلسل قابل للعرض ثابت مدى الحياة)
+- `request_type_code` → `request_types`
+- `project_id` (إلزامي)، `stage_id`، `contract_id`، `property_id`، `property_unit_id` (كلها nullable وتُتحقق حسب نوع الطلب)
+- `requested_by`، `assigned_entity_id`، `assigned_user_id`
+- `status`: `draft | submitted | in_review | info_needed | approved | rejected | cancelled | closed`
+- `priority`: `low | normal | high`
+- `due_at`، `closed_at`، `closure_reason`
+- `thread_id` → `correspondence_threads` **UNIQUE وNOT NULL** — علاقة 1:1 تمنع تعدد سلاسل الطلب الواحد
+- توقيتات + `set_updated_at`
 
-```text
-المرحلة:      pending -> in_progress -> submitted -> approved
-                             ^              |
-                             +--- rework <--+            (skipped من pending فقط)
+### `request_status_transitions` (آلة الحالة كبيانات لا كشيفرة)
+`from_status`، `to_status`، `actor_scope` (`requester | handler | either`) — تمنع القفزات غير المسموحة، وتُقرأ من الـtrigger.
 
-الملاحظة:     open -> action_assigned -> action_done -> reinspection -> closed
-                                                    \-> failed -> action_assigned
+لا جدول رسائل جديد إطلاقًا.
 
-الإجراء:      assigned -> in_progress -> done -> verified | rejected
-```
+## 4. تعديلات محدودة على جداول قائمة
+- `correspondence_messages`: إضافة `author_role_snapshot` (نص، دور المرسل لحظة الإرسال) و`message_kind` (`comment | reminder | info_request | decision | system`) — لتمييز التذكير عن الرد العادي داخل نفس السلسلة.
+- `correspondence_message_attachments` (جدول ملحق صغير) لدعم أكثر من مرفق: `message_id`، `file_path`، `file_name`، `mime`، `size_bytes`. يبقى `file_path` القديم للتوافق.
+- `permission_audit_log`: توسعة قيد `object_type` بـ `requests` و`request_messages`.
+- لا تغيير على قيم `visibility` — الملاحظات الداخلية تستخدم `internal_note` الموجود كما هو.
 
-كل انتقال حالة يُسجَّل تلقائيًا في `permission_audit_log` بـ `action = 'status_change'` مع القيمة القديمة والجديدة، عبر تريجر AFTER — والجدول أصلًا append-only ومحمي من الكتابة المباشرة.
+## 5. الأمن (RLS ومحرك القرار)
+- `private.can_access_request(_request_id)`: مسموح إذا كان المستخدم من داخل المشروع (`private.can(... 'projects','view', project)`)، أو مقدّم الطلب، أو الجهة المسندة إليه (مستخدم أو كيان طرف نشط في المشروع ضمن نطاق المرحلة).
+- `requests`: قراءة عبر الدالة أعلاه؛ إنشاء لمن يملك `create` على وحدة نوع الطلب؛ تعديل عبر RPC فقط؛ لا حذف (إلغاء = حالة `cancelled`).
+- سلسلة الطلب ترث نفس منطق المرحلة 10: `internal_note` لا تصل لمقدم الطلب الخارجي ولا لأي طرف خارجي — الاختبار يثبتها من حساب مقدم الطلب نفسه.
+- `request_types` و`request_status_transitions`: قراءة للمصادَقين، كتابة `service_role` فقط.
+- GRANT صريح لكل جدول جديد؛ لا `anon`.
 
-## 5. قاعدة منع الاعتماد الذاتي (فصل المهام)
+## 6. الدوال (RPC)
+- `create_request(...)` → ينشئ السلسلة والطلب معًا في معاملة واحدة، ويكتب أول رسالة `shared`.
+- `post_request_message(_request_id, _body, _visibility, _kind, _attachments)` → رسالة داخل نفس السلسلة + لقطة دور المرسل.
+- `request_reminder(_request_id)` و`request_more_info(_request_id, _body)` → **رسالة + تحديث حالة فقط**، ممنوع إنشاء طلب جديد؛ الثاني ينقل الحالة إلى `info_needed`.
+- `decide_request(_request_id, _approve, _note)` → `approved`/`rejected` مع رسالة قرار.
+- `close_request(_request_id, _reason)`.
+- كل انتقال حالة يمر عبر `request_status_transitions` ويُسجَّل في `permission_audit_log` (`object_type='requests'`, `action='status_change'`) — سجل غير قابل للطمس.
 
-- اعتماد المرحلة يتم حصريًا عبر دالة `public.approve_stage(_stage_id, _note)`:
-  - يجب أن يملك المُعتمِد `private.can(..., 'stages', 'approve', ...)`.
-  - يجب أن تكون المرحلة في حالة `submitted`.
-  - يجب أن تكون كل المعايير الإلزامية مستوفاة، وكل عدم مطابقة `high`/`critical` مغلقة.
-  - **يُرفض** إذا كان المُعتمِد هو نفسه من قدّم المرحلة (`submitted_by`) أو مسجَّلًا عليها بدور `executor` — نفس نمط `decide_contract_extension` في المرحلة 10.
-- إعادة الفحص (`observation_reinspections`) لا يجوز أن يقوم بها منفّذ الإجراء التصحيحي نفسه.
-- الفصل قابل للتعطيل على مستوى المشروع فقط بعلم واضح (`projects.requires_segregation`، افتراضي `true`)، ويُسجَّل أي تعطيل في سجل التدقيق.
+## 7. طبقة التطبيق والواجهة
+- `src/lib/requests.functions.ts`: `listRequests`, `getRequest`, `listRequestTypes`, `createRequest`, `postRequestMessage`, `sendReminder`, `requestMoreInfo`, `decideRequest`, `closeRequest`, `listRequestTimeline`.
+- مسارات:
+  - `/_authenticated/projects/$projectId/requests` — قائمة مع فلترة بالحالة والنوع.
+  - `/_authenticated/requests/$requestId` — صفحة الطلب.
+- تصميم صفحة الطلب: **شريط "الإجراء المطلوب الآن"** أعلى الصفحة (زر واحد أساسي حسب دور المستخدم والحالة)، ثم المحادثة، ثم Timeline مطوي مصدره `permission_audit_log`. الملاحظة الداخلية بشارة واضحة ولا تظهر أصلًا لغير المخوّلين.
+- مفاتيح i18n عربية/إنجليزية في `src/i18n/locales/*` تحت `requests.*`.
 
-## 6. الوصول والخصوصية
+## 8. ترتيب التنفيذ
+1. Migration: `request_types` + `request_status_transitions` + `requests` + GRANT + RLS + السياسات.
+2. Migration: توسعة `correspondence_messages` + جدول المرفقات + توسعة قيد `permission_audit_log`.
+3. Migration: دوال `private.can_access_request` وRPCs والـtriggers والتدقيق.
+4. زرع أنواع الطلبات وقواعد الانتقال.
+5. `src/lib/requests.functions.ts` + i18n + المسارين.
+6. Supabase Advisors ومعالجة أي Finding جديد.
 
-- كل جداول المرحلة 11 عليها RLS، والقراءة تمر عبر `private.stage_in_scope` + `private.can(..., 'stages'|'documents', 'view', ...)`، بحيث لا يرى الطرف الخارجي إلا المراحل المتفق عليها في نطاقه (المرحلة 9).
-- سياسات القراءة تُكتب بأسلوب "بيانات السطر" (تمرير `stage_id`/`project_id` للدالة) وليس بإعادة الاستعلام عن نفس الجدول، تفاديًا لمشكلة عدم ظهور السطر فور إنشائه التي عولجت في المرحلة 10.
-- الموقع الدقيق للزيارة محجوب افتراضيًا: يظهر فقط لمن يملك `view_exact`، ولا يُخزَّن أصلًا بلا موافقة صريحة وسبب. الزائر يرى دائمًا موقعه هو.
-- كل الدوال الجديدة `SECURITY DEFINER` تبدأ بفحص `auth.uid()` ثم `private.can(...)`، و`EXECUTE` محجوب عن `anon`.
+## 9. اختبارات التحقق (بحسابات `p12-*`)
+1. تذكير + طلب استكمال لا ينشئان طلبًا ثانيًا: `count(requests)` يبقى 1 والسلسلة تبقى واحدة.
+2. ملاحظة داخلية غير مرئية لمقدم الطلب ولا لطرف خارجي، ومرئية لداخل المشروع.
+3. انتقال حالة غير مسموح (مثل `draft → approved`) يُرفض من الـtrigger.
+4. كل تغيّر حالة يظهر في `permission_audit_log` ولا يقبل تعديلًا أو حذفًا.
+5. مستخدم خارج المشروع لا يرى الطلب ولا سلسلته إطلاقًا.
+6. طلب بنوع يتطلب مرحلة يُرفض بدون `stage_id`.
 
-## 7. التخزين
-
-bucket خاص جديد `stage-evidence` بنفس نمط `property-documents`:
-- غير عام، مسار `project_id/stage_id/...`.
-- سياسات storage تعتمد على نفس دوال الصلاحية.
-- الرفع والقراءة عبر server functions تُصدر signed URL قصيرة الأجل بعد فحص صلاحية خادمي؛ لا وصول مباشر من المتصفح بمفتاح.
-
-## 8. طبقة التطبيق
-
-- `src/lib/stages.functions.ts`: قائمة المراحل بشجرة رئيسية/فرعية، تحديث التقدّم، تقديم المرحلة، اعتمادها، إدارة الأدوار والمعايير.
-- `src/lib/site-visits.functions.ts`: إنشاء زيارة (مع الموافقة على الموقع)، رفع الصور، الملاحظات والإجراءات وإعادة الفحص، وإصدار signed URLs.
-- الواجهات: `projects.$projectId.stages.tsx` (شجرة المراحل + التبعيات + الحالة)، `projects.$projectId.stages.$stageId.tsx` (الأدوار، المعايير، التقدّم، الخط الزمني، المرفقات)، و`projects.$projectId.visits.tsx` (الزيارات والملاحظات).
-- مفاتيح i18n عربية/إنجليزية لكل الحالات والأدوار والرسائل.
-
-## 9. ترتيب التنفيذ عند الاعتماد
-
-1. Migration: توسيع `project_stages` و`permission_audit_log`، الجداول التسعة الجديدة، الدوال المساعدة، التريجرات، RLS + GRANTs.
-2. إنشاء bucket `stage-evidence` وسياساته.
-3. server functions ثم الواجهات وi18n.
-4. اختبارات حية بحسابات واضحة الأسماء (`p11-*`)، ثم حذف كامل لبيانات الاختبار والمستخدمين والملفات، ثم Supabase Advisors ومعالجة أي Finding.
-
-## 10. اختبارات القبول
-
-1. منفّذ المرحلة يحاول اعتماد عمله → رفض صريح؛ معتمِد آخر ينجح.
-2. اعتماد مرحلة بمعيار إلزامي غير مستوفٍ أو عدم مطابقة حرجة مفتوحة → رفض.
-3. رفع ملف وحده لا يغيّر حالة المرحلة إلى `approved`.
-4. زيارة بلا موافقة موقع → لا يُخزَّن أي إحداثي؛ ومع موافقة، الإحداثي محجوب عمن لا يملك `view_exact`.
-5. دورة عدم مطابقة كاملة: فتح → إجراء → إعادة فحص فاشلة → إجراء جديد → إعادة فحص ناجحة → إغلاق، مع ظهور كل انتقال في الخط الزمني وعدم إمكانية تعديله أو حذفه.
-6. طرف خارجي يرى مراحل نطاقه فقط، ولا يرى ملاحظات مراحل خارج نطاقه.
+بعد الاختبارات: حذف كامل لكل مستخدمي وبيانات `p12-*` مع استعلام `count` فعلي يُلصق في التقرير.
