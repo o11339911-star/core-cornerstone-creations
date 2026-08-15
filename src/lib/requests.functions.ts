@@ -119,10 +119,10 @@ export const createRequest = createServerFn({ method: "POST" })
       _project_id: data.projectId,
       _request_type_code: data.requestTypeCode,
       _subject: data.subject,
-      _body: data.body ?? null,
-      _stage_id: data.stageId ?? null,
-      _assigned_entity_id: data.assignedEntityId ?? null,
-      _assigned_user_id: data.assignedUserId ?? null,
+      _body: data.body ?? undefined,
+      _stage_id: data.stageId ?? undefined,
+      _assigned_entity_id: data.assignedEntityId ?? undefined,
+      _assigned_user_id: data.assignedUserId ?? undefined,
       _priority: data.priority ?? "normal",
       _submit: data.submit ?? true,
     });
@@ -196,7 +196,7 @@ export const decideRequest = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("decide_request", {
       _request_id: data.requestId,
       _approve: data.approve,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -210,7 +210,7 @@ export const closeRequest = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("close_request", {
       _request_id: data.requestId,
-      _note: data.note ?? null,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
