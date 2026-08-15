@@ -655,6 +655,44 @@ export type Database = {
           },
         ]
       }
+      correspondence_message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_path: string
+          id: string
+          message_id: string
+          mime: string | null
+          size_bytes: number | null
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_path: string
+          id?: string
+          message_id: string
+          mime?: string | null
+          size_bytes?: number | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_path?: string
+          id?: string
+          message_id?: string
+          mime?: string | null
+          size_bytes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       correspondence_message_audience: {
         Row: {
           audience_entity_id: string | null
@@ -697,28 +735,34 @@ export type Database = {
       correspondence_messages: {
         Row: {
           author_id: string
+          author_role_snapshot: string | null
           body: string
           created_at: string
           file_path: string | null
           id: string
+          message_kind: string
           thread_id: string
           visibility: string
         }
         Insert: {
           author_id: string
+          author_role_snapshot?: string | null
           body: string
           created_at?: string
           file_path?: string | null
           id?: string
+          message_kind?: string
           thread_id: string
           visibility?: string
         }
         Update: {
           author_id?: string
+          author_role_snapshot?: string | null
           body?: string
           created_at?: string
           file_path?: string | null
           id?: string
+          message_kind?: string
           thread_id?: string
           visibility?: string
         }
@@ -2171,6 +2215,202 @@ export type Database = {
           },
         ]
       }
+      request_status_transitions: {
+        Row: {
+          actor_scope: string
+          from_status: string
+          to_status: string
+        }
+        Insert: {
+          actor_scope?: string
+          from_status: string
+          to_status: string
+        }
+        Update: {
+          actor_scope?: string
+          from_status?: string
+          to_status?: string
+        }
+        Relationships: []
+      }
+      request_types: {
+        Row: {
+          code: string
+          created_at: string
+          is_active: boolean
+          module: Database["public"]["Enums"]["app_module"]
+          name_ar: string
+          name_en: string
+          order_index: number
+          requires_stage: boolean
+          requires_unit: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          is_active?: boolean
+          module?: Database["public"]["Enums"]["app_module"]
+          name_ar: string
+          name_en: string
+          order_index?: number
+          requires_stage?: boolean
+          requires_unit?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          is_active?: boolean
+          module?: Database["public"]["Enums"]["app_module"]
+          name_ar?: string
+          name_en?: string
+          order_index?: number
+          requires_stage?: boolean
+          requires_unit?: boolean
+        }
+        Relationships: []
+      }
+      requests: {
+        Row: {
+          assigned_entity_id: string | null
+          assigned_user_id: string | null
+          closed_at: string | null
+          closure_reason: string | null
+          contract_id: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          due_at: string | null
+          id: string
+          priority: string
+          project_id: string
+          property_id: string | null
+          property_unit_id: string | null
+          request_no: string
+          request_type_code: string
+          requested_by: string
+          stage_id: string | null
+          status: string
+          subject: string
+          thread_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_entity_id?: string | null
+          assigned_user_id?: string | null
+          closed_at?: string | null
+          closure_reason?: string | null
+          contract_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          due_at?: string | null
+          id?: string
+          priority?: string
+          project_id: string
+          property_id?: string | null
+          property_unit_id?: string | null
+          request_no?: string
+          request_type_code: string
+          requested_by: string
+          stage_id?: string | null
+          status?: string
+          subject: string
+          thread_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_entity_id?: string | null
+          assigned_user_id?: string | null
+          closed_at?: string | null
+          closure_reason?: string | null
+          contract_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          due_at?: string | null
+          id?: string
+          priority?: string
+          project_id?: string
+          property_id?: string | null
+          property_unit_id?: string | null
+          request_no?: string
+          request_type_code?: string
+          requested_by?: string
+          stage_id?: string | null
+          status?: string
+          subject?: string
+          thread_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_assigned_entity_id_fkey"
+            columns: ["assigned_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_property_unit_id_fkey"
+            columns: ["property_unit_id"]
+            isOneToOne: false
+            referencedRelation: "property_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_request_type_code_fkey"
+            columns: ["request_type_code"]
+            isOneToOne: false
+            referencedRelation: "request_types"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "requests_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: true
+            referencedRelation: "correspondence_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           action: Database["public"]["Enums"]["app_action"]
@@ -2888,6 +3128,10 @@ export type Database = {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
+      close_request: {
+        Args: { _reason?: string; _request_id: string }
+        Returns: string
+      }
       create_entity_invitation: {
         Args: {
           _email: string
@@ -2900,12 +3144,34 @@ export type Database = {
           token: string
         }[]
       }
+      create_request: {
+        Args: {
+          _assigned_entity_id?: string
+          _assigned_user_id?: string
+          _body: string
+          _contract_id?: string
+          _due_at?: string
+          _priority?: string
+          _project_id: string
+          _property_id?: string
+          _property_unit_id?: string
+          _request_type_code: string
+          _stage_id?: string
+          _subject: string
+          _submit?: boolean
+        }
+        Returns: string
+      }
       decide_change_order: {
         Args: { _approve: boolean; _change_order_id: string; _note?: string }
         Returns: string
       }
       decide_contract_extension: {
         Args: { _approve: boolean; _extension_id: string; _note?: string }
+        Returns: string
+      }
+      decide_request: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: string
       }
       end_project_party: {
@@ -2935,6 +3201,15 @@ export type Database = {
         }
         Returns: number
       }
+      post_request_message: {
+        Args: {
+          _body: string
+          _kind?: string
+          _request_id: string
+          _visibility?: string
+        }
+        Returns: string
+      }
       property_completion: { Args: { _property_id: string }; Returns: number }
       record_reinspection: {
         Args: {
@@ -2944,6 +3219,14 @@ export type Database = {
           _result: string
           _visit_id?: string
         }
+        Returns: string
+      }
+      request_more_info: {
+        Args: { _body: string; _request_id: string }
+        Returns: string
+      }
+      request_reminder: {
+        Args: { _body?: string; _request_id: string }
         Returns: string
       }
       respond_to_project_party: {
