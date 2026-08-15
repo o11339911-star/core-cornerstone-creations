@@ -744,6 +744,150 @@ export type Database = {
           },
         ]
       }
+      project_parties: {
+        Row: {
+          created_at: string
+          end_reason: string | null
+          ended_at: string | null
+          ends_on: string | null
+          id: string
+          invited_by: string
+          party_entity_id: string
+          party_role: Database["public"]["Enums"]["project_party_role"]
+          project_id: string
+          responded_at: string | null
+          responded_by: string | null
+          scope_text_ar: string | null
+          scope_text_en: string | null
+          starts_on: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          ends_on?: string | null
+          id?: string
+          invited_by: string
+          party_entity_id: string
+          party_role: Database["public"]["Enums"]["project_party_role"]
+          project_id: string
+          responded_at?: string | null
+          responded_by?: string | null
+          scope_text_ar?: string | null
+          scope_text_en?: string | null
+          starts_on?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          ends_on?: string | null
+          id?: string
+          invited_by?: string
+          party_entity_id?: string
+          party_role?: Database["public"]["Enums"]["project_party_role"]
+          project_id?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          scope_text_ar?: string | null
+          scope_text_en?: string | null
+          starts_on?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_parties_party_entity_id_fkey"
+            columns: ["party_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_parties_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_party_permissions: {
+        Row: {
+          created_at: string
+          grant_id: string
+          id: string
+          party_id: string
+        }
+        Insert: {
+          created_at?: string
+          grant_id: string
+          id?: string
+          party_id: string
+        }
+        Update: {
+          created_at?: string
+          grant_id?: string
+          id?: string
+          party_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_party_permissions_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "permission_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_party_permissions_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_party_stages: {
+        Row: {
+          created_at: string
+          id: string
+          party_id: string
+          stage_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          party_id: string
+          stage_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          party_id?: string
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_party_stages_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_party_stages_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_stages: {
         Row: {
           created_at: string
@@ -1542,6 +1686,24 @@ export type Database = {
           token: string
         }[]
       }
+      end_project_party: {
+        Args: { _party_id: string; _reason?: string }
+        Returns: number
+      }
+      invite_project_party: {
+        Args: {
+          _ends_on?: string
+          _party_entity_id: string
+          _party_role: Database["public"]["Enums"]["project_party_role"]
+          _permissions?: Json
+          _project_id: string
+          _scope_text_ar?: string
+          _scope_text_en?: string
+          _stage_ids?: string[]
+          _starts_on?: string
+        }
+        Returns: string
+      }
       offboard_member: {
         Args: {
           _entity_id: string
@@ -1552,6 +1714,10 @@ export type Database = {
         Returns: number
       }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      respond_to_project_party: {
+        Args: { _accept: boolean; _party_id: string }
+        Returns: string
+      }
     }
     Enums: {
       app_action:
@@ -1576,6 +1742,15 @@ export type Database = {
         | "members"
         | "properties"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
+      project_party_role:
+        | "design_office"
+        | "supervision"
+        | "contractor"
+        | "inspector"
+        | "insurance"
+        | "accounting"
+        | "legal"
+        | "supplier"
       visibility_level: "internal" | "limited" | "project_wide"
     }
     CompositeTypes: {
@@ -1728,6 +1903,16 @@ export const Constants = {
         "properties",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
+      project_party_role: [
+        "design_office",
+        "supervision",
+        "contractor",
+        "inspector",
+        "insurance",
+        "accounting",
+        "legal",
+        "supplier",
+      ],
       visibility_level: ["internal", "limited", "project_wide"],
     },
   },
