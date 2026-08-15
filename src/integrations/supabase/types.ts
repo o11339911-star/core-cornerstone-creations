@@ -1126,6 +1126,111 @@ export type Database = {
           },
         ]
       }
+      observation_actions: {
+        Row: {
+          action_text: string
+          assigned_to: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          due_on: string | null
+          id: string
+          observation_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action_text: string
+          assigned_to?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          due_on?: string | null
+          id?: string
+          observation_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action_text?: string
+          assigned_to?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          due_on?: string | null
+          id?: string
+          observation_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observation_actions_observation_id_fkey"
+            columns: ["observation_id"]
+            isOneToOne: false
+            referencedRelation: "stage_observations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      observation_reinspections: {
+        Row: {
+          action_id: string | null
+          created_at: string
+          id: string
+          inspected_by: string
+          note: string | null
+          observation_id: string
+          result: string
+          visit_id: string | null
+        }
+        Insert: {
+          action_id?: string | null
+          created_at?: string
+          id?: string
+          inspected_by: string
+          note?: string | null
+          observation_id: string
+          result: string
+          visit_id?: string | null
+        }
+        Update: {
+          action_id?: string | null
+          created_at?: string
+          id?: string
+          inspected_by?: string
+          note?: string | null
+          observation_id?: string
+          result?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observation_reinspections_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "observation_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "observation_reinspections_observation_id_fkey"
+            columns: ["observation_id"]
+            isOneToOne: false
+            referencedRelation: "stage_observations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "observation_reinspections_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permission_audit_log: {
         Row: {
           action: string
@@ -1493,6 +1598,11 @@ export type Database = {
       }
       project_stages: {
         Row: {
+          actual_end: string | null
+          actual_start: string | null
+          approved_at: string | null
+          approved_by: string | null
+          completion_note: string | null
           created_at: string
           deleted_at: string | null
           id: string
@@ -1500,15 +1610,23 @@ export type Database = {
           name_ar: string
           name_en: string
           order_index: number
+          parent_stage_id: string | null
           planned_end: string | null
           planned_start: string | null
           project_id: string
           source: string
           stage_template_id: string | null
           status: string
+          submitted_at: string | null
+          submitted_by: string | null
           updated_at: string
         }
         Insert: {
+          actual_end?: string | null
+          actual_start?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          completion_note?: string | null
           created_at?: string
           deleted_at?: string | null
           id?: string
@@ -1516,15 +1634,23 @@ export type Database = {
           name_ar: string
           name_en: string
           order_index: number
+          parent_stage_id?: string | null
           planned_end?: string | null
           planned_start?: string | null
           project_id: string
           source?: string
           stage_template_id?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Update: {
+          actual_end?: string | null
+          actual_start?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          completion_note?: string | null
           created_at?: string
           deleted_at?: string | null
           id?: string
@@ -1532,15 +1658,25 @@ export type Database = {
           name_ar?: string
           name_en?: string
           order_index?: number
+          parent_stage_id?: string | null
           planned_end?: string | null
           planned_start?: string | null
           project_id?: string
           source?: string
           stage_template_id?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "project_stages_parent_stage_id_fkey"
+            columns: ["parent_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "project_stages_project_id_fkey"
             columns: ["project_id"]
@@ -2056,6 +2192,279 @@ export type Database = {
         }
         Relationships: []
       }
+      site_visit_locations: {
+        Row: {
+          accuracy_m: number | null
+          created_at: string
+          lat: number
+          lng: number
+          updated_at: string
+          visit_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          created_at?: string
+          lat: number
+          lng: number
+          updated_at?: string
+          visit_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          created_at?: string
+          lat?: number
+          lng?: number
+          updated_at?: string
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_visit_locations_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: true
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_visits: {
+        Row: {
+          created_at: string
+          id: string
+          location_consent: boolean
+          location_reason: string | null
+          project_id: string
+          stage_id: string | null
+          status: string
+          summary: string | null
+          updated_at: string
+          visit_end: string | null
+          visit_start: string
+          visited_by: string
+          weather_note: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_consent?: boolean
+          location_reason?: string | null
+          project_id: string
+          stage_id?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          visit_end?: string | null
+          visit_start?: string
+          visited_by: string
+          weather_note?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_consent?: boolean
+          location_reason?: string | null
+          project_id?: string
+          stage_id?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          visit_end?: string | null
+          visit_start?: string
+          visited_by?: string
+          weather_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_visits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_visits_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_attachments: {
+        Row: {
+          created_at: string
+          file_hash: string | null
+          file_path: string
+          id: string
+          kind: string
+          mime_type: string | null
+          observation_id: string | null
+          project_id: string
+          stage_id: string | null
+          uploaded_by: string
+          visit_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_hash?: string | null
+          file_path: string
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          observation_id?: string | null
+          project_id: string
+          stage_id?: string | null
+          uploaded_by: string
+          visit_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_hash?: string | null
+          file_path?: string
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          observation_id?: string | null
+          project_id?: string
+          stage_id?: string | null
+          uploaded_by?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_attachments_observation_id_fkey"
+            columns: ["observation_id"]
+            isOneToOne: false
+            referencedRelation: "stage_observations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_attachments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_attachments_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_attachments_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_completion_criteria: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          evidence_type: string
+          id: string
+          is_required: boolean
+          label_ar: string
+          label_en: string
+          stage_id: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          evidence_type?: string
+          id?: string
+          is_required?: boolean
+          label_ar: string
+          label_en: string
+          stage_id: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          evidence_type?: string
+          id?: string
+          is_required?: boolean
+          label_ar?: string
+          label_en?: string
+          stage_id?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_completion_criteria_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_criteria_results: {
+        Row: {
+          created_at: string
+          criterion_id: string
+          evidence_attachment_id: string | null
+          evidence_visit_id: string | null
+          id: string
+          note: string | null
+          recorded_by: string
+          satisfied: boolean
+          stage_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criterion_id: string
+          evidence_attachment_id?: string | null
+          evidence_visit_id?: string | null
+          id?: string
+          note?: string | null
+          recorded_by: string
+          satisfied?: boolean
+          stage_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criterion_id?: string
+          evidence_attachment_id?: string | null
+          evidence_visit_id?: string | null
+          id?: string
+          note?: string | null
+          recorded_by?: string
+          satisfied?: boolean
+          stage_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_criteria_results_criterion_id_fkey"
+            columns: ["criterion_id"]
+            isOneToOne: true
+            referencedRelation: "stage_completion_criteria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_criteria_results_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stage_dependencies: {
         Row: {
           created_at: string
@@ -2105,6 +2514,171 @@ export type Database = {
           {
             foreignKeyName: "stage_dependencies_successor_stage_id_fkey"
             columns: ["successor_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_observations: {
+        Row: {
+          body: string | null
+          closed_at: string | null
+          created_at: string
+          due_on: string | null
+          id: string
+          kind: string
+          project_id: string
+          raised_by: string
+          severity: string
+          stage_id: string
+          status: string
+          title: string
+          updated_at: string
+          visit_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          closed_at?: string | null
+          created_at?: string
+          due_on?: string | null
+          id?: string
+          kind: string
+          project_id: string
+          raised_by: string
+          severity?: string
+          stage_id: string
+          status?: string
+          title: string
+          updated_at?: string
+          visit_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          closed_at?: string | null
+          created_at?: string
+          due_on?: string | null
+          id?: string
+          kind?: string
+          project_id?: string
+          raised_by?: string
+          severity?: string
+          stage_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_observations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_observations_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_observations_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_progress: {
+        Row: {
+          id: string
+          note: string | null
+          percent: number
+          reported_at: string
+          reported_by: string
+          stage_id: string
+        }
+        Insert: {
+          id?: string
+          note?: string | null
+          percent: number
+          reported_at?: string
+          reported_by: string
+          stage_id: string
+        }
+        Update: {
+          id?: string
+          note?: string | null
+          percent?: number
+          reported_at?: string
+          reported_by?: string
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_progress_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_roles: {
+        Row: {
+          assigned_by: string
+          created_at: string
+          ends_on: string | null
+          entity_id: string | null
+          id: string
+          role: string
+          stage_id: string
+          starts_on: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_by: string
+          created_at?: string
+          ends_on?: string | null
+          entity_id?: string | null
+          id?: string
+          role: string
+          stage_id: string
+          starts_on?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          created_at?: string
+          ends_on?: string | null
+          entity_id?: string | null
+          id?: string
+          role?: string
+          stage_id?: string
+          starts_on?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_roles_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_roles_stage_id_fkey"
+            columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "project_stages"
             referencedColumns: ["id"]
@@ -2310,6 +2884,10 @@ export type Database = {
         Args: { _note?: string; _version_id: string }
         Returns: string
       }
+      approve_stage: {
+        Args: { _note?: string; _stage_id: string }
+        Returns: string
+      }
       create_entity_invitation: {
         Args: {
           _email: string
@@ -2358,8 +2936,22 @@ export type Database = {
         Returns: number
       }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      record_reinspection: {
+        Args: {
+          _action_id: string
+          _note?: string
+          _observation_id: string
+          _result: string
+          _visit_id?: string
+        }
+        Returns: string
+      }
       respond_to_project_party: {
         Args: { _accept: boolean; _party_id: string }
+        Returns: string
+      }
+      submit_stage: {
+        Args: { _note?: string; _stage_id: string }
         Returns: string
       }
     }
