@@ -84,7 +84,7 @@ export const listQueueItems = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }): Promise<QueueItem[]> => {
     const { data: rows, error } = await context.supabase.rpc("list_queue_items", {
-      _status: data.status ?? undefined,
+      ...(data.status ? { _status: data.status } : {}),
       _mine: data.mine ?? false,
     });
     if (error) throw new Error(error.message);
@@ -162,7 +162,7 @@ export const setStaffState = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("set_platform_staff_state", {
       _user_id: data.userId,
       _availability: data.availability,
-      _max_concurrent: data.maxConcurrent ?? undefined,
+      ...(data.maxConcurrent === undefined ? {} : { _max_concurrent: data.maxConcurrent }),
     });
     if (error) throw new Error(error.message);
     return { ok: true };
