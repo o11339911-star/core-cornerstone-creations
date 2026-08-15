@@ -12,7 +12,6 @@ import { getMyMemberships, getMyProfile, type MembershipRow } from "@/lib/auth.f
 import { queryClient } from "@/router";
 
 export const Route = createFileRoute("/select-account")({
-  ssr: false,
   component: SelectAccountRoute,
   errorComponent: ErrorState,
 });
