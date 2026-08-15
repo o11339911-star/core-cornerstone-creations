@@ -2,10 +2,17 @@ import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { Building2, FolderPlus, MapPin, Search, ShieldCheck, Sparkles } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { EmptyState, ErrorState, LoadingState } from "@/components/rakeez";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  EmptyState,
+  ErrorState,
+  HeroBadge,
+  PageHero,
+  SoftEmpty,
+} from "@/components/rakeez";
 import { searchProjects } from "@/lib/project-overview.functions";
 import { useT } from "@/i18n";
 
@@ -43,7 +50,6 @@ const MATCH_AR: Record<string, string> = {
   license_number: "رقم الرخصة",
 };
 
-
 const STATUS_AR: Record<string, string> = {
   draft: "مسودة",
   active: "نشط",
@@ -52,46 +58,98 @@ const STATUS_AR: Record<string, string> = {
   archived: "مؤرشف",
 };
 
+function statusChip(status: string) {
+  const tone =
+    status === "active"
+      ? "bg-success-soft text-success"
+      : status === "on_hold"
+        ? "bg-warning-soft text-warning"
+        : "bg-secondary text-primary";
+  return (
+    <span className={`inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${tone}`}>
+      {STATUS_AR[status] ?? status}
+    </span>
+  );
+}
+
 function DashboardPage() {
   const t = useT();
   const [q, setQ] = useState("");
   const runSearch = useServerFn(searchProjects);
+  const term = q.trim();
 
   const results = useQuery({
-    queryKey: ["project-search", q.trim()],
-    queryFn: () => runSearch({ data: { q: q.trim() } }),
-    enabled: q.trim().length >= 2,
+    queryKey: ["project-search", term],
+    queryFn: () => runSearch({ data: { q: term } }),
+    enabled: term.length >= 2,
     placeholderData: keepPreviousData,
   });
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-4xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">
-        {t("common.dashboard")}
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        ابحث برقم المشروع أو اسمه أو الحي أو رقم القطعة أو المخطط أو رقم الصك أو الرخصة.
-      </p>
+    <div className="mx-auto min-h-screen w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <PageHero
+        title={t("common.dashboard")}
+        subtitle="ابحث برقم المشروع أو اسمه أو الحي أو رقم القطعة أو المخطط أو رقم الصك أو الرخصة."
+        badge={<HeroBadge tone="neutral">ركيز</HeroBadge>}
+      >
+        <div className="relative mt-6 max-w-2xl">
+          <label htmlFor="project-search" className="sr-only">
+            بحث المشاريع
+          </label>
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 start-4 my-auto size-5 text-muted-foreground"
+          />
+          <Input
+            id="project-search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="مثال: PRJ-1024 أو حي النرجس أو 4/ب"
+            className="h-14 rounded-xl border-transparent bg-card ps-12 text-base text-foreground shadow-elevated"
+            autoComplete="off"
+          />
+        </div>
+      </PageHero>
 
-      <div className="mt-6">
-        <label htmlFor="project-search" className="sr-only">
-          بحث المشاريع
-        </label>
-        <Input
-          id="project-search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="مثال: PRJ-1024 أو حي النرجس أو 4/ب"
-          className="h-12 text-base"
-          autoComplete="off"
-        />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Link
+          to="/projects/new"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
+        >
+          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
+            <FolderPlus className="size-5" aria-hidden="true" />
+          </span>
+          <span className="text-sm font-semibold text-foreground">مشروع جديد</span>
+        </Link>
+        <Link
+          to="/properties"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
+        >
+          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
+            <Building2 className="size-5" aria-hidden="true" />
+          </span>
+          <span className="text-sm font-semibold text-foreground">العقارات</span>
+        </Link>
+        <Link
+          to="/settings/security"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
+        >
+          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
+            <ShieldCheck className="size-5" aria-hidden="true" />
+          </span>
+          <span className="text-sm font-semibold text-foreground">{t("common.security")}</span>
+        </Link>
       </div>
 
-      <section className="mt-6" aria-live="polite">
-        {q.trim().length < 2 ? (
-          <p className="text-sm text-muted-foreground">اكتب حرفين على الأقل لبدء البحث.</p>
+      <section aria-live="polite" className="space-y-3">
+        {term.length < 2 ? (
+          <SoftEmpty icon={Sparkles} message="اكتب حرفين على الأقل لبدء البحث في مشاريعك." />
         ) : results.isPending ? (
-          <LoadingState />
+          <div className="space-y-3" role="status" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            ))}
+          </div>
         ) : results.isError ? (
           <ErrorState description={(results.error as Error).message} />
         ) : !results.data?.length ? (
@@ -106,44 +164,26 @@ function DashboardPage() {
                 <Link
                   to="/projects/$projectId"
                   params={{ projectId: r.project_id }}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:bg-accent"
+                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-foreground">{r.name}</p>
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+                    <MapPin className="size-5" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-foreground">{r.name}</p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {r.code ? `${r.code} — ` : ""}
+                      {r.code ? `${r.code} · ` : ""}
                       {[r.city, r.district].filter(Boolean).join(" / ") || "بلا موقع"}
-                      {` — مطابقة: ${MATCH_AR[r.match_field] ?? r.match_field}`}
+                      {` · مطابقة: ${MATCH_AR[r.match_field] ?? r.match_field}`}
                     </p>
                   </div>
-                  <Badge variant="secondary">{STATUS_AR[r.status] ?? r.status}</Badge>
+                  {statusChip(r.status)}
                 </Link>
               </li>
             ))}
           </ul>
         )}
       </section>
-
-      <div className="mt-10 flex flex-wrap gap-2">
-        <Link
-          to="/projects/new"
-          className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          مشروع جديد
-        </Link>
-        <Link
-          to="/properties"
-          className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-        >
-          العقارات
-        </Link>
-        <Link
-          to="/settings/security"
-          className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-        >
-          {t("common.security")}
-        </Link>
-      </div>
     </div>
   );
 }
