@@ -18,6 +18,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-pas
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
+import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
@@ -27,6 +28,7 @@ import { Route as AuthenticatedReportsReportIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_authenticated/requests.$requestId'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
+import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdPartiesRouteImport } from './routes/_authenticated/projects.$projectId.parties'
@@ -35,6 +37,7 @@ import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './ro
 import { Route as AuthenticatedProjectsProjectIdServicesRouteImport } from './routes/_authenticated/projects.$projectId.services'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
 import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
+import { Route as AuthenticatedEntitiesEntityIdTemplateImportsImportIdRouteImport } from './routes/_authenticated/entities.$entityId.template-imports.$importId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -80,6 +83,12 @@ const VerifyTokenRoute = VerifyTokenRouteImport.update({
   path: '/verify/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminReportTemplatesRoute =
+  AuthenticatedAdminReportTemplatesRouteImport.update({
+    id: '/admin/report-templates',
+    path: '/admin/report-templates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
@@ -134,6 +143,12 @@ const AuthenticatedEntitiesEntityIdInvitationsRoute =
     path: '/entities/$entityId/invitations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntitiesEntityIdReportTemplatesRoute =
+  AuthenticatedEntitiesEntityIdReportTemplatesRouteImport.update({
+    id: '/entities/$entityId/report-templates',
+    path: '/entities/$entityId/report-templates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntitiesEntityIdTeamRoute =
   AuthenticatedEntitiesEntityIdTeamRouteImport.update({
     id: '/entities/$entityId/team',
@@ -182,6 +197,12 @@ const AuthenticatedProjectsProjectIdVisitsRoute =
     path: '/projects/$projectId/visits',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute =
+  AuthenticatedEntitiesEntityIdTemplateImportsImportIdRouteImport.update({
+    id: '/entities/$entityId/template-imports/$importId',
+    path: '/entities/$entityId/template-imports/$importId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -192,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -201,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
@@ -209,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
+  '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -219,6 +243,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -228,6 +253,7 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
@@ -236,6 +262,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
+  '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -248,6 +275,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
+  '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -257,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/_authenticated/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
@@ -265,6 +294,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
+  '/_authenticated/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -277,6 +307,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
+    | '/admin/report-templates'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -286,6 +317,7 @@ export interface FileRouteTypes {
     | '/documents/'
     | '/properties/'
     | '/entities/$entityId/invitations'
+    | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
@@ -294,6 +326,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
+    | '/entities/$entityId/template-imports/$importId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -304,6 +337,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
+    | '/admin/report-templates'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -313,6 +347,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/properties'
     | '/entities/$entityId/invitations'
+    | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
@@ -321,6 +356,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
+    | '/entities/$entityId/template-imports/$importId'
   id:
     | '__root__'
     | '/'
@@ -332,6 +368,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/invite/accept'
     | '/verify/$token'
+    | '/_authenticated/admin/report-templates'
     | '/_authenticated/projects/new'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/properties/new'
@@ -341,6 +378,7 @@ export interface FileRouteTypes {
     | '/_authenticated/documents/'
     | '/_authenticated/properties/'
     | '/_authenticated/entities/$entityId/invitations'
+    | '/_authenticated/entities/$entityId/report-templates'
     | '/_authenticated/entities/$entityId/team'
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/parties'
@@ -349,6 +387,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/services'
     | '/_authenticated/projects/$projectId/stages'
     | '/_authenticated/projects/$projectId/visits'
+    | '/_authenticated/entities/$entityId/template-imports/$importId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -425,6 +464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/report-templates': {
+      id: '/_authenticated/admin/report-templates'
+      path: '/admin/report-templates'
+      fullPath: '/admin/report-templates'
+      preLoaderRoute: typeof AuthenticatedAdminReportTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/documents/': {
       id: '/_authenticated/documents/'
       path: '/documents'
@@ -488,6 +534,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entities/$entityId/report-templates': {
+      id: '/_authenticated/entities/$entityId/report-templates'
+      path: '/entities/$entityId/report-templates'
+      fullPath: '/entities/$entityId/report-templates'
+      preLoaderRoute: typeof AuthenticatedEntitiesEntityIdReportTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entities/$entityId/team': {
       id: '/_authenticated/entities/$entityId/team'
       path: '/entities/$entityId/team'
@@ -544,11 +597,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdVisitsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entities/$entityId/template-imports/$importId': {
+      id: '/_authenticated/entities/$entityId/template-imports/$importId'
+      path: '/entities/$entityId/template-imports/$importId'
+      fullPath: '/entities/$entityId/template-imports/$importId'
+      preLoaderRoute: typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
   AuthenticatedPropertiesNewRoute: typeof AuthenticatedPropertiesNewRoute
@@ -558,6 +619,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
   AuthenticatedEntitiesEntityIdInvitationsRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  AuthenticatedEntitiesEntityIdReportTemplatesRoute: typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
   AuthenticatedProjectsProjectIdPartiesRoute: typeof AuthenticatedProjectsProjectIdPartiesRoute
@@ -566,10 +628,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdServicesRoute: typeof AuthenticatedProjectsProjectIdServicesRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
+  AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute: typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedAdminReportTemplatesRoute:
+    AuthenticatedAdminReportTemplatesRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:
     AuthenticatedPropertiesPropertyIdRoute,
@@ -581,6 +646,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
   AuthenticatedEntitiesEntityIdInvitationsRoute:
     AuthenticatedEntitiesEntityIdInvitationsRoute,
+  AuthenticatedEntitiesEntityIdReportTemplatesRoute:
+    AuthenticatedEntitiesEntityIdReportTemplatesRoute,
   AuthenticatedEntitiesEntityIdTeamRoute:
     AuthenticatedEntitiesEntityIdTeamRoute,
   AuthenticatedProjectsProjectIdContractsRoute:
@@ -597,6 +664,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdStagesRoute,
   AuthenticatedProjectsProjectIdVisitsRoute:
     AuthenticatedProjectsProjectIdVisitsRoute,
+  AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute:
+    AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

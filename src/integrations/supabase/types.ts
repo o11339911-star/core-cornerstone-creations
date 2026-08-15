@@ -1803,6 +1803,24 @@ export type Database = {
           },
         ]
       }
+      platform_admins: {
+        Row: {
+          created_at: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2785,6 +2803,87 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_template_imports: {
+        Row: {
+          blocks_created: number
+          checksum_sha256: string | null
+          created_at: string
+          created_by: string
+          dropped_report: Json
+          entity_id: string | null
+          error_text: string | null
+          file_ext: string
+          id: string
+          kind: string
+          mime_type: string
+          owner_scope: string
+          size_bytes: number
+          status: string
+          storage_bucket: string
+          storage_path: string
+          template_id: string | null
+          updated_at: string
+          warnings: Json
+        }
+        Insert: {
+          blocks_created?: number
+          checksum_sha256?: string | null
+          created_at?: string
+          created_by: string
+          dropped_report?: Json
+          entity_id?: string | null
+          error_text?: string | null
+          file_ext: string
+          id?: string
+          kind: string
+          mime_type: string
+          owner_scope: string
+          size_bytes: number
+          status?: string
+          storage_bucket?: string
+          storage_path: string
+          template_id?: string | null
+          updated_at?: string
+          warnings?: Json
+        }
+        Update: {
+          blocks_created?: number
+          checksum_sha256?: string | null
+          created_at?: string
+          created_by?: string
+          dropped_report?: Json
+          entity_id?: string | null
+          error_text?: string | null
+          file_ext?: string
+          id?: string
+          kind?: string
+          mime_type?: string
+          owner_scope?: string
+          size_bytes?: number
+          status?: string
+          storage_bucket?: string
+          storage_path?: string
+          template_id?: string | null
+          updated_at?: string
+          warnings?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_template_imports_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_template_imports_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -4082,6 +4181,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      activate_report_template: {
+        Args: { _template_id: string }
+        Returns: string
+      }
       add_document_version: {
         Args: {
           _checksum_sha256: string
@@ -4103,6 +4206,18 @@ export type Database = {
         Args: { _note?: string; _request_id: string; _to_status: string }
         Returns: string
       }
+      am_i_platform_admin: { Args: never; Returns: boolean }
+      apply_template_import: {
+        Args: {
+          _content: Json
+          _import_id: string
+          _language: string
+          _name_ar: string
+          _name_en: string
+          _page_setup?: Json
+        }
+        Returns: string
+      }
       approve_contract_version: {
         Args: { _note?: string; _version_id: string }
         Returns: string
@@ -4117,6 +4232,10 @@ export type Database = {
       }
       approve_stage: {
         Args: { _note?: string; _stage_id: string }
+        Returns: string
+      }
+      archive_report_template: {
+        Args: { _template_id: string }
         Returns: string
       }
       can_access_document_version: {
@@ -4224,6 +4343,21 @@ export type Database = {
         }
         Returns: string
       }
+      create_template_import: {
+        Args: {
+          _checksum_sha256?: string
+          _entity_id: string
+          _kind: string
+          _mime_type: string
+          _owner_scope: string
+          _size_bytes: number
+        }
+        Returns: {
+          import_id: string
+          storage_bucket: string
+          storage_path: string
+        }[]
+      }
       decide_change_order: {
         Args: { _approve: boolean; _change_order_id: string; _note?: string }
         Returns: string
@@ -4306,6 +4440,17 @@ export type Database = {
         Args: { _kind: string; _path: string; _version_id: string }
         Returns: boolean
       }
+      record_template_import_parse: {
+        Args: {
+          _blocks_created: number
+          _dropped_report: Json
+          _error_text?: string
+          _import_id: string
+          _status: string
+          _warnings: Json
+        }
+        Returns: boolean
+      }
       request_more_info: {
         Args: { _body: string; _request_id: string }
         Returns: string
@@ -4321,6 +4466,10 @@ export type Database = {
       restore_document: { Args: { _document_id: string }; Returns: boolean }
       review_and_link_service: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: string
+      }
+      review_report_template: {
+        Args: { _note?: string; _template_id: string }
         Returns: string
       }
       save_report_draft: {
@@ -4346,6 +4495,16 @@ export type Database = {
         Returns: string
       }
       unlink_document: { Args: { _link_id: string }; Returns: boolean }
+      update_report_template: {
+        Args: {
+          _content?: Json
+          _name_ar?: string
+          _name_en?: string
+          _page_setup?: Json
+          _template_id: string
+        }
+        Returns: string
+      }
       update_service_request_details: {
         Args: {
           _account_no?: string
@@ -4358,6 +4517,18 @@ export type Database = {
           _provider_name?: string
           _request_id: string
           _requirements_note?: string
+        }
+        Returns: string
+      }
+      upsert_rakeez_template: {
+        Args: {
+          _code: string
+          _content: Json
+          _language: string
+          _name_ar: string
+          _name_en: string
+          _page_setup?: Json
+          _template_id: string
         }
         Returns: string
       }
