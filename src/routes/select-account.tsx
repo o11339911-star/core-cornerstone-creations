@@ -1,5 +1,6 @@
+import * as React from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { PolicyAcceptanceGate } from "@/components/legal/policy-acceptance-gate";
