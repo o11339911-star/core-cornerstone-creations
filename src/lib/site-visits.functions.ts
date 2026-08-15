@@ -251,10 +251,10 @@ export const recordReinspection = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ id: string }> => {
     const { data: id, error } = await context.supabase.rpc("record_reinspection", {
       _observation_id: data.observationId,
-      _action_id: data.actionId ?? undefined,
       _result: data.result,
-      _note: data.note ?? undefined,
-      _visit_id: data.visitId ?? undefined,
+      ...(data.actionId ? { _action_id: data.actionId } : {}),
+      ...(data.note ? { _note: data.note } : {}),
+      ...(data.visitId ? { _visit_id: data.visitId } : {}),
     });
     if (error) throw new Error(error.message);
     return { id: id as unknown as string };
