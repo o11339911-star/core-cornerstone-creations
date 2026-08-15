@@ -108,8 +108,8 @@ function ClosurePage() {
     void qc.invalidateQueries({ queryKey: ["reopen-requests", projectId] });
   };
 
-  const run = <T,>(fn: (input: T) => Promise<unknown>, okMsg: string) =>
-    useMutation({
+  function useAction<T>(fn: (input: T) => Promise<unknown>, okMsg: string) {
+    return useMutation({
       mutationFn: fn,
       onSuccess: () => {
         toast.success(okMsg);
@@ -117,6 +117,8 @@ function ClosurePage() {
       },
       onError: (e: Error) => toast.error(e.message),
     });
+  }
+  const run = useAction;
 
   const askAcceptance = run(useServerFn(requestAcceptance), "تم فتح طلب الاستلام");
   const inspect = run(useServerFn(recordAcceptanceInspection), "تم تسجيل المعاينة");
