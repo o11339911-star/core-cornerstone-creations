@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
-import { LoadingState, ErrorState } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, PageHero } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveAccount } from "@/lib/active-account";
@@ -38,10 +38,6 @@ function SelectAccountPage() {
     queryFn: () => getMyMemberships(),
   });
 
-  if (profileQuery.isLoading || membershipsQuery.isLoading) {
-    return <LoadingState />;
-  }
-
   const profile = profileQuery.data;
   const memberships = membershipsQuery.data ?? [];
 
@@ -61,13 +57,12 @@ function SelectAccountPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-lg space-y-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("account.selectTitle")}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">{t("account.selectSubtitle")}</p>
-          </div>
+      <div className="mx-auto w-full max-w-lg space-y-6 px-4 py-12 sm:px-6 lg:px-8">
+        <PageHero title={t("account.selectTitle")} subtitle={t("account.selectSubtitle")} />
 
+        {profileQuery.isLoading || membershipsQuery.isLoading ? (
+          <CardsSkeleton cards={2} />
+        ) : (
           <div className="space-y-4">
             <AccountOption
               title={t("account.personal")}
@@ -96,7 +91,7 @@ function SelectAccountPage() {
               )}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
