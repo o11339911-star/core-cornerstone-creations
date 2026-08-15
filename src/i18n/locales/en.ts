@@ -813,6 +813,40 @@ export const en: Translations = {
     },
   },
 
+
+  notifications: {
+    title: "Notifications",
+    subtitle: "Follow what actually concerns you. Links are checked at click time, not at creation time.",
+    empty: "No notifications",
+    unread: "Unread",
+    unreadOnly: "Unread only",
+    all: "All",
+    markAll: "Mark all as read",
+    markRead: "Mark as read",
+    open: "Open",
+    bell: "Notifications",
+    preferences: "Notification preferences",
+    prefsSubtitle:
+      "Only optional types can be turned off. Mandatory and security types are enforced in the database.",
+    inApp: "In-app",
+    digestMode: "Digest",
+    mandatory: "Mandatory",
+    security: "Security",
+    cannotDisable: "This type cannot be disabled",
+    saved: "Saved",
+    saveFailed: "Could not save",
+    linkChecking: "Checking access…",
+    linkDenied: "Not found or not permitted",
+    linkDeniedHint: "The resource may be gone or your access may have ended. No further details are disclosed.",
+    riyadhTime: "Riyadh time",
+    digest: {
+      immediate: "Immediate",
+      daily: "Daily",
+      weekly: "Weekly",
+      off: "Off",
+    },
+  },
+
 };
 
 
