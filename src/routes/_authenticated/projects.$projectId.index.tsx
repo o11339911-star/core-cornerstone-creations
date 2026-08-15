@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Users,
   Wrench,
+  DraftingCompass,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +98,7 @@ const TABS = [
   { to: "/projects/$projectId/services", label: "الخدمات", icon: Wrench },
   { to: "/projects/$projectId/parties", label: "الأطراف", icon: Users },
   { to: "/projects/$projectId/visits", label: "الزيارات", icon: MapPin },
+  { to: "/projects/$projectId/drawings", label: "المخططات", icon: DraftingCompass },
   { to: "/projects/$projectId/reports", label: "التقارير", icon: FileText },
   { to: "/projects/$projectId/durations", label: "المدد", icon: CalendarClock },
   { to: "/projects/$projectId/closure", label: "الإغلاق", icon: ClipboardList },

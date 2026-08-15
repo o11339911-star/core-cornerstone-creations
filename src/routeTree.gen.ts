@@ -33,6 +33,7 @@ import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
+import { Route as AuthenticatedDrawingsDrawingIdRouteImport } from './routes/_authenticated/drawings.$drawingId'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
@@ -194,6 +195,12 @@ const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
     path: '/documents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDrawingsDrawingIdRoute =
+  AuthenticatedDrawingsDrawingIdRouteImport.update({
+    id: '/drawings/$drawingId',
+    path: '/drawings/$drawingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedNNotificationIdRoute =
@@ -448,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth/': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -509,6 +517,7 @@ export interface FileRoutesByTo {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -574,6 +583,7 @@ export interface FileRoutesById {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth/': typeof AuthIndexRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/_authenticated/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -639,6 +649,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth/'
     | '/admin/report-templates'
+    | '/drawings/$drawingId'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -700,6 +711,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth'
     | '/admin/report-templates'
+    | '/drawings/$drawingId'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -764,6 +776,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth/'
     | '/_authenticated/admin/report-templates'
+    | '/_authenticated/drawings/$drawingId'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
@@ -990,6 +1003,13 @@ declare module '@tanstack/react-router' {
       path: '/documents'
       fullPath: '/documents/'
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/drawings/$drawingId': {
+      id: '/_authenticated/drawings/$drawingId'
+      path: '/drawings/$drawingId'
+      fullPath: '/drawings/$drawingId'
+      preLoaderRoute: typeof AuthenticatedDrawingsDrawingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/n/$notificationId': {
@@ -1296,6 +1316,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
+  AuthenticatedDrawingsDrawingIdRoute: typeof AuthenticatedDrawingsDrawingIdRoute
   AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
@@ -1338,6 +1359,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
+  AuthenticatedDrawingsDrawingIdRoute: AuthenticatedDrawingsDrawingIdRoute,
   AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:
