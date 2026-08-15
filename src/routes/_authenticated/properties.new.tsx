@@ -159,7 +159,6 @@ function NewPropertyPage() {
               id="property-area"
               label={t("properties.landArea")}
               type="number"
-              inputMode="decimal"
               value={landArea}
               onChange={(event) => setLandArea(event.target.value)}
             />
@@ -186,7 +185,6 @@ function NewPropertyPage() {
                 id="property-lat"
                 label={t("properties.latitude")}
                 type="number"
-                inputMode="decimal"
                 value={approxLat}
                 onChange={(event) => setApproxLat(event.target.value)}
               />
@@ -194,7 +192,6 @@ function NewPropertyPage() {
                 id="property-lng"
                 label={t("properties.longitude")}
                 type="number"
-                inputMode="decimal"
                 value={approxLng}
                 onChange={(event) => setApproxLng(event.target.value)}
               />
