@@ -34,8 +34,17 @@ function shapeLine(text: string, rtl: boolean): string {
   );
   if (!runs) return shaped;
   return runs
-    .map((run) => (ARABIC_RE.test(run) ? run : Array.from(run).reverse().join("")))
+    .map((run) => {
+      if (ARABIC_RE.test(run)) return run;
+      // Reverse only the visible core of a Latin/digit run so the surrounding
+      // spaces keep their position and words do not collide with Arabic text.
+      const match = /^(\s*)([\s\S]*?)(\s*)$/.exec(run);
+      if (!match) return Array.from(run).reverse().join("");
+      const [, lead, core, trail] = match;
+      return `${lead}${Array.from(core).reverse().join("")}${trail}`;
+    })
     .join("");
+
 }
 
 
