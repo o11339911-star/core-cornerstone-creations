@@ -457,3 +457,117 @@ export const verifyMarketingPackage = createServerFn({ method: "GET" })
     if (!row) return null;
     return marketingVerificationSchema.parse(row);
   });
+
+/* ------------------------------------------------- phase 22 UI reads (extra) */
+
+export const marketingContractAmountSchema = z.object({
+  id: z.string().uuid(),
+  contract_id: z.string().uuid(),
+  kind: z.string(),
+  amount: z.union([z.number(), z.string()]),
+  currency: z.string().nullable(),
+});
+export type MarketingContractAmount = z.infer<typeof marketingContractAmountSchema>;
+
+export const marketingContractUnitSchema = z.object({
+  id: z.string().uuid(),
+  contract_id: z.string().uuid(),
+  property_unit_id: z.string().uuid(),
+  created_at: z.string(),
+});
+export type MarketingContractUnit = z.infer<typeof marketingContractUnitSchema>;
+
+export const marketingAssetSchema = z.object({
+  id: z.string().uuid(),
+  profile_id: z.string().uuid(),
+  document_id: z.string().uuid(),
+  created_at: z.string(),
+});
+export type MarketingAsset = z.infer<typeof marketingAssetSchema>;
+
+/** All marketing profiles the caller can see (RLS-scoped). */
+export const listMarketingProfiles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MarketingProfile[]> => {
+    const { data: rows, error } = await context.supabase
+      .from("marketing_profiles")
+      .select(PROFILE_COLS)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return z.array(marketingProfileSchema).parse(rows ?? []);
+  });
+
+export const listMarketingContractAmounts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ contractId: uuid.nullable().default(null) }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<MarketingContractAmount[]> => {
+    let query = context.supabase
+      .from("marketing_contract_amounts")
+      .select("id, contract_id, kind, amount, currency");
+    if (data.contractId) query = query.eq("contract_id", data.contractId);
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+    return z.array(marketingContractAmountSchema).parse(rows ?? []);
+  });
+
+export const listMarketingContractUnits = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ contractId: uuid.nullable().default(null) }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<MarketingContractUnit[]> => {
+    let query = context.supabase
+      .from("marketing_contract_units")
+      .select("id, contract_id, property_unit_id, created_at")
+      .order("created_at", { ascending: true });
+    if (data.contractId) query = query.eq("contract_id", data.contractId);
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+    return z.array(marketingContractUnitSchema).parse(rows ?? []);
+  });
+
+export const listMarketingAssets = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ profileId: uuid.nullable().default(null) }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<MarketingAsset[]> => {
+    let query = context.supabase
+      .from("marketing_assets")
+      .select("id, profile_id, document_id, created_at")
+      .order("created_at", { ascending: false });
+    if (data.profileId) query = query.eq("profile_id", data.profileId);
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+    return z.array(marketingAssetSchema).parse(rows ?? []);
+  });
+
+export const addMarketingContractUnit = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ contractId: uuid, propertyUnitId: uuid }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("add_marketing_contract_unit", {
+      _contract_id: data.contractId,
+      _property_unit_id: data.propertyUnitId,
+    });
+    if (error) throw new Error(error.message);
+    return true;
+  });
+
+export const linkMarketingAsset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ profileId: uuid, documentId: uuid }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("link_marketing_asset", {
+      _profile_id: data.profileId,
+      _document_id: data.documentId,
+    });
+    if (error) throw new Error(error.message);
+    return true;
+  });
