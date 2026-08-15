@@ -83,7 +83,7 @@ export const listProducts = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ storeId: uuid }).parse(input))
   .handler(async ({ data, context }): Promise<Product[]> => {
     const { data: rows, error } = await context.supabase
-      .from("products")
+      .from("store_products")
       .select("id, store_id, name, description, price, is_active")
       .eq("store_id", data.storeId)
       .order("name");
