@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ShieldAlert } from "lucide-react";
 
 import { MarkdownView } from "@/components/legal/markdown-view";
 import { ErrorState } from "@/components/rakeez";
@@ -50,10 +51,10 @@ function BreachPlaybookPage() {
     <div className="space-y-6">
       <PageHero
         title="خطة الاستجابة لحوادث البيانات"
-        description="إجراء داخلي ملزم لفريق تشغيل المنصة عند أي اشتباه في تسرب أو فقدان بيانات."
+        subtitle="إجراء داخلي ملزم لفريق تشغيل المنصة عند أي اشتباه في تسرب أو فقدان بيانات."
       />
-      <SectionCard title="الإجراء المعتمد">
-        <MarkdownView content={PLAYBOOK} />
+      <SectionCard icon={ShieldAlert} title="الإجراء المعتمد">
+        <MarkdownView source={PLAYBOOK} />
       </SectionCard>
       <p className="text-xs text-muted-foreground">
         هذا الإجراء أساس تشغيلي مشتق من بنية المنصة الفعلية، ويحتاج مراجعة مستشار نظامي سعودي قبل

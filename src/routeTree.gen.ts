@@ -35,6 +35,7 @@ import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
+import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
 import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenticated/platform.dsr'
 import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/_authenticated/platform.integrations'
@@ -204,6 +205,12 @@ const AuthenticatedPlatformIndexRoute =
   AuthenticatedPlatformIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformBreachPlaybookRoute =
+  AuthenticatedPlatformBreachPlaybookRouteImport.update({
+    id: '/breach-playbook',
+    path: '/breach-playbook',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedPlatformBreakglassRoute =
@@ -435,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/auth/': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
+  '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
@@ -494,6 +502,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
+  '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
@@ -557,6 +566,7 @@ export interface FileRoutesById {
   '/auth/': typeof AuthIndexRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
+  '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/_authenticated/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/_authenticated/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
@@ -620,6 +630,7 @@ export interface FileRouteTypes {
     | '/auth/'
     | '/admin/report-templates'
     | '/n/$notificationId'
+    | '/platform/breach-playbook'
     | '/platform/breakglass'
     | '/platform/dsr'
     | '/platform/integrations'
@@ -679,6 +690,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin/report-templates'
     | '/n/$notificationId'
+    | '/platform/breach-playbook'
     | '/platform/breakglass'
     | '/platform/dsr'
     | '/platform/integrations'
@@ -741,6 +753,7 @@ export interface FileRouteTypes {
     | '/auth/'
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/n/$notificationId'
+    | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
     | '/_authenticated/platform/dsr'
     | '/_authenticated/platform/integrations'
@@ -978,6 +991,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/platform/'
       preLoaderRoute: typeof AuthenticatedPlatformIndexRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/breach-playbook': {
+      id: '/_authenticated/platform/breach-playbook'
+      path: '/breach-playbook'
+      fullPath: '/platform/breach-playbook'
+      preLoaderRoute: typeof AuthenticatedPlatformBreachPlaybookRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
     '/_authenticated/platform/breakglass': {
@@ -1222,6 +1242,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedPlatformRouteChildren {
+  AuthenticatedPlatformBreachPlaybookRoute: typeof AuthenticatedPlatformBreachPlaybookRoute
   AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
   AuthenticatedPlatformDsrRoute: typeof AuthenticatedPlatformDsrRoute
   AuthenticatedPlatformIntegrationsRoute: typeof AuthenticatedPlatformIntegrationsRoute
@@ -1231,6 +1252,8 @@ interface AuthenticatedPlatformRouteChildren {
 }
 
 const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
+  AuthenticatedPlatformBreachPlaybookRoute:
+    AuthenticatedPlatformBreachPlaybookRoute,
   AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
   AuthenticatedPlatformDsrRoute: AuthenticatedPlatformDsrRoute,
   AuthenticatedPlatformIntegrationsRoute:
