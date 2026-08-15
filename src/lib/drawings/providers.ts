@@ -13,7 +13,8 @@ export type DrawingFormat = "pdf" | "dwg" | "dxf" | "ifc";
 export type ProviderId = "native_pdf" | "local_cad" | "aps";
 export type ProviderAvailability = "available" | "unsupported" | "disabled";
 
-export type ViewerTool = "preview" | "download" | "sheets" | "layers" | "measure" | "markup";
+export const VIEWER_TOOLS = ["preview", "download", "sheets", "layers", "measure", "markup"] as const;
+export type ViewerTool = (typeof VIEWER_TOOLS)[number];
 
 export interface ProviderCapability {
   provider: ProviderId;

@@ -541,9 +541,8 @@ function DrawingViewerPage() {
                 {assistant.facts.map((f) => (
                   <Field
                     key={f.labelKey}
-                    label={t(f.labelKey)}
+                    label={`${t(f.labelKey)} · ${t(f.sourceKey)}`}
                     value={f.value ?? t("drawings.notAvailable")}
-                    hint={t(f.sourceKey)}
                   />
                 ))}
               </FieldGrid>
