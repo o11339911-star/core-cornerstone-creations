@@ -46,13 +46,15 @@ function SignInPage() {
       email: values.email,
       password: values.password,
     });
-    setSubmitting(false);
 
     if (signInError) {
+      setSubmitting(false);
       setError(t("auth.invalidCredentials"));
       return;
     }
 
+    // Keep the button in its pending state while navigating away so we never
+    // update state on an unmounting component.
     navigate({ to: redirect, replace: true });
   };
 
