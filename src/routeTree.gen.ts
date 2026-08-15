@@ -37,6 +37,7 @@ import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_au
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
+import { Route as AuthenticatedEntitiesEntityIdPublicProfileRouteImport } from './routes/_authenticated/entities.$entityId.public-profile'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './routes/_authenticated/projects.$projectId.index'
@@ -210,6 +211,12 @@ const AuthenticatedEntitiesEntityIdInvitationsRoute =
     path: '/entities/$entityId/invitations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntitiesEntityIdPublicProfileRoute =
+  AuthenticatedEntitiesEntityIdPublicProfileRouteImport.update({
+    id: '/entities/$entityId/public-profile',
+    path: '/entities/$entityId/public-profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntitiesEntityIdReportTemplatesRoute =
   AuthenticatedEntitiesEntityIdReportTemplatesRouteImport.update({
     id: '/entities/$entityId/report-templates',
@@ -335,6 +342,7 @@ export interface FileRoutesByFullPath {
   '/platform/': typeof AuthenticatedPlatformIndexRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -379,6 +387,7 @@ export interface FileRoutesByTo {
   '/platform': typeof AuthenticatedPlatformIndexRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -426,6 +435,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/_authenticated/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/_authenticated/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/_authenticated/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/platform/'
     | '/properties/'
     | '/entities/$entityId/invitations'
+    | '/entities/$entityId/public-profile'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
     | '/projects/$projectId/closure'
@@ -517,6 +528,7 @@ export interface FileRouteTypes {
     | '/platform'
     | '/properties'
     | '/entities/$entityId/invitations'
+    | '/entities/$entityId/public-profile'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
     | '/projects/$projectId/closure'
@@ -563,6 +575,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/'
     | '/_authenticated/properties/'
     | '/_authenticated/entities/$entityId/invitations'
+    | '/_authenticated/entities/$entityId/public-profile'
     | '/_authenticated/entities/$entityId/report-templates'
     | '/_authenticated/entities/$entityId/team'
     | '/_authenticated/projects/$projectId/closure'
@@ -790,6 +803,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entities/$entityId/public-profile': {
+      id: '/_authenticated/entities/$entityId/public-profile'
+      path: '/entities/$entityId/public-profile'
+      fullPath: '/entities/$entityId/public-profile'
+      preLoaderRoute: typeof AuthenticatedEntitiesEntityIdPublicProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entities/$entityId/report-templates': {
       id: '/_authenticated/entities/$entityId/report-templates'
       path: '/entities/$entityId/report-templates'
@@ -940,6 +960,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
   AuthenticatedEntitiesEntityIdInvitationsRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  AuthenticatedEntitiesEntityIdPublicProfileRoute: typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   AuthenticatedEntitiesEntityIdReportTemplatesRoute: typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
   AuthenticatedProjectsProjectIdClosureRoute: typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -977,6 +998,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
   AuthenticatedEntitiesEntityIdInvitationsRoute:
     AuthenticatedEntitiesEntityIdInvitationsRoute,
+  AuthenticatedEntitiesEntityIdPublicProfileRoute:
+    AuthenticatedEntitiesEntityIdPublicProfileRoute,
   AuthenticatedEntitiesEntityIdReportTemplatesRoute:
     AuthenticatedEntitiesEntityIdReportTemplatesRoute,
   AuthenticatedEntitiesEntityIdTeamRoute:

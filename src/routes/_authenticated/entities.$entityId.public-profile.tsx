@@ -173,7 +173,7 @@ function PublicProfilePage() {
 
       <AsyncBoundary
         isLoading={profileQuery.isLoading}
-        error={profileQuery.error as Error | null}
+        isError={profileQuery.isError}
         onRetry={() => void profileQuery.refetch()}
       >
         <div className="space-y-5">
