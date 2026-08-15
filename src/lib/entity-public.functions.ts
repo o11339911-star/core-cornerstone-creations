@@ -136,7 +136,7 @@ export const setEntityPublishState = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("set_entity_public_publish", {
       _entity_id: data.entityId,
       _is_published: data.isPublished,
-      _portfolio_opt_in: data.portfolioOptIn,
+      ...(data.portfolioOptIn === null ? {} : { _portfolio_opt_in: data.portfolioOptIn }),
     });
     if (error) throw new Error(error.message);
     return true;
