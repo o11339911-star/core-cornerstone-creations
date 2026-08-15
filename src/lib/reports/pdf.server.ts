@@ -18,20 +18,24 @@ function base64ToBytes(b64: string): Uint8Array {
   return bytes;
 }
 
-/** Minimal bidi: shape Arabic to presentation forms and re-order visual runs. */
+/**
+ * Minimal bidi: shape Arabic into presentation forms (the embedded font is
+ * rendered glyph-by-glyph, so joining must be resolved here) and mirror the
+ * Latin/digit runs so mixed Arabic–Latin lines read correctly.
+ */
 function shapeLine(text: string, rtl: boolean): string {
   if (!ARABIC_RE.test(text)) return text;
   const shaped = ArabicShaper.convertArabic(text) as string;
   if (!rtl) return shaped;
-  const runs = shaped.match(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s]+|[^\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]+/g);
+  const runs = shaped.match(
+    /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]+|[^\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]+/g,
+  );
   if (!runs) return shaped;
   return runs
-    .reverse()
-    .map((run) =>
-      ARABIC_RE.test(run) ? Array.from(run).reverse().join("") : run,
-    )
+    .map((run) => (ARABIC_RE.test(run) ? run : Array.from(run).reverse().join("")))
     .join("");
 }
+
 
 type Ctx = {
   doc: PDFDocument;
