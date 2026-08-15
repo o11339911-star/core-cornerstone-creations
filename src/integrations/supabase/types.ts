@@ -2584,6 +2584,446 @@ export type Database = {
           },
         ]
       }
+      marketing_assets: {
+        Row: {
+          created_at: string
+          created_by: string
+          document_id: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          document_id: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_assets_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_assets_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_contract_amounts: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          contract_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_contract_amounts_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_contract_units: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          property_unit_id: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          property_unit_id: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          property_unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_contract_units_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_contract_units_property_unit_id_fkey"
+            columns: ["property_unit_id"]
+            isOneToOne: false
+            referencedRelation: "property_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_contracts: {
+        Row: {
+          channels: string[]
+          content_rights: string | null
+          created_at: string
+          created_by: string
+          ends_on: string | null
+          exclusivity: string
+          id: string
+          lead_rights: string | null
+          marketer_entity_id: string
+          price_authority: string
+          profile_id: string
+          report_rights: string | null
+          starts_on: string
+          status: string
+          terminated_at: string | null
+          terminated_by: string | null
+          termination_reason: string | null
+          termination_terms: string | null
+          updated_at: string
+        }
+        Insert: {
+          channels?: string[]
+          content_rights?: string | null
+          created_at?: string
+          created_by: string
+          ends_on?: string | null
+          exclusivity?: string
+          id?: string
+          lead_rights?: string | null
+          marketer_entity_id: string
+          price_authority?: string
+          profile_id: string
+          report_rights?: string | null
+          starts_on: string
+          status?: string
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
+          termination_terms?: string | null
+          updated_at?: string
+        }
+        Update: {
+          channels?: string[]
+          content_rights?: string | null
+          created_at?: string
+          created_by?: string
+          ends_on?: string | null
+          exclusivity?: string
+          id?: string
+          lead_rights?: string | null
+          marketer_entity_id?: string
+          price_authority?: string
+          profile_id?: string
+          report_rights?: string | null
+          starts_on?: string
+          status?: string
+          terminated_at?: string | null
+          terminated_by?: string | null
+          termination_reason?: string | null
+          termination_terms?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_contracts_marketer_entity_id_fkey"
+            columns: ["marketer_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_contracts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_leads: {
+        Row: {
+          channel_code: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string
+          full_name: string
+          id: string
+          note: string | null
+          profile_id: string
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          channel_code?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by: string
+          full_name: string
+          id?: string
+          note?: string | null
+          profile_id: string
+          stage?: string
+          updated_at?: string
+        }
+        Update: {
+          channel_code?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string
+          full_name?: string
+          id?: string
+          note?: string | null
+          profile_id?: string
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_leads_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_leads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_packages: {
+        Row: {
+          channel_code: string | null
+          contract_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          issued_by: string
+          license_number_snapshot: string
+          marketer_entity_id: string
+          package_no: number
+          revoked_at: string | null
+          revoked_by: string | null
+          verify_token: string
+          version_id: string
+          watermark_text: string
+        }
+        Insert: {
+          channel_code?: string | null
+          contract_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          issued_by: string
+          license_number_snapshot: string
+          marketer_entity_id: string
+          package_no: number
+          revoked_at?: string | null
+          revoked_by?: string | null
+          verify_token: string
+          version_id: string
+          watermark_text: string
+        }
+        Update: {
+          channel_code?: string | null
+          contract_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          issued_by?: string
+          license_number_snapshot?: string
+          marketer_entity_id?: string
+          package_no?: number
+          revoked_at?: string | null
+          revoked_by?: string | null
+          verify_token?: string
+          version_id?: string
+          watermark_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_packages_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_packages_marketer_entity_id_fkey"
+            columns: ["marketer_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_packages_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_profiles: {
+        Row: {
+          channel_mode: string
+          created_at: string
+          created_by: string
+          id: string
+          owner_entity_id: string | null
+          project_id: string
+          readiness_basis: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          channel_mode?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          owner_entity_id?: string | null
+          project_id: string
+          readiness_basis: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          channel_mode?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          owner_entity_id?: string | null
+          project_id?: string
+          readiness_basis?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_profiles_owner_entity_id_fkey"
+            columns: ["owner_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_profiles_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_versions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string
+          description_ar: string | null
+          description_en: string | null
+          id: string
+          listing_price: number | null
+          price_currency: string
+          profile_id: string
+          status: string
+          title_ar: string
+          title_en: string | null
+          units_snapshot: Json
+          version_no: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by: string
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          listing_price?: number | null
+          price_currency?: string
+          profile_id: string
+          status?: string
+          title_ar: string
+          title_en?: string | null
+          units_snapshot?: Json
+          version_no: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          listing_price?: number | null
+          price_currency?: string
+          profile_id?: string
+          status?: string
+          title_ar?: string
+          title_en?: string | null
+          units_snapshot?: Json
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_versions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_deliveries: {
         Row: {
           attempted_at: string
@@ -6592,6 +7032,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      activate_marketing_contract: {
+        Args: { _contract_id: string }
+        Returns: undefined
+      }
       activate_report_template: {
         Args: { _template_id: string }
         Returns: string
@@ -6612,6 +7056,10 @@ export type Database = {
           version_id: string
           version_no: number
         }[]
+      }
+      add_marketing_contract_unit: {
+        Args: { _contract_id: string; _property_unit_id: string }
+        Returns: undefined
       }
       add_punch_evidence: {
         Args: {
@@ -6653,6 +7101,10 @@ export type Database = {
       approve_document: {
         Args: { _document_id: string; _note?: string }
         Returns: string
+      }
+      approve_marketing_version: {
+        Args: { _version_id: string }
+        Returns: undefined
       }
       approve_report: {
         Args: { _note?: string; _version_id: string }
@@ -6756,6 +7208,43 @@ export type Database = {
           _subtotal: number
           _tax_amount?: number
           _tax_rate?: number
+        }
+        Returns: string
+      }
+      create_marketing_contract: {
+        Args: {
+          _channels?: string[]
+          _content_rights?: string
+          _ends_on: string
+          _exclusivity?: string
+          _lead_rights?: string
+          _marketer_entity_id: string
+          _price_authority?: string
+          _profile_id: string
+          _report_rights?: string
+          _starts_on: string
+          _termination_terms?: string
+        }
+        Returns: string
+      }
+      create_marketing_profile: {
+        Args: {
+          _channel_mode?: string
+          _project_id: string
+          _readiness_basis: string
+        }
+        Returns: string
+      }
+      create_marketing_version: {
+        Args: {
+          _description_ar?: string
+          _description_en?: string
+          _listing_price?: number
+          _price_currency?: string
+          _profile_id: string
+          _title_ar: string
+          _title_en?: string
+          _units_snapshot?: Json
         }
         Returns: string
       }
@@ -6936,6 +7425,16 @@ export type Database = {
         Args: { _document_id: string }
         Returns: string
       }
+      issue_marketing_package: {
+        Args: {
+          _channel_code?: string
+          _contract_id: string
+          _expires_at: string
+          _version_id: string
+          _watermark_text?: string
+        }
+        Returns: Json
+      }
       link_document: {
         Args: {
           _context_id: string
@@ -6944,6 +7443,10 @@ export type Database = {
           _relation?: string
         }
         Returns: string
+      }
+      link_marketing_asset: {
+        Args: { _document_id: string; _profile_id: string }
+        Returns: undefined
       }
       list_breakglass_requests: {
         Args: never
@@ -7063,6 +7566,17 @@ export type Database = {
       record_acceptance_inspection: {
         Args: { _acceptance_id: string; _note?: string }
         Returns: undefined
+      }
+      record_marketing_lead: {
+        Args: {
+          _channel_code?: string
+          _contact_email?: string
+          _contact_phone?: string
+          _contract_id: string
+          _full_name: string
+          _note?: string
+        }
+        Returns: string
       }
       record_reinspection: {
         Args: {
@@ -7190,6 +7704,10 @@ export type Database = {
         Returns: string
       }
       revoke_case_access: { Args: { _case_id: string }; Returns: undefined }
+      revoke_marketing_package: {
+        Args: { _package_id: string }
+        Returns: undefined
+      }
       run_duration_scan: { Args: never; Returns: Json }
       save_report_draft: {
         Args: { _content: Json; _page_setup?: Json; _version_id: string }
@@ -7237,6 +7755,19 @@ export type Database = {
         Args: { _entity_id: string; _slug: string }
         Returns: string
       }
+      set_marketing_contract_amount: {
+        Args: {
+          _amount: number
+          _contract_id: string
+          _currency?: string
+          _kind: string
+        }
+        Returns: undefined
+      }
+      set_marketing_profile_status: {
+        Args: { _profile_id: string; _status: string }
+        Returns: undefined
+      }
       set_platform_staff_state: {
         Args: {
           _availability: Database["public"]["Enums"]["platform_availability"]
@@ -7273,7 +7804,15 @@ export type Database = {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
+      terminate_marketing_contract: {
+        Args: { _contract_id: string; _reason: string }
+        Returns: undefined
+      }
       unlink_document: { Args: { _link_id: string }; Returns: boolean }
+      update_marketing_lead_stage: {
+        Args: { _lead_id: string; _stage: string }
+        Returns: undefined
+      }
       update_report_template: {
         Args: {
           _content?: Json
@@ -7343,6 +7882,7 @@ export type Database = {
         }
         Returns: string
       }
+      verify_marketing_package: { Args: { _token: string }; Returns: Json }
       verify_report: {
         Args: { _token: string }
         Returns: {
@@ -7375,6 +7915,7 @@ export type Database = {
         | "reports"
         | "members"
         | "properties"
+        | "marketing"
       app_role: "owner" | "admin" | "manager" | "member" | "viewer"
       breakglass_status: "pending" | "approved" | "denied" | "expired"
       doc_visibility:
@@ -7558,6 +8099,7 @@ export const Constants = {
         "reports",
         "members",
         "properties",
+        "marketing",
       ],
       app_role: ["owner", "admin", "manager", "member", "viewer"],
       breakglass_status: ["pending", "approved", "denied", "expired"],
