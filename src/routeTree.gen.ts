@@ -21,11 +21,13 @@ import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
 import { Route as AuthenticatedPropertiesNewRouteImport } from './routes/_authenticated/properties.new'
+import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_authenticated/requests.$requestId'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdPartiesRouteImport } from './routes/_authenticated/projects.$projectId.parties'
+import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './routes/_authenticated/projects.$projectId.requests'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
 import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
 
@@ -92,6 +94,12 @@ const AuthenticatedPropertiesNewRoute =
     path: '/properties/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRequestsRequestIdRoute =
+  AuthenticatedRequestsRequestIdRouteImport.update({
+    id: '/requests/$requestId',
+    path: '/requests/$requestId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsSecurityRoute =
   AuthenticatedSettingsSecurityRouteImport.update({
     id: '/settings/security',
@@ -122,6 +130,12 @@ const AuthenticatedProjectsProjectIdPartiesRoute =
     path: '/projects/$projectId/parties',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdRequestsRoute =
+  AuthenticatedProjectsProjectIdRequestsRouteImport.update({
+    id: '/projects/$projectId/requests',
+    path: '/projects/$projectId/requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdStagesRoute =
   AuthenticatedProjectsProjectIdStagesRouteImport.update({
     id: '/projects/$projectId/stages',
@@ -146,12 +160,14 @@ export interface FileRoutesByFullPath {
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
+  '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
+  '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -166,12 +182,14 @@ export interface FileRoutesByTo {
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
+  '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
+  '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -188,12 +206,14 @@ export interface FileRoutesById {
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
+  '/_authenticated/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/parties': typeof AuthenticatedProjectsProjectIdPartiesRoute
+  '/_authenticated/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -210,12 +230,14 @@ export interface FileRouteTypes {
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
+    | '/requests/$requestId'
     | '/settings/security'
     | '/properties/'
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/team'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
+    | '/projects/$projectId/requests'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
   fileRoutesByTo: FileRoutesByTo
@@ -230,12 +252,14 @@ export interface FileRouteTypes {
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
+    | '/requests/$requestId'
     | '/settings/security'
     | '/properties'
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/team'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/parties'
+    | '/projects/$projectId/requests'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
   id:
@@ -251,12 +275,14 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/new'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/properties/new'
+    | '/_authenticated/requests/$requestId'
     | '/_authenticated/settings/security'
     | '/_authenticated/properties/'
     | '/_authenticated/entities/$entityId/invitations'
     | '/_authenticated/entities/$entityId/team'
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/parties'
+    | '/_authenticated/projects/$projectId/requests'
     | '/_authenticated/projects/$projectId/stages'
     | '/_authenticated/projects/$projectId/visits'
   fileRoutesById: FileRoutesById
@@ -355,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPropertiesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/requests/$requestId': {
+      id: '/_authenticated/requests/$requestId'
+      path: '/requests/$requestId'
+      fullPath: '/requests/$requestId'
+      preLoaderRoute: typeof AuthenticatedRequestsRequestIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/security': {
       id: '/_authenticated/settings/security'
       path: '/settings/security'
@@ -390,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdPartiesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/requests': {
+      id: '/_authenticated/projects/$projectId/requests'
+      path: '/projects/$projectId/requests'
+      fullPath: '/projects/$projectId/requests'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/stages': {
       id: '/_authenticated/projects/$projectId/stages'
       path: '/projects/$projectId/stages'
@@ -412,12 +452,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
   AuthenticatedPropertiesNewRoute: typeof AuthenticatedPropertiesNewRoute
+  AuthenticatedRequestsRequestIdRoute: typeof AuthenticatedRequestsRequestIdRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
   AuthenticatedEntitiesEntityIdInvitationsRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
   AuthenticatedProjectsProjectIdPartiesRoute: typeof AuthenticatedProjectsProjectIdPartiesRoute
+  AuthenticatedProjectsProjectIdRequestsRoute: typeof AuthenticatedProjectsProjectIdRequestsRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
 }
@@ -428,6 +470,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesPropertyIdRoute:
     AuthenticatedPropertiesPropertyIdRoute,
   AuthenticatedPropertiesNewRoute: AuthenticatedPropertiesNewRoute,
+  AuthenticatedRequestsRequestIdRoute: AuthenticatedRequestsRequestIdRoute,
   AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
   AuthenticatedEntitiesEntityIdInvitationsRoute:
@@ -438,6 +481,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdContractsRoute,
   AuthenticatedProjectsProjectIdPartiesRoute:
     AuthenticatedProjectsProjectIdPartiesRoute,
+  AuthenticatedProjectsProjectIdRequestsRoute:
+    AuthenticatedProjectsProjectIdRequestsRoute,
   AuthenticatedProjectsProjectIdStagesRoute:
     AuthenticatedProjectsProjectIdStagesRoute,
   AuthenticatedProjectsProjectIdVisitsRoute:
