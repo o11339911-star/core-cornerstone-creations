@@ -2306,6 +2306,10 @@ export type Database = {
     }
     Functions: {
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
+      approve_contract_version: {
+        Args: { _note?: string; _version_id: string }
+        Returns: string
+      }
       create_entity_invitation: {
         Args: {
           _email: string
@@ -2317,6 +2321,14 @@ export type Database = {
           invitation_id: string
           token: string
         }[]
+      }
+      decide_change_order: {
+        Args: { _approve: boolean; _change_order_id: string; _note?: string }
+        Returns: string
+      }
+      decide_contract_extension: {
+        Args: { _approve: boolean; _extension_id: string; _note?: string }
+        Returns: string
       }
       end_project_party: {
         Args: { _party_id: string; _reason?: string }
