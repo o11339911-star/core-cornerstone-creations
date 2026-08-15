@@ -38,6 +38,7 @@ const KIND_AR: Record<string, string> = {
   stage: "مرحلة",
   milestone: "دفعة استحقاق",
   retention: "محتجز",
+  warranty: "ضمان",
 };
 
 const STATE_AR: Record<string, string> = {

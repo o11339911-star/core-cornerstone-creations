@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      acceptance_status_transitions: {
+        Row: {
+          from_status: string
+          to_status: string
+        }
+        Insert: {
+          from_status: string
+          to_status: string
+        }
+        Update: {
+          from_status?: string
+          to_status?: string
+        }
+        Relationships: []
+      }
       assignment_transfers: {
         Row: {
           created_at: string
@@ -283,6 +298,66 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contract_versions_public"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      closure_checklist_templates: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_required: boolean
+          name_ar: string
+          name_en: string
+          order_index: number
+          phase: string
+          project_template_id: string
+          requires_document_category: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          name_ar: string
+          name_en: string
+          order_index?: number
+          phase: string
+          project_template_id: string
+          requires_document_category?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          name_ar?: string
+          name_en?: string
+          order_index?: number
+          phase?: string
+          project_template_id?: string
+          requires_document_category?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "closure_checklist_templates_project_template_id_fkey"
+            columns: ["project_template_id"]
+            isOneToOne: false
+            referencedRelation: "project_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "closure_checklist_templates_requires_document_category_fkey"
+            columns: ["requires_document_category"]
+            isOneToOne: false
+            referencedRelation: "document_categories"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -3066,6 +3141,114 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_assets: {
+        Row: {
+          created_at: string
+          document_id: string
+          entry_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          entry_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          entry_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_assets_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_assets_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_entries: {
+        Row: {
+          city: string | null
+          completed_on: string | null
+          created_at: string
+          district: string | null
+          entity_id: string
+          id: string
+          is_public: boolean
+          project_id: string
+          project_type_code: string | null
+          published_at: string
+          published_by: string
+          summary_ar: string | null
+          summary_en: string | null
+          title_ar: string
+          title_en: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          completed_on?: string | null
+          created_at?: string
+          district?: string | null
+          entity_id: string
+          id?: string
+          is_public?: boolean
+          project_id: string
+          project_type_code?: string | null
+          published_at?: string
+          published_by: string
+          summary_ar?: string | null
+          summary_en?: string | null
+          title_ar: string
+          title_en: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          completed_on?: string | null
+          created_at?: string
+          district?: string | null
+          entity_id?: string
+          id?: string
+          is_public?: boolean
+          project_id?: string
+          project_type_code?: string | null
+          published_at?: string
+          published_by?: string
+          summary_ar?: string | null
+          summary_en?: string | null
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_entries_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3095,6 +3278,72 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_acceptances: {
+        Row: {
+          certificate_document_id: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          inspected_at: string | null
+          inspected_by: string | null
+          phase: string
+          project_id: string
+          requested_at: string
+          requested_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          certificate_document_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          inspected_at?: string | null
+          inspected_by?: string | null
+          phase: string
+          project_id: string
+          requested_at?: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          certificate_document_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          inspected_at?: string | null
+          inspected_by?: string | null
+          phase?: string
+          project_id?: string
+          requested_at?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_acceptances_certificate_document_id_fkey"
+            columns: ["certificate_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_acceptances_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_assignments: {
         Row: {
@@ -3168,6 +3417,82 @@ export type Database = {
             columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_closure_items: {
+        Row: {
+          code: string
+          created_at: string
+          document_id: string | null
+          id: string
+          is_required: boolean
+          name_ar: string
+          name_en: string
+          phase: string
+          project_id: string
+          satisfied_at: string | null
+          satisfied_by: string | null
+          status: string
+          template_item_id: string | null
+          updated_at: string
+          waiver_reason: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          is_required?: boolean
+          name_ar: string
+          name_en: string
+          phase: string
+          project_id: string
+          satisfied_at?: string | null
+          satisfied_by?: string | null
+          status?: string
+          template_item_id?: string | null
+          updated_at?: string
+          waiver_reason?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          is_required?: boolean
+          name_ar?: string
+          name_en?: string
+          phase?: string
+          project_id?: string
+          satisfied_at?: string | null
+          satisfied_by?: string | null
+          status?: string
+          template_item_id?: string | null
+          updated_at?: string
+          waiver_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_closure_items_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_closure_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_closure_items_template_item_id_fkey"
+            columns: ["template_item_id"]
+            isOneToOne: false
+            referencedRelation: "closure_checklist_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -3312,6 +3637,56 @@ export type Database = {
             columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_reopen_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          project_id: string
+          reason: string
+          requested_at: string
+          requested_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          project_id: string
+          reason: string
+          requested_at?: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          project_id?: string
+          reason?: string
+          requested_at?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_reopen_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -3463,7 +3838,11 @@ export type Database = {
       }
       projects: {
         Row: {
+          archived_at: string | null
           city: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closure_note: string | null
           code: string | null
           created_at: string
           created_by: string
@@ -3477,12 +3856,17 @@ export type Database = {
           notes: string | null
           owner_id: string
           project_template_id: string
+          reopened_count: number
           start_date: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           city?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_note?: string | null
           code?: string | null
           created_at?: string
           created_by: string
@@ -3496,12 +3880,17 @@ export type Database = {
           notes?: string | null
           owner_id: string
           project_template_id: string
+          reopened_count?: number
           start_date?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           city?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_note?: string | null
           code?: string | null
           created_at?: string
           created_by?: string
@@ -3515,6 +3904,7 @@ export type Database = {
           notes?: string | null
           owner_id?: string
           project_template_id?: string
+          reopened_count?: number
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -3938,6 +4328,140 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punch_item_evidence: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          kind: string
+          note: string | null
+          punch_item_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          kind: string
+          note?: string | null
+          punch_item_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          punch_item_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punch_item_evidence_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punch_item_evidence_punch_item_id_fkey"
+            columns: ["punch_item_id"]
+            isOneToOne: false
+            referencedRelation: "punch_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      punch_items: {
+        Row: {
+          acceptance_id: string | null
+          assigned_party_id: string | null
+          assigned_user_id: string | null
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          description: string | null
+          due_at: string | null
+          id: string
+          project_id: string
+          raised_at: string
+          raised_by: string
+          severity: string
+          stage_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          acceptance_id?: string | null
+          assigned_party_id?: string | null
+          assigned_user_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          project_id: string
+          raised_at?: string
+          raised_by: string
+          severity?: string
+          stage_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          acceptance_id?: string | null
+          assigned_party_id?: string | null
+          assigned_user_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          project_id?: string
+          raised_at?: string
+          raised_by?: string
+          severity?: string
+          stage_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "punch_items_acceptance_id_fkey"
+            columns: ["acceptance_id"]
+            isOneToOne: false
+            referencedRelation: "project_acceptances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punch_items_assigned_party_id_fkey"
+            columns: ["assigned_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punch_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "punch_items_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
             referencedColumns: ["id"]
           },
         ]
@@ -5489,6 +6013,139 @@ export type Database = {
           },
         ]
       }
+      warranties: {
+        Row: {
+          created_at: string
+          created_by: string
+          document_id: string | null
+          ends_on: string
+          entity_id: string
+          id: string
+          project_id: string
+          provider_kind: string
+          provider_name: string | null
+          provider_party_id: string | null
+          scope_kind: string
+          starts_on: string
+          status: string
+          system_code: string | null
+          title: string
+          updated_at: string
+          warranty_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          document_id?: string | null
+          ends_on: string
+          entity_id: string
+          id?: string
+          project_id: string
+          provider_kind?: string
+          provider_name?: string | null
+          provider_party_id?: string | null
+          scope_kind?: string
+          starts_on: string
+          status?: string
+          system_code?: string | null
+          title: string
+          updated_at?: string
+          warranty_type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          document_id?: string | null
+          ends_on?: string
+          entity_id?: string
+          id?: string
+          project_id?: string
+          provider_kind?: string
+          provider_name?: string | null
+          provider_party_id?: string | null
+          scope_kind?: string
+          starts_on?: string
+          status?: string
+          system_code?: string | null
+          title?: string
+          updated_at?: string
+          warranty_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranties_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranties_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranties_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranties_provider_party_id_fkey"
+            columns: ["provider_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warranty_claims: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          description: string
+          id: string
+          raised_by: string
+          status: string
+          updated_at: string
+          warranty_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description: string
+          id?: string
+          raised_by: string
+          status?: string
+          updated_at?: string
+          warranty_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description?: string
+          id?: string
+          raised_by?: string
+          status?: string
+          updated_at?: string
+          warranty_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranty_claims_warranty_id_fkey"
+            columns: ["warranty_id"]
+            isOneToOne: false
+            referencedRelation: "warranties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       contract_versions_public: {
@@ -5649,6 +6306,15 @@ export type Database = {
           version_no: number
         }[]
       }
+      add_punch_evidence: {
+        Args: {
+          _document_id: string
+          _item_id: string
+          _kind: string
+          _note?: string
+        }
+        Returns: string
+      }
       advance_service_request: {
         Args: { _note?: string; _request_id: string; _to_status: string }
         Returns: string
@@ -5721,6 +6387,10 @@ export type Database = {
       cancel_retention_hold: {
         Args: { _hold_id: string; _reason: string }
         Returns: string
+      }
+      close_project: {
+        Args: { _note?: string; _project_id: string }
+        Returns: undefined
       }
       close_request: {
         Args: { _reason?: string; _request_id: string }
@@ -5873,6 +6543,10 @@ export type Database = {
           storage_path: string
         }[]
       }
+      decide_acceptance: {
+        Args: { _acceptance_id: string; _decision: string; _note?: string }
+        Returns: undefined
+      }
       decide_change_order: {
         Args: { _approve: boolean; _change_order_id: string; _note?: string }
         Returns: string
@@ -5880,6 +6554,10 @@ export type Database = {
       decide_contract_extension: {
         Args: { _approve: boolean; _extension_id: string; _note?: string }
         Returns: string
+      }
+      decide_project_reopen: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: undefined
       }
       decide_request: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
@@ -5964,6 +6642,33 @@ export type Database = {
         Returns: string
       }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      publish_portfolio_entry: {
+        Args: {
+          _is_public?: boolean
+          _project_id: string
+          _summary_ar?: string
+          _summary_en?: string
+          _title_ar: string
+          _title_en: string
+        }
+        Returns: string
+      }
+      raise_punch_item: {
+        Args: {
+          _acceptance_id?: string
+          _assigned_user_id?: string
+          _description?: string
+          _due_at?: string
+          _project_id: string
+          _severity?: string
+          _title: string
+        }
+        Returns: string
+      }
+      record_acceptance_inspection: {
+        Args: { _acceptance_id: string; _note?: string }
+        Returns: undefined
+      }
       record_reinspection: {
         Args: {
           _action_id: string
@@ -5989,6 +6694,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_warranty: {
+        Args: {
+          _document_id?: string
+          _ends_on: string
+          _project_id: string
+          _provider_kind?: string
+          _provider_name?: string
+          _provider_party_id?: string
+          _scope_kind?: string
+          _starts_on: string
+          _system_code?: string
+          _title: string
+          _warranty_type: string
+        }
+        Returns: string
+      }
       reject_disbursement_request: {
         Args: { _reason: string; _request_id: string }
         Returns: string
@@ -6002,12 +6723,20 @@ export type Database = {
         }
         Returns: Json
       }
+      request_acceptance: {
+        Args: { _phase: string; _project_id: string }
+        Returns: string
+      }
       request_completion: {
         Args: { _note?: string; _subject_id: string; _subject_kind: string }
         Returns: string
       }
       request_more_info: {
         Args: { _body: string; _request_id: string }
+        Returns: string
+      }
+      request_project_reopen: {
+        Args: { _project_id: string; _reason: string }
         Returns: string
       }
       request_reminder: {
@@ -6062,6 +6791,15 @@ export type Database = {
         Args: { _content: Json; _page_setup?: Json; _version_id: string }
         Returns: string
       }
+      set_closure_item_status: {
+        Args: {
+          _document_id?: string
+          _item_id: string
+          _reason?: string
+          _status: string
+        }
+        Returns: undefined
+      }
       set_document_visibility: {
         Args: {
           _audience_entity_ids?: string[]
@@ -6070,6 +6808,10 @@ export type Database = {
           _visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Returns: Database["public"]["Enums"]["doc_visibility"]
+      }
+      set_punch_item_status: {
+        Args: { _item_id: string; _status: string }
+        Returns: undefined
       }
       soft_delete_document: {
         Args: { _document_id: string; _reason: string }

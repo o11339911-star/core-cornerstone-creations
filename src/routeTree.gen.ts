@@ -33,6 +33,7 @@ import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_aut
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
+import { Route as AuthenticatedProjectsProjectIdClosureRouteImport } from './routes/_authenticated/projects.$projectId.closure'
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdDurationsRouteImport } from './routes/_authenticated/projects.$projectId.durations'
 import { Route as AuthenticatedProjectsProjectIdFinanceRouteImport } from './routes/_authenticated/projects.$projectId.finance'
@@ -42,6 +43,7 @@ import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './ro
 import { Route as AuthenticatedProjectsProjectIdServicesRouteImport } from './routes/_authenticated/projects.$projectId.services'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
 import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
+import { Route as AuthenticatedProjectsProjectIdWarrantiesRouteImport } from './routes/_authenticated/projects.$projectId.warranties'
 import { Route as ApiPublicCronDurationScanRouteImport } from './routes/api.public.cron.duration-scan'
 import { Route as AuthenticatedEntitiesEntityIdTemplateImportsImportIdRouteImport } from './routes/_authenticated/entities.$entityId.template-imports.$importId'
 
@@ -179,6 +181,12 @@ const AuthenticatedEntitiesEntityIdTeamRoute =
     path: '/entities/$entityId/team',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdClosureRoute =
+  AuthenticatedProjectsProjectIdClosureRouteImport.update({
+    id: '/projects/$projectId/closure',
+    path: '/projects/$projectId/closure',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdContractsRoute =
   AuthenticatedProjectsProjectIdContractsRouteImport.update({
     id: '/projects/$projectId/contracts',
@@ -233,6 +241,12 @@ const AuthenticatedProjectsProjectIdVisitsRoute =
     path: '/projects/$projectId/visits',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdWarrantiesRoute =
+  AuthenticatedProjectsProjectIdWarrantiesRouteImport.update({
+    id: '/projects/$projectId/warranties',
+    path: '/projects/$projectId/warranties',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicCronDurationScanRoute =
   ApiPublicCronDurationScanRouteImport.update({
     id: '/api/public/cron/duration-scan',
@@ -270,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
+  '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
@@ -279,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
+  '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -306,6 +322,7 @@ export interface FileRoutesByTo {
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
+  '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
@@ -315,6 +332,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
+  '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -344,6 +362,7 @@ export interface FileRoutesById {
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   '/_authenticated/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
+  '/_authenticated/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/durations': typeof AuthenticatedProjectsProjectIdDurationsRoute
   '/_authenticated/projects/$projectId/finance': typeof AuthenticatedProjectsProjectIdFinanceRoute
@@ -353,6 +372,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
+  '/_authenticated/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
   '/_authenticated/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -382,6 +402,7 @@ export interface FileRouteTypes {
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
+    | '/projects/$projectId/closure'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
@@ -391,6 +412,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
+    | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
     | '/entities/$entityId/template-imports/$importId'
   fileRoutesByTo: FileRoutesByTo
@@ -418,6 +440,7 @@ export interface FileRouteTypes {
     | '/entities/$entityId/invitations'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
+    | '/projects/$projectId/closure'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/durations'
     | '/projects/$projectId/finance'
@@ -427,6 +450,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
     | '/projects/$projectId/visits'
+    | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
     | '/entities/$entityId/template-imports/$importId'
   id:
@@ -455,6 +479,7 @@ export interface FileRouteTypes {
     | '/_authenticated/entities/$entityId/invitations'
     | '/_authenticated/entities/$entityId/report-templates'
     | '/_authenticated/entities/$entityId/team'
+    | '/_authenticated/projects/$projectId/closure'
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/durations'
     | '/_authenticated/projects/$projectId/finance'
@@ -464,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/services'
     | '/_authenticated/projects/$projectId/stages'
     | '/_authenticated/projects/$projectId/visits'
+    | '/_authenticated/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
     | '/_authenticated/entities/$entityId/template-imports/$importId'
   fileRoutesById: FileRoutesById
@@ -648,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntitiesEntityIdTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/closure': {
+      id: '/_authenticated/projects/$projectId/closure'
+      path: '/projects/$projectId/closure'
+      fullPath: '/projects/$projectId/closure'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdClosureRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/contracts': {
       id: '/_authenticated/projects/$projectId/contracts'
       path: '/projects/$projectId/contracts'
@@ -711,6 +744,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdVisitsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/warranties': {
+      id: '/_authenticated/projects/$projectId/warranties'
+      path: '/projects/$projectId/warranties'
+      fullPath: '/projects/$projectId/warranties'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdWarrantiesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/cron/duration-scan': {
       id: '/api/public/cron/duration-scan'
       path: '/api/public/cron/duration-scan'
@@ -745,6 +785,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEntitiesEntityIdInvitationsRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRoute
   AuthenticatedEntitiesEntityIdReportTemplatesRoute: typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
+  AuthenticatedProjectsProjectIdClosureRoute: typeof AuthenticatedProjectsProjectIdClosureRoute
   AuthenticatedProjectsProjectIdContractsRoute: typeof AuthenticatedProjectsProjectIdContractsRoute
   AuthenticatedProjectsProjectIdDurationsRoute: typeof AuthenticatedProjectsProjectIdDurationsRoute
   AuthenticatedProjectsProjectIdFinanceRoute: typeof AuthenticatedProjectsProjectIdFinanceRoute
@@ -754,6 +795,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdServicesRoute: typeof AuthenticatedProjectsProjectIdServicesRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
+  AuthenticatedProjectsProjectIdWarrantiesRoute: typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute: typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 
@@ -780,6 +822,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedEntitiesEntityIdReportTemplatesRoute,
   AuthenticatedEntitiesEntityIdTeamRoute:
     AuthenticatedEntitiesEntityIdTeamRoute,
+  AuthenticatedProjectsProjectIdClosureRoute:
+    AuthenticatedProjectsProjectIdClosureRoute,
   AuthenticatedProjectsProjectIdContractsRoute:
     AuthenticatedProjectsProjectIdContractsRoute,
   AuthenticatedProjectsProjectIdDurationsRoute:
@@ -798,6 +842,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdStagesRoute,
   AuthenticatedProjectsProjectIdVisitsRoute:
     AuthenticatedProjectsProjectIdVisitsRoute,
+  AuthenticatedProjectsProjectIdWarrantiesRoute:
+    AuthenticatedProjectsProjectIdWarrantiesRoute,
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute:
     AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute,
 }
