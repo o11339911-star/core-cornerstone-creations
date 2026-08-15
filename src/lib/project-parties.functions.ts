@@ -159,10 +159,11 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
       _project_id: data.projectId,
       _party_entity_id: data.partyEntityId,
       _party_role: data.partyRole,
-      _scope_text_ar: data.scopeTextAr ?? null,
-      _scope_text_en: data.scopeTextEn ?? null,
+      _scope_text_ar: data.scopeTextAr ?? undefined,
+      _scope_text_en: data.scopeTextEn ?? undefined,
       _starts_on: data.startsOn ?? new Date().toISOString().slice(0, 10),
-      _ends_on: data.endsOn ?? null,
+      _ends_on: data.endsOn ?? undefined,
+
       _stage_ids: data.stageIds,
       _permissions: data.permissions,
     });
