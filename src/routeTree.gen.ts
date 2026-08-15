@@ -16,8 +16,10 @@ import { Route as SelectAccountRouteImport } from './routes/select-account'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
+import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,6 +55,11 @@ const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => AuthRoute,
 } as any)
+const InviteAcceptRoute = InviteAcceptRouteImport.update({
+  id: '/invite/accept',
+  path: '/invite/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedProjectsNewRoute =
   AuthenticatedProjectsNewRouteImport.update({
     id: '/projects/new',
@@ -65,6 +72,12 @@ const AuthenticatedSettingsSecurityRoute =
     path: '/settings/security',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntitiesEntityIdTeamRoute =
+  AuthenticatedEntitiesEntityIdTeamRouteImport.update({
+    id: '/entities/$entityId/team',
+    path: '/entities/$entityId/team',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,8 +86,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/invite/accept': typeof InviteAcceptRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,8 +98,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/invite/accept': typeof InviteAcceptRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,8 +112,10 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/invite/accept': typeof InviteAcceptRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,8 +126,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/invite/accept'
     | '/projects/new'
     | '/settings/security'
+    | '/entities/$entityId/team'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,8 +138,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/invite/accept'
     | '/projects/new'
     | '/settings/security'
+    | '/entities/$entityId/team'
   id:
     | '__root__'
     | '/'
@@ -128,8 +151,10 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/invite/accept'
     | '/_authenticated/projects/new'
     | '/_authenticated/settings/security'
+    | '/_authenticated/entities/$entityId/team'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -137,6 +162,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   SelectAccountRoute: typeof SelectAccountRoute
+  InviteAcceptRoute: typeof InviteAcceptRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -190,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/invite/accept': {
+      id: '/invite/accept'
+      path: '/invite/accept'
+      fullPath: '/invite/accept'
+      preLoaderRoute: typeof InviteAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/projects/new': {
       id: '/_authenticated/projects/new'
       path: '/projects/new'
@@ -204,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entities/$entityId/team': {
+      id: '/_authenticated/entities/$entityId/team'
+      path: '/entities/$entityId/team'
+      fullPath: '/entities/$entityId/team'
+      preLoaderRoute: typeof AuthenticatedEntitiesEntityIdTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -211,12 +251,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
+  AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
+  AuthenticatedEntitiesEntityIdTeamRoute:
+    AuthenticatedEntitiesEntityIdTeamRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -239,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   SelectAccountRoute: SelectAccountRoute,
+  InviteAcceptRoute: InviteAcceptRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

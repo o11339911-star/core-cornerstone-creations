@@ -151,7 +151,7 @@ function TeamPage() {
         <h2 className="mb-3 text-lg font-semibold text-foreground">{t("team.invitations")}</h2>
         <AsyncBoundary
           isLoading={invitesQuery.isLoading}
-          error={invitesQuery.error}
+          isError={invitesQuery.isError}
           onRetry={() => void invitesQuery.refetch()}
         >
           {(invitesQuery.data ?? []).length === 0 ? (
@@ -183,7 +183,7 @@ function TeamPage() {
         <h2 className="mb-3 text-lg font-semibold text-foreground">{t("team.members")}</h2>
         <AsyncBoundary
           isLoading={membersQuery.isLoading}
-          error={membersQuery.error}
+          isError={membersQuery.isError}
           onRetry={() => void membersQuery.refetch()}
         >
           {(membersQuery.data ?? []).length === 0 ? (
