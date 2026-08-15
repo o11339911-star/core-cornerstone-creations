@@ -35,7 +35,11 @@ export const completionSchema = z.object({
 });
 export type ProjectCompletion = z.infer<typeof completionSchema>;
 
-const jsonRecord = z.record(z.string(), z.unknown());
+// JSON payloads returned by the aggregation functions are plain serializable
+// records; the shape of each section is documented by its SQL builder.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const jsonRecord = z.record(z.string(), z.any());
+
 
 export const overviewSchema = z.object({
   basics: jsonRecord,
