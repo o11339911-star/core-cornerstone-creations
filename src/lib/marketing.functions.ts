@@ -320,10 +320,10 @@ export const createMarketingVersion = createServerFn({ method: "POST" })
     const { data: id, error } = await context.supabase.rpc("create_marketing_version", {
       _profile_id: data.profileId,
       _title_ar: data.titleAr,
-      _title_en: data.titleEn,
-      _description_ar: data.descriptionAr,
-      _description_en: data.descriptionEn,
-      _listing_price: data.listingPrice,
+      _title_en: data.titleEn ?? undefined,
+      _description_ar: data.descriptionAr ?? undefined,
+      _description_en: data.descriptionEn ?? undefined,
+      _listing_price: data.listingPrice ?? undefined,
       _price_currency: data.priceCurrency,
       _units_snapshot: [],
     });
@@ -360,8 +360,8 @@ export const issueMarketingPackage = createServerFn({ method: "POST" })
       _version_id: data.versionId,
       _contract_id: data.contractId,
       _expires_at: data.expiresAt,
-      _channel_code: data.channelCode,
-      _watermark_text: data.watermarkText,
+      _channel_code: data.channelCode ?? undefined,
+      _watermark_text: data.watermarkText ?? undefined,
     });
     if (error) throw new Error(error.message);
     return z
@@ -398,10 +398,10 @@ export const recordMarketingLead = createServerFn({ method: "POST" })
     const { data: id, error } = await context.supabase.rpc("record_marketing_lead", {
       _contract_id: data.contractId,
       _full_name: data.fullName,
-      _contact_phone: data.contactPhone,
-      _contact_email: data.contactEmail,
-      _channel_code: data.channelCode,
-      _note: data.note,
+      _contact_phone: data.contactPhone ?? undefined,
+      _contact_email: data.contactEmail ?? undefined,
+      _channel_code: data.channelCode ?? undefined,
+      _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return id as string;
