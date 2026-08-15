@@ -33,6 +33,7 @@ import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_aut
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
+import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './routes/_authenticated/projects.$projectId.index'
 import { Route as AuthenticatedProjectsProjectIdClosureRouteImport } from './routes/_authenticated/projects.$projectId.closure'
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
 import { Route as AuthenticatedProjectsProjectIdDurationsRouteImport } from './routes/_authenticated/projects.$projectId.durations'
@@ -181,6 +182,12 @@ const AuthenticatedEntitiesEntityIdTeamRoute =
     path: '/entities/$entityId/team',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdIndexRoute =
+  AuthenticatedProjectsProjectIdIndexRouteImport.update({
+    id: '/projects/$projectId/',
+    path: '/projects/$projectId/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdClosureRoute =
   AuthenticatedProjectsProjectIdClosureRouteImport.update({
     id: '/projects/$projectId/closure',
@@ -296,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 export interface FileRoutesByTo {
@@ -334,6 +342,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 export interface FileRoutesById {
@@ -374,6 +383,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/_authenticated/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/_authenticated/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 export interface FileRouteTypes {
@@ -414,6 +424,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/projects/$projectId/'
     | '/entities/$entityId/template-imports/$importId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -452,6 +463,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/projects/$projectId'
     | '/entities/$entityId/template-imports/$importId'
   id:
     | '__root__'
@@ -491,6 +503,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/visits'
     | '/_authenticated/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/_authenticated/projects/$projectId/'
     | '/_authenticated/entities/$entityId/template-imports/$importId'
   fileRoutesById: FileRoutesById
 }
@@ -674,6 +687,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntitiesEntityIdTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/': {
+      id: '/_authenticated/projects/$projectId/'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId/'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/closure': {
       id: '/_authenticated/projects/$projectId/closure'
       path: '/projects/$projectId/closure'
@@ -796,6 +816,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
   AuthenticatedProjectsProjectIdWarrantiesRoute: typeof AuthenticatedProjectsProjectIdWarrantiesRoute
+  AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute: typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
 
@@ -844,6 +865,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdVisitsRoute,
   AuthenticatedProjectsProjectIdWarrantiesRoute:
     AuthenticatedProjectsProjectIdWarrantiesRoute,
+  AuthenticatedProjectsProjectIdIndexRoute:
+    AuthenticatedProjectsProjectIdIndexRoute,
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute:
     AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute,
 }
