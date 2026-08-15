@@ -483,6 +483,8 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
       .from("license_versions")
       .insert({
         license_id: licenseId,
+        // The database trigger recomputes the real sequence number.
+        version_no: 1,
         issued_on: data.issuedOn || null,
         expires_on: data.expiresOn || null,
         file_path: data.filePath || null,
