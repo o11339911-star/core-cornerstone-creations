@@ -19,9 +19,11 @@ import {
   StatGrid,
 } from "@/components/rakeez";
 import { formatDateTime } from "@/lib/format";
+import { useT } from "@/i18n";
 import {
   CAD_BUCKET,
   DRAWING_DISCIPLINES,
+  DRAWING_FORMATS,
   createDrawing,
   getDrawingsModuleStatus,
   listProjectDrawings,
@@ -51,45 +53,49 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/drawin
   }),
 });
 
-export const DISCIPLINE_AR: Record<string, string> = {
-  architectural: "معماري",
-  structural: "إنشائي",
-  mechanical: "ميكانيكي",
-  electrical: "كهربائي",
-  plumbing: "صحي",
-  civil: "مدني",
-  landscape: "تنسيق موقع",
-  survey: "مساحي",
-  other: "أخرى",
+export const DISCIPLINE_KEYS: Record<string, string> = {
+  architectural: "drawings.discArchitectural",
+  structural: "drawings.discStructural",
+  mechanical: "drawings.discMechanical",
+  electrical: "drawings.discElectrical",
+  plumbing: "drawings.discPlumbing",
+  civil: "drawings.discCivil",
+  landscape: "drawings.discLandscape",
+  survey: "drawings.discSurvey",
+  other: "drawings.discOther",
 };
 
-export const DRAWING_STATUS_AR: Record<string, string> = {
-  draft: "مسودة",
-  under_review: "قيد المراجعة",
-  returned: "مُعاد للتعديل",
-  approved: "معتمد",
-  issued_for_construction: "صادر للتنفيذ",
-  as_built: "كما نُفِّذ",
-  superseded: "مُستبدل",
+export const DRAWING_STATUS_KEYS: Record<string, string> = {
+  draft: "drawings.statusDraft",
+  under_review: "drawings.statusUnderReview",
+  returned: "drawings.statusReturned",
+  approved_internal: "drawings.statusApprovedInternal",
+  issued_for_construction: "drawings.statusIssued",
+  as_built: "drawings.statusAsBuilt",
+  superseded: "drawings.statusSuperseded",
 };
+
+export const APPROVED_STATUSES = [
+  "approved_internal",
+  "issued_for_construction",
+  "as_built",
+] as const;
 
 export function statusTone(status: string): "neutral" | "success" | "warning" | "danger" {
-  if (status === "approved" || status === "issued_for_construction" || status === "as_built")
-    return "success";
+  if ((APPROVED_STATUSES as readonly string[]).includes(status)) return "success";
   if (status === "returned") return "danger";
   if (status === "under_review") return "warning";
   return "neutral";
 }
 
-const ALLOWED_EXT = ["pdf", "dwg", "dxf", "ifc", "zip"] as const;
-type AllowedExt = (typeof ALLOWED_EXT)[number];
+// ZIP غير مقبول: لا فحص محتوى موثوق للأرشيف، فلا نقبله بدل ادّعاء حمايته.
+type AllowedExt = (typeof DRAWING_FORMATS)[number];
 
 const MIME_BY_EXT: Record<AllowedExt, string> = {
   pdf: "application/pdf",
   dwg: "application/octet-stream",
   dxf: "application/octet-stream",
   ifc: "application/octet-stream",
-  zip: "application/zip",
 };
 
 async function sha256Hex(file: File): Promise<string> {
@@ -103,6 +109,7 @@ async function sha256Hex(file: File): Promise<string> {
 function ProjectDrawingsPage() {
   const { projectId } = Route.useParams();
   const qc = useQueryClient();
+  const t = useT();
 
   const fetchDrawings = useServerFn(listProjectDrawings);
   const fetchStatus = useServerFn(getDrawingsModuleStatus);
@@ -144,7 +151,7 @@ function ProjectDrawingsPage() {
       setDrawingNo("");
       setTitle("");
       setSheetNo("");
-      toast.success("أُنشئ سجل المخطط");
+      toast.success(t("drawings.created"));
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -153,12 +160,12 @@ function ProjectDrawingsPage() {
   const uploadMutation = useMutation({
     mutationFn: async () => {
       const file = fileInput.current?.files?.[0];
-      if (!file || !uploadTarget) throw new Error("اختر ملف المخطط أولًا");
+      if (!file || !uploadTarget) throw new Error(t("drawings.pickFile"));
       const ext = (file.name.split(".").pop() ?? "").toLowerCase() as AllowedExt;
-      if (!ALLOWED_EXT.includes(ext)) {
-        throw new Error("الصيغ المسموحة: PDF أو DWG أو DXF أو IFC أو ZIP");
+      if (!(DRAWING_FORMATS as readonly string[]).includes(ext)) {
+        throw new Error(t("drawings.formatsNote"));
       }
-      if (!revisionLabel.trim()) throw new Error("اكتب رقم المراجعة");
+      if (!revisionLabel.trim()) throw new Error(t("drawings.needRevision"));
       const checksum = await sha256Hex(file);
       const slot = await startUpload({
         data: {
@@ -181,7 +188,7 @@ function ProjectDrawingsPage() {
       setRevisionLabel("");
       setSupersedeReason("");
       if (fileInput.current) fileInput.current.value = "";
-      toast.success("رُفعت نسخة المخطط");
+      toast.success(t("drawings.uploaded"));
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -191,8 +198,8 @@ function ProjectDrawingsPage() {
   if (drawings.isError) {
     return (
       <ErrorState
-        title="تعذّر تحميل المخططات"
-        description="حدث خطأ أثناء جلب مخططات المشروع."
+        title={t("drawings.loadError")}
+        description={t("drawings.loadErrorBody")}
         onRetry={() => void drawings.refetch()}
       />
     );
@@ -200,35 +207,47 @@ function ProjectDrawingsPage() {
 
   const rows = drawings.data;
   const approved = rows.filter((r) =>
-    ["approved", "issued_for_construction", "as_built"].includes(r.status),
+    (APPROVED_STATUSES as readonly string[]).includes(r.status),
   ).length;
   const inReview = rows.filter((r) => r.status === "under_review").length;
 
   return (
     <div className="space-y-6">
       <PageHero
-        title="المخططات الهندسية"
-        subtitle="سجلات المخططات ونسخها الأصلية — لا تُعدَّل ولا تُحذف، ولا تُعتمد إلا من غير رافعها."
-        badge={<HeroBadge tone="neutral">وحدة المخططات</HeroBadge>}
+        title={t("drawings.title")}
+        subtitle={t("drawings.subtitle")}
+        badge={<HeroBadge tone="neutral">{t("drawings.badge")}</HeroBadge>}
       />
 
       <StatGrid>
-        <StatCard icon={DraftingCompass} label="إجمالي المخططات" value={rows.length} tone="primary" />
-        <StatCard icon={ShieldCheck} label="معتمدة" value={approved} tone="success" />
-        <StatCard icon={Ruler} label="قيد المراجعة" value={inReview} tone="warning" />
+        <StatCard
+          icon={DraftingCompass}
+          label={t("drawings.total")}
+          value={rows.length}
+          tone="primary"
+        />
+        <StatCard
+          icon={ShieldCheck}
+          label={t("drawings.approvedCount")}
+          value={approved}
+          tone="success"
+        />
+        <StatCard icon={Ruler} label={t("drawings.inReview")} value={inReview} tone="warning" />
         <StatCard
           icon={PlugZap}
-          label="تكامل العرض ثلاثي الأبعاد"
-          value={moduleStatus.data?.apsEnabled ? "مفعّل" : "معطّل"}
-          hint="Autodesk APS"
+          label={t("drawings.apsIntegration")}
+          value={moduleStatus.data?.apsReady ? t("drawings.enabled") : t("drawings.disabled")}
+          hint={
+            moduleStatus.data?.apsReasonKey ? t(moduleStatus.data.apsReasonKey) : t("drawings.providerAps")
+          }
           tone="info"
         />
       </StatGrid>
 
-      <SectionCard icon={DraftingCompass} title="إضافة مخطط">
+      <SectionCard icon={DraftingCompass} title={t("drawings.addDrawing")}>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="drawing-no">رقم المخطط</Label>
+            <Label htmlFor="drawing-no">{t("drawings.drawingNo")}</Label>
             <Input
               id="drawing-no"
               value={drawingNo}
@@ -237,16 +256,11 @@ function ProjectDrawingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="drawing-title">عنوان المخطط</Label>
-            <Input
-              id="drawing-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="مساقط الدور الأرضي"
-            />
+            <Label htmlFor="drawing-title">{t("drawings.drawingTitle")}</Label>
+            <Input id="drawing-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="drawing-discipline">التخصص</Label>
+            <Label htmlFor="drawing-discipline">{t("drawings.discipline")}</Label>
             <select
               id="drawing-discipline"
               value={discipline}
@@ -255,13 +269,13 @@ function ProjectDrawingsPage() {
             >
               {DRAWING_DISCIPLINES.map((d) => (
                 <option key={d} value={d}>
-                  {DISCIPLINE_AR[d]}
+                  {t(DISCIPLINE_KEYS[d] ?? "drawings.discOther")}
                 </option>
               ))}
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="drawing-sheet">رقم اللوحة (اختياري)</Label>
+            <Label htmlFor="drawing-sheet">{t("drawings.sheetNoOptional")}</Label>
             <Input
               id="drawing-sheet"
               value={sheetNo}
@@ -272,20 +286,18 @@ function ProjectDrawingsPage() {
         </div>
         <div className="mt-4">
           <Button
+            className="min-h-11"
             onClick={() => createMutation.mutate()}
             disabled={createMutation.isPending || !drawingNo.trim() || title.trim().length < 2}
           >
-            {createMutation.isPending ? "جارٍ الإنشاء…" : "إنشاء سجل المخطط"}
+            {createMutation.isPending ? t("drawings.creating") : t("drawings.create")}
           </Button>
         </div>
       </SectionCard>
 
-      <SectionCard icon={Ruler} title="مخططات المشروع" count={rows.length}>
+      <SectionCard icon={Ruler} title={t("drawings.list")} count={rows.length}>
         {rows.length === 0 ? (
-          <SoftEmpty
-            icon={DraftingCompass}
-            message="لا توجد مخططات بعد — ابدأ بإنشاء سجل مخطط ثم ارفع نسخته الأولى."
-          />
+          <SoftEmpty icon={DraftingCompass} message={t("drawings.empty")} />
         ) : (
           <ul className="divide-y divide-border/60">
             {rows.map((row) => (
@@ -303,14 +315,14 @@ function ProjectDrawingsPage() {
                       — {row.title}
                     </Link>
                     <p className="text-xs text-muted-foreground">
-                      {DISCIPLINE_AR[row.discipline] ?? row.discipline}
-                      {row.sheet_no ? ` · لوحة ${row.sheet_no}` : ""} ·{" "}
+                      {t(DISCIPLINE_KEYS[row.discipline] ?? "drawings.discOther")}
+                      {row.sheet_no ? ` · ${t("drawings.sheetLabel")} ${row.sheet_no}` : ""} ·{" "}
                       {formatDateTime(row.updated_at)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <HeroBadge tone={statusTone(row.status)}>
-                      {DRAWING_STATUS_AR[row.status] ?? row.status}
+                      {t(DRAWING_STATUS_KEYS[row.status] ?? "drawings.statusDraft")}
                     </HeroBadge>
                     <Button
                       variant="outline"
@@ -319,7 +331,7 @@ function ProjectDrawingsPage() {
                       onClick={() => setUploadTarget(uploadTarget === row.id ? null : row.id)}
                     >
                       <Upload className="size-4" aria-hidden="true" />
-                      رفع نسخة
+                      {t("drawings.uploadRevision")}
                     </Button>
                   </div>
                 </div>
@@ -327,7 +339,7 @@ function ProjectDrawingsPage() {
                 {uploadTarget === row.id ? (
                   <div className="grid gap-3 rounded-xl bg-secondary/50 p-3 sm:grid-cols-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor={`rev-${row.id}`}>رقم المراجعة</Label>
+                      <Label htmlFor={`rev-${row.id}`}>{t("drawings.revisionLabel")}</Label>
                       <Input
                         id={`rev-${row.id}`}
                         value={revisionLabel}
@@ -336,33 +348,33 @@ function ProjectDrawingsPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor={`reason-${row.id}`}>سبب الاستبدال</Label>
+                      <Label htmlFor={`reason-${row.id}`}>{t("drawings.supersedeReason")}</Label>
                       <Input
                         id={`reason-${row.id}`}
                         value={supersedeReason}
                         onChange={(e) => setSupersedeReason(e.target.value)}
-                        placeholder="مطلوب عند وجود نسخة سابقة"
+                        placeholder={t("drawings.supersedeHint")}
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor={`file-${row.id}`}>ملف المخطط</Label>
+                      <Label htmlFor={`file-${row.id}`}>{t("drawings.file")}</Label>
                       <Input
                         id={`file-${row.id}`}
                         ref={fileInput}
                         type="file"
-                        accept=".pdf,.dwg,.dxf,.ifc,.zip"
+                        accept=".pdf,.dwg,.dxf,.ifc"
                       />
                     </div>
                     <div className="sm:col-span-3">
                       <Button
+                        className="min-h-11"
                         onClick={() => uploadMutation.mutate()}
                         disabled={uploadMutation.isPending}
                       >
-                        {uploadMutation.isPending ? "جارٍ الرفع…" : "رفع النسخة"}
+                        {uploadMutation.isPending ? t("drawings.uploading") : t("drawings.upload")}
                       </Button>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        الحد الأقصى ٢٠٠ ميجابايت. الملف الأصلي يُحفظ كما هو ولا يُحذف لاحقًا.
-                      </p>
+                      <p className="mt-2 text-xs text-muted-foreground">{t("drawings.sizeNote")}</p>
+                      <p className="text-xs text-muted-foreground">{t("drawings.formatsNote")}</p>
                     </div>
                   </div>
                 ) : null}
