@@ -18,6 +18,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
@@ -36,6 +37,7 @@ import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_au
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
+import { Route as AuthenticatedEntitiesEntityIdPublicProfileRouteImport } from './routes/_authenticated/entities.$entityId.public-profile'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './routes/_authenticated/projects.$projectId.index'
@@ -97,6 +99,11 @@ const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => AuthRoute,
+} as any)
+const ESlugRoute = ESlugRouteImport.update({
+  id: '/e/$slug',
+  path: '/e/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const InviteAcceptRoute = InviteAcceptRouteImport.update({
   id: '/invite/accept',
@@ -202,6 +209,12 @@ const AuthenticatedEntitiesEntityIdInvitationsRoute =
   AuthenticatedEntitiesEntityIdInvitationsRouteImport.update({
     id: '/entities/$entityId/invitations',
     path: '/entities/$entityId/invitations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntitiesEntityIdPublicProfileRoute =
+  AuthenticatedEntitiesEntityIdPublicProfileRouteImport.update({
+    id: '/entities/$entityId/public-profile',
+    path: '/entities/$entityId/public-profile',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedEntitiesEntityIdReportTemplatesRoute =
@@ -310,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -328,6 +342,7 @@ export interface FileRoutesByFullPath {
   '/platform/': typeof AuthenticatedPlatformIndexRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -353,6 +368,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -371,6 +387,7 @@ export interface FileRoutesByTo {
   '/platform': typeof AuthenticatedPlatformIndexRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -399,6 +416,7 @@ export interface FileRoutesById {
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/e/$slug': typeof ESlugRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/verify/$token': typeof VerifyTokenRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
@@ -417,6 +435,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  '/_authenticated/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/_authenticated/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
   '/_authenticated/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -445,6 +464,7 @@ export interface FileRouteTypes {
     | '/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/e/$slug'
     | '/invite/accept'
     | '/verify/$token'
     | '/admin/report-templates'
@@ -463,6 +483,7 @@ export interface FileRouteTypes {
     | '/platform/'
     | '/properties/'
     | '/entities/$entityId/invitations'
+    | '/entities/$entityId/public-profile'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
     | '/projects/$projectId/closure'
@@ -488,6 +509,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/e/$slug'
     | '/invite/accept'
     | '/verify/$token'
     | '/admin/report-templates'
@@ -506,6 +528,7 @@ export interface FileRouteTypes {
     | '/platform'
     | '/properties'
     | '/entities/$entityId/invitations'
+    | '/entities/$entityId/public-profile'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
     | '/projects/$projectId/closure'
@@ -533,6 +556,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/e/$slug'
     | '/invite/accept'
     | '/verify/$token'
     | '/_authenticated/admin/report-templates'
@@ -551,6 +575,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/'
     | '/_authenticated/properties/'
     | '/_authenticated/entities/$entityId/invitations'
+    | '/_authenticated/entities/$entityId/public-profile'
     | '/_authenticated/entities/$entityId/report-templates'
     | '/_authenticated/entities/$entityId/team'
     | '/_authenticated/projects/$projectId/closure'
@@ -574,6 +599,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   SelectAccountRoute: typeof SelectAccountRoute
+  ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
   ApiPublicCronDurationScanRoute: typeof ApiPublicCronDurationScanRoute
@@ -643,6 +669,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/reset-password'
       preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/e/$slug': {
+      id: '/e/$slug'
+      path: '/e/$slug'
+      fullPath: '/e/$slug'
+      preLoaderRoute: typeof ESlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/invite/accept': {
       id: '/invite/accept'
@@ -768,6 +801,13 @@ declare module '@tanstack/react-router' {
       path: '/entities/$entityId/invitations'
       fullPath: '/entities/$entityId/invitations'
       preLoaderRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entities/$entityId/public-profile': {
+      id: '/_authenticated/entities/$entityId/public-profile'
+      path: '/entities/$entityId/public-profile'
+      fullPath: '/entities/$entityId/public-profile'
+      preLoaderRoute: typeof AuthenticatedEntitiesEntityIdPublicProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/entities/$entityId/report-templates': {
@@ -920,6 +960,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
   AuthenticatedEntitiesEntityIdInvitationsRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRoute
+  AuthenticatedEntitiesEntityIdPublicProfileRoute: typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   AuthenticatedEntitiesEntityIdReportTemplatesRoute: typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   AuthenticatedEntitiesEntityIdTeamRoute: typeof AuthenticatedEntitiesEntityIdTeamRoute
   AuthenticatedProjectsProjectIdClosureRoute: typeof AuthenticatedProjectsProjectIdClosureRoute
@@ -957,6 +998,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
   AuthenticatedEntitiesEntityIdInvitationsRoute:
     AuthenticatedEntitiesEntityIdInvitationsRoute,
+  AuthenticatedEntitiesEntityIdPublicProfileRoute:
+    AuthenticatedEntitiesEntityIdPublicProfileRoute,
   AuthenticatedEntitiesEntityIdReportTemplatesRoute:
     AuthenticatedEntitiesEntityIdReportTemplatesRoute,
   AuthenticatedEntitiesEntityIdTeamRoute:
@@ -1009,6 +1052,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   SelectAccountRoute: SelectAccountRoute,
+  ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
   VerifyTokenRoute: VerifyTokenRoute,
   ApiPublicCronDurationScanRoute: ApiPublicCronDurationScanRoute,

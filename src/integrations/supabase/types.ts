@@ -1803,6 +1803,80 @@ export type Database = {
           },
         ]
       }
+      entity_public_profiles: {
+        Row: {
+          activity_ar: string | null
+          activity_en: string | null
+          bio_ar: string | null
+          bio_en: string | null
+          created_at: string
+          display_name_ar: string
+          display_name_en: string | null
+          entity_id: string
+          is_published: boolean
+          logo_url: string | null
+          portfolio_opt_in: boolean
+          public_email: string | null
+          public_phone: string | null
+          published_at: string | null
+          regions: string[]
+          services: string[]
+          slug: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          activity_ar?: string | null
+          activity_en?: string | null
+          bio_ar?: string | null
+          bio_en?: string | null
+          created_at?: string
+          display_name_ar: string
+          display_name_en?: string | null
+          entity_id: string
+          is_published?: boolean
+          logo_url?: string | null
+          portfolio_opt_in?: boolean
+          public_email?: string | null
+          public_phone?: string | null
+          published_at?: string | null
+          regions?: string[]
+          services?: string[]
+          slug: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          activity_ar?: string | null
+          activity_en?: string | null
+          bio_ar?: string | null
+          bio_en?: string | null
+          created_at?: string
+          display_name_ar?: string
+          display_name_en?: string | null
+          entity_id?: string
+          is_published?: boolean
+          logo_url?: string | null
+          portfolio_opt_in?: boolean
+          public_email?: string | null
+          public_phone?: string | null
+          published_at?: string | null
+          regions?: string[]
+          services?: string[]
+          slug?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_public_profiles_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: true
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_seals: {
         Row: {
           created_at: string
@@ -6834,6 +6908,7 @@ export type Database = {
         Returns: string
       }
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
+      get_public_entity_profile: { Args: { _slug: string }; Returns: Json }
       grant_case_access: {
         Args: {
           _item_id: string
@@ -7150,6 +7225,18 @@ export type Database = {
         }
         Returns: Database["public"]["Enums"]["doc_visibility"]
       }
+      set_entity_public_publish: {
+        Args: {
+          _entity_id: string
+          _is_published: boolean
+          _portfolio_opt_in?: boolean
+        }
+        Returns: boolean
+      }
+      set_entity_slug: {
+        Args: { _entity_id: string; _slug: string }
+        Returns: string
+      }
       set_platform_staff_state: {
         Args: {
           _availability: Database["public"]["Enums"]["platform_availability"]
@@ -7209,6 +7296,24 @@ export type Database = {
           _provider_name?: string
           _request_id: string
           _requirements_note?: string
+        }
+        Returns: string
+      }
+      upsert_entity_public_profile: {
+        Args: {
+          _activity_ar?: string
+          _activity_en?: string
+          _bio_ar?: string
+          _bio_en?: string
+          _display_name_ar: string
+          _display_name_en?: string
+          _entity_id: string
+          _logo_url?: string
+          _public_email?: string
+          _public_phone?: string
+          _regions?: string[]
+          _services?: string[]
+          _website_url?: string
         }
         Returns: string
       }
