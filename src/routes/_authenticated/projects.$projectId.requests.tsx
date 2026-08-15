@@ -44,7 +44,7 @@ function RequestsPage() {
   const addRequest = useServerFn(createRequest);
 
   const [status, setStatus] = React.useState<RequestStatus | "">("");
-  const [typeCode, setTypeCode] = React.useState("info_request");
+  const [typeCode, setTypeCode] = React.useState("");
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
@@ -55,10 +55,18 @@ function RequestsPage() {
     queryFn: () => fetchRequests({ data: { projectId, status: status === "" ? null : status } }),
   });
 
+  const types = typesQuery.data ?? [];
+  const effectiveType = typeCode || types[0]?.code || "";
+
   const createMutation = useMutation({
     mutationFn: () =>
       addRequest({
-        data: { projectId, requestTypeCode: typeCode, subject: subject.trim(), body: body.trim() },
+        data: {
+          projectId,
+          requestTypeCode: effectiveType,
+          subject: subject.trim(),
+          body: body.trim(),
+        },
       }),
     onSuccess: () => {
       setSubject("");
@@ -70,22 +78,28 @@ function RequestsPage() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:p-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-foreground">{t.requests.title}</h1>
-        <p className="text-sm text-muted-foreground">{t.requests.hint}</p>
+    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
+      <header className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("requests.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("requests.hint")}</p>
       </header>
 
-      <RakeezCard title={t.requests.newRequest}>
-        <div className="grid gap-3 md:grid-cols-2">
+      <RakeezCard title={t("requests.newRequest")}>
+        <form
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (effectiveType) createMutation.mutate();
+          }}
+        >
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted-foreground">{t.requests.type}</span>
+            <span className="font-medium text-foreground">{t("requests.type")}</span>
             <select
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-              value={typeCode}
+              className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+              value={effectiveType}
               onChange={(e) => setTypeCode(e.target.value)}
             >
-              {(typesQuery.data ?? []).map((rt) => (
+              {types.map((rt) => (
                 <option key={rt.code} value={rt.code}>
                   {rt.name_ar}
                 </option>
@@ -93,78 +107,84 @@ function RequestsPage() {
             </select>
           </label>
           <TextField
-            label={t.requests.subject}
+            id="r-subject"
+            label={t("requests.subject")}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
+            required
           />
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <TextAreaField
-              label={t.requests.body}
+              id="r-body"
+              label={t("requests.body")}
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
           </div>
-        </div>
-        {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
-        <button
-          type="button"
-          className="mt-3 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          disabled={subject.trim().length < 2 || createMutation.isPending}
-          onClick={() => createMutation.mutate()}
-        >
-          {t.requests.submit}
-        </button>
+          {error ? <p className="text-sm text-destructive sm:col-span-2">{error}</p> : null}
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
+              disabled={subject.trim().length < 2 || !effectiveType || createMutation.isPending}
+            >
+              {t("requests.submit")}
+            </button>
+          </div>
+        </form>
       </RakeezCard>
 
-      <RakeezCard title={t.requests.list}>
-        <label className="mb-3 flex max-w-xs flex-col gap-1 text-sm">
-          <span className="text-muted-foreground">{t.requests.status}</span>
-          <select
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as RequestStatus | "")}
-          >
-            <option value="">{t.requests.allStatuses}</option>
-            {REQUEST_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {t.requests.statuses[s]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <AsyncBoundary
-          isLoading={requestsQuery.isLoading}
-          error={requestsQuery.error as Error | null}
-          onRetry={() => void requestsQuery.refetch()}
-        >
-          {(requestsQuery.data ?? []).length === 0 ? (
-            <EmptyState title={t.requests.empty} />
-          ) : (
-            <ul className="divide-y divide-border">
-              {(requestsQuery.data ?? []).map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <Link
-                      to="/requests/$requestId"
-                      params={{ requestId: r.id }}
-                      className="truncate font-medium text-foreground underline-offset-4 hover:underline"
-                    >
-                      {r.request_no} — {r.subject}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(r.created_at).toLocaleString("ar")}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
-                    {t.requests.statuses[r.status as RequestStatus]}
-                  </span>
-                </li>
+      <div className="mt-8">
+        <RakeezCard title={t("requests.list")}>
+          <label className="mb-4 flex max-w-xs flex-col gap-1 text-sm">
+            <span className="font-medium text-foreground">{t("requests.status")}</span>
+            <select
+              className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as RequestStatus | "")}
+            >
+              <option value="">{t("requests.allStatuses")}</option>
+              {REQUEST_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {t(`requests.statuses.${s}`)}
+                </option>
               ))}
-            </ul>
-          )}
-        </AsyncBoundary>
-      </RakeezCard>
+            </select>
+          </label>
+
+          <AsyncBoundary
+            isLoading={requestsQuery.isLoading}
+            isError={Boolean(requestsQuery.error)}
+            onRetry={() => void requestsQuery.refetch()}
+          >
+            {(requestsQuery.data ?? []).length === 0 ? (
+              <EmptyState title={t("requests.empty")} />
+            ) : (
+              <ul className="divide-y divide-border">
+                {(requestsQuery.data ?? []).map((r) => (
+                  <li key={r.id} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <Link
+                        to="/requests/$requestId"
+                        params={{ requestId: r.id }}
+                        className="truncate font-medium text-foreground underline-offset-4 hover:underline"
+                      >
+                        {r.request_no} — {r.subject}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(r.created_at).toLocaleString("ar")}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+                      {t(`requests.statuses.${r.status}`)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AsyncBoundary>
+        </RakeezCard>
+      </div>
     </div>
   );
 }
