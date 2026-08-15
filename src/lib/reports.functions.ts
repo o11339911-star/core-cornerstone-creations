@@ -136,16 +136,21 @@ export const createReport = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { data: id, error } = await context.supabase.rpc("create_report", {
+    const args: Record<string, string> = {
       _entity_id: data.entityId,
       _project_id: data.projectId,
       _title: data.title,
-      _template_id: data.templateId ?? undefined,
       _language: data.language,
-      _stage_id: data.stageId ?? undefined,
-      _visit_id: data.visitId ?? undefined,
-      _property_id: data.propertyId ?? undefined,
-    });
+    };
+    if (data.templateId) args["_template_id"] = data.templateId;
+    if (data.stageId) args["_stage_id"] = data.stageId;
+    if (data.visitId) args["_visit_id"] = data.visitId;
+    if (data.propertyId) args["_property_id"] = data.propertyId;
+
+    const { data: id, error } = await context.supabase.rpc(
+      "create_report",
+      args as unknown as { _entity_id: string; _project_id: string; _title: string },
+    );
     if (error) throw new Error(error.message);
     return { reportId: id as string };
   });
@@ -188,10 +193,12 @@ export const approveReport = createServerFn({ method: "POST" })
     z.object({ versionId: z.string().uuid(), note: z.string().max(1000).optional() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { data: at, error } = await context.supabase.rpc("approve_report", {
-      _version_id: data.versionId,
-      _note: data.note ?? undefined,
-    });
+    const approveArgs: Record<string, string> = { _version_id: data.versionId };
+    if (data.note) approveArgs["_note"] = data.note;
+    const { data: at, error } = await context.supabase.rpc(
+      "approve_report",
+      approveArgs as unknown as { _version_id: string },
+    );
     if (error) throw new Error(error.message);
     return { approvedAt: at as string };
   });
@@ -202,10 +209,12 @@ export const createReportVersion = createServerFn({ method: "POST" })
     z.object({ reportId: z.string().uuid(), reason: z.string().max(500).optional() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { data: id, error } = await context.supabase.rpc("create_report_version", {
-      _report_id: data.reportId,
-      _reason: data.reason ?? undefined,
-    });
+    const versionArgs: Record<string, string> = { _report_id: data.reportId };
+    if (data.reason) versionArgs["_reason"] = data.reason;
+    const { data: id, error } = await context.supabase.rpc(
+      "create_report_version",
+      versionArgs as unknown as { _report_id: string },
+    );
     if (error) throw new Error(error.message);
     return { versionId: id as string };
   });
