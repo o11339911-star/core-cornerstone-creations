@@ -6,6 +6,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useT } from "@/i18n";
 import { RakeezCard, TextField, AsyncBoundary, EmptyState } from "@/components/rakeez";
 import { listContracts } from "@/lib/contracts.functions";
+import { DocumentsTab } from "@/components/finance/DocumentsTab";
+import { RetentionTab } from "@/components/finance/RetentionTab";
+import { LedgerTab } from "@/components/finance/LedgerTab";
 import { listStages } from "@/lib/stages.functions";
 import {
   EXECUTION_METHODS,
@@ -107,6 +110,9 @@ function FinancePage() {
   const [dueDate, setDueDate] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [openMilestone, setOpenMilestone] = React.useState<string | null>(null);
+  const [tab, setTab] = React.useState<
+    "milestones" | "documents" | "retention" | "ledger"
+  >("milestones");
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ["finance"] });
