@@ -13,19 +13,41 @@ import { queryClient } from "@/router";
 export const Route = createFileRoute("/select-account")({
   ssr: false,
   component: SelectAccountRoute,
-  beforeLoad: async () => {
-    // Ensure the user is authenticated before rendering the page.
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw redirect({ to: "/auth", search: { redirect: "/select-account" } });
-    }
-  },
   errorComponent: ErrorState,
 });
 
+/**
+ * Phase 29F: the auth guard runs after hydration (not in `beforeLoad`), so the
+ * first client render always matches the server shell — a `beforeLoad` redirect
+ * swapped the tree mid-hydration and raised a React hydration error.
+ */
 function SelectAccountRoute() {
+  const navigate = useNavigate();
+  const [checked, setChecked] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return;
+      if (!data.user) {
+        void navigate({ to: "/auth", search: { redirect: "/select-account" }, replace: true });
+        return;
+      }
+      setChecked(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  if (!checked) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-12 sm:px-6 lg:px-8">
+        <CardsSkeleton cards={2} />
+      </div>
+    );
+  }
+
   return (
     <PolicyAcceptanceGate>
       <SelectAccountPage />
