@@ -200,8 +200,8 @@ export type ImportRow = {
   checksum_sha256: string | null;
   status: string;
   blocks_created: number;
-  dropped_report: unknown;
-  warnings: unknown;
+  dropped_report: { what: string; where: string; why: string }[];
+  warnings: string[];
   error_text: string | null;
   created_at: string;
 };
