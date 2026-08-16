@@ -48,7 +48,7 @@ function ProjectsBoxPage() {
     enabled: !loading,
   });
 
-  const rows = projects.data?.rows ?? [];
+  const rows = projects.data?.items ?? [];
   const total = projects.data?.total ?? 0;
 
   return (
