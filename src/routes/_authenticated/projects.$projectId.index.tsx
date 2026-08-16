@@ -97,6 +97,7 @@ const TABS = [
   { to: "/projects/$projectId/requests", label: "الطلبات", icon: MessageSquare },
   { to: "/projects/$projectId/services", label: "الخدمات", icon: Wrench },
   { to: "/projects/$projectId/parties", label: "الأطراف", icon: Users },
+  { to: "/projects/$projectId/team", label: "فريق المشروع", icon: Users },
   { to: "/projects/$projectId/visits", label: "الزيارات", icon: MapPin },
   { to: "/projects/$projectId/drawings", label: "المخططات", icon: DraftingCompass },
   { to: "/projects/$projectId/reports", label: "التقارير", icon: FileText },
