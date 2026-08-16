@@ -30,6 +30,8 @@ import {
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { formatNumber } from "@/lib/format";
+import { DeedVersionModal } from "@/components/properties/DeedVersionModal";
+import { LicenseVersionModal } from "@/components/properties/LicenseVersionModal";
 import {
   addPropertyOwner,
   getDocumentUrl,
@@ -215,21 +217,51 @@ function PropertyProfilePage() {
   );
 
   const documentsPanel = (
+    kind: "deed" | "license",
     docs: PropertyProfile["deeds"] | PropertyProfile["licenses"],
     numberOf: (d: any) => string | null,
     issuerOf: (d: any) => string | null,
     dateOf: (v: any) => string | null,
-  ) =>
-    docs.length === 0 ? (
-      <SoftEmpty icon={Building2} message={t("properties.documents.none")} />
+  ) => {
+    const addModalFor = (head: any | null) =>
+      kind === "deed" ? (
+        <DeedVersionModal
+          propertyId={propertyId}
+          deed={head}
+          trigger={
+            <Button className="min-h-11" variant={head ? "outline" : "default"}>
+              {head ? t("properties.deeds.addVersion") : t("properties.deeds.addDeed")}
+            </Button>
+          }
+        />
+      ) : (
+        <LicenseVersionModal
+          propertyId={propertyId}
+          license={head}
+          trigger={
+            <Button className="min-h-11" variant={head ? "outline" : "default"}>
+              {head ? t("properties.licenses.addVersion") : t("properties.licenses.addLicense")}
+            </Button>
+          }
+        />
+      );
+
+    return docs.length === 0 ? (
+      <div className="space-y-4">
+        <SoftEmpty icon={Building2} message={t("properties.documents.none")} />
+        <div className="flex justify-end">{addModalFor(null)}</div>
+      </div>
     ) : (
       <div className="space-y-6">
         {docs.map((doc) => (
           <div key={doc.id} className="space-y-3">
-            <p className="text-sm font-medium text-foreground">
-              {t("properties.documents.number")}: {numberOf(doc) ?? "—"} ·{" "}
-              {t("properties.documents.issuer")}: {issuerOf(doc) ?? "—"}
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-medium text-foreground">
+                {t("properties.documents.number")}: {numberOf(doc) ?? "—"} ·{" "}
+                {t("properties.documents.issuer")}: {issuerOf(doc) ?? "—"}
+              </p>
+              {addModalFor(doc)}
+            </div>
             <DataTable
               columns={[
                 {
@@ -242,6 +274,11 @@ function PropertyProfilePage() {
                   id: "date",
                   header: t("properties.documents.date"),
                   cell: (v: any) => dateOf(v) ?? "—",
+                },
+                {
+                  id: "extra",
+                  header: kind === "deed" ? t("properties.deeds.ownerSnapshot") : t("properties.licenses.scope"),
+                  cell: (v: any) => (kind === "deed" ? v.owner_name_snapshot : v.scope_text) ?? "—",
                 },
                 {
                   id: "file",
@@ -267,6 +304,7 @@ function PropertyProfilePage() {
         <p className="text-xs text-muted-foreground">{t("properties.documents.versionHint")}</p>
       </div>
     );
+  };
 
   const items = [
     { value: "owners", title: t("properties.tabs.owners"), content: ownersPanel },
@@ -274,6 +312,7 @@ function PropertyProfilePage() {
       value: "deeds",
       title: t("properties.tabs.deeds"),
       content: documentsPanel(
+        "deed",
         profile.deeds,
         (d) => d.deed_number,
         (d) => d.issuer,
@@ -284,6 +323,7 @@ function PropertyProfilePage() {
       value: "licenses",
       title: t("properties.tabs.licenses"),
       content: documentsPanel(
+        "license",
         profile.licenses,
         (d) => d.license_number,
         (d) => d.authority,
@@ -476,6 +516,12 @@ function PropertyProfilePage() {
               value={formatNumber(p.land_area)}
             />
             <Field label={t("properties.planNo")} value={p.plan_no ?? "—"} />
+            <Field label={t("properties.parcelNo")} value={p.parcel_no ?? "—"} />
+            <Field label={t("properties.region")} value={p.region ?? "—"} />
+            <Field label={t("properties.address")} value={p.address ?? "—"} />
+            <Field label={t("properties.frontage")} value={p.frontage ?? "—"} />
+            <Field label={t("properties.streets")} value={p.streets ?? "—"} />
+            <Field label={t("properties.landUse")} value={p.land_use ?? "—"} />
             <Field
               label={t("properties.approxLocation")}
               value={
