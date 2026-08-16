@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Store, MapPin, Plus, Sparkles } from "lucide-react";
+import { MapPin, Plus, Sparkles } from "lucide-react";
 import { formatNumber } from "@/lib/format";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
   SectionCard,
   SoftEmpty,
 } from "@/components/rakeez";
+import { ArchiveButton } from "@/components/archive/archive-button";
 import { getMyMemberships } from "@/lib/auth.functions";
 import {
   listListingAreas,
@@ -317,6 +318,15 @@ function MarketplacePage() {
                     <h3 className="font-semibold">{l.title}</h3>
                     <Badge variant="secondary">{kindLabel(l.service_kind)}</Badge>
                     {l.status === "published" ? null : <Badge>{l.status}</Badge>}
+                    <span className="ms-auto">
+                      <ArchiveButton
+                        compact
+                        title={l.title}
+                        kind="listing"
+                        sourceTable="service_listings"
+                        sourceId={l.id}
+                      />
+                    </span>
                   </div>
                   <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
                     {l.description}
