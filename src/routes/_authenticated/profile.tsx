@@ -248,8 +248,6 @@ function IdentityCard() {
             id="national-id"
             label={t("profile.identity.field")}
             hint={t("profile.identity.hint")}
-            inputMode="numeric"
-            maxLength={10}
             value={value}
             error={error}
             onChange={(event) => {
