@@ -23,7 +23,8 @@ import {
   PageHero,
   SoftEmpty,
 } from "@/components/rakeez";
-import { searchProjects } from "@/lib/project-overview.functions";
+import { listMyProjects } from "@/lib/project-overview.functions";
+import { toLatinDigits } from "@/lib/format";
 import { useT } from "@/i18n";
 import { useAccountUi } from "@/lib/account-ui";
 
@@ -183,15 +184,7 @@ function DashboardPage() {
         ) : projects.isError ? (
           <ErrorState
             description={t("projects.listFailed")}
-            action={
-              <button
-                type="button"
-                onClick={() => projects.refetch()}
-                className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
-              >
-                {t("projects.listRetry")}
-              </button>
-            }
+            onRetry={() => void projects.refetch()}
           />
         ) : !projects.data?.items.length ? (
           term ? (
