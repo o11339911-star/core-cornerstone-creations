@@ -490,20 +490,28 @@ function DrawingViewerPage() {
                 </p>
               ) : null}
 
-              {compareUrls.a && compareUrls.b && revA?.format === "pdf" && revB?.format === "pdf" ? (
+              {compareUrls.a &&
+              compareUrls.b &&
+              supportsVisualCompare(revA?.format) &&
+              supportsVisualCompare(revB?.format) ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <iframe
-                    src={compareUrls.a}
+                  <DrawingViewer
+                    format={revA?.format ?? null}
+                    url={compareUrls.a}
+                    sizeBytes={fileA?.sizeBytes ?? null}
                     title={t("drawings.compareA")}
-                    className="h-[420px] w-full rounded-xl border border-border"
+                    apsEnabled={Boolean(moduleStatus.data?.apsReady)}
                   />
-                  <iframe
-                    src={compareUrls.b}
+                  <DrawingViewer
+                    format={revB?.format ?? null}
+                    url={compareUrls.b}
+                    sizeBytes={fileB?.sizeBytes ?? null}
                     title={t("drawings.compareB")}
-                    className="h-[420px] w-full rounded-xl border border-border"
+                    apsEnabled={Boolean(moduleStatus.data?.apsReady)}
                   />
                 </div>
               ) : null}
+
             </div>
           )}
         </SectionCard>
