@@ -297,31 +297,34 @@ function DrawingViewerPage() {
                   {t(capability.reasonKey ?? "drawings.providerApsDisabled")}
                 </p>
               ) : null}
-              <Button
-                variant="outline"
-                className="min-h-11"
-                onClick={() => previewMutation.mutate(latest.document_version_id)}
-                disabled={previewMutation.isPending}
-              >
-                {previewMutation.isPending ? t("drawings.preparing") : t("drawings.openLatest")}
-              </Button>
-              {preview && capability.tools.preview ? (
-                <iframe
-                  src={preview}
-                  title={t("drawings.preview")}
-                  className="h-[480px] w-full rounded-xl border border-border"
-                />
-              ) : preview ? (
-                <a
-                  href={preview}
-                  className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-                  rel="noreferrer"
-                  target="_blank"
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="min-h-11"
+                  onClick={() => previewMutation.mutate(latest.document_version_id)}
+                  disabled={previewMutation.isPending}
                 >
-                  {t("drawings.downloadOriginal")}
-                </a>
-              ) : null}
-              {latest.format !== "pdf" ? (
+                  {previewMutation.isPending ? t("drawings.preparing") : t("drawings.openLatest")}
+                </Button>
+                {preview ? (
+                  <a
+                    href={preview}
+                    className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {t("drawings.downloadOriginal")}
+                  </a>
+                ) : null}
+              </div>
+              <DrawingViewer
+                format={previewRev?.format ?? latest.format}
+                url={preview}
+                sizeBytes={previewFile?.sizeBytes ?? latestFile?.sizeBytes ?? null}
+                title={drawing.title}
+                apsEnabled={Boolean(moduleStatus.data?.apsReady)}
+              />
+              {latest.format === "dwg" ? (
                 <Button
                   variant="ghost"
                   className="min-h-11"
@@ -337,6 +340,7 @@ function DrawingViewerPage() {
             <SoftEmpty icon={DraftingCompass} message={t("drawings.noRevisionsHint")} />
           )}
         </SectionCard>
+
 
         <SectionCard icon={Wrench} title={t("drawings.tools")}>
           <ul className="grid gap-2 sm:grid-cols-2">
