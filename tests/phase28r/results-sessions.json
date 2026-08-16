@@ -1,0 +1,58 @@
+[
+  {
+    "batch": "28-I",
+    "id": "I1",
+    "title": "قراءة صالحة قبل إبطال الجلسة",
+    "expect": "نجاح",
+    "status": "PASS",
+    "evidence": "HTTP 200"
+  },
+  {
+    "batch": "28-I",
+    "id": "I2",
+    "title": "إبطال جميع الجلسات بالمسار الرسمي (logout global)",
+    "expect": "قبول",
+    "status": "PASS",
+    "evidence": "HTTP 204"
+  },
+  {
+    "batch": "28-I",
+    "id": "I3",
+    "title": "رفض تجديد الجلسة بالتوكن القديم",
+    "expect": "رفض",
+    "status": "PASS",
+    "evidence": "HTTP 400 :: refresh_token_not_found"
+  },
+  {
+    "batch": "28-I",
+    "id": "I4",
+    "title": "سلوك التوكن القديم بعد الإبطال وقبل الحذف",
+    "expect": "توثيق فعلي",
+    "status": "INFO",
+    "evidence": "HTTP 200 :: rows=1"
+  },
+  {
+    "batch": "28-I",
+    "id": "I5",
+    "title": "حذف المستخدم بالمسار الإداري",
+    "expect": "قبول",
+    "status": "PASS",
+    "evidence": "HTTP 200"
+  },
+  {
+    "batch": "28-I",
+    "id": "I6",
+    "title": "قراءة بالتوكن القديم بعد حذف المستخدم",
+    "expect": "لا بيانات",
+    "status": "PASS",
+    "evidence": "HTTP 200 :: rows=0"
+  },
+  {
+    "batch": "28-I",
+    "id": "I7",
+    "title": "كتابة بالتوكن القديم بعد حذف المستخدم",
+    "expect": "رفض خادمي",
+    "status": "PASS",
+    "evidence": "HTTP 403 :: 42501 | new row violates row-level security policy for table \"projects\""
+  }
+]
