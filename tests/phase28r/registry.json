@@ -1,0 +1,31 @@
+{
+  "run_id": "08160353",
+  "users": {
+    "alpha-owner": "81246e79-5d41-4e4e-8da0-d67db581a595",
+    "alpha-manager": "aa788f24-20ea-4cc3-9868-fc03818272df",
+    "alpha-member": "944488df-029a-482d-a32d-f754b7e43c11",
+    "alpha-viewer": "41d2b02d-a0de-44bc-9659-825d9769d1fa",
+    "beta-owner": "84f38506-4e7c-46d7-889e-00dccb97cd74",
+    "outsider": "44bcb598-e935-4a96-af42-3071e88255ce"
+  },
+  "entities": {
+    "alpha": "42c85bd8-c372-4138-8e54-6bd7ce949fdb",
+    "beta": "405ab1db-03d1-4e65-917c-d409d76d4e3f"
+  },
+  "rows": {
+    "invitation": [
+      {
+        "invitation_id": "5507aaba-5d27-453b-b8ac-e90d5ce4b871",
+        "token": "81261aeea7124839d195f65589d606f4c2e684c0a10a35f5545a3a7111bee9f7"
+      }
+    ],
+    "project": "b1d99607-5325-4453-845e-679b65deaf47",
+    "viewerProject": "85f8b253-4536-4a25-a76c-6eb3ca715266",
+    "stages": [],
+    "request": "dc967b9b-22bb-459f-ab3e-4b82583242d4",
+    "drawing": "0f836b92-6544-4c3a-a20f-9805275fbf5b",
+    "versionId": "ad2b75a3-1b04-4534-a18a-81a2f5d39293",
+    "storagePath": "42c85bd8-c372-4138-8e54-6bd7ce949fdb/b1d99607-5325-4453-845e-679b65deaf47/e039a5de-1211-4e00-afb2-8bb11581d648/ad2b75a3-1b04-4534-a18a-81a2f5d39293.dwg",
+    "uploaded": true
+  }
+}
