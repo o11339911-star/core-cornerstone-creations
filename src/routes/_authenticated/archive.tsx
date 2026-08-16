@@ -110,9 +110,18 @@ const CREATE_ACTIONS = [
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
+// مفاتيح Supabase Storage تقبل ASCII فقط؛ الأسماء العربية تُحفظ في العنوان لا في المسار
 function safeName(name: string) {
-  return name.replace(/[^\w.\-\u0600-\u06FF ]+/g, "_").slice(-120);
+  const dot = name.lastIndexOf(".");
+  const ext = dot > 0 ? name.slice(dot + 1).replace(/[^A-Za-z0-9]+/g, "") : "";
+  const base = (dot > 0 ? name.slice(0, dot) : name)
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "")
+    .slice(0, 80);
+  return `${base || "file"}${ext ? `.${ext}` : ""}`;
 }
+
 
 function ArchivePage() {
   const qc = useQueryClient();
