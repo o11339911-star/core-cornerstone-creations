@@ -24,6 +24,10 @@ import { formatCallDuration, useVoiceCall } from "@/lib/calls/webrtc";
 export const Route = createFileRoute("/_authenticated/calls")({
   component: CallsPage,
   errorComponent: ErrorState,
+  validateSearch: (search: Record<string, unknown>) => ({
+    answer: typeof search["answer"] === "string" ? (search["answer"] as string) : undefined,
+  }),
+
   head: () => ({
     meta: [
       { title: "الاتصال الداخلي | ركيز" },
