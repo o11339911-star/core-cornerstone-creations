@@ -945,6 +945,11 @@ export const en: Translations = {
     openMedia: "Open tour",
   },
   drawings: {
+    dxfParsing: "Parsing the drawing…",
+    ifcRendering: "Building the scene…",
+    viewerCancelled: "Preview cancelled",
+    viewerCapacity: "Drawing exceeds in-browser preview capacity",
+    viewerCapacityBody: "The file went past the local entity or point cap; you can download the original exactly as uploaded.",
     dwgNoPreview: "In-browser DWG preview is not available",
     dxfCanvasLabel: "2D DXF drawing preview",
     dxfDrawn: "Entities drawn",

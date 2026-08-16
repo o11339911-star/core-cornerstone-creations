@@ -6,7 +6,8 @@
  * - `local_dxf`: تحليل DXF ورسمه ثنائي الأبعاد داخل المتصفح (dxf-parser + Canvas)،
  *   مع إظهار/إخفاء الطبقات. يعمل الآن.
  * - `local_ifc`: عرض تجريبي (Pilot) ثلاثي الأبعاد عبر web-ifc + three.js داخل
- *   المتصفح، محدود بملفات صغيرة. لا قياس ولا استخراج كميات.
+ *   المتصفح، محدود بملفات صغيرة. لا قياس، لا استخراج كميات، ولا واجهة خصائص
+ *   عناصر — قائمة أسماء الطوابق وحدها ليست "خصائص" ولا تُعلن كذلك.
  * - `aps`: مسار DWG — مُجهَّز خادميًا، معطّل، ولا يجري أي اتصال شبكي قبل تفعيله.
  *
  * لا يوجد أي مزوّد يدّعي قياسًا أو لوحات قبل توفّرها فعليًا.
@@ -94,7 +95,7 @@ export function capabilitiesFor(format: string, apsEnabled: boolean): ProviderCa
       return {
         provider: "local_ifc",
         availability: "pilot",
-        tools: { ...BASE, preview: true, properties: true },
+        tools: { ...BASE, preview: true },
         reasonKey: "drawings.providerIfcPilot",
       };
     case "dwg":

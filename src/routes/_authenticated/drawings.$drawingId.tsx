@@ -227,8 +227,11 @@ function DrawingViewerPage() {
   const latest = data?.revisions[0] ?? null;
   const latestFile = data?.files.find((f) => f.id === latest?.document_version_id) ?? null;
 
+  const openedRevision =
+    data?.revisions.find((r) => r.document_version_id === previewVersionId) ?? latest;
+  // القدرات ولوحة الأدوات ورسالة المزوّد تتبع النسخة المفتوحة فعليًا، لا الأحدث.
   const capability = capabilitiesFor(
-    latest?.format ?? "pdf",
+    openedRevision?.format ?? "pdf",
     Boolean(moduleStatus.data?.apsReady),
   );
 
@@ -266,8 +269,7 @@ function DrawingViewerPage() {
   const { drawing, revisions, events, markups, jobs, files, linkedRequests } = data;
   const fileById = new Map(files.map((f) => [f.id, f]));
   const requestById = new Map(linkedRequests.map((r) => [r.id, r]));
-  const previewRev =
-    revisions.find((r) => r.document_version_id === previewVersionId) ?? latest;
+  const previewRev = openedRevision;
   const previewFile = previewVersionId ? (fileById.get(previewVersionId) ?? null) : latestFile;
   const revA = revisions.find((r) => r.document_version_id === compareA) ?? null;
   const revB = revisions.find((r) => r.document_version_id === compareB) ?? null;
@@ -332,7 +334,7 @@ function DrawingViewerPage() {
                 title={drawing.title}
                 apsEnabled={Boolean(moduleStatus.data?.apsReady)}
               />
-              {latest.format === "dwg" ? (
+              {(previewRev?.format ?? latest.format) === "dwg" ? (
                 <Button
                   variant="ghost"
                   className="min-h-11"

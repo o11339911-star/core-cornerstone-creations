@@ -20,6 +20,17 @@ export interface DxfPath {
   layer: string;
   points: Array<[number, number]>;
   closed: boolean;
+  /** مسار علامة نقطة (POINT): يُرسم صليبًا صغيرًا بحجم ثابت على الشاشة. */
+  marker?: boolean;
+}
+
+/** تجاوز سقوف التعقيد — يُنهي التحويل فورًا بدل استهلاك الذاكرة. */
+export class DxfCapacityError extends Error {
+  readonly code = "capacity";
+  constructor(public readonly limit: "entities" | "paths" | "points") {
+    super(`dxf_capacity_${limit}`);
+    this.name = "DxfCapacityError";
+  }
 }
 
 export interface DxfBounds {
@@ -44,6 +55,12 @@ export interface DxfScene {
   unsupported: Array<{ type: string; count: number }>;
   unsupportedTotal: number;
 }
+
+import {
+  DXF_MAX_ENTITIES,
+  DXF_MAX_PATHS,
+  DXF_MAX_POINTS,
+} from "./viewer-limits";
 
 type AnyEntity = Record<string, unknown>;
 
@@ -129,10 +146,21 @@ export function buildDxfScene(parsed: unknown): DxfScene {
   const layerCounts = new Map<string, number>();
   const unsupportedCounts = new Map<string, number>();
   let supportedCount = 0;
+  let totalPoints = 0;
 
-  const push = (layer: string, points: Array<[number, number]>, closed: boolean) => {
-    if (points.length < 2) return;
-    paths.push({ layer, points, closed });
+  if (entities.length > DXF_MAX_ENTITIES) throw new DxfCapacityError("entities");
+
+  const push = (
+    layer: string,
+    points: Array<[number, number]>,
+    closed: boolean,
+    marker = false,
+  ) => {
+    if (points.length < (marker ? 1 : 2)) return;
+    if (paths.length + 1 > DXF_MAX_PATHS) throw new DxfCapacityError("paths");
+    totalPoints += points.length;
+    if (totalPoints > DXF_MAX_POINTS) throw new DxfCapacityError("points");
+    paths.push(marker ? { layer, points, closed, marker: true } : { layer, points, closed });
   };
 
   for (const entity of entities) {
@@ -216,7 +244,7 @@ export function buildDxfScene(parsed: unknown): DxfScene {
       case "POINT": {
         const p = point(entity["position"]);
         if (p) {
-          push(layer, [p, [p[0], p[1]]], false);
+          push(layer, [p], false, true);
           drew = true;
         }
         break;
