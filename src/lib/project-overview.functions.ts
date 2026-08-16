@@ -154,7 +154,7 @@ export const listMyProjects = createServerFn({ method: "GET" })
     let query = context.supabase
       .from("projects")
       .select(
-        "id, name, code, status, city, district, created_at, project_templates(name), property_projects(properties(name))",
+        "id, name, code, status, city, district, created_at, project_templates(name_ar, name_en), property_projects(properties(name))",
         { count: "exact" },
       )
       .is("deleted_at", null);
@@ -183,7 +183,10 @@ export const listMyProjects = createServerFn({ method: "GET" })
         status: string;
         city: string | null;
         district: string | null;
-        project_templates: { name: string } | { name: string }[] | null;
+        project_templates:
+          | { name_ar: string; name_en: string | null }
+          | { name_ar: string; name_en: string | null }[]
+          | null;
         property_projects: { properties: { name: string } | { name: string }[] | null }[] | null;
       };
       const template = Array.isArray(r.project_templates)
@@ -198,7 +201,7 @@ export const listMyProjects = createServerFn({ method: "GET" })
         status: r.status,
         city: r.city,
         district: r.district,
-        template_name: template?.name ?? null,
+        template_name: template?.name_ar ?? template?.name_en ?? null,
         property_name: property?.name ?? null,
       });
     });
