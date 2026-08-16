@@ -36,6 +36,7 @@ import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedDrawingsDrawingIdRouteImport } from './routes/_authenticated/drawings.$drawingId'
+import { Route as AuthenticatedEntitiesNewRouteImport } from './routes/_authenticated/entities.new'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
@@ -54,6 +55,7 @@ import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_au
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
 import { Route as AuthenticatedSettingsPrivacyRouteImport } from './routes/_authenticated/settings.privacy'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
+import { Route as AuthenticatedEntitiesEntityIdIndexRouteImport } from './routes/_authenticated/entities.$entityId.index'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdPublicProfileRouteImport } from './routes/_authenticated/entities.$entityId.public-profile'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
@@ -71,6 +73,7 @@ import { Route as AuthenticatedProjectsProjectIdReportsRouteImport } from './rou
 import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './routes/_authenticated/projects.$projectId.requests'
 import { Route as AuthenticatedProjectsProjectIdServicesRouteImport } from './routes/_authenticated/projects.$projectId.services'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
+import { Route as AuthenticatedProjectsProjectIdTeamRouteImport } from './routes/_authenticated/projects.$projectId.team'
 import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
 import { Route as AuthenticatedProjectsProjectIdWarrantiesRouteImport } from './routes/_authenticated/projects.$projectId.warranties'
 import { Route as ApiPublicCronDurationScanRouteImport } from './routes/api.public.cron.duration-scan'
@@ -216,6 +219,12 @@ const AuthenticatedDrawingsDrawingIdRoute =
     path: '/drawings/$drawingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntitiesNewRoute =
+  AuthenticatedEntitiesNewRouteImport.update({
+    id: '/entities/new',
+    path: '/entities/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNNotificationIdRoute =
   AuthenticatedNNotificationIdRouteImport.update({
     id: '/n/$notificationId',
@@ -324,6 +333,12 @@ const AuthenticatedSettingsSecurityRoute =
     path: '/settings/security',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntitiesEntityIdIndexRoute =
+  AuthenticatedEntitiesEntityIdIndexRouteImport.update({
+    id: '/entities/$entityId/',
+    path: '/entities/$entityId/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntitiesEntityIdInvitationsRoute =
   AuthenticatedEntitiesEntityIdInvitationsRouteImport.update({
     id: '/entities/$entityId/invitations',
@@ -426,6 +441,12 @@ const AuthenticatedProjectsProjectIdStagesRoute =
     path: '/projects/$projectId/stages',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdTeamRoute =
+  AuthenticatedProjectsProjectIdTeamRouteImport.update({
+    id: '/projects/$projectId/team',
+    path: '/projects/$projectId/team',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdVisitsRoute =
   AuthenticatedProjectsProjectIdVisitsRouteImport.update({
     id: '/projects/$projectId/visits',
@@ -477,6 +498,7 @@ export interface FileRoutesByFullPath {
   '/auth/': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
+  '/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -512,9 +534,11 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/projects/$projectId/team': typeof AuthenticatedProjectsProjectIdTeamRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/entities/$entityId/': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -542,6 +566,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
+  '/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -577,9 +602,11 @@ export interface FileRoutesByTo {
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/projects/$projectId/team': typeof AuthenticatedProjectsProjectIdTeamRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/entities/$entityId': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -611,6 +638,7 @@ export interface FileRoutesById {
   '/auth/': typeof AuthIndexRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
+  '/_authenticated/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -646,9 +674,11 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/_authenticated/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/_authenticated/projects/$projectId/team': typeof AuthenticatedProjectsProjectIdTeamRoute
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/_authenticated/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/_authenticated/entities/$entityId/': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/_authenticated/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -680,6 +710,7 @@ export interface FileRouteTypes {
     | '/auth/'
     | '/admin/report-templates'
     | '/drawings/$drawingId'
+    | '/entities/new'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -715,9 +746,11 @@ export interface FileRouteTypes {
     | '/projects/$projectId/requests'
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
+    | '/projects/$projectId/team'
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/entities/$entityId/'
     | '/projects/$projectId/'
     | '/entities/$entityId/template-imports/$importId'
   fileRoutesByTo: FileRoutesByTo
@@ -745,6 +778,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin/report-templates'
     | '/drawings/$drawingId'
+    | '/entities/new'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -780,9 +814,11 @@ export interface FileRouteTypes {
     | '/projects/$projectId/requests'
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
+    | '/projects/$projectId/team'
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/entities/$entityId'
     | '/projects/$projectId'
     | '/entities/$entityId/template-imports/$importId'
   id:
@@ -813,6 +849,7 @@ export interface FileRouteTypes {
     | '/auth/'
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/drawings/$drawingId'
+    | '/_authenticated/entities/new'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
@@ -848,9 +885,11 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/requests'
     | '/_authenticated/projects/$projectId/services'
     | '/_authenticated/projects/$projectId/stages'
+    | '/_authenticated/projects/$projectId/team'
     | '/_authenticated/projects/$projectId/visits'
     | '/_authenticated/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/_authenticated/entities/$entityId/'
     | '/_authenticated/projects/$projectId/'
     | '/_authenticated/entities/$entityId/template-imports/$importId'
   fileRoutesById: FileRoutesById
@@ -1063,6 +1102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDrawingsDrawingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entities/new': {
+      id: '/_authenticated/entities/new'
+      path: '/entities/new'
+      fullPath: '/entities/new'
+      preLoaderRoute: typeof AuthenticatedEntitiesNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/n/$notificationId': {
       id: '/_authenticated/n/$notificationId'
       path: '/n/$notificationId'
@@ -1189,6 +1235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entities/$entityId/': {
+      id: '/_authenticated/entities/$entityId/'
+      path: '/entities/$entityId'
+      fullPath: '/entities/$entityId/'
+      preLoaderRoute: typeof AuthenticatedEntitiesEntityIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entities/$entityId/invitations': {
       id: '/_authenticated/entities/$entityId/invitations'
       path: '/entities/$entityId/invitations'
@@ -1308,6 +1361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdStagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/team': {
+      id: '/_authenticated/projects/$projectId/team'
+      path: '/projects/$projectId/team'
+      fullPath: '/projects/$projectId/team'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/visits': {
       id: '/_authenticated/projects/$projectId/visits'
       path: '/projects/$projectId/visits'
@@ -1377,6 +1437,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
   AuthenticatedDrawingsDrawingIdRoute: typeof AuthenticatedDrawingsDrawingIdRoute
+  AuthenticatedEntitiesNewRoute: typeof AuthenticatedEntitiesNewRoute
   AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
@@ -1405,8 +1466,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdRequestsRoute: typeof AuthenticatedProjectsProjectIdRequestsRoute
   AuthenticatedProjectsProjectIdServicesRoute: typeof AuthenticatedProjectsProjectIdServicesRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
+  AuthenticatedProjectsProjectIdTeamRoute: typeof AuthenticatedProjectsProjectIdTeamRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
   AuthenticatedProjectsProjectIdWarrantiesRoute: typeof AuthenticatedProjectsProjectIdWarrantiesRoute
+  AuthenticatedEntitiesEntityIdIndexRoute: typeof AuthenticatedEntitiesEntityIdIndexRoute
   AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute: typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -1423,6 +1486,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
   AuthenticatedDrawingsDrawingIdRoute: AuthenticatedDrawingsDrawingIdRoute,
+  AuthenticatedEntitiesNewRoute: AuthenticatedEntitiesNewRoute,
   AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:
@@ -1469,10 +1533,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdServicesRoute,
   AuthenticatedProjectsProjectIdStagesRoute:
     AuthenticatedProjectsProjectIdStagesRoute,
+  AuthenticatedProjectsProjectIdTeamRoute:
+    AuthenticatedProjectsProjectIdTeamRoute,
   AuthenticatedProjectsProjectIdVisitsRoute:
     AuthenticatedProjectsProjectIdVisitsRoute,
   AuthenticatedProjectsProjectIdWarrantiesRoute:
     AuthenticatedProjectsProjectIdWarrantiesRoute,
+  AuthenticatedEntitiesEntityIdIndexRoute:
+    AuthenticatedEntitiesEntityIdIndexRoute,
   AuthenticatedProjectsProjectIdIndexRoute:
     AuthenticatedProjectsProjectIdIndexRoute,
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute:

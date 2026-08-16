@@ -260,3 +260,314 @@ export const offboardMember = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { transferred: (moved as number) ?? 0 };
   });
+
+/* ------------------------------ team roster ----------------------------- */
+
+export const teamRosterRowSchema = z.object({
+  membership_id: z.string().uuid(),
+  full_name: z.string(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  role: z.enum(APP_ROLES),
+  status: z.string(),
+  expires_at: z.string().nullable(),
+  created_at: z.string(),
+  is_self: z.boolean(),
+});
+export type TeamRosterRow = z.infer<typeof teamRosterRowSchema>;
+
+/**
+ * Human-readable, permission-aware team directory. Emails/phones are only
+ * present when the DB decides the caller is allowed to see them (owner,
+ * admin, `members.manage_members`, or their own row) — never a raw UUID.
+ */
+export const listEntityTeam = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => entityScope.parse(input))
+  .handler(async ({ data, context }): Promise<TeamRosterRow[]> => {
+    const { data: rows, error } = await context.supabase.rpc("list_entity_team", {
+      _entity_id: data.entityId,
+    });
+
+    if (error) throw new Error(error.message);
+    return teamRosterRowSchema.array().parse(rows ?? []);
+  });
+
+/**
+ * Changes a member's role. RLS already forbids self-updates and requires
+ * `members.manage_members`; here we additionally guard the entity against
+ * ever being left without an active owner.
+ */
+export const changeMemberRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        entityId: z.string().uuid(),
+        membershipId: z.string().uuid(),
+        newRole: z.enum(APP_ROLES),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { data: current, error: currentError } = await context.supabase
+      .from("entity_memberships")
+      .select("id, user_id, role, status, entity_id")
+      .eq("id", data.membershipId)
+      .eq("entity_id", data.entityId)
+      .maybeSingle();
+
+    if (currentError) throw currentError;
+    if (!current) throw new Error("العضوية غير موجودة.");
+
+    if (current.user_id === context.userId) {
+      throw new Error("لا يمكنك تغيير دورك الخاص.");
+    }
+
+    if (current.role === "owner" && data.newRole !== "owner") {
+      const { count, error: ownersError } = await context.supabase
+        .from("entity_memberships")
+        .select("id", { count: "exact", head: true })
+        .eq("entity_id", data.entityId)
+        .eq("role", "owner")
+        .eq("status", "active")
+        .neq("id", data.membershipId);
+
+      if (ownersError) throw ownersError;
+      if (!count) {
+        throw new Error("لا يمكن إنقاص دور آخر مالك نشِط في الكيان.");
+      }
+    }
+
+    const { error } = await context.supabase
+      .from("entity_memberships")
+      .update({ role: data.newRole })
+      .eq("id", data.membershipId)
+      .eq("entity_id", data.entityId);
+
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
+ * Safe offboarding wrapper around `offboard_member`: blocks removing the
+ * last active owner, and — when the member still has open project
+ * assignments — requires a named replacement before handing over to the DB.
+ */
+export const offboardMemberSafely = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        entityId: z.string().uuid(),
+        membershipId: z.string().uuid(),
+        replacementMembershipId: z.string().uuid().nullable().optional(),
+        reason: z.string().trim().max(500).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(
+    async ({
+      data,
+      context,
+    }): Promise<{ transferred: number; needsReplacement?: true; openAssignments?: number }> => {
+      const { data: membership, error: membershipError } = await context.supabase
+        .from("entity_memberships")
+        .select("id, user_id, role, status")
+        .eq("id", data.membershipId)
+        .eq("entity_id", data.entityId)
+        .maybeSingle();
+
+      if (membershipError) throw membershipError;
+      if (!membership) throw new Error("العضوية غير موجودة.");
+
+      if (membership.user_id === context.userId) {
+        throw new Error("لا يمكنك إنهاء عضويتك الخاصة.");
+      }
+
+      if (membership.role === "owner") {
+        const { count, error: ownersError } = await context.supabase
+          .from("entity_memberships")
+          .select("id", { count: "exact", head: true })
+          .eq("entity_id", data.entityId)
+          .eq("role", "owner")
+          .eq("status", "active")
+          .neq("id", data.membershipId);
+
+        if (ownersError) throw ownersError;
+        if (!count) {
+          throw new Error("لا يمكن إنهاء خدمة آخر مالك نشِط في الكيان.");
+        }
+      }
+
+      const { count: openCount, error: assignmentsError } = await context.supabase
+        .from("project_assignments")
+        .select("id", { count: "exact", head: true })
+        .eq("entity_id", data.entityId)
+        .eq("user_id", membership.user_id)
+        .eq("status", "active")
+        .is("deleted_at", null);
+
+      if (assignmentsError) throw assignmentsError;
+
+      let replacementUserId: string | null = null;
+      if (data.replacementMembershipId) {
+        const { data: replacement, error: replacementError } = await context.supabase
+          .from("entity_memberships")
+          .select("user_id")
+          .eq("id", data.replacementMembershipId)
+          .eq("entity_id", data.entityId)
+          .maybeSingle();
+        if (replacementError) throw replacementError;
+        if (!replacement) throw new Error("العضو البديل غير موجود.");
+        replacementUserId = replacement.user_id;
+      }
+
+      if ((openCount ?? 0) > 0 && !replacementUserId) {
+        return { transferred: 0, needsReplacement: true, openAssignments: openCount ?? 0 };
+      }
+
+      const args: {
+        _entity_id: string;
+        _user_id: string;
+        _replacement_user_id?: string;
+        _reason?: string;
+      } = { _entity_id: data.entityId, _user_id: membership.user_id };
+      if (replacementUserId) args._replacement_user_id = replacementUserId;
+      if (data.reason) args._reason = data.reason;
+
+      const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
+      if (error) throw new Error(error.message);
+      return { transferred: (moved as number) ?? 0 };
+    },
+  );
+
+/* ------------------------- assignable members lookup --------------------- */
+
+export const assignableMemberSchema = z.object({
+  userId: z.string().uuid(),
+  fullName: z.string(),
+  entityName: z.string(),
+});
+export type AssignableMember = z.infer<typeof assignableMemberSchema>;
+
+/**
+ * Members eligible to receive a project assignment by name: the project
+ * entity's own roster plus every entity that is an accepted project party.
+ * Authorization is re-derived server-side (`projects.update`) before any
+ * row is returned — never trust a client-picked project id blindly.
+ */
+export const listAssignableMembers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<AssignableMember[]> => {
+    const { data: project, error: projectError } = await context.supabase
+      .from("projects")
+      .select("id, entity_id, owner_id")
+      .eq("id", data.projectId)
+      .maybeSingle();
+
+    if (projectError) throw projectError;
+    if (!project) throw new Error("المشروع غير موجود.");
+
+    const allowed = await callerCanUpdateProject(context.supabase, context.userId, project);
+    if (!allowed) {
+      throw new Error("لا تملك صلاحية إدارة فريق هذا المشروع.");
+    }
+
+    const entityIds = new Set<string>();
+    if (project.entity_id) entityIds.add(project.entity_id);
+
+    const { data: parties, error: partiesError } = await context.supabase
+      .from("project_parties")
+      .select("party_entity_id")
+      .eq("project_id", data.projectId)
+      .eq("status", "accepted");
+
+    if (partiesError) throw partiesError;
+    for (const p of parties ?? []) entityIds.add(p.party_entity_id);
+
+    if (entityIds.size === 0) return [];
+
+    const { data: rows, error } = await context.supabase
+      .from("entity_memberships")
+      .select("user_id, entity_id, entities(name), profiles(full_name)")
+      .in("entity_id", [...entityIds])
+      .eq("status", "active");
+
+    if (error) throw error;
+
+    type Row = {
+      user_id: string;
+      entities: { name: string } | null;
+      profiles: { full_name: string | null } | null;
+    };
+    const seen = new Set<string>();
+    const out: AssignableMember[] = [];
+    for (const row of (rows ?? []) as unknown as Row[]) {
+      const key = row.user_id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        userId: row.user_id,
+        fullName: row.profiles?.full_name ?? "عضو",
+        entityName: row.entities?.name ?? "—",
+      });
+    }
+    return out.sort((a, b) => a.fullName.localeCompare(b.fullName, "ar"));
+  });
+
+/**
+ * Minimal re-derivation of `projects.update` for the current user: entity
+ * owner/admin/manager role permissions, fine-grained grants, or the
+ * project's direct owner_id. RLS still guards every underlying write.
+ */
+async function callerCanUpdateProject(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+  project: { entity_id: string | null; owner_id: string },
+): Promise<boolean> {
+  if (project.owner_id === userId) return true;
+  if (!project.entity_id) return false;
+
+  const now = new Date().toISOString();
+  const { data: membership } = await supabase
+    .from("entity_memberships")
+    .select("role, status, expires_at")
+    .eq("user_id", userId)
+    .eq("entity_id", project.entity_id)
+    .eq("status", "active")
+    .maybeSingle();
+
+  const allowed = new Set<string>();
+  const membershipActive = membership && (!membership.expires_at || membership.expires_at > now);
+
+  if (membershipActive) {
+    const { data: rolePerms } = await supabase
+      .from("role_permissions")
+      .select("module, action")
+      .eq("role", membership.role);
+    for (const row of rolePerms ?? []) allowed.add(`${row.module}.${row.action}`);
+  }
+
+  const { data: grants } = await supabase
+    .from("permission_grants")
+    .select("module, action, effect, expires_at, revoked_at")
+    .eq("subject_user_id", userId)
+    .eq("scope_type", "entity")
+    .eq("scope_entity_id", project.entity_id)
+    .is("revoked_at", null);
+
+  const live = (grants ?? []).filter(
+    (g: { expires_at: string | null }) => !g.expires_at || g.expires_at > now,
+  );
+  for (const g of live.filter((g: { effect: string }) => g.effect === "allow")) {
+    allowed.add(`${g.module}.${g.action}`);
+  }
+  for (const g of live.filter((g: { effect: string }) => g.effect === "deny")) {
+    allowed.delete(`${g.module}.${g.action}`);
+  }
+
+  return allowed.has("projects.update");
+}

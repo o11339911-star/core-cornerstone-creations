@@ -98,7 +98,9 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
     setPhase("connecting");
 
     const send = async (kind: SignalRow["kind"], payload: Record<string, unknown>) => {
-      await supabase
+      // supabase-js resolves with `{ error }` instead of throwing, so an
+      // RLS/validation rejection would otherwise stall the leg silently.
+      const { error } = await supabase
         .from("call_signals")
         .insert({
           call_id: callId,
@@ -106,6 +108,8 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
           kind,
           payload: payload as never,
         });
+      // The payload itself is never logged or surfaced.
+      if (error) throw new Error(`SIGNAL_INSERT_FAILED:${kind}`);
     };
     sendRef.current = send;
 
@@ -126,7 +130,13 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        void send("ice", { candidate: event.candidate.toJSON() as unknown as Record<string, unknown> });
+        void send("ice", {
+          candidate: event.candidate.toJSON() as unknown as Record<string, unknown>,
+        }).catch(() => {
+          if (disposed) return;
+          setErrorKey("calls.error.signalling");
+          setPhase("failed");
+        });
       }
     };
 
@@ -194,7 +204,11 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "call_signals", filter: `call_id=eq.${callId}` },
         (payload) => {
-          void applySignal(payload.new as SignalRow);
+          void applySignal(payload.new as SignalRow).catch(() => {
+            if (disposed) return;
+            setErrorKey("calls.error.signalling");
+            setPhase("failed");
+          });
         },
       )
       .on(
@@ -209,7 +223,15 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
           }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (disposed) return;
+        // Without a live channel no answer/candidate ever arrives, so fail
+        // loudly instead of hanging on "connecting" forever.
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          setErrorKey("calls.error.signalling");
+          setPhase((p) => (p === "connected" ? p : "failed"));
+        }
+      });
 
 
     const start = async () => {

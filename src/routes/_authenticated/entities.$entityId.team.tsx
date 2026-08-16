@@ -2,11 +2,11 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Send, UserCog, UserPlus, Users } from "lucide-react";
+import { Copy, Send, ShieldAlert, UserCog, UserPlus, Users } from "lucide-react";
 
 import { useT } from "@/i18n";
 import { Button } from "@/components/ui/button";
-import { TextField } from "@/components/rakeez";
+import { TextField, ResponsiveModal } from "@/components/rakeez";
 import {
   CardsSkeleton,
   ErrorState,
@@ -16,13 +16,16 @@ import {
   StatCard,
   StatGrid,
 } from "@/components/rakeez";
+import { formatDateTime } from "@/lib/format";
 import {
   APP_ROLES,
+  changeMemberRole,
   createInvitation,
-  listEntityMembers,
+  listEntityTeam,
   listInvitations,
-  offboardMember,
+  offboardMemberSafely,
   revokeInvitation,
+  type TeamRosterRow,
 } from "@/lib/team.functions";
 
 export const Route = createFileRoute("/_authenticated/entities/$entityId/team")({
@@ -50,15 +53,16 @@ function TeamPage() {
   const { entityId } = Route.useParams();
   const queryClient = useQueryClient();
 
-  const members = useServerFn(listEntityMembers);
+  const team = useServerFn(listEntityTeam);
   const invitations = useServerFn(listInvitations);
   const invite = useServerFn(createInvitation);
   const revoke = useServerFn(revokeInvitation);
-  const offboard = useServerFn(offboardMember);
+  const changeRole = useServerFn(changeMemberRole);
+  const offboard = useServerFn(offboardMemberSafely);
 
-  const membersQuery = useQuery({
-    queryKey: ["entity-members", entityId],
-    queryFn: () => members({ data: { entityId } }),
+  const teamQuery = useQuery({
+    queryKey: ["entity-team", entityId],
+    queryFn: () => team({ data: { entityId } }),
   });
   const invitesQuery = useQuery({
     queryKey: ["entity-invitations", entityId],
@@ -69,6 +73,7 @@ function TeamPage() {
   const [role, setRole] = React.useState<(typeof APP_ROLES)[number]>("member");
   const [link, setLink] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [offboardTarget, setOffboardTarget] = React.useState<TeamRosterRow | null>(null);
 
   const inviteMutation = useMutation({
     mutationFn: () => invite({ data: { entityId, email, role, validDays: 7 } }),
@@ -87,20 +92,23 @@ function TeamPage() {
       void queryClient.invalidateQueries({ queryKey: ["entity-invitations", entityId] }),
   });
 
-  const offboardMutation = useMutation({
-    mutationFn: (userId: string) => offboard({ data: { entityId, userId } }),
+  const roleMutation = useMutation({
+    mutationFn: (vars: { membershipId: string; newRole: (typeof APP_ROLES)[number] }) =>
+      changeRole({ data: { entityId, membershipId: vars.membershipId, newRole: vars.newRole } }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["entity-members", entityId] });
+      setError(null);
+      void queryClient.invalidateQueries({ queryKey: ["entity-team", entityId] });
     },
     onError: (e: Error) => setError(e.message),
   });
 
-  const isLoading = membersQuery.isPending || invitesQuery.isPending;
-  const isError = membersQuery.isError || invitesQuery.isError;
-  const memberRows = membersQuery.data ?? [];
+  const isLoading = teamQuery.isPending || invitesQuery.isPending;
+  const isError = teamQuery.isError || invitesQuery.isError;
+  const teamRows = teamQuery.data ?? [];
   const inviteRows = invitesQuery.data ?? [];
-  const activeMembers = memberRows.filter((m) => m.status === "active").length;
+  const activeMembers = teamRows.filter((m) => m.status === "active").length;
   const pendingInvites = inviteRows.filter((i) => i.status === "pending").length;
+  const activeOwners = teamRows.filter((m) => m.role === "owner" && m.status === "active").length;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 sm:px-6">
@@ -111,15 +119,15 @@ function TeamPage() {
       ) : isError ? (
         <ErrorState
           onRetry={() => {
-            void membersQuery.refetch();
+            void teamQuery.refetch();
             void invitesQuery.refetch();
           }}
         />
       ) : (
         <>
           <StatGrid>
-            <StatCard icon={Users} label={t("team.members")} value={memberRows.length} tone="primary" />
-            <StatCard icon={UserCog} label="أعضاء نشِطون" value={activeMembers} tone="success" />
+            <StatCard icon={Users} label={t("team.members")} value={teamRows.length} tone="primary" />
+            <StatCard icon={UserCog} label={t("team.activeMembers")} value={activeMembers} tone="success" />
             <StatCard icon={Send} label={t("team.invitations")} value={pendingInvites} tone="warning" />
           </StatGrid>
 
@@ -203,32 +211,187 @@ function TeamPage() {
             )}
           </SectionCard>
 
-          <SectionCard icon={Users} title={t("team.members")} count={memberRows.length}>
-            {memberRows.length === 0 ? (
+          <SectionCard icon={Users} title={t("team.members")} count={teamRows.length}>
+            {teamRows.length === 0 ? (
               <SoftEmpty icon={Users} message={t("team.noMembers")} />
             ) : (
               <ul className="divide-y divide-border rounded-xl border border-border">
-                {memberRows.map((m) => (
-                  <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
-                    <span className="truncate font-mono text-xs">{m.user_id.slice(0, 8)}</span>
-                    <span>{t(`team.roles.${m.role}`)}</span>
-                    <span className="text-muted-foreground">{m.status}</span>
-                    {m.status === "active" ? (
-                      <Button
-                        variant="outline"
-                        className="min-h-11"
-                        onClick={() => offboardMutation.mutate(m.user_id)}
+                {teamRows.map((m) => {
+                  const isLastOwner = m.role === "owner" && activeOwners <= 1;
+                  const lockedBySelf = m.is_self;
+                  const canManage = !lockedBySelf && !(isLastOwner && m.status === "active");
+                  return (
+                    <li key={m.membership_id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-foreground">
+                          {m.full_name}
+                          {m.is_self ? (
+                            <span className="ms-2 text-xs text-muted-foreground">{t("team.you")}</span>
+                          ) : null}
+                        </p>
+                        {m.email ? (
+                          <p className="truncate text-xs text-muted-foreground">{m.email}</p>
+                        ) : null}
+                      </div>
+                      <select
+                        className="min-h-11 rounded-md border border-input bg-background px-2 text-xs disabled:opacity-60"
+                        value={m.role}
+                        disabled={!canManage || roleMutation.isPending}
+                        onChange={(e) =>
+                          roleMutation.mutate({
+                            membershipId: m.membership_id,
+                            newRole: e.target.value as (typeof APP_ROLES)[number],
+                          })
+                        }
                       >
-                        {t("team.offboard")}
-                      </Button>
-                    ) : null}
-                  </li>
-                ))}
+                        {APP_ROLES.map((r) => (
+                          <option key={r} value={r}>
+                            {t(`team.roles.${r}`)}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-muted-foreground">{t(`team.status.${m.status}`)}</span>
+                      {m.status === "active" ? (
+                        <Button
+                          variant="outline"
+                          className="min-h-11"
+                          disabled={!canManage}
+                          title={
+                            lockedBySelf
+                              ? t("team.cannotOffboardSelf")
+                              : isLastOwner
+                                ? t("team.lastOwnerProtected")
+                                : undefined
+                          }
+                          onClick={() => setOffboardTarget(m)}
+                        >
+                          {t("team.offboard")}
+                        </Button>
+                      ) : null}
+                    </li>
+                  );
+                })}
               </ul>
             )}
+            {activeOwners <= 1 ? (
+              <p className="mt-3 flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                <ShieldAlert className="size-4 shrink-0" aria-hidden="true" />
+                {t("team.lastOwnerNotice")}
+              </p>
+            ) : null}
           </SectionCard>
         </>
       )}
+
+      {offboardTarget ? (
+        <OffboardModalWrapper
+          entityId={entityId}
+          member={offboardTarget}
+          roster={teamRows}
+          onClose={() => setOffboardTarget(null)}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function OffboardModalWrapper(props: {
+  entityId: string;
+  member: TeamRosterRow;
+  roster: TeamRosterRow[];
+  onClose: () => void;
+}) {
+  return <OffboardDialogFixed {...props} />;
+}
+
+/** Wired offboarding dialog: needs the member's real user_id, which the
+ * safe-directory RPC intentionally does not expose to the UI layer beyond
+ * the membership row itself — the server fn resolves it from membershipId. */
+function OffboardDialogFixed({
+  entityId,
+  member,
+  roster,
+  onClose,
+}: {
+  entityId: string;
+  member: TeamRosterRow;
+  roster: TeamRosterRow[];
+  onClose: () => void;
+}) {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const offboard = useServerFn(offboardMemberSafely);
+  const [needsReplacement, setNeedsReplacement] = React.useState(false);
+  const [replacementUserId, setReplacementUserId] = React.useState("");
+  const [error, setError] = React.useState<string | null>(null);
+
+  const otherMembers = roster.filter(
+    (m) => m.membership_id !== member.membership_id && m.status === "active",
+  );
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      offboard({
+        data: {
+          entityId,
+          membershipId: member.membership_id,
+          replacementMembershipId: replacementUserId || null,
+        },
+      }),
+    onSuccess: (result) => {
+      if (result.needsReplacement) {
+        setNeedsReplacement(true);
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey: ["entity-team", entityId] });
+      onClose();
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  return (
+    <ResponsiveModal
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("team.offboardTitle")}
+      description={t("team.offboardHint", { name: member.full_name })}
+      footer={
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" className="min-h-11" onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            className="min-h-11"
+            disabled={mutation.isPending || (needsReplacement && !replacementUserId)}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? t("common.loading") : t("team.offboardConfirm")}
+          </Button>
+        </div>
+      }
+    >
+      {needsReplacement ? (
+        <div className="space-y-3">
+          <p className="text-sm text-warning">{t("team.needsReplacementHint")}</p>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-foreground">{t("team.replacement")}</span>
+            <select
+              className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+              value={replacementUserId}
+              onChange={(e) => setReplacementUserId(e.target.value)}
+            >
+              <option value="">{t("team.selectReplacement")}</option>
+              {otherMembers.map((m) => (
+                <option key={m.membership_id} value={m.membership_id}>
+                  {m.full_name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : null}
+      {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
+    </ResponsiveModal>
   );
 }

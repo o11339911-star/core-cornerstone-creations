@@ -63,6 +63,11 @@ function NewPropertyPage() {
   const [landArea, setLandArea] = React.useState("");
   const [planNo, setPlanNo] = React.useState("");
   const [parcelNo, setParcelNo] = React.useState("");
+  const [region, setRegion] = React.useState("");
+  const [address, setAddress] = React.useState("");
+  const [frontage, setFrontage] = React.useState("");
+  const [streets, setStreets] = React.useState("");
+  const [landUse, setLandUse] = React.useState("");
   const [approxLat, setApproxLat] = React.useState("");
   const [approxLng, setApproxLng] = React.useState("");
   const [notes, setNotes] = React.useState("");
@@ -99,6 +104,11 @@ function NewPropertyPage() {
         landArea: landArea ? Number(landArea) : null,
         planNo: planNo.trim(),
         parcelNo: parcelNo.trim(),
+        region: region.trim(),
+        address: address.trim(),
+        frontage: frontage.trim(),
+        streets: streets.trim(),
+        landUse: landUse.trim(),
         approxLat: approxLat ? Number(approxLat) : null,
         approxLng: approxLng ? Number(approxLng) : null,
         notes: notes.trim(),
@@ -201,6 +211,36 @@ function NewPropertyPage() {
                 label={t("properties.parcelNo")}
                 value={parcelNo}
                 onChange={(event) => setParcelNo(event.target.value)}
+              />
+              <TextField
+                id="property-region"
+                label={t("properties.region")}
+                value={region}
+                onChange={(event) => setRegion(event.target.value)}
+              />
+              <TextField
+                id="property-address"
+                label={t("properties.address")}
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+              />
+              <TextField
+                id="property-frontage"
+                label={t("properties.frontage")}
+                value={frontage}
+                onChange={(event) => setFrontage(event.target.value)}
+              />
+              <TextField
+                id="property-streets"
+                label={t("properties.streets")}
+                value={streets}
+                onChange={(event) => setStreets(event.target.value)}
+              />
+              <TextField
+                id="property-land-use"
+                label={t("properties.landUse")}
+                value={landUse}
+                onChange={(event) => setLandUse(event.target.value)}
               />
             </div>
 

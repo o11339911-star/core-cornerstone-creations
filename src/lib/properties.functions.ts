@@ -71,6 +71,11 @@ export const propertyProfileSchema = z.object({
     land_area: z.number().nullable(),
     plan_no: z.string().nullable(),
     parcel_no: z.string().nullable(),
+    region: z.string().nullable().optional(),
+    address: z.string().nullable().optional(),
+    frontage: z.string().nullable().optional(),
+    streets: z.string().nullable().optional(),
+    land_use: z.string().nullable().optional(),
     notes: z.string().nullable(),
     approx_lat: z.number().nullable(),
     approx_lng: z.number().nullable(),
@@ -103,7 +108,9 @@ export const propertyProfileSchema = z.object({
           version_no: z.number(),
           deed_date: z.string().nullable(),
           area: z.number().nullable(),
+          owner_name_snapshot: z.string().nullable().optional(),
           file_path: z.string().nullable(),
+          document_version_id: z.string().uuid().nullable().optional(),
           source: z.string(),
           created_at: z.string(),
         })
@@ -122,7 +129,9 @@ export const propertyProfileSchema = z.object({
           version_no: z.number(),
           issued_on: z.string().nullable(),
           expires_on: z.string().nullable(),
+          scope_text: z.string().nullable().optional(),
           file_path: z.string().nullable(),
+          document_version_id: z.string().uuid().nullable().optional(),
           source: z.string(),
           created_at: z.string(),
         })
@@ -193,7 +202,9 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
         sb.from("deeds").select("id, deed_number, issuer, current_version_id").eq("property_id", id),
         sb
           .from("deed_versions")
-          .select("id, deed_id, version_no, deed_date, area, file_path, source, created_at")
+          .select(
+            "id, deed_id, version_no, deed_date, area, owner_name_snapshot, file_path, document_version_id, source, created_at",
+          )
           .order("version_no", { ascending: false }),
         sb
           .from("building_licenses")
@@ -201,7 +212,9 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
           .eq("property_id", id),
         sb
           .from("license_versions")
-          .select("id, license_id, version_no, issued_on, expires_on, file_path, source, created_at")
+          .select(
+            "id, license_id, version_no, issued_on, expires_on, scope_text, file_path, document_version_id, source, created_at",
+          )
           .order("version_no", { ascending: false }),
         sb
           .from("land_boundaries")
@@ -282,6 +295,11 @@ export const createProperty = createServerFn({ method: "POST" })
         landArea: z.number().positive().nullable().optional(),
         planNo: z.string().trim().max(60).optional(),
         parcelNo: z.string().trim().max(60).optional(),
+        region: z.string().trim().max(120).optional(),
+        address: z.string().trim().max(400).optional(),
+        frontage: z.string().trim().max(200).optional(),
+        streets: z.string().trim().max(200).optional(),
+        landUse: z.string().trim().max(120).optional(),
         approxLat: z.number().min(-90).max(90).nullable().optional(),
         approxLng: z.number().min(-180).max(180).nullable().optional(),
         notes: z.string().trim().max(2000).optional(),
@@ -311,6 +329,11 @@ export const createProperty = createServerFn({ method: "POST" })
         land_area: data.landArea ?? null,
         plan_no: data.planNo || null,
         parcel_no: data.parcelNo || null,
+        region: data.region || null,
+        address: data.address || null,
+        frontage: data.frontage || null,
+        streets: data.streets || null,
+        land_use: data.landUse || null,
         approx_lat: data.approxLat ?? null,
         approx_lng: data.approxLng ?? null,
         notes: data.notes || null,
@@ -333,6 +356,11 @@ export const updatePropertyBasics = createServerFn({ method: "POST" })
         city: z.string().trim().max(80).nullable().optional(),
         district: z.string().trim().max(80).nullable().optional(),
         landArea: z.number().positive().nullable().optional(),
+        region: z.string().trim().max(120).nullable().optional(),
+        address: z.string().trim().max(400).nullable().optional(),
+        frontage: z.string().trim().max(200).nullable().optional(),
+        streets: z.string().trim().max(200).nullable().optional(),
+        landUse: z.string().trim().max(120).nullable().optional(),
         approxLat: z.number().min(-90).max(90).nullable().optional(),
         approxLng: z.number().min(-180).max(180).nullable().optional(),
         notes: z.string().trim().max(2000).nullable().optional(),
@@ -349,6 +377,11 @@ export const updatePropertyBasics = createServerFn({ method: "POST" })
         ...(rest.city !== undefined ? { city: rest.city } : {}),
         ...(rest.district !== undefined ? { district: rest.district } : {}),
         ...(rest.landArea !== undefined ? { land_area: rest.landArea } : {}),
+        ...(rest.region !== undefined ? { region: rest.region } : {}),
+        ...(rest.address !== undefined ? { address: rest.address } : {}),
+        ...(rest.frontage !== undefined ? { frontage: rest.frontage } : {}),
+        ...(rest.streets !== undefined ? { streets: rest.streets } : {}),
+        ...(rest.landUse !== undefined ? { land_use: rest.landUse } : {}),
         ...(rest.approxLat !== undefined ? { approx_lat: rest.approxLat } : {}),
         ...(rest.approxLng !== undefined ? { approx_lng: rest.approxLng } : {}),
         ...(rest.notes !== undefined ? { notes: rest.notes } : {}),
@@ -443,6 +476,9 @@ export const addDeedVersion = createServerFn({ method: "POST" })
         issuer: z.string().trim().max(120).nullable().optional(),
         deedDate: z.string().nullable().optional(),
         area: z.number().positive().nullable().optional(),
+        ownerNameSnapshot: z.string().trim().max(160).nullable().optional(),
+        documentVersionId: z.string().uuid().nullable().optional(),
+        /** Legacy path-only reference; prefer documentVersionId. */
         filePath: z.string().max(400).nullable().optional(),
       })
       .parse(input),
@@ -464,6 +500,19 @@ export const addDeedVersion = createServerFn({ method: "POST" })
         .single();
       if (error) throw error;
       deedId = head.id;
+    } else if (data.deedNumber !== undefined || data.issuer !== undefined) {
+      // Keep the deed head in sync so the UI never shows a stale number.
+      // RLS restricts this update to users who can manage the property.
+      const { error: headErr } = await sb
+        .from("deeds")
+        .update({
+          ...(data.deedNumber !== undefined ? { deed_number: data.deedNumber } : {}),
+          ...(data.issuer !== undefined ? { issuer: data.issuer } : {}),
+        })
+        .eq("id", deedId);
+      if (headErr) {
+        throw new Error("لا تملك صلاحية تعديل بيانات الصك لهذا العقار");
+      }
     }
 
     const { data: version, error: vErr } = await sb
@@ -474,6 +523,8 @@ export const addDeedVersion = createServerFn({ method: "POST" })
         version_no: 1,
         deed_date: data.deedDate || null,
         area: data.area ?? null,
+        owner_name_snapshot: data.ownerNameSnapshot || null,
+        document_version_id: data.documentVersionId ?? null,
         file_path: data.filePath || null,
         source: "manual",
         created_by: context.userId,
@@ -497,6 +548,9 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
         authority: z.string().trim().max(120).nullable().optional(),
         issuedOn: z.string().nullable().optional(),
         expiresOn: z.string().nullable().optional(),
+        scopeText: z.string().trim().max(400).nullable().optional(),
+        documentVersionId: z.string().uuid().nullable().optional(),
+        /** Legacy path-only reference; prefer documentVersionId. */
         filePath: z.string().max(400).nullable().optional(),
       })
       .parse(input),
@@ -518,6 +572,18 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
         .single();
       if (error) throw error;
       licenseId = head.id;
+    } else if (data.licenseNumber !== undefined || data.authority !== undefined) {
+      // Keep the licence head in sync so the UI never shows a stale number.
+      const { error: headErr } = await sb
+        .from("building_licenses")
+        .update({
+          ...(data.licenseNumber !== undefined ? { license_number: data.licenseNumber } : {}),
+          ...(data.authority !== undefined ? { authority: data.authority } : {}),
+        })
+        .eq("id", licenseId);
+      if (headErr) {
+        throw new Error("لا تملك صلاحية تعديل بيانات الرخصة لهذا العقار");
+      }
     }
 
     const { data: version, error: vErr } = await sb
@@ -528,6 +594,8 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
         version_no: 1,
         issued_on: data.issuedOn || null,
         expires_on: data.expiresOn || null,
+        scope_text: data.scopeText || null,
+        document_version_id: data.documentVersionId ?? null,
         file_path: data.filePath || null,
         source: "manual",
         created_by: context.userId,

@@ -97,6 +97,7 @@ const TABS = [
   { to: "/projects/$projectId/requests", label: "الطلبات", icon: MessageSquare },
   { to: "/projects/$projectId/services", label: "الخدمات", icon: Wrench },
   { to: "/projects/$projectId/parties", label: "الأطراف", icon: Users },
+  { to: "/projects/$projectId/team", label: "فريق المشروع", icon: Users },
   { to: "/projects/$projectId/visits", label: "الزيارات", icon: MapPin },
   { to: "/projects/$projectId/drawings", label: "المخططات", icon: DraftingCompass },
   { to: "/projects/$projectId/reports", label: "التقارير", icon: FileText },
@@ -361,7 +362,16 @@ function ProjectOverviewPage() {
               }
             />
           )}
+          <Link
+            to="/projects/$projectId/team"
+            params={{ projectId }}
+            className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"
+          >
+            <Users className="size-4" aria-hidden="true" />
+            فريق المشروع
+          </Link>
         </SectionCard>
+
 
         <SectionCard icon={FileText} title="حالة المستندات" count={docsCount}>
           {Object.keys(o.documents).length ? (

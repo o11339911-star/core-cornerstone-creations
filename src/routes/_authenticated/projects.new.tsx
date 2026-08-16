@@ -23,6 +23,7 @@ import {
   listProjectTemplates,
   listStageTemplates,
 } from "@/lib/projects.functions";
+import { linkPropertyToProject, listProperties } from "@/lib/properties.functions";
 
 export const Route = createFileRoute("/_authenticated/projects/new")({
   component: NewProjectPage,
@@ -54,6 +55,18 @@ function NewProjectPage() {
   const fetchTemplates = useServerFn(listProjectTemplates);
   const fetchStages = useServerFn(listStageTemplates);
   const submitProject = useServerFn(createProject);
+  const fetchProperties = useServerFn(listProperties);
+  const linkProperty = useServerFn(linkPropertyToProject);
+
+  const entityId = scope?.kind === "entity" ? scope.entityId : null;
+
+  const propertiesQuery = useQuery({
+    queryKey: ["linkable-properties", entityId],
+    queryFn: () => fetchProperties({ data: { entityId: entityId as string } }),
+    enabled: Boolean(entityId),
+  });
+
+  const [linkedPropertyId, setLinkedPropertyId] = React.useState<string>("");
 
   const [templateId, setTemplateId] = React.useState<string>("");
   const [name, setName] = React.useState("");
@@ -79,7 +92,16 @@ function NewProjectPage() {
 
   const mutation = useMutation({
     mutationFn: (input: Parameters<typeof createProject>[0]) => submitProject(input),
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      if (linkedPropertyId) {
+        try {
+          await linkProperty({
+            data: { propertyId: linkedPropertyId, projectId: result.id, relation: "primary" },
+          });
+        } catch {
+          toast.error(t("projects.linkPropertyFailed"));
+        }
+      }
       toast.success(t("projects.created"));
       navigate({ to: "/dashboard", replace: true });
     },
@@ -237,6 +259,29 @@ function NewProjectPage() {
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
           />
+
+          {entityId ? (
+            <FieldShell
+              id="project-linked-property"
+              label={t("projects.linkProperty")}
+              hint={t("projects.linkPropertyHint")}
+            >
+              {(aria) => (
+                <Select value={linkedPropertyId} onValueChange={setLinkedPropertyId}>
+                  <SelectTrigger id={aria.id} className="min-h-11">
+                    <SelectValue placeholder={t("projects.linkPropertyPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(propertiesQuery.data ?? []).map((property) => (
+                      <SelectItem key={property.id} value={property.id}>
+                        {property.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </FieldShell>
+          ) : null}
 
           <section aria-labelledby="stages-preview" className="rounded-xl border border-border p-4">
             <h2 id="stages-preview" className="text-base font-semibold text-foreground">
