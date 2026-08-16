@@ -48,8 +48,8 @@ type NavItem = {
 const BASE_NAV: NavItem[] = [
   { to: "/dashboard", labelKey: "shell.home", icon: Home },
   { to: "/requests", labelKey: "shell.requests", icon: Inbox },
+  { to: "/calls", labelKey: "shell.calls", icon: Phone },
   { to: "/correspondence", labelKey: "shell.correspondence", icon: Mail },
-  { to: "/archive", labelKey: "shell.archive", icon: Archive },
   { to: "/profile", labelKey: "shell.profile", icon: User },
 ];
 
