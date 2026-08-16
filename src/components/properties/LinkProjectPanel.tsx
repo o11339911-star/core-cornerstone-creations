@@ -2,6 +2,7 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Link2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,12 @@ export function LinkProjectPanel({ propertyId, onLinked }: { propertyId: string;
     onSuccess: (result) => {
       if (!result.ok) {
         const reason = result.reason ?? "unknown";
-        toast.error(t(`properties.links.denied.${reason}`, t("properties.links.denied.unknown")));
+        const known = ["not_found","no_property_manage","no_active_membership","no_project_access","no_effective_contract"];
+        toast.error(
+          known.includes(reason)
+            ? t(`properties.links.denied.${reason}`)
+            : t("properties.links.denied.unknown"),
+        );
         void queryClient.invalidateQueries({ queryKey: ["link-candidate-projects", propertyId] });
         return;
       }
@@ -82,11 +88,14 @@ export function LinkProjectPanel({ propertyId, onLinked }: { propertyId: string;
       />
 
       {query.isPending ? (
-        <CardsSkeleton count={3} />
+        <CardsSkeleton cards={3} />
       ) : query.isError ? (
-        <ErrorState error={query.error as Error} reset={() => void query.refetch()} />
+        <ErrorState onRetry={() => void query.refetch()} />
       ) : items.length === 0 ? (
-        <SoftEmpty title={debounced ? t("properties.links.noResultsSearch") : t("properties.links.noResults")} />
+        <SoftEmpty
+          icon={Link2}
+          message={debounced ? t("properties.links.noResultsSearch") : t("properties.links.noResults")}
+        />
       ) : (
         <ul className="space-y-2">
           {items.map((item) => (
