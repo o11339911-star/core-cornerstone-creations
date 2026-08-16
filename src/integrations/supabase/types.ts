@@ -11428,6 +11428,27 @@ export type Database = {
         Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean
       }
+      svc_identity_backfill_pending: {
+        Args: never
+        Returns: {
+          plain: string
+          user_id: string
+        }[]
+      }
+      svc_identity_cipher: {
+        Args: { _actor: string; _user_id: string }
+        Returns: string
+      }
+      svc_identity_lookup: { Args: { _fingerprint: string }; Returns: string }
+      svc_identity_upsert: {
+        Args: {
+          _cipher: string
+          _fingerprint: string
+          _last4: string
+          _user_id: string
+        }
+        Returns: string
+      }
       svc_register_identity: {
         Args: { _national_id: string; _user_id: string }
         Returns: undefined
