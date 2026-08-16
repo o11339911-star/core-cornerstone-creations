@@ -11,6 +11,8 @@
  *   so neither e-mail nor identity existence can be enumerated.
  */
 
+import { createHash } from "crypto";
+
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/database";
@@ -30,6 +32,11 @@ function publishableClient() {
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
+}
+
+/** Throttle keys are hashed: no e-mail and no identity number is ever stored. */
+function throttleKey(scope: string, value: string) {
+  return `${scope}:${createHash("sha256").update(value.trim().toLowerCase()).digest("hex").slice(0, 32)}`;
 }
 
 /** Sliding-window throttle stored server-side. Returns false when over budget. */
@@ -53,8 +60,7 @@ export type SignInResult =
 /** Resolves e-mail OR national ID to an account and signs in — server-side only. */
 export async function signInWithIdentifier(rawIdentifier: string, password: string): Promise<SignInResult> {
   const identifier = rawIdentifier.trim();
-  const throttleKey = `login:${identifier.toLowerCase().slice(0, 120)}`;
-  if (!(await allowAttempt(throttleKey, 8, 600))) return { ok: false, reason: "throttled" };
+  if (!(await allowAttempt(throttleKey("login", identifier), 8, 600))) return { ok: false, reason: "throttled" };
 
   let email: string | null = null;
 
@@ -108,7 +114,7 @@ export async function signUpWithIdentity(input: {
   const digits = normalizeNationalId(input.nationalId);
   if (!isValidSaudiId(digits)) return { ok: false, reason: "invalid_id" };
 
-  if (!(await allowAttempt(`signup:${input.email.toLowerCase().slice(0, 120)}`, 5, 900))) {
+  if (!(await allowAttempt(throttleKey("signup", input.email), 5, 900))) {
     return { ok: false, reason: "throttled" };
   }
 
