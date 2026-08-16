@@ -1423,6 +1423,13 @@ export const en: Translations = {
     },
   },
   projectTeam: {
+    edit: "Edit",
+    editTitle: "Edit assignment",
+    endAssignment: "End assignment",
+    endTitle: "End assignment",
+    endHint: "This assignment will end as of today and will no longer appear as active.",
+    endConfirm: "Confirm end",
+    cannotManage: "You do not have permission to manage this project's team.",
     title: "Project team",
     subtitle: "Who works on this project, in which role, when, and at what visibility.",
     assignments: "Assignments",
