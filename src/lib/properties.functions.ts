@@ -499,8 +499,8 @@ export const setPropertyPrimaryOwner = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: rowId, error } = await context.supabase.rpc("set_property_primary_owner", {
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { error } = await context.supabase.rpc("set_property_primary_owner", {
       _property_id: data.propertyId,
       _reason: data.reason,
       ...(data.entityId ? { _entity_id: data.entityId } : {}),
@@ -510,7 +510,7 @@ export const setPropertyPrimaryOwner = createServerFn({ method: "POST" })
       if (error.message.includes("REASON_REQUIRED")) throw new Error("REASON_REQUIRED");
       throw new Error(error.message);
     }
-    return { id: rowId as string };
+    return { ok: true as const };
   });
 
 /* --------------------------- documents (versions) ------------------------ */
