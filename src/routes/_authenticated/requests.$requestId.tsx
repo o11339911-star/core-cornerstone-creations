@@ -139,6 +139,14 @@ function RequestDetailPage() {
                   <HeroBadge tone="warning">{t(`requests.priorities.${data.request.priority}`)}</HeroBadge>
                 </>
               }
+              aside={
+                <ArchiveButton
+                  title={data.request.subject}
+                  kind="request"
+                  sourceTable="requests"
+                  sourceId={data.request.id}
+                />
+              }
             />
 
             <SectionCard icon={FileText} title={t("requests.nextAction")}>

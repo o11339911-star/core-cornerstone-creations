@@ -407,6 +407,14 @@ function PropertyProfilePage() {
             <HeroBadge tone="success">{t(`properties.statuses.${p.status}`)}</HeroBadge>
           </>
         }
+        aside={
+          <ArchiveButton
+            title={p.name}
+            kind="property"
+            sourceTable="properties"
+            sourceId={p.id}
+          />
+        }
       />
 
       <SectionCard icon={MapPinned} title={t("properties.completion")}>

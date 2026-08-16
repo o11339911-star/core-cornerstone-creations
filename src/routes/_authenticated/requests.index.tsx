@@ -110,7 +110,16 @@ function RequestsInboxPage() {
         ) : (
           <ul className="space-y-3">
             {rows.map((r) => (
-              <li key={r.id}>
+              <li key={r.id} className="relative">
+                <span className="absolute end-3 top-3 z-10">
+                  <ArchiveButton
+                    compact
+                    title={r.subject}
+                    kind="request"
+                    sourceTable="requests"
+                    sourceId={r.id}
+                  />
+                </span>
                 <Link
                   to="/requests/$requestId"
                   params={{ requestId: r.id }}

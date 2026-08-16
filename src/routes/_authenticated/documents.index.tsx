@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, ErrorState, HeroBadge, PageHero, SectionCard } from "@/components/rakeez";
+import { ArchiveButton } from "@/components/archive/archive-button";
 import { FileSearch, FileText, UploadCloud } from "lucide-react";
 import {
   DOC_VISIBILITIES,
@@ -257,6 +258,13 @@ function DocumentsPage() {
               اعتماد ونشر
             </Button>
           ) : null}
+          <ArchiveButton
+            compact
+            title={row.title}
+            kind="document"
+            sourceTable="documents"
+            sourceId={row.id}
+          />
           <Button
             size="sm"
             variant="ghost"

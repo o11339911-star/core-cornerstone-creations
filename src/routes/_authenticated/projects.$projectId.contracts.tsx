@@ -194,13 +194,22 @@ function ContractsPage() {
                   <span className="font-medium">{c.title}</span>
                   <span className="text-muted-foreground">{t(`contracts.types.${c.contract_type}`)}</span>
                   <span className="text-muted-foreground">{t(`contracts.statuses.${c.status}`)}</span>
-                  <button
-                    type="button"
-                    className="ms-auto min-h-11 rounded-md border border-input px-3"
-                    onClick={() => setSelected(selected === c.id ? null : c.id)}
-                  >
-                    {selected === c.id ? t("contracts.hide") : t("contracts.open")}
-                  </button>
+                  <span className="ms-auto flex items-center gap-2">
+                    <ArchiveButton
+                      compact
+                      title={c.title}
+                      kind="contract"
+                      sourceTable="contracts"
+                      sourceId={c.id}
+                    />
+                    <button
+                      type="button"
+                      className="min-h-11 rounded-md border border-input px-3"
+                      onClick={() => setSelected(selected === c.id ? null : c.id)}
+                    >
+                      {selected === c.id ? t("contracts.hide") : t("contracts.open")}
+                    </button>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -542,13 +551,22 @@ function Correspondence({ projectId, contractId }: { projectId: string; contract
       <ul className="mt-4 divide-y divide-border text-sm">
         {(threadsQuery.data ?? []).map((th) => (
           <li key={th.id} className="py-2">
-            <button
-              type="button"
-              className="min-h-11 text-start font-medium"
-              onClick={() => setOpenThread(openThread === th.id ? null : th.id)}
-            >
-              {th.subject}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="min-h-11 flex-1 text-start font-medium"
+                onClick={() => setOpenThread(openThread === th.id ? null : th.id)}
+              >
+                {th.subject}
+              </button>
+              <ArchiveButton
+                compact
+                title={th.subject}
+                kind="thread"
+                sourceTable="correspondence_threads"
+                sourceId={th.id}
+              />
+            </div>
             {openThread === th.id ? (
               <div className="mt-2 grid gap-3">
                 <ul className="grid gap-2">
