@@ -6971,10 +6971,15 @@ export type Database = {
           created_at: string
           ends_on: string | null
           id: string
+          is_primary: boolean
           national_id_masked: string | null
           owner_entity_id: string | null
+          owner_legal_form: string | null
           owner_name_text: string | null
+          owner_source: string | null
+          owner_unified_number: string | null
           owner_user_id: string | null
+          owner_verification_status: string | null
           property_id: string
           share_percent: number
           starts_on: string
@@ -6984,10 +6989,15 @@ export type Database = {
           created_at?: string
           ends_on?: string | null
           id?: string
+          is_primary?: boolean
           national_id_masked?: string | null
           owner_entity_id?: string | null
+          owner_legal_form?: string | null
           owner_name_text?: string | null
+          owner_source?: string | null
+          owner_unified_number?: string | null
           owner_user_id?: string | null
+          owner_verification_status?: string | null
           property_id: string
           share_percent: number
           starts_on?: string
@@ -6997,10 +7007,15 @@ export type Database = {
           created_at?: string
           ends_on?: string | null
           id?: string
+          is_primary?: boolean
           national_id_masked?: string | null
           owner_entity_id?: string | null
+          owner_legal_form?: string | null
           owner_name_text?: string | null
+          owner_source?: string | null
+          owner_unified_number?: string | null
           owner_user_id?: string | null
+          owner_verification_status?: string | null
           property_id?: string
           share_percent?: number
           starts_on?: string
@@ -9835,6 +9850,27 @@ export type Database = {
         }
         Returns: string
       }
+      create_property_with_owner: {
+        Args: {
+          _address?: string
+          _approx_lat?: number
+          _approx_lng?: number
+          _city?: string
+          _district?: string
+          _entity_id?: string
+          _frontage?: string
+          _kind: string
+          _land_area?: number
+          _land_use?: string
+          _name: string
+          _notes?: string
+          _parcel_no?: string
+          _plan_no?: string
+          _region?: string
+          _streets?: string
+        }
+        Returns: string
+      }
       create_report: {
         Args: {
           _entity_id: string
@@ -10833,6 +10869,10 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      set_property_primary_owner: {
+        Args: { _entity_id: string; _property_id: string; _reason: string }
+        Returns: string
       }
       set_punch_item_status: {
         Args: { _item_id: string; _status: string }
