@@ -32,9 +32,9 @@ function isoOf(date: Date): string {
 
 /** Umm al-Qura Hijri date -> ISO Gregorian date, via a bounded local search. */
 export function hijriToIso(hy: number, hm: number, hd: number): string | null {
-  const estimate = Math.round((hy - 1) * 354.367 + (hm - 1) * 29.53 + hd) + 227015;
-  const base = Date.UTC(622, 6, 19) + estimate * 86400000;
-  for (let offset = -45; offset <= 45; offset += 1) {
+  const estimate = Math.round((hy - 1) * 354.367 + (hm - 1) * 29.53 + (hd - 1));
+  const base = Date.UTC(622, 6, 16) + estimate * 86400000;
+  for (let offset = -60; offset <= 60; offset += 1) {
     const candidate = new Date(base + offset * 86400000);
     const parts = hijriPartsOf(candidate);
     if (parts.y === hy && parts.m === hm && parts.d === hd) return isoOf(candidate);
@@ -82,12 +82,12 @@ export function normalizeDateInput(raw: string | null | undefined): DateNormaliz
 
 /** Area text ("1,250.5 م2") -> positive number, or null when unusable. */
 export function normalizeArea(raw: string | null | undefined): number | null {
-  const text = toLatinDigits((raw ?? "").trim())
+  const cleaned = toLatinDigits((raw ?? "").trim())
     .replace(/[\u066b]/g, ".")
-    .replace(/[\s,\u066c]/g, "")
-    .replace(/[^0-9.]/g, "");
-  if (!text) return null;
-  const value = Number(text);
+    .replace(/[\s,\u066c]/g, "");
+  const match = /^-?\d+(?:\.\d+)?/.exec(cleaned);
+  if (!match) return null;
+  const value = Number(match[0]);
   if (!Number.isFinite(value) || value <= 0) return null;
   return Math.round(value * 100) / 100;
 }
