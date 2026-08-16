@@ -48,96 +48,6 @@ export const Route = createFileRoute("/_authenticated/entities/$entityId/team")(
   }),
 });
 
-function OffboardDialog({
-  entityId,
-  member,
-  roster,
-  onClose,
-}: {
-  entityId: string;
-  member: TeamRosterRow;
-  roster: TeamRosterRow[];
-  onClose: () => void;
-}) {
-  const t = useT();
-  const queryClient = useQueryClient();
-  const offboard = useServerFn(offboardMemberSafely);
-  const [needsReplacement, setNeedsReplacement] = React.useState(false);
-  const [replacementUserId, setReplacementUserId] = React.useState("");
-  const [error, setError] = React.useState<string | null>(null);
-
-  const otherMembers = roster.filter(
-    (m) => m.membership_id !== member.membership_id && m.status === "active",
-  );
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      offboard({
-        data: {
-          entityId,
-          membershipId: member.membership_id,
-          userId: member.membership_id, // corrected below via prop
-          replacementUserId: replacementUserId || null,
-        },
-      }),
-    onSuccess: (result) => {
-      if (result.needsReplacement) {
-        setNeedsReplacement(true);
-        return;
-      }
-      void queryClient.invalidateQueries({ queryKey: ["entity-team", entityId] });
-      onClose();
-    },
-    onError: (e: Error) => setError(e.message),
-  });
-
-  return (
-    <ResponsiveModal
-      open
-      onOpenChange={(open) => !open && onClose()}
-      title={t("team.offboardTitle")}
-      description={t("team.offboardHint", { name: member.full_name })}
-      footer={
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" className="min-h-11" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            variant="destructive"
-            className="min-h-11"
-            disabled={mutation.isPending || (needsReplacement && !replacementUserId)}
-            onClick={() => mutation.mutate()}
-          >
-            {mutation.isPending ? t("common.loading") : t("team.offboardConfirm")}
-          </Button>
-        </div>
-      }
-    >
-      {needsReplacement ? (
-        <div className="space-y-3">
-          <p className="text-sm text-warning">{t("team.needsReplacementHint")}</p>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-foreground">{t("team.replacement")}</span>
-            <select
-              className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-              value={replacementUserId}
-              onChange={(e) => setReplacementUserId(e.target.value)}
-            >
-              <option value="">{t("team.selectReplacement")}</option>
-              {otherMembers.map((m) => (
-                <option key={m.membership_id} value={m.membership_id}>
-                  {m.full_name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      ) : null}
-      {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
-    </ResponsiveModal>
-  );
-}
-
 function TeamPage() {
   const t = useT();
   const { entityId } = Route.useParams();
@@ -425,8 +335,7 @@ function OffboardDialogFixed({
         data: {
           entityId,
           membershipId: member.membership_id,
-          userId: member.membership_id,
-          replacementUserId: replacementUserId || null,
+          replacementMembershipId: replacementUserId || null,
         },
       }),
     onSuccess: (result) => {
