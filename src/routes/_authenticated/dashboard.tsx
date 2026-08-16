@@ -3,7 +3,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  Archive,
   Building2,
+  FolderKanban,
+  Handshake,
+  Mail,
   CalendarClock,
   FolderPlus,
   Inbox,
@@ -109,6 +113,10 @@ function DashboardPage() {
   // Quick actions never replace the project list; the property shortcut is an
   // addition for developer entities, not a substitute.
   const actions: { to: string; icon: typeof Store; label: string }[] = [
+    { to: "/projects", icon: FolderKanban, label: "صندوق المشاريع" },
+    { to: "/deals", icon: Handshake, label: "صندوق التعاقد" },
+    { to: "/correspondence", icon: Mail, label: "المراسلات" },
+    { to: "/archive", icon: Archive, label: "الأرشيف" },
     { to: "/requests", icon: Inbox, label: t("requests.inbox.title") },
     { to: "/calls", icon: Phone, label: t("calls.title") },
     { to: "/appointments", icon: CalendarClock, label: "المواعيد" },

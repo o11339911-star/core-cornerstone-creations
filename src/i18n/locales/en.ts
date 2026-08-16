@@ -40,6 +40,10 @@ export const en: Translations = {
     cta: "Get started",
   },
   shell: {
+    archive: "Archive",
+    correspondence: "Correspondence",
+    deals: "Deals",
+    projectsBox: "Projects",
     requests: "Requests",
     calls: "Calls",
     security: "Security",

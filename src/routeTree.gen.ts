@@ -14,8 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
 import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
+import { Route as AuthenticatedArchiveRouteImport } from './routes/_authenticated/archive'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedCorrespondenceRouteImport } from './routes/_authenticated/correspondence'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDealsRouteImport } from './routes/_authenticated/deals'
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -48,6 +51,7 @@ import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/
 import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
 import { Route as AuthenticatedPlatformUsersRouteImport } from './routes/_authenticated/platform.users'
+import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
@@ -55,6 +59,7 @@ import { Route as AuthenticatedPropertiesNewRouteImport } from './routes/_authen
 import { Route as AuthenticatedReportsReportIdRouteImport } from './routes/_authenticated/reports.$reportId'
 import { Route as AuthenticatedRequestsIndexRouteImport } from './routes/_authenticated/requests.index'
 import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_authenticated/requests.$requestId'
+import { Route as AuthenticatedSettingsMessagingRouteImport } from './routes/_authenticated/settings.messaging'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
 import { Route as AuthenticatedSettingsPrivacyRouteImport } from './routes/_authenticated/settings.privacy'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
@@ -107,14 +112,30 @@ const AuthenticatedAppointmentsRoute =
     path: '/appointments',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedArchiveRoute = AuthenticatedArchiveRouteImport.update({
+  id: '/archive',
+  path: '/archive',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
   id: '/calls',
   path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCorrespondenceRoute =
+  AuthenticatedCorrespondenceRouteImport.update({
+    id: '/correspondence',
+    path: '/correspondence',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDealsRoute = AuthenticatedDealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
@@ -294,6 +315,12 @@ const AuthenticatedPlatformUsersRoute =
     path: '/users',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
+const AuthenticatedProjectsIndexRoute =
+  AuthenticatedProjectsIndexRouteImport.update({
+    id: '/projects/',
+    path: '/projects/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsNewRoute =
   AuthenticatedProjectsNewRouteImport.update({
     id: '/projects/new',
@@ -334,6 +361,12 @@ const AuthenticatedRequestsRequestIdRoute =
   AuthenticatedRequestsRequestIdRouteImport.update({
     id: '/requests/$requestId',
     path: '/requests/$requestId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsMessagingRoute =
+  AuthenticatedSettingsMessagingRouteImport.update({
+    id: '/settings/messaging',
+    path: '/settings/messaging',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsNotificationsRoute =
@@ -498,8 +531,11 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
+  '/archive': typeof AuthenticatedArchiveRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/correspondence': typeof AuthenticatedCorrespondenceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/deals': typeof AuthenticatedDealsRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -535,11 +571,13 @@ export interface FileRoutesByFullPath {
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
+  '/settings/messaging': typeof AuthenticatedSettingsMessagingRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/requests/': typeof AuthenticatedRequestsIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
@@ -570,8 +608,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/select-account': typeof SelectAccountRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
+  '/archive': typeof AuthenticatedArchiveRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/correspondence': typeof AuthenticatedCorrespondenceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/deals': typeof AuthenticatedDealsRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -606,11 +647,13 @@ export interface FileRoutesByTo {
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
+  '/settings/messaging': typeof AuthenticatedSettingsMessagingRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
+  '/projects': typeof AuthenticatedProjectsIndexRoute
   '/properties': typeof AuthenticatedPropertiesIndexRoute
   '/requests': typeof AuthenticatedRequestsIndexRoute
   '/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
@@ -644,8 +687,11 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
   '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
+  '/_authenticated/archive': typeof AuthenticatedArchiveRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
+  '/_authenticated/correspondence': typeof AuthenticatedCorrespondenceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/deals': typeof AuthenticatedDealsRoute
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -681,11 +727,13 @@ export interface FileRoutesById {
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
   '/_authenticated/reports/$reportId': typeof AuthenticatedReportsReportIdRoute
   '/_authenticated/requests/$requestId': typeof AuthenticatedRequestsRequestIdRoute
+  '/_authenticated/settings/messaging': typeof AuthenticatedSettingsMessagingRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/properties/': typeof AuthenticatedPropertiesIndexRoute
   '/_authenticated/requests/': typeof AuthenticatedRequestsIndexRoute
   '/_authenticated/entities/$entityId/invitations': typeof AuthenticatedEntitiesEntityIdInvitationsRoute
@@ -719,8 +767,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/appointments'
+    | '/archive'
     | '/calls'
+    | '/correspondence'
     | '/dashboard'
+    | '/deals'
     | '/marketing'
     | '/marketplace'
     | '/notifications'
@@ -756,11 +807,13 @@ export interface FileRouteTypes {
     | '/properties/new'
     | '/reports/$reportId'
     | '/requests/$requestId'
+    | '/settings/messaging'
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
     | '/documents/'
     | '/platform/'
+    | '/projects/'
     | '/properties/'
     | '/requests/'
     | '/entities/$entityId/invitations'
@@ -791,8 +844,11 @@ export interface FileRouteTypes {
     | '/'
     | '/select-account'
     | '/appointments'
+    | '/archive'
     | '/calls'
+    | '/correspondence'
     | '/dashboard'
+    | '/deals'
     | '/marketing'
     | '/marketplace'
     | '/notifications'
@@ -827,11 +883,13 @@ export interface FileRouteTypes {
     | '/properties/new'
     | '/reports/$reportId'
     | '/requests/$requestId'
+    | '/settings/messaging'
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
     | '/documents'
     | '/platform'
+    | '/projects'
     | '/properties'
     | '/requests'
     | '/entities/$entityId/invitations'
@@ -864,8 +922,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-account'
     | '/_authenticated/appointments'
+    | '/_authenticated/archive'
     | '/_authenticated/calls'
+    | '/_authenticated/correspondence'
     | '/_authenticated/dashboard'
+    | '/_authenticated/deals'
     | '/_authenticated/marketing'
     | '/_authenticated/marketplace'
     | '/_authenticated/notifications'
@@ -901,11 +962,13 @@ export interface FileRouteTypes {
     | '/_authenticated/properties/new'
     | '/_authenticated/reports/$reportId'
     | '/_authenticated/requests/$requestId'
+    | '/_authenticated/settings/messaging'
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/privacy'
     | '/_authenticated/settings/security'
     | '/_authenticated/documents/'
     | '/_authenticated/platform/'
+    | '/_authenticated/projects/'
     | '/_authenticated/properties/'
     | '/_authenticated/requests/'
     | '/_authenticated/entities/$entityId/invitations'
@@ -987,6 +1050,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppointmentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/archive': {
+      id: '/_authenticated/archive'
+      path: '/archive'
+      fullPath: '/archive'
+      preLoaderRoute: typeof AuthenticatedArchiveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/calls': {
       id: '/_authenticated/calls'
       path: '/calls'
@@ -994,11 +1064,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/correspondence': {
+      id: '/_authenticated/correspondence'
+      path: '/correspondence'
+      fullPath: '/correspondence'
+      preLoaderRoute: typeof AuthenticatedCorrespondenceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/deals': {
+      id: '/_authenticated/deals'
+      path: '/deals'
+      fullPath: '/deals'
+      preLoaderRoute: typeof AuthenticatedDealsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/marketing': {
@@ -1225,6 +1309,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformUsersRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
+    '/_authenticated/projects/': {
+      id: '/_authenticated/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof AuthenticatedProjectsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/new': {
       id: '/_authenticated/projects/new'
       path: '/projects/new'
@@ -1272,6 +1363,13 @@ declare module '@tanstack/react-router' {
       path: '/requests/$requestId'
       fullPath: '/requests/$requestId'
       preLoaderRoute: typeof AuthenticatedRequestsRequestIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/messaging': {
+      id: '/_authenticated/settings/messaging'
+      path: '/settings/messaging'
+      fullPath: '/settings/messaging'
+      preLoaderRoute: typeof AuthenticatedSettingsMessagingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/notifications': {
@@ -1492,8 +1590,11 @@ const AuthenticatedPlatformRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppointmentsRoute: typeof AuthenticatedAppointmentsRoute
+  AuthenticatedArchiveRoute: typeof AuthenticatedArchiveRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
+  AuthenticatedCorrespondenceRoute: typeof AuthenticatedCorrespondenceRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDealsRoute: typeof AuthenticatedDealsRoute
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -1509,10 +1610,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPropertiesNewRoute: typeof AuthenticatedPropertiesNewRoute
   AuthenticatedReportsReportIdRoute: typeof AuthenticatedReportsReportIdRoute
   AuthenticatedRequestsRequestIdRoute: typeof AuthenticatedRequestsRequestIdRoute
+  AuthenticatedSettingsMessagingRoute: typeof AuthenticatedSettingsMessagingRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
   AuthenticatedSettingsPrivacyRoute: typeof AuthenticatedSettingsPrivacyRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
   AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
+  AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
   AuthenticatedPropertiesIndexRoute: typeof AuthenticatedPropertiesIndexRoute
   AuthenticatedRequestsIndexRoute: typeof AuthenticatedRequestsIndexRoute
   AuthenticatedEntitiesEntityIdInvitationsRoute: typeof AuthenticatedEntitiesEntityIdInvitationsRoute
@@ -1541,8 +1644,11 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppointmentsRoute: AuthenticatedAppointmentsRoute,
+  AuthenticatedArchiveRoute: AuthenticatedArchiveRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
+  AuthenticatedCorrespondenceRoute: AuthenticatedCorrespondenceRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDealsRoute: AuthenticatedDealsRoute,
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -1560,11 +1666,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesNewRoute: AuthenticatedPropertiesNewRoute,
   AuthenticatedReportsReportIdRoute: AuthenticatedReportsReportIdRoute,
   AuthenticatedRequestsRequestIdRoute: AuthenticatedRequestsRequestIdRoute,
+  AuthenticatedSettingsMessagingRoute: AuthenticatedSettingsMessagingRoute,
   AuthenticatedSettingsNotificationsRoute:
     AuthenticatedSettingsNotificationsRoute,
   AuthenticatedSettingsPrivacyRoute: AuthenticatedSettingsPrivacyRoute,
   AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
   AuthenticatedDocumentsIndexRoute: AuthenticatedDocumentsIndexRoute,
+  AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
   AuthenticatedPropertiesIndexRoute: AuthenticatedPropertiesIndexRoute,
   AuthenticatedRequestsIndexRoute: AuthenticatedRequestsIndexRoute,
   AuthenticatedEntitiesEntityIdInvitationsRoute:

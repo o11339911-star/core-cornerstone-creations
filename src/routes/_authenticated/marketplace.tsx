@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Store, MapPin, Sparkles } from "lucide-react";
+import { MapPin, Plus, Sparkles } from "lucide-react";
 import { formatNumber } from "@/lib/format";
 
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,11 @@ import {
   FieldGrid,
   HeroBadge,
   PageHero,
+  ResponsiveModal,
   SectionCard,
   SoftEmpty,
 } from "@/components/rakeez";
+import { ArchiveButton } from "@/components/archive/archive-button";
 import { getMyMemberships } from "@/lib/auth.functions";
 import {
   listListingAreas,
@@ -68,6 +70,7 @@ function MarketplacePage() {
   const publish = useServerFn(publishServiceListing);
 
   const [kindFilter, setKindFilter] = useState<string | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
   const [form, setForm] = useState({
     entityId: "",
     serviceKind: "design",
@@ -113,6 +116,7 @@ function MarketplacePage() {
       }),
     onSuccess: () => {
       toast.success("تم نشر الإعلان بهوية حسابك النشط");
+      setComposerOpen(false);
       setForm((f) => ({ ...f, title: "", description: "", city: "", priceMin: "", priceMax: "" }));
       void qc.invalidateQueries({ queryKey: ["marketplace"] });
     },
@@ -142,13 +146,34 @@ function MarketplacePage() {
       <PageHero
         title="سوق الخدمات"
         subtitle="أعلن عن خدمات كيانك ومناطق تغطيتها. هوية النشر تُشتق من حسابك النشط في الخادم — لا نشر باسم غيرك."
-        badge={<HeroBadge>المرحلة 24</HeroBadge>}
+        badge={<HeroBadge>{formatNumber(rows.length)} إعلانًا</HeroBadge>}
       >
-        <HeroBadge>{rows.length} إعلانًا</HeroBadge>
-        <HeroBadge>منفصل عن بيانات المشاريع</HeroBadge>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button type="button" className="min-h-11 gap-2" onClick={() => setComposerOpen(true)}>
+            <Plus className="size-4" aria-hidden="true" /> إضافة إعلان
+          </Button>
+          <HeroBadge>منفصل عن بيانات المشاريع</HeroBadge>
+        </div>
       </PageHero>
 
-      <SectionCard icon={Store} title="نشر إعلان خدمة">
+      <ResponsiveModal
+        open={composerOpen}
+        onOpenChange={setComposerOpen}
+        title="إضافة إعلان خدمة"
+        description="يُنشر الإعلان بهوية الكيان المختار، ويمكن أرشفته لاحقًا."
+        footer={
+          <Button
+            type="button"
+            className="min-h-11 w-full"
+            onClick={() => {
+              if (validate()) create.mutate();
+            }}
+            disabled={create.isPending}
+          >
+            {create.isPending ? "جارٍ النشر…" : "نشر الإعلان"}
+          </Button>
+        }
+      >
         <FieldGrid>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">الكيان الناشر</span>
@@ -241,17 +266,7 @@ function MarketplacePage() {
           ) : null}
         </label>
 
-        <div className="mt-4">
-          <Button
-            onClick={() => {
-              if (validate()) create.mutate();
-            }}
-            disabled={create.isPending}
-          >
-            {create.isPending ? "جارٍ النشر…" : "نشر الإعلان"}
-          </Button>
-        </div>
-      </SectionCard>
+      </ResponsiveModal>
 
       <SectionCard
         icon={Sparkles}
@@ -303,6 +318,15 @@ function MarketplacePage() {
                     <h3 className="font-semibold">{l.title}</h3>
                     <Badge variant="secondary">{kindLabel(l.service_kind)}</Badge>
                     {l.status === "published" ? null : <Badge>{l.status}</Badge>}
+                    <span className="ms-auto">
+                      <ArchiveButton
+                        compact
+                        title={l.title}
+                        kind="listing"
+                        sourceTable="service_listings"
+                        sourceId={l.id}
+                      />
+                    </span>
                   </div>
                   <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
                     {l.description}

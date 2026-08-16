@@ -159,6 +159,123 @@ export type Database = {
           },
         ]
       }
+      archive_folders: {
+        Row: {
+          created_at: string
+          created_by: string
+          entity_id: string | null
+          id: string
+          name: string
+          owner_user_id: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          entity_id?: string | null
+          id?: string
+          name: string
+          owner_user_id: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          entity_id?: string | null
+          id?: string
+          name?: string
+          owner_user_id?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archive_folders_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archive_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "archive_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      archive_items: {
+        Row: {
+          created_at: string
+          created_by: string
+          entity_id: string | null
+          folder_id: string | null
+          id: string
+          kind: string
+          mime_type: string | null
+          note: string | null
+          owner_user_id: string
+          size_bytes: number | null
+          source_id: string | null
+          source_table: string | null
+          storage_path: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          entity_id?: string | null
+          folder_id?: string | null
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          note?: string | null
+          owner_user_id: string
+          size_bytes?: number | null
+          source_id?: string | null
+          source_table?: string | null
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          entity_id?: string | null
+          folder_id?: string | null
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          note?: string | null
+          owner_user_id?: string
+          size_bytes?: number | null
+          source_id?: string | null
+          source_table?: string | null
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archive_items_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archive_items_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "archive_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_transfers: {
         Row: {
           created_at: string
@@ -977,6 +1094,68 @@ export type Database = {
             columns: ["source_extension_id"]
             isOneToOne: false
             referencedRelation: "contract_extensions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_deals: {
+        Row: {
+          amount: number | null
+          archived_at: string | null
+          context_id: string | null
+          context_type: string
+          counterparty_name: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          entity_id: string | null
+          id: string
+          notes: string | null
+          owner_user_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          archived_at?: string | null
+          context_id?: string | null
+          context_type?: string
+          counterparty_name?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          entity_id?: string | null
+          id?: string
+          notes?: string | null
+          owner_user_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          archived_at?: string | null
+          context_id?: string | null
+          context_type?: string
+          counterparty_name?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          entity_id?: string | null
+          id?: string
+          notes?: string | null
+          owner_user_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_deals_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
             referencedColumns: ["id"]
           },
         ]
@@ -2735,6 +2914,85 @@ export type Database = {
         }
         Relationships: []
       }
+      entity_correspondence: {
+        Row: {
+          archived_at: string | null
+          body: string
+          channel: string
+          counterparty_address: string | null
+          counterparty_name: string | null
+          created_at: string
+          created_by: string
+          direction: string
+          entity_id: string | null
+          id: string
+          owner_user_id: string
+          project_id: string | null
+          request_id: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          body?: string
+          channel: string
+          counterparty_address?: string | null
+          counterparty_name?: string | null
+          created_at?: string
+          created_by: string
+          direction?: string
+          entity_id?: string | null
+          id?: string
+          owner_user_id: string
+          project_id?: string | null
+          request_id?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          body?: string
+          channel?: string
+          counterparty_address?: string | null
+          counterparty_name?: string | null
+          created_at?: string
+          created_by?: string
+          direction?: string
+          entity_id?: string | null
+          id?: string
+          owner_user_id?: string
+          project_id?: string | null
+          request_id?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_correspondence_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_correspondence_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_correspondence_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_entitlements: {
         Row: {
           code: string
@@ -2932,6 +3190,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "entity_memberships_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_messaging_channels: {
+        Row: {
+          channel: string
+          created_at: string
+          entity_id: string
+          from_address: string | null
+          id: string
+          note: string | null
+          provider: string | null
+          secret_env_name: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          entity_id: string
+          from_address?: string | null
+          id?: string
+          note?: string | null
+          provider?: string | null
+          secret_env_name?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          entity_id?: string
+          from_address?: string | null
+          id?: string
+          note?: string | null
+          provider?: string | null
+          secret_env_name?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_messaging_channels_entity_id_fkey"
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
@@ -8368,6 +8676,7 @@ export type Database = {
       }
       service_listings: {
         Row: {
+          archived_at: string | null
           created_at: string
           created_by: string
           currency: string
@@ -8377,13 +8686,16 @@ export type Database = {
           id: string
           price_max: number | null
           price_min: number | null
+          project_id: string | null
           published_at: string | null
+          request_id: string | null
           service_kind: string
           status: string
           title: string
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           created_by?: string
           currency?: string
@@ -8393,13 +8705,16 @@ export type Database = {
           id?: string
           price_max?: number | null
           price_min?: number | null
+          project_id?: string | null
           published_at?: string | null
+          request_id?: string | null
           service_kind: string
           status?: string
           title: string
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           created_by?: string
           currency?: string
@@ -8409,7 +8724,9 @@ export type Database = {
           id?: string
           price_max?: number | null
           price_min?: number | null
+          project_id?: string | null
           published_at?: string | null
+          request_id?: string | null
           service_kind?: string
           status?: string
           title?: string
@@ -8421,6 +8738,20 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_listings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_listings_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
             referencedColumns: ["id"]
           },
         ]
@@ -10911,6 +11242,18 @@ export type Database = {
       }
       set_integration_status: {
         Args: { _code: string; _status: string }
+        Returns: undefined
+      }
+      set_listing_archived: {
+        Args: { _archived: boolean; _listing_id: string }
+        Returns: undefined
+      }
+      set_listing_context: {
+        Args: {
+          _listing_id: string
+          _project_id?: string
+          _request_id?: string
+        }
         Returns: undefined
       }
       set_marketing_contract_amount: {
