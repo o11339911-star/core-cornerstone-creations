@@ -162,6 +162,118 @@ function ProfilePage() {
           </div>
         </SectionCard>
       )}
+
+      <IdentityCard />
     </div>
+  );
+}
+
+/**
+ * Compact identity card: status, masked tail and a single 10-digit input.
+ * The value is cleared after a successful link and the full number is never
+ * rendered back — the server only ever returns the last four digits.
+ */
+function IdentityCard() {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const submit = useServerFn(linkPersonalIdentity);
+
+  const [value, setValue] = React.useState("");
+  const [error, setError] = React.useState<string | undefined>(undefined);
+
+  const statusQuery = useQuery({
+    queryKey: ["my-identity-status"],
+    queryFn: () => getMyIdentityStatus(),
+  });
+
+  const mutation = useMutation({
+    mutationFn: () => submit({ data: { nationalId: value } }),
+    onSuccess: async () => {
+      setValue("");
+      setError(undefined);
+      toast.success(t("profile.identity.saved"));
+      await queryClient.invalidateQueries({ queryKey: ["my-identity-status"] });
+    },
+    onError: (err: Error) => {
+      const key = `profile.identity.errors.${err.message}`;
+      const message = t(key);
+      toast.error(message === key ? t("profile.identity.errors.UNKNOWN") : message);
+    },
+  });
+
+  const data = statusQuery.data;
+  const statusLabel = !data?.linked
+    ? t("profile.identity.none")
+    : data.status === "verified" && data.verified_at
+      ? t("profile.identity.verified")
+      : data.status === "rejected"
+        ? t("profile.identity.rejected")
+        : t("profile.identity.pending");
+
+  const onSubmit = () => {
+    const normalized = toLatinDigits(value).replace(/[^0-9]/g, "");
+    if (!isValidSaudiId(normalized)) {
+      setError(t("profile.identity.errors.INVALID_NATIONAL_ID"));
+      return;
+    }
+    setError(undefined);
+    mutation.mutate();
+  };
+
+  return (
+    <SectionCard title={t("profile.identity.title")} icon={IdCard}>
+      {statusQuery.isPending ? (
+        <CardsSkeleton cards={1} />
+      ) : statusQuery.isError ? (
+        <ErrorState
+          description={t("profile.identity.loadError")}
+          onRetry={() => void statusQuery.refetch()}
+        />
+      ) : (
+        <div className="space-y-4">
+          <dl className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("profile.identity.status")}</dt>
+              <dd className="text-sm font-medium">{statusLabel}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("profile.identity.number")}</dt>
+              <dd className="text-sm font-medium" dir="ltr">
+                {data?.last4 ? `\u2022\u2022\u2022\u2022\u2022\u2022${data.last4}` : "—"}
+              </dd>
+            </div>
+          </dl>
+
+          <TextField
+            id="national-id"
+            label={t("profile.identity.field")}
+            hint={t("profile.identity.hint")}
+            inputMode="numeric"
+            maxLength={10}
+            value={value}
+            error={error}
+            onChange={(event) => {
+              setValue(toLatinDigits(event.target.value).replace(/[^0-9]/g, "").slice(0, 10));
+              setError(undefined);
+            }}
+          />
+
+          <Button
+            className="min-h-11 w-full sm:w-auto"
+            disabled={mutation.isPending || value.length !== 10}
+            onClick={onSubmit}
+          >
+            {mutation.isPending ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : null}
+            {t("profile.identity.submit")}
+          </Button>
+
+          <p className="rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
+            {t("profile.identity.nafathDisabled")} {t("profile.identity.privacyNote")}
+          </p>
+        </div>
+      )}
+    </SectionCard>
   );
 }
