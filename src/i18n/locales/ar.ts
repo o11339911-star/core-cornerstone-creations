@@ -38,6 +38,10 @@ export const ar = {
     cta: "ابدأ الآن",
   },
   shell: {
+    archive: "الأرشيف",
+    correspondence: "المراسلات",
+    deals: "صندوق التعاقد",
+    projectsBox: "المشاريع",
     requests: "الطلبات",
     calls: "الاتصال",
     security: "الأمان",

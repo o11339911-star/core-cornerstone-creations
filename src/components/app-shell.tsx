@@ -1,8 +1,12 @@
 import * as React from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  Archive,
   Building2,
   CalendarClock,
+  FolderKanban,
+  Handshake,
+  Mail,
   Home,
   Inbox,
   LogOut,
@@ -44,7 +48,8 @@ type NavItem = {
 const BASE_NAV: NavItem[] = [
   { to: "/dashboard", labelKey: "shell.home", icon: Home },
   { to: "/requests", labelKey: "shell.requests", icon: Inbox },
-  { to: "/calls", labelKey: "shell.calls", icon: Phone },
+  { to: "/correspondence", labelKey: "shell.correspondence", icon: Mail },
+  { to: "/archive", labelKey: "shell.archive", icon: Archive },
   { to: "/profile", labelKey: "shell.profile", icon: User },
 ];
 
@@ -52,6 +57,10 @@ const DESKTOP_NAV: NavItem[] = [
   { to: "/dashboard", labelKey: "shell.home", icon: Home },
   { to: "/requests", labelKey: "shell.requests", icon: Inbox },
   { to: "/calls", labelKey: "shell.calls", icon: Phone },
+  { to: "/projects", labelKey: "shell.projectsBox", icon: FolderKanban },
+  { to: "/deals", labelKey: "shell.deals", icon: Handshake },
+  { to: "/correspondence", labelKey: "shell.correspondence", icon: Mail },
+  { to: "/archive", labelKey: "shell.archive", icon: Archive },
   { to: "/marketplace", labelKey: "shell.marketplace", icon: Store },
   { to: "/appointments", labelKey: "shell.appointments", icon: CalendarClock },
 ];
