@@ -19,6 +19,8 @@ import {
   DEAL_CONTEXTS,
   DEAL_STATUSES,
   listDeals,
+  PARTY_KINDS,
+  respondToDeal,
   setDealArchived,
   updateDealStatus,
 } from "@/lib/deals.functions";
@@ -73,21 +75,36 @@ function DealsPage() {
   const create = useServerFn(createDeal);
   const setStatus = useServerFn(updateDealStatus);
   const archive = useServerFn(setDealArchived);
+  const respond = useServerFn(respondToDeal);
 
+  const [scope, setScope] = React.useState<"mine" | "incoming">("mine");
   const [filter, setFilter] = React.useState<(typeof DEAL_STATUSES)[number] | null>(null);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
     title: "",
+    partyKind: "person" as (typeof PARTY_KINDS)[number],
+    identifier: "",
     counterpartyName: "",
     contextType: "other" as (typeof DEAL_CONTEXTS)[number],
     amount: "",
     notes: "",
   });
 
+  const resetForm = () =>
+    setForm({
+      title: "",
+      partyKind: "person",
+      identifier: "",
+      counterpartyName: "",
+      contextType: "other",
+      amount: "",
+      notes: "",
+    });
+
   const list = useQuery({
-    queryKey: ["deals", entityId, filter],
-    queryFn: () => fetchDeals({ data: { entityId, status: filter, includeArchived: false } }),
+    queryKey: ["deals", entityId, filter, scope],
+    queryFn: () => fetchDeals({ data: { entityId, status: filter, includeArchived: false, scope } }),
     enabled: !loading,
   });
 
@@ -97,7 +114,10 @@ function DealsPage() {
         data: {
           entityId,
           title: form.title.trim(),
-          counterpartyName: form.counterpartyName.trim() || null,
+          partyKind: form.partyKind,
+          nationalId: form.partyKind === "person" ? form.identifier.trim() : null,
+          crNumber: form.partyKind === "entity" ? form.identifier.trim() : null,
+          counterpartyName: form.counterpartyName.trim(),
           contextType: form.contextType,
           contextId: null,
           amount: form.amount.trim() ? Number(form.amount) : null,
@@ -105,13 +125,36 @@ function DealsPage() {
           notes: form.notes.trim() || null,
         },
       }),
-    onSuccess: () => {
-      toast.success("تم إنشاء المعاملة");
+    onSuccess: (res) => {
+      toast.success(
+        res.matched
+          ? "تم إنشاء المعاملة وربطها بحساب الطرف الثاني — بانتظار قبوله"
+          : "تم إنشاء المعاملة — الطرف الثاني غير مسجل في ركيز وسيُربط تلقائيًا عند انضمامه",
+      );
       setOpen(false);
-      setForm({ title: "", counterpartyName: "", contextType: "other", amount: "", notes: "" });
+      resetForm();
       void qc.invalidateQueries({ queryKey: ["deals"] });
     },
-    onError: () => toast.error("تعذّر إنشاء المعاملة"),
+    onError: (e: Error) => {
+      const map: Record<string, string> = {
+        SECOND_PARTY_ID_INVALID: "رقم الهوية غير صحيح — تحقق من الأرقام العشرة",
+        SECOND_PARTY_CR_INVALID: "رقم السجل التجاري يجب أن يكون عشرة أرقام",
+        SECOND_PARTY_IS_SELF: "لا يمكن أن يكون الطرف الثاني هو نفسه الطرف الأول",
+        NOT_ENTITY_MEMBER: "لست عضوًا فعّالًا في هذا الحساب",
+      };
+      const message = map[e.message] ?? "تعذّر إنشاء المعاملة";
+      setError(message);
+      toast.error(message);
+    },
+  });
+
+  const respondMutation = useMutation({
+    mutationFn: (v: { dealId: string; accept: boolean }) => respond({ data: v }),
+    onSuccess: (res) => {
+      toast.success(res.status === "accepted" ? "تم قبول المعاملة" : "تم رفض المعاملة");
+      void qc.invalidateQueries({ queryKey: ["deals"] });
+    },
+    onError: () => toast.error("تعذّر تسجيل ردّك على المعاملة"),
   });
 
   const statusMutation = useMutation({
@@ -121,7 +164,12 @@ function DealsPage() {
       toast.success("تم تحديث الحالة");
       void qc.invalidateQueries({ queryKey: ["deals"] });
     },
-    onError: () => toast.error("تعذّر تحديث الحالة"),
+    onError: (e: Error) =>
+      toast.error(
+        e.message === "SECOND_PARTY_NOT_ACCEPTED"
+          ? "لا يمكن الانتقال إلى اتفاق أو توقيع قبل قبول الطرف الثاني"
+          : "تعذّر تحديث الحالة",
+      ),
   });
 
   const archiveMutation = useMutation({
@@ -146,6 +194,25 @@ function DealsPage() {
           </Button>
         </div>
       </PageHero>
+
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="نطاق المعاملات">
+        {(["mine", "incoming"] as const).map((sc) => (
+          <button
+            key={sc}
+            type="button"
+            role="tab"
+            aria-selected={scope === sc}
+            onClick={() => setScope(sc)}
+            className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${
+              scope === sc
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border text-muted-foreground"
+            }`}
+          >
+            {sc === "mine" ? "معاملاتي" : "واردة إليّ"}
+          </button>
+        ))}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -202,6 +269,28 @@ function DealsPage() {
                     {" · "}
                     <bdi dir="ltr">{formatDateTime(deal.created_at)}</bdi>
                   </p>
+                  {(() => {
+                    const second = deal.parties.find((p) => p.party_role === "second");
+                    if (!second) return null;
+                    return (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        الطرف الثاني: {second.display_name}
+                        {second.identifier_kind === "national_id" && second.identifier_last4 ? (
+                          <>
+                            {" · هوية تنتهي بـ "}
+                            <bdi dir="ltr">{second.identifier_last4}</bdi>
+                          </>
+                        ) : null}
+                        {second.identifier_kind === "cr_number" && second.cr_number ? (
+                          <>
+                            {" · سجل تجاري "}
+                            <bdi dir="ltr">{second.cr_number}</bdi>
+                          </>
+                        ) : null}
+                        {second.is_registered ? " · مسجّل في ركيز" : " · غير مسجّل بعد"}
+                      </p>
+                    );
+                  })()}
                   {deal.amount !== null && deal.amount !== undefined ? (
                     <p className="mt-1 text-sm font-semibold text-foreground">
                       <bdi dir="ltr">{formatMoney(Number(deal.amount), deal.currency)}</bdi>
@@ -212,6 +301,46 @@ function DealsPage() {
                   <HeroBadge tone={statusTone(deal.status)}>
                     {STATUS_AR[deal.status] ?? deal.status}
                   </HeroBadge>
+                  <HeroBadge
+                    tone={
+                      deal.second_party_status === "accepted"
+                        ? "success"
+                        : deal.second_party_status === "declined"
+                          ? "danger"
+                          : "warning"
+                    }
+                  >
+                    {deal.second_party_status === "accepted"
+                      ? "الطرف الثاني قَبِل"
+                      : deal.second_party_status === "declined"
+                        ? "الطرف الثاني رفض"
+                        : "بانتظار الطرف الثاني"}
+                  </HeroBadge>
+                  {deal.can_respond ? (
+                    <>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="min-h-11"
+                        disabled={respondMutation.isPending}
+                        onClick={() => respondMutation.mutate({ dealId: deal.id, accept: true })}
+                      >
+                        قبول
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="min-h-11"
+                        disabled={respondMutation.isPending}
+                        onClick={() => respondMutation.mutate({ dealId: deal.id, accept: false })}
+                      >
+                        رفض
+                      </Button>
+                    </>
+                  ) : null}
+                  {deal.is_owner ? (
+                  <>
                   <label className="sr-only" htmlFor={`status-${deal.id}`}>
                     تغيير حالة {deal.title}
                   </label>
@@ -249,6 +378,8 @@ function DealsPage() {
                   >
                     إخفاء
                   </Button>
+                  </>
+                  ) : null}
                 </div>
               </div>
             </li>
@@ -269,6 +400,18 @@ function DealsPage() {
               setError(null);
               if (form.title.trim().length < 2) {
                 setError("اكتب عنوانًا واضحًا للمعاملة");
+                return;
+              }
+              if (form.counterpartyName.trim().length < 2) {
+                setError("اكتب اسم الطرف الثاني");
+                return;
+              }
+              if (!/^[0-9]{10}$/.test(form.identifier.trim())) {
+                setError(
+                  form.partyKind === "person"
+                    ? "رقم هوية الطرف الثاني يجب أن يكون عشرة أرقام"
+                    : "رقم السجل التجاري يجب أن يكون عشرة أرقام",
+                );
                 return;
               }
               if (form.amount.trim() && Number.isNaN(Number(form.amount))) {
@@ -292,15 +435,57 @@ function DealsPage() {
               className="min-h-11"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="d-party">الطرف الآخر (اختياري)</Label>
-            <Input
-              id="d-party"
-              value={form.counterpartyName}
-              onChange={(e) => setForm((f) => ({ ...f, counterpartyName: e.target.value }))}
-              className="min-h-11"
-            />
-          </div>
+          <fieldset className="space-y-3 rounded-xl border border-border p-3">
+            <legend className="px-1 text-sm font-semibold text-foreground">
+              الطرف الثاني (إلزامي)
+            </legend>
+            <div className="flex gap-2">
+              {PARTY_KINDS.map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  aria-pressed={form.partyKind === kind}
+                  onClick={() => setForm((f) => ({ ...f, partyKind: kind, identifier: "" }))}
+                  className={`min-h-11 flex-1 rounded-xl border px-3 text-sm font-medium ${
+                    form.partyKind === kind
+                      ? "border-primary bg-secondary text-primary"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {kind === "person" ? "شخص — رقم هوية" : "منشأة — سجل تجاري"}
+                </button>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="d-identifier">
+                {form.partyKind === "person" ? "رقم هوية الطرف الثاني" : "رقم السجل التجاري"}
+              </Label>
+              <Input
+                id="d-identifier"
+                dir="ltr"
+                inputMode="numeric"
+                maxLength={10}
+                value={form.identifier}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, identifier: e.target.value.replace(/[^0-9]/g, "") }))
+                }
+                className="min-h-11"
+              />
+              <p className="text-xs text-muted-foreground">
+                يُطابَق الرقم داخليًا فقط؛ إن كان الطرف مسجلًا في ركيز يُربط بحسابه مباشرة، وإلا
+                تبقى المعاملة بانتظار انضمامه.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="d-party">اسم الطرف الثاني</Label>
+              <Input
+                id="d-party"
+                value={form.counterpartyName}
+                onChange={(e) => setForm((f) => ({ ...f, counterpartyName: e.target.value }))}
+                className="min-h-11"
+              />
+            </div>
+          </fieldset>
           <div className="space-y-2">
             <Label htmlFor="d-context">السياق</Label>
             <select
