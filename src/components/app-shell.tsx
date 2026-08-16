@@ -30,7 +30,7 @@ import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountUi } from "@/lib/account-ui";
 import { useActiveAccount } from "@/lib/active-account";
-import { getCallCenter } from "@/lib/calls.functions";
+import { getCallCenter, respondToCall } from "@/lib/calls.functions";
 import { queryClient } from "@/router";
 import { cn } from "@/lib/utils";
 
