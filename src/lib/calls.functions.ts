@@ -229,16 +229,21 @@ export const respondToCall = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const me = await requireEntityMembership(context.supabase, context.userId, data.entityId);
 
-    const { error } = await context.supabase
+    // `.select()` makes the write verifiable: an empty result means the row was
+    // already answered, cancelled or reaped, so we never report a false success.
+    const { data: updated, error } = await context.supabase
       .from("call_sessions")
       .update({ status: data.accept ? "accepted" : "declined" })
       .eq("id", data.callId)
       .eq("callee_entity_id", me.entityId)
-      .eq("status", "ringing");
+      .eq("status", "ringing")
+      .select("id, status");
 
     if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!updated || updated.length === 0) throw new Error("المكالمة لم تعد متاحة.");
+    return { ok: true, status: (updated[0] as { status: string }).status };
   });
+
 
 export const endCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
