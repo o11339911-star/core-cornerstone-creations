@@ -273,10 +273,13 @@ export function AccountMenu() {
  */
 function IncomingCallBanner() {
   const t = useT();
+  const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { activeEntity } = useAccountUi();
   const entityId = activeEntity?.id ?? null;
   const fetchCenter = useServerFn(getCallCenter);
+  const respond = useServerFn(respondToCall);
+  const [busy, setBusy] = React.useState(false);
 
   const center = useQuery({
     queryKey: ["call-center-banner", entityId],
@@ -288,6 +291,19 @@ function IncomingCallBanner() {
   const incoming = center.data?.incoming?.[0];
   if (!incoming) return null;
 
+  const decline = async () => {
+    if (!entityId) return;
+    setBusy(true);
+    try {
+      await respond({ data: { callId: incoming.id, entityId, accept: false } });
+    } catch {
+      // The call may already have been reaped; the refetch below settles it.
+    } finally {
+      setBusy(false);
+      void queryClient.invalidateQueries({ queryKey: ["call-center-banner", entityId] });
+    }
+  };
+
   return (
     <div className="border-b border-primary/30 bg-secondary">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
@@ -297,13 +313,28 @@ function IncomingCallBanner() {
             {t("calls.incomingFrom", { name: incoming.caller_name })}
           </span>
         </p>
-        <Link
-          to="/calls"
-          className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
-        >
-          {t("calls.accept")}
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              void navigate({ to: "/calls", search: { answer: incoming.id } })
+            }
+            className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            {t("calls.accept")}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void decline()}
+            className="inline-flex min-h-11 items-center rounded-full border border-border bg-background px-4 text-sm font-semibold text-foreground disabled:opacity-60"
+          >
+            {t("calls.decline")}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
