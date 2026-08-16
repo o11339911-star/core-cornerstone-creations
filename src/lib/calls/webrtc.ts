@@ -204,7 +204,11 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "call_signals", filter: `call_id=eq.${callId}` },
         (payload) => {
-          void applySignal(payload.new as SignalRow);
+          void applySignal(payload.new as SignalRow).catch(() => {
+            if (disposed) return;
+            setErrorKey("calls.error.signalling");
+            setPhase("failed");
+          });
         },
       )
       .on(
