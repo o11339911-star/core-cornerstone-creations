@@ -124,7 +124,7 @@ export const createEntity = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ entityId: string }> => {
-    const { data: entityId, error } = await context.supabase.rpc("create_entity_with_owner", {
+    const { data: entityId, error } = await context.supabase.rpc("create_entity_with_owner", compact({
       _name: data.name,
       _type: data.type,
       _legal_form: data.legalForm,
@@ -145,7 +145,7 @@ export const createEntity = createServerFn({ method: "POST" })
       _responsible_title: data.responsibleTitle ?? undefined,
       _responsible_email: data.responsibleEmail ?? undefined,
       _responsible_phone: data.responsiblePhone ?? undefined,
-    });
+    }));
 
     if (error) throw new Error(mapError(error.message));
     return { entityId: entityId as string };
@@ -220,7 +220,7 @@ export const updateEntityOfficial = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase.rpc("update_entity_official", {
+    const { error } = await context.supabase.rpc("update_entity_official", compact({
       _entity_id: data.entityId,
       _legal_form: data.legalForm ?? undefined,
       _legal_name_ar: data.legalNameAr ?? undefined,
@@ -240,7 +240,7 @@ export const updateEntityOfficial = createServerFn({ method: "POST" })
       _responsible_title: data.responsibleTitle ?? undefined,
       _responsible_email: data.responsibleEmail ?? undefined,
       _responsible_phone: data.responsiblePhone ?? undefined,
-    });
+    }));
     if (error) throw new Error(mapError(error.message));
     return { ok: true };
   });
@@ -314,12 +314,12 @@ export const requestEntityRelationship = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: id, error } = await context.supabase.rpc("request_entity_relationship", {
+    const { data: id, error } = await context.supabase.rpc("request_entity_relationship", compact({
       _source_entity_id: data.entityId,
       _target_slug: data.targetSlug,
       _relationship_type: data.relationshipType,
       _ownership_percent: data.ownershipPercent ?? undefined,
-    });
+    }));
     if (error) throw new Error(mapError(error.message));
     return { id: id as string };
   });

@@ -361,8 +361,7 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
       .object({
         entityId: z.string().uuid(),
         membershipId: z.string().uuid(),
-        userId: z.string().uuid(),
-        replacementUserId: z.string().uuid().nullable().optional(),
+        replacementMembershipId: z.string().uuid().nullable().optional(),
         reason: z.string().trim().max(500).nullable().optional(),
       })
       .parse(input),
@@ -372,19 +371,19 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
       data,
       context,
     }): Promise<{ transferred: number; needsReplacement?: true; openAssignments?: number }> => {
-      if (data.userId === context.userId) {
-        throw new Error("لا يمكنك إنهاء عضويتك الخاصة.");
-      }
-
       const { data: membership, error: membershipError } = await context.supabase
         .from("entity_memberships")
-        .select("id, role, status")
+        .select("id, user_id, role, status")
         .eq("id", data.membershipId)
         .eq("entity_id", data.entityId)
         .maybeSingle();
 
       if (membershipError) throw membershipError;
       if (!membership) throw new Error("العضوية غير موجودة.");
+
+      if (membership.user_id === context.userId) {
+        throw new Error("لا يمكنك إنهاء عضويتك الخاصة.");
+      }
 
       if (membership.role === "owner") {
         const { count, error: ownersError } = await context.supabase
@@ -405,13 +404,26 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
         .from("project_assignments")
         .select("id", { count: "exact", head: true })
         .eq("entity_id", data.entityId)
-        .eq("user_id", data.userId)
+        .eq("user_id", membership.user_id)
         .eq("status", "active")
         .is("deleted_at", null);
 
       if (assignmentsError) throw assignmentsError;
 
-      if ((openCount ?? 0) > 0 && !data.replacementUserId) {
+      let replacementUserId: string | null = null;
+      if (data.replacementMembershipId) {
+        const { data: replacement, error: replacementError } = await context.supabase
+          .from("entity_memberships")
+          .select("user_id")
+          .eq("id", data.replacementMembershipId)
+          .eq("entity_id", data.entityId)
+          .maybeSingle();
+        if (replacementError) throw replacementError;
+        if (!replacement) throw new Error("العضو البديل غير موجود.");
+        replacementUserId = replacement.user_id;
+      }
+
+      if ((openCount ?? 0) > 0 && !replacementUserId) {
         return { transferred: 0, needsReplacement: true, openAssignments: openCount ?? 0 };
       }
 
@@ -420,8 +432,8 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
         _user_id: string;
         _replacement_user_id?: string;
         _reason?: string;
-      } = { _entity_id: data.entityId, _user_id: data.userId };
-      if (data.replacementUserId) args._replacement_user_id = data.replacementUserId;
+      } = { _entity_id: data.entityId, _user_id: membership.user_id };
+      if (replacementUserId) args._replacement_user_id = replacementUserId;
       if (data.reason) args._reason = data.reason;
 
       const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
