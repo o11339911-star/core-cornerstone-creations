@@ -117,9 +117,24 @@ function CallsPage() {
     if (call.phase === "ended" && active) hangUp();
   }, [call.phase, active, hangUp]);
 
+  // Answering from the shell banner deep-links here with ?answer=<callId>.
+  const { answer } = Route.useSearch();
+  const navigate = useNavigate();
+  const answeredRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!answer || !entityId || active || answeredRef.current === answer) return;
+    const match = center.data?.incoming?.find((c) => c.id === answer);
+    if (!match) return;
+    answeredRef.current = answer;
+    answerMutation.mutate({ callId: match.id, accept: true, otherName: match.caller_name });
+    void navigate({ to: "/calls", search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answer, entityId, active, center.data]);
+
   const data = center.data;
   const incoming = data?.incoming ?? [];
   const callable = data?.callable ?? [];
+
   const history = data?.history ?? [];
 
   return (
