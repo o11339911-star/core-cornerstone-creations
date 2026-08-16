@@ -36,6 +36,7 @@ import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedDrawingsDrawingIdRouteImport } from './routes/_authenticated/drawings.$drawingId'
+import { Route as AuthenticatedEntitiesNewRouteImport } from './routes/_authenticated/entities.new'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
@@ -215,6 +216,12 @@ const AuthenticatedDrawingsDrawingIdRoute =
   AuthenticatedDrawingsDrawingIdRouteImport.update({
     id: '/drawings/$drawingId',
     path: '/drawings/$drawingId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntitiesNewRoute =
+  AuthenticatedEntitiesNewRouteImport.update({
+    id: '/entities/new',
+    path: '/entities/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedNNotificationIdRoute =
@@ -484,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/auth/': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
+  '/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -550,6 +558,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
+  '/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -620,6 +629,7 @@ export interface FileRoutesById {
   '/auth/': typeof AuthIndexRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
   '/_authenticated/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
+  '/_authenticated/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
   '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
@@ -690,6 +700,7 @@ export interface FileRouteTypes {
     | '/auth/'
     | '/admin/report-templates'
     | '/drawings/$drawingId'
+    | '/entities/new'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -756,6 +767,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin/report-templates'
     | '/drawings/$drawingId'
+    | '/entities/new'
     | '/n/$notificationId'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
@@ -825,6 +837,7 @@ export interface FileRouteTypes {
     | '/auth/'
     | '/_authenticated/admin/report-templates'
     | '/_authenticated/drawings/$drawingId'
+    | '/_authenticated/entities/new'
     | '/_authenticated/n/$notificationId'
     | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
@@ -1074,6 +1087,13 @@ declare module '@tanstack/react-router' {
       path: '/drawings/$drawingId'
       fullPath: '/drawings/$drawingId'
       preLoaderRoute: typeof AuthenticatedDrawingsDrawingIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entities/new': {
+      id: '/_authenticated/entities/new'
+      path: '/entities/new'
+      fullPath: '/entities/new'
+      preLoaderRoute: typeof AuthenticatedEntitiesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/n/$notificationId': {
@@ -1397,6 +1417,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
   AuthenticatedDrawingsDrawingIdRoute: typeof AuthenticatedDrawingsDrawingIdRoute
+  AuthenticatedEntitiesNewRoute: typeof AuthenticatedEntitiesNewRoute
   AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
   AuthenticatedProjectsNewRoute: typeof AuthenticatedProjectsNewRoute
   AuthenticatedPropertiesPropertyIdRoute: typeof AuthenticatedPropertiesPropertyIdRoute
@@ -1444,6 +1465,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
   AuthenticatedDrawingsDrawingIdRoute: AuthenticatedDrawingsDrawingIdRoute,
+  AuthenticatedEntitiesNewRoute: AuthenticatedEntitiesNewRoute,
   AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,
   AuthenticatedProjectsNewRoute: AuthenticatedProjectsNewRoute,
   AuthenticatedPropertiesPropertyIdRoute:
