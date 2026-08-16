@@ -5,7 +5,7 @@
     "title": "إنشاء 6 حسابات اختبار اصطناعية",
     "expect": "إنشاء ناجح بمعرّفات مسجلة",
     "status": "PASS",
-    "evidence": "users=6 run_id=08160353"
+    "evidence": "users=6 run_id=08160355"
   },
   {
     "batch": "28-A",
@@ -37,7 +37,7 @@
     "title": "كيانان اختباريان وخمس عضويات بأدوار مختلفة",
     "expect": "تهيئة ناجحة",
     "status": "PASS",
-    "evidence": "alpha=42c85bd8-c372-4138-8e54-6bd7ce949fdb beta=405ab1db-03d1-4e65-917c-d409d76d4e3f memberships=5"
+    "evidence": "alpha=bcd232d7-4ccd-4d83-a929-033e0888b612 beta=dffa95e7-ace6-4f07-8a75-ffbd857c6136 memberships=5"
   },
   {
     "batch": "28-B",
@@ -69,7 +69,7 @@
     "title": "إنشاء مشروع داخل كيان ألفا بدور مدير",
     "expect": "إنشاء ناجح",
     "status": "PASS",
-    "evidence": "project=b1d99607-5325-4453-845e-679b65deaf47"
+    "evidence": "project=96f64792-f41e-48bd-9937-a70be5048d2b"
   },
   {
     "batch": "28-C",
@@ -85,7 +85,7 @@
     "title": "توليد مراحل المشروع من القالب",
     "expect": "إنشاء مراحل ناجح",
     "status": "FAIL",
-    "evidence": "PGRST204 | Could not find the 'code' column of 'project_stages' in the schema cache"
+    "evidence": "23514 | new row for relation \"project_stages\" violates check constraint \"project_stages_source_check\""
   },
   {
     "batch": "28-C",
@@ -101,7 +101,7 @@
     "title": "إنشاء طلب رسمي داخل المشروع",
     "expect": "إنشاء ناجح",
     "status": "PASS",
-    "evidence": "request=dc967b9b-22bb-459f-ab3e-4b82583242d4"
+    "evidence": "request=603ca6ad-e26e-4150-9bfb-db048bf8cdad"
   },
   {
     "batch": "28-E",
@@ -125,7 +125,7 @@
     "title": "إنشاء سجل مخطط",
     "expect": "إنشاء ناجح",
     "status": "PASS",
-    "evidence": "drawing=0f836b92-6544-4c3a-a20f-9805275fbf5b"
+    "evidence": "drawing=c06d8dcb-7e61-4312-859a-048066d92a41"
   },
   {
     "batch": "28-G",
@@ -133,7 +133,7 @@
     "title": "تسجيل نسخة DWG جديدة",
     "expect": "نسخة + مسار تخزين خاص",
     "status": "PASS",
-    "evidence": "version=1 path=42c85bd8-c372-4138-8e54-6bd7ce949fdb/b1d99607-5325-4453-845e…"
+    "evidence": "version=1 path=bcd232d7-4ccd-4d83-a929-033e0888b612/96f64792-f41e-48bd-9937…"
   },
   {
     "batch": "28-G",
@@ -189,7 +189,7 @@
     "title": "بقاء تكامل APS معطّلًا (fail-closed)",
     "expect": "الحالة disabled",
     "status": "PASS",
-    "evidence": "{\"job_id\":\"9fadaed6-9664-42e8-92c6-034486153361\",\"status\":\"disabled\",\"provider\":\"aps\"}"
+    "evidence": "{\"job_id\":\"ab418ecc-64fa-4681-af0d-77549d607822\",\"status\":\"disabled\",\"provider\":\"aps\"}"
   },
   {
     "batch": "28-H",
@@ -197,7 +197,7 @@
     "title": "قراءة مشروع ألفا صفًا مفردًا من بيتا",
     "expect": "رفض خادمي موثّق (لا بيانات)",
     "status": "PASS",
-    "evidence": "HTTP 200 :: صفر صفوف متأثرة (RLS تُخفي الصف قبل الكتابة)"
+    "evidence": "HTTP 406 :: PGRST116 | Cannot coerce the result to a single JSON object | The result contains 0 rows"
   },
   {
     "batch": "28-H",
@@ -205,7 +205,7 @@
     "title": "قراءة سجل مخطط ألفا من بيتا",
     "expect": "رفض خادمي موثّق (لا بيانات)",
     "status": "PASS",
-    "evidence": "HTTP 200 :: صفر صفوف متأثرة (RLS تُخفي الصف قبل الكتابة)"
+    "evidence": "HTTP 406 :: PGRST116 | Cannot coerce the result to a single JSON object | The result contains 0 rows"
   },
   {
     "batch": "28-H",
@@ -236,7 +236,7 @@
     "id": "H6",
     "title": "استدعاء RPC داخلية من كيان آخر (project_completion)",
     "expect": "رفض خادمي موثّق (لا بيانات)",
-    "status": "FAIL",
-    "evidence": "LEAK: null"
+    "status": "PASS",
+    "evidence": "HTTP 200 :: صفر صفوف متأثرة (RLS تُخفي الصف قبل الكتابة)"
   }
 ]
