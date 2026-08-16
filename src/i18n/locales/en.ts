@@ -105,13 +105,36 @@ export const en: Translations = {
       nafathDisabled:
         "Nafath integration is not enabled; this is a format check only, not official government verification.",
       privacyNote:
-        "We never keep the full identity number; it is stored hashed with only the last four digits visible.",
+        "Your identity number is encrypted with a private key and is shown only to you, or to a system administrator when legally required.",
+      copy: "Copy number",
+      copied: "Identity number copied.",
       loadError: "Could not load identity status.",
       errors: {
         INVALID_NATIONAL_ID: "Invalid identity number; it must be 10 digits starting with 1 or 2.",
         IDENTITY_ALREADY_LINKED: "This identity number is linked to another account.",
         UNKNOWN: "The operation could not be completed. Please try again.",
       },
+    },
+  },
+  identitySearch: {
+    adminTitle: "Identity search",
+    adminHint: "Search by name or by full identity number. Every search is written to the audit log.",
+    adminField: "Name or identity number",
+    contractTitle: "Find a contracting party by identity number",
+    contractHint: "Enter the full ten-digit identity number. Name browsing is not available here.",
+    contractField: "Identity number",
+    roleField: "Party role in the contract",
+    search: "Search",
+    attach: "Attach as contract party",
+    attached: "The person was attached to the contract.",
+    empty: "No matching results.",
+    unnamed: "Unnamed",
+    errors: {
+      INVALID_NATIONAL_ID: "Invalid identity number; ten digits starting with 1 or 2.",
+      FORBIDDEN: "You are not allowed to run this search.",
+      RATE_LIMITED: "Too many lookups within an hour. Please try again later.",
+      TARGET_NOT_FOUND: "Person not found.",
+      UNKNOWN: "The operation could not be completed. Please try again.",
     },
   },
   hero: {
