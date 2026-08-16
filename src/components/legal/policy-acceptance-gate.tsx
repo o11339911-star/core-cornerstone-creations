@@ -137,7 +137,7 @@ export function PolicyAcceptanceGate({
           <Accordion
             type="single"
             collapsible
-            value={openCode ?? ""}
+            value={openCode || undefined}
             onValueChange={(value) => setOpenCode(value || null)}
             className="w-full"
           >
