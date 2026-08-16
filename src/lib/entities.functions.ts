@@ -122,6 +122,8 @@ function compact<T extends Record<string, unknown>>(
 
 /** Maps a raw Postgres error to a stable, non-revealing code. */
 function mapError(message: string): string {
+  if (message.includes("UNIFIED_NUMBER_REQUIRED")) return "UNIFIED_NUMBER_REQUIRED";
+  if (message.includes("INVALID_UNIFIED_NUMBER")) return "INVALID_UNIFIED_NUMBER";
   if (message.includes("OFFICIAL_ID_ALREADY_REGISTERED")) return "OFFICIAL_ID_ALREADY_REGISTERED";
   if (message.includes("ENTITY_LIMIT_REACHED")) return "ENTITY_LIMIT_REACHED";
   if (message.includes("FORBIDDEN")) return "FORBIDDEN";
