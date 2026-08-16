@@ -399,7 +399,7 @@ export function isSafeFormula(input: string): boolean {
   if (!f.startsWith("=") || f.length > 200) return false;
   const body = f.slice(1);
   if (!/^[A-Za-z0-9_$:,.()+\-*/^%<>= ]+$/.test(body)) return false;
-  if (/[!\[\]'"]/.test(body)) return false;
+  if (/[![\]'"]/.test(body)) return false;
   const names = body.match(/[A-Za-z]+(?=\()/g) ?? [];
   return names.every((n) => SAFE_FUNCTIONS.includes(n.toUpperCase()));
 }
