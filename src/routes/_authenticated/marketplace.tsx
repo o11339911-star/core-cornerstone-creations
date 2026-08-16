@@ -262,17 +262,7 @@ function MarketplacePage() {
           ) : null}
         </label>
 
-        <div className="mt-4">
-          <Button
-            onClick={() => {
-              if (validate()) create.mutate();
-            }}
-            disabled={create.isPending}
-          >
-            {create.isPending ? "جارٍ النشر…" : "نشر الإعلان"}
-          </Button>
-        </div>
-      </SectionCard>
+      </ResponsiveModal>
 
       <SectionCard
         icon={Sparkles}
