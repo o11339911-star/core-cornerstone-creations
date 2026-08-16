@@ -1611,6 +1611,8 @@ export const ar = {
     fieldRestrictions: "القيود",
     fieldOffice: "المكتب",
     numberRequired: "الرقم مطلوب بصيغة صحيحة (أرقام وحروف لاتينية و / -)",
+    invalidDate: "تاريخ غير صالح — استخدم صيغة يوم/شهر/سنة (ميلادي أو هجري)",
+    invalidArea: "المساحة غير صالحة — أدخل رقمًا موجبًا",
     apply: "اعتماد البيانات",
     rejectAction: "رفض",
     rejectReason: "سبب الرفض",

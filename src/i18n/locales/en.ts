@@ -1624,6 +1624,8 @@ export const en: Translations = {
     fieldRestrictions: "Restrictions",
     fieldOffice: "Office",
     numberRequired: "Number is required (letters, digits, / and - only)",
+    invalidDate: "Invalid date — use day/month/year (Gregorian or Hijri)",
+    invalidArea: "Invalid area — enter a positive number",
     apply: "Confirm data",
     rejectAction: "Reject",
     rejectReason: "Rejection reason",

@@ -45,6 +45,7 @@ import {
   type ExtractedFieldKey,
   type ExtractionResult,
 } from "@/lib/analysis/extract";
+import { normalizeArea, normalizeDateInput } from "@/lib/analysis/normalize";
 
 const FIELD_ORDER: ExtractedFieldKey[] = [
   "number",
@@ -112,6 +113,7 @@ export function DocumentAnalyzer({
   const [analysisId, setAnalysisId] = React.useState<string | null>(null);
   const [rejectReason, setRejectReason] = React.useState("");
   const [numberError, setNumberError] = React.useState<string | undefined>(undefined);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   const propertiesQuery = useQuery({
     queryKey: ["analysis-properties", entityId],
@@ -141,6 +143,7 @@ export function DocumentAnalyzer({
     setHeadId("");
     setAnalysisId(null);
     setNumberError(undefined);
+    setFieldErrors({});
   };
 
   const startAnalysis = useMutation({
@@ -267,6 +270,22 @@ export function DocumentAnalyzer({
     mutationFn: () => {
       if (!analysisId) throw new Error(t("common.error"));
       const number = toLatinDigits((fields["number"] ?? "").trim());
+
+      const issue = normalizeDateInput(fields["issue_date"]);
+      const expiry = normalizeDateInput(fields["expiry_date"]);
+      const nextDateErrors: Record<string, string> = {};
+      if (issue && !issue.ok) nextDateErrors["issue_date"] = t("analysis.invalidDate");
+      if (expiry && !expiry.ok) nextDateErrors["expiry_date"] = t("analysis.invalidDate");
+
+      const areaRaw = (fields["area"] ?? "").trim();
+      const area = normalizeArea(areaRaw);
+      if (areaRaw && area === null) nextDateErrors["area"] = t("analysis.invalidArea");
+
+      setFieldErrors(nextDateErrors);
+      if (Object.keys(nextDateErrors).length > 0) {
+        throw new Error(Object.values(nextDateErrors)[0] as string);
+      }
+
       return confirm({
         data: {
           analysisId,
@@ -275,9 +294,9 @@ export function DocumentAnalyzer({
           headId: headId || null,
           number,
           issuer: fields["issuer"] ?? null,
-          date1: fields["issue_date"] ?? null,
-          date2: fields["expiry_date"] ?? null,
-          area: fields["area"] ? Number(toLatinDigits(fields["area"])) : null,
+          date1: issue?.ok ? issue.iso : null,
+          date2: expiry?.ok ? expiry.iso : null,
+          area,
           ownerSnapshot: fields["owner"] ?? null,
           scopeText: fields["restrictions"] ?? null,
         },
@@ -462,8 +481,19 @@ export function DocumentAnalyzer({
                       id={`field-${key}`}
                       label={t(`analysis.field${toPascal(key)}` as any)}
                       value={fields[key] ?? ""}
-                      onChange={(e) => setFields((prev) => ({ ...prev, [key]: e.target.value }))}
+                      {...(fieldErrors[key] ? { error: fieldErrors[key] } : {})}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFieldErrors((prev) => {
+                          if (!prev[key]) return prev;
+                          const next = { ...prev };
+                          delete next[key];
+                          return next;
+                        });
+                        setFields((prev) => ({ ...prev, [key]: value }));
+                      }}
                     />
+                    
                   )}
                   {confidencePct !== null ? (
                     <p className="mt-1 text-xs text-muted-foreground">
