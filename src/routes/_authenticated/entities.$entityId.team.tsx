@@ -6,6 +6,7 @@ import { Copy, Send, ShieldAlert, UserCog, UserPlus, Users } from "lucide-react"
 
 import { useT } from "@/i18n";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { TextField, ResponsiveModal } from "@/components/rakeez";
 import {
   CardsSkeleton,

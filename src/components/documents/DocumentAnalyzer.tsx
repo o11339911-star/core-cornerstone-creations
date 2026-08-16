@@ -194,7 +194,7 @@ export function DocumentAnalyzer({
   const applyMutation = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error(t("common.required"));
-      const number = toLatinDigits((fields.number ?? "").trim());
+      const number = toLatinDigits((fields["number"] ?? "").trim());
       if (!/^[0-9A-Za-z/-]{1,60}$/.test(number)) {
         setNumberError(t("analysis.numberRequired"));
         throw new Error(t("analysis.numberRequired"));
@@ -265,7 +265,7 @@ export function DocumentAnalyzer({
   const confirmMutation = useMutation({
     mutationFn: () => {
       if (!analysisId) throw new Error(t("common.error"));
-      const number = toLatinDigits((fields.number ?? "").trim());
+      const number = toLatinDigits((fields["number"] ?? "").trim());
       return confirm({
         data: {
           analysisId,
@@ -273,12 +273,12 @@ export function DocumentAnalyzer({
           target,
           headId: headId || null,
           number,
-          issuer: fields.issuer ?? null,
-          date1: fields.issue_date ?? null,
-          date2: fields.expiry_date ?? null,
-          area: fields.area ? Number(toLatinDigits(fields.area)) : null,
-          ownerSnapshot: fields.owner ?? null,
-          scopeText: fields.restrictions ?? null,
+          issuer: fields["issuer"] ?? null,
+          date1: fields["issue_date"] ?? null,
+          date2: fields["expiry_date"] ?? null,
+          area: fields["area"] ? Number(toLatinDigits(fields["area"])) : null,
+          ownerSnapshot: fields["owner"] ?? null,
+          scopeText: fields["restrictions"] ?? null,
         },
       });
     },

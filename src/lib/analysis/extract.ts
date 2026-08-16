@@ -188,7 +188,7 @@ export function extractFieldsFromText(text: string): {
       if (match?.[1]) matches.add(toLatinDigits(match[1].trim()).replace(/\s+/g, " "));
     }
     if (matches.size === 1) {
-      fields[rule.field] = [...matches][0];
+      fields[rule.field] = [...matches][0] ?? "";
       confidence[rule.field] = rule.confidence;
     } else if (matches.size > 1) {
       conflicts.push({ field: rule.field, values: [...matches] });
