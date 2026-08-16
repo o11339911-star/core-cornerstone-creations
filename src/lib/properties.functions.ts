@@ -31,6 +31,111 @@ export const propertyListItemSchema = z.object({
 });
 export type PropertyListItem = z.infer<typeof propertyListItemSchema>;
 
+/* --------------------- searchable picker (projects) --------------------- */
+
+export const propertyOptionSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  kind: z.enum(PROPERTY_KINDS),
+  code: z.string().nullable(),
+  city: z.string().nullable(),
+  district: z.string().nullable(),
+  land_area: z.number().nullable(),
+  /** Fallback reference shown only when the property has no internal code. */
+  deed_number: z.string().nullable(),
+});
+export type PropertyOption = z.infer<typeof propertyOptionSchema>;
+
+const escapeLike = (value: string) => value.replace(/[%_,()]/g, " ").trim();
+
+/**
+ * Searchable list of properties the caller may link to a project, scoped to the
+ * active developer entity. Never returns personal identity or entity UNN data.
+ */
+export const searchLinkableProperties = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ entityId: z.string().uuid(), query: z.string().trim().max(120).optional() })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<PropertyOption[]> => {
+    const { requireEntityOfType } = await import("@/lib/entity-scope.server");
+    const scope = await requireEntityOfType(
+      context.supabase,
+      context.userId,
+      data.entityId,
+      ["developer"],
+    );
+
+    const term = escapeLike(data.query ?? "");
+
+    // Deed numbers are matched through the RLS-protected deeds table, so a user
+    // only ever finds properties they may already read.
+    let deedPropertyIds: string[] = [];
+    if (term) {
+      const { data: deedRows, error: deedError } = await context.supabase
+        .from("deeds")
+        .select("property_id, deed_number")
+        .ilike("deed_number", `%${term}%`)
+        .limit(50);
+      if (deedError) throw deedError;
+      deedPropertyIds = [...new Set((deedRows ?? []).map((row) => row.property_id))];
+    }
+
+    let builder = context.supabase
+      .from("properties_public")
+      .select("id, name, kind, code, city, district, land_area")
+      .eq("entity_id", scope.entityId);
+
+    if (term) {
+      const filters = [
+        `name.ilike.%${term}%`,
+        `code.ilike.%${term}%`,
+        `plan_no.ilike.%${term}%`,
+        `parcel_no.ilike.%${term}%`,
+      ];
+      if (deedPropertyIds.length > 0) filters.push(`id.in.(${deedPropertyIds.join(",")})`);
+      builder = builder.or(filters.join(","));
+    }
+
+    const { data: rows, error } = await builder
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw error;
+
+    const list = (rows ?? []).filter((row) => row.id && row.name && row.kind);
+    const ids = list.map((row) => row.id as string);
+
+    const deedByProperty = new Map<string, string>();
+    if (ids.length > 0) {
+      const { data: deeds, error: deedsError } = await context.supabase
+        .from("deeds")
+        .select("property_id, deed_number")
+        .in("property_id", ids);
+      if (deedsError) throw deedsError;
+      for (const deed of deeds ?? []) {
+        if (deed.deed_number && !deedByProperty.has(deed.property_id)) {
+          deedByProperty.set(deed.property_id, deed.deed_number);
+        }
+      }
+    }
+
+    return propertyOptionSchema.array().parse(
+      list.map((row) => ({
+        id: row.id,
+        name: row.name,
+        kind: row.kind,
+        code: row.code ?? null,
+        city: row.city ?? null,
+        district: row.district ?? null,
+        land_area: row.land_area ?? null,
+        deed_number: row.code ? null : (deedByProperty.get(row.id as string) ?? null),
+      })),
+    );
+  });
+
+
 export const listProperties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
