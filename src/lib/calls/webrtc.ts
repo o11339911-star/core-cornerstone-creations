@@ -253,10 +253,12 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
 
     return () => {
       disposed = true;
+      sendRef.current = null;
       void supabase.removeChannel(channel);
       cleanup();
     };
   }, [active, callId, entityId, role, attempt, cleanup]);
+
 
   React.useEffect(() => {
     if (phase !== "connected") return;
