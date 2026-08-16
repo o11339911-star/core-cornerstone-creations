@@ -2,13 +2,28 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { FileText, ScrollText, ShieldCheck } from "lucide-react";
+import { FileText, ShieldCheck } from "lucide-react";
 
 import { MarkdownView } from "@/components/legal/markdown-view";
 import { LEGAL_DISCLAIMER } from "@/components/legal/legal-document-page";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   acceptPolicies,
   getLegalDocument,
@@ -18,12 +33,16 @@ import {
 } from "@/lib/legal.functions";
 
 /**
- * Phase 26 — mandatory acceptance gate.
+ * Phase 26 — mandatory acceptance gate (compact single-card layout).
  *
  * Rakeez has no self-registration, so the acceptance point is the first
  * authenticated screen after sign-in (and the invitation flow). Every checkbox
  * starts UNCHECKED and is per document version — no bundled or pre-ticked
  * consent, and no "continue" without an explicit tick for each document.
+ *
+ * Layout: all pending documents are rendered as compact rows inside one card.
+ * Each row keeps its own explicit acceptance checkbox. Document text opens in
+ * an accordion within the same row, and only one row is expanded at a time.
  */
 
 function isLegalCode(code: string): code is LegalCode {
@@ -38,16 +57,16 @@ function DocumentBody({ code }: { code: LegalCode }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (doc.isPending) return <Skeleton className="h-40 w-full rounded-xl" />;
+  if (doc.isPending) return <Skeleton className="h-40 w-full rounded-lg" />;
   if (doc.isError || !doc.data) {
     return (
-      <p className="rounded-lg bg-muted/50 px-4 py-6 text-center text-sm text-muted-foreground">
+      <p className="rounded-md bg-muted/50 px-3 py-4 text-center text-sm text-muted-foreground">
         تعذّر عرض نص الوثيقة الآن، ويمكنك فتحها من صفحة الوثائق النظامية.
       </p>
     );
   }
   return (
-    <div className="max-h-64 overflow-y-auto rounded-xl border border-border bg-muted/30 p-4">
+    <div className="max-h-56 overflow-y-auto rounded-lg border border-border bg-muted/30 p-3">
       <MarkdownView source={doc.data.body_md} />
     </div>
   );
@@ -83,9 +102,8 @@ export function PolicyAcceptanceGate({
 
   if (pending.isPending) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 px-4 py-10">
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+        <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     );
   }
@@ -97,92 +115,109 @@ export function PolicyAcceptanceGate({
 
   const items = pending.data;
   const allChecked = items.every((item) => checked[item.version_id]);
+  const acceptedCount = items.filter((item) => checked[item.version_id]).length;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-5 px-4 py-8 sm:px-6">
-      <header className="rounded-2xl border border-border bg-card p-5 shadow-card sm:p-6">
-        <div className="flex items-start gap-3">
-          <span className="rounded-xl bg-secondary p-2 text-primary">
-            <ScrollText className="size-5" aria-hidden="true" />
-          </span>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">الوثائق النظامية تحتاج موافقتك</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              نُشرت نسخة جديدة من الوثائق التالية. اقرأ كل وثيقة ثم وافق عليها بشكل منفصل
-              للمتابعة. لا توجد خانة محددة مسبقًا.
-            </p>
-          </div>
-        </div>
-        <p className="mt-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-foreground">
-          {LEGAL_DISCLAIMER}
-        </p>
-      </header>
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:py-8">
+      <Card className="overflow-hidden">
+        <CardHeader className="space-y-2 p-4 sm:p-5">
+          <CardTitle className="text-lg font-bold text-foreground sm:text-xl">
+            الشروط والسياسات
+          </CardTitle>
+          <CardDescription className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            نُشرت نسخة جديدة من الوثائق التالية. اقرأ كل وثيقة ثم وافق عليها بشكل منفصل
+            للمتابعة.
+          </CardDescription>
+          <p className="text-xs leading-relaxed text-muted-foreground/80">
+            {LEGAL_DISCLAIMER}
+          </p>
+        </CardHeader>
 
-      <ul className="space-y-3">
-        {items.map((item) => (
-          <li
-            key={item.version_id}
-            className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5"
+        <CardContent className="p-0">
+          <Accordion
+            type="single"
+            collapsible
+            value={(openCode ?? "") as LegalCode}
+            onValueChange={(value) => setOpenCode(value || null)}
+            className="w-full"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-foreground">
-                <FileText className="size-4 text-primary" aria-hidden="true" />
-                <span className="font-semibold">{item.title_ar}</span>
-                <span className="text-xs text-muted-foreground" dir="ltr">
-                  v{item.version}
-                </span>
-              </div>
-              {isLegalCode(item.code) ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11"
-                  onClick={() => setOpenCode(openCode === item.code ? null : item.code)}
+            {items.map((item, index) =>
+              isLegalCode(item.code) ? (
+                <AccordionItem
+                  key={item.version_id}
+                  value={item.code}
+                  className="border-0"
                 >
-                  {openCode === item.code ? "إخفاء النص" : "قراءة النص"}
-                </Button>
-              ) : null}
-            </div>
+                  {index > 0 ? (
+                    <Separator className="mx-4 w-[calc(100%-2rem)]" />
+                  ) : null}
+                  <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <FileText
+                        className="size-4 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {item.title_ar}
+                      </span>
+                      <span
+                        className="shrink-0 text-xs text-muted-foreground"
+                        dir="ltr"
+                      >
+                        v{item.version}
+                      </span>
+                    </div>
 
-            {openCode === item.code && isLegalCode(item.code) ? (
-              <div className="mt-3">
-                <DocumentBody code={item.code} />
-              </div>
-            ) : null}
+                    <div className="flex shrink-0 items-center gap-2">
+                      <AccordionTrigger className="flex-none h-9 min-h-11 rounded-md border border-input bg-background px-2.5 py-0 text-xs font-normal hover:bg-accent hover:text-accent-foreground hover:no-underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&>svg]:hidden sm:min-h-0">
+                        {openCode === item.code ? "إخفاء النص" : "عرض النص"}
+                      </AccordionTrigger>
 
-            <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-muted/40 px-3 py-3">
-              <Checkbox
-                checked={checked[item.version_id] ?? false}
-                onCheckedChange={(value) =>
-                  setChecked((prev) => ({ ...prev, [item.version_id]: value === true }))
-                }
-                className="mt-0.5 size-5"
-                aria-label={`الموافقة على ${item.title_ar}`}
-              />
-              <span className="text-sm text-foreground">
-                قرأت {item.title_ar} (النسخة <span dir="ltr">{item.version}</span>) وأوافق عليها.
-              </span>
-            </label>
-          </li>
-        ))}
-      </ul>
+                      <label
+                        className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-transparent hover:bg-muted/50 sm:h-9 sm:w-9"
+                        aria-label={`الموافقة على ${item.title_ar}`}
+                        title={`الموافقة على ${item.title_ar}`}
+                      >
+                        <Checkbox
+                          checked={checked[item.version_id] ?? false}
+                          onCheckedChange={(value) =>
+                            setChecked((prev) => ({
+                              ...prev,
+                              [item.version_id]: value === true,
+                            }))
+                          }
+                          className="size-5 sm:size-4"
+                        />
+                      </label>
+                    </div>
+                  </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-muted-foreground">
-          {allChecked
-            ? "يمكنك المتابعة الآن."
-            : "يلزم تحديد موافقة صريحة على كل وثيقة قبل المتابعة."}
-        </p>
-        <Button
-          type="button"
-          className="min-h-11 w-full sm:w-auto"
-          disabled={!allChecked || accept.isPending}
-          onClick={() => accept.mutate(items.map((item) => item.version_id))}
-        >
-          <ShieldCheck className="size-4" aria-hidden="true" />
-          {accept.isPending ? "جارٍ التسجيل…" : "أوافق وأتابع"}
-        </Button>
-      </div>
+                  <AccordionContent className="px-4 pb-3 sm:px-5">
+                    <DocumentBody code={item.code} />
+                  </AccordionContent>
+                </AccordionItem>
+              ) : null,
+            )}
+          </Accordion>
+        </CardContent>
+
+        <CardFooter className="flex flex-col gap-3 border-t bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p className="text-xs text-muted-foreground">
+            {allChecked
+              ? "تمت الموافقة على كل الوثائق، يمكنك المتابعة."
+              : `الوثائق المقبولة: ${acceptedCount} من ${items.length} — يلزم قبول صريح على كل وثيقة.`}
+          </p>
+          <Button
+            type="button"
+            className="h-11 w-full px-5 text-sm sm:h-10 sm:w-auto"
+            disabled={!allChecked || accept.isPending}
+            onClick={() => accept.mutate(items.map((item) => item.version_id))}
+          >
+            <ShieldCheck className="size-4" aria-hidden="true" />
+            {accept.isPending ? "جارٍ التسجيل…" : "أوافق وأتابع"}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
