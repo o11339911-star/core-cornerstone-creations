@@ -83,7 +83,7 @@ export function PolicyAcceptanceGate({
   const fetchPending = useServerFn(getPendingAcceptances);
   const submit = useServerFn(acceptPolicies);
   const [checked, setChecked] = React.useState<Record<string, boolean>>({});
-  const [openCode, setOpenCode] = React.useState<string | null>(null);
+  const [openCode, setOpenCode] = React.useState<LegalCode | null>(null);
 
   const pending = useQuery({
     queryKey: ["pending-policy-acceptances"],
