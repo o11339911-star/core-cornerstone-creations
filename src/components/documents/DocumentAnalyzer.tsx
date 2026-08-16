@@ -267,6 +267,22 @@ export function DocumentAnalyzer({
     mutationFn: () => {
       if (!analysisId) throw new Error(t("common.error"));
       const number = toLatinDigits((fields["number"] ?? "").trim());
+
+      const issue = normalizeDateInput(fields["issue_date"]);
+      const expiry = normalizeDateInput(fields["expiry_date"]);
+      const nextDateErrors: Record<string, string> = {};
+      if (issue && !issue.ok) nextDateErrors["issue_date"] = t("analysis.invalidDate");
+      if (expiry && !expiry.ok) nextDateErrors["expiry_date"] = t("analysis.invalidDate");
+
+      const areaRaw = (fields["area"] ?? "").trim();
+      const area = normalizeArea(areaRaw);
+      if (areaRaw && area === null) nextDateErrors["area"] = t("analysis.invalidArea");
+
+      setFieldErrors(nextDateErrors);
+      if (Object.keys(nextDateErrors).length > 0) {
+        throw new Error(Object.values(nextDateErrors)[0] as string);
+      }
+
       return confirm({
         data: {
           analysisId,
@@ -275,9 +291,9 @@ export function DocumentAnalyzer({
           headId: headId || null,
           number,
           issuer: fields["issuer"] ?? null,
-          date1: fields["issue_date"] ?? null,
-          date2: fields["expiry_date"] ?? null,
-          area: fields["area"] ? Number(toLatinDigits(fields["area"])) : null,
+          date1: issue?.ok ? issue.iso : null,
+          date2: expiry?.ok ? expiry.iso : null,
+          area,
           ownerSnapshot: fields["owner"] ?? null,
           scopeText: fields["restrictions"] ?? null,
         },
