@@ -362,7 +362,16 @@ function ProjectOverviewPage() {
               }
             />
           )}
+          <Link
+            to="/projects/$projectId/team"
+            params={{ projectId }}
+            className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"
+          >
+            <Users className="size-4" aria-hidden="true" />
+            فريق المشروع
+          </Link>
         </SectionCard>
+
 
         <SectionCard icon={FileText} title="حالة المستندات" count={docsCount}>
           {Object.keys(o.documents).length ? (
