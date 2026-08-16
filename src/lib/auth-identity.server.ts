@@ -17,6 +17,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/database";
 import { isValidSaudiId, looksLikeEmail, normalizeNationalId } from "@/lib/identity-format";
+import { findUserByNationalId, storeIdentitySecret } from "@/lib/identity-crypto.server";
 
 export const GENERIC_AUTH_ERROR = "AUTH_FAILED";
 
@@ -70,11 +71,17 @@ export async function signInWithIdentifier(rawIdentifier: string, password: stri
     const digits = normalizeNationalId(identifier);
     if (!isValidSaudiId(digits)) return { ok: false, reason: "invalid" };
     const client = await admin();
-    const { data: userId, error } = await client.rpc("svc_resolve_identity_login", {
-      _national_id: digits,
-    });
-    if (error || !userId) return { ok: false, reason: "invalid" };
-    const { data: found, error: adminError } = await client.auth.admin.getUserById(userId as string);
+    // Exact match on the deterministic HMAC fingerprint; legacy rows fall back
+    // to the older resolver until the backfill has covered them.
+    let userId: string | null = await findUserByNationalId(digits);
+    if (!userId) {
+      const { data: legacy } = await client.rpc("svc_resolve_identity_login", {
+        _national_id: digits,
+      });
+      userId = (legacy as string | null) ?? null;
+    }
+    if (!userId) return { ok: false, reason: "invalid" };
+    const { data: found, error: adminError } = await client.auth.admin.getUserById(userId);
     if (adminError || !found.user?.email) return { ok: false, reason: "invalid" };
     email = found.user.email;
   }
@@ -143,6 +150,15 @@ export async function signUpWithIdentity(input: {
       await client.auth.admin.deleteUser(data.user.id).catch(() => undefined);
     }
     return { ok: false, reason: alreadyLinked ? "identity_taken" : "failed" };
+  }
+
+  // Store the reversible ciphertext plus the deterministic fingerprint.
+  const stored = await storeIdentitySecret(data.user.id, digits);
+  if (!stored) {
+    if (data.user.identities?.length !== 0) {
+      await client.auth.admin.deleteUser(data.user.id).catch(() => undefined);
+    }
+    return { ok: false, reason: "identity_taken" };
   }
 
   return { ok: true, needsConfirmation: !data.session };
