@@ -16,6 +16,7 @@ import { Route as SelectAccountRouteImport } from './routes/select-account'
 import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
 import { Route as AuthenticatedArchiveRouteImport } from './routes/_authenticated/archive'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedCorrespondenceRouteImport } from './routes/_authenticated/correspondence'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
@@ -118,6 +119,12 @@ const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCorrespondenceRoute =
+  AuthenticatedCorrespondenceRouteImport.update({
+    id: '/correspondence',
+    path: '/correspondence',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -506,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/archive': typeof AuthenticatedArchiveRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/correspondence': typeof AuthenticatedCorrespondenceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -579,6 +587,7 @@ export interface FileRoutesByTo {
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/archive': typeof AuthenticatedArchiveRoute
   '/calls': typeof AuthenticatedCallsRoute
+  '/correspondence': typeof AuthenticatedCorrespondenceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketing': typeof AuthenticatedMarketingRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -654,6 +663,7 @@ export interface FileRoutesById {
   '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
   '/_authenticated/archive': typeof AuthenticatedArchiveRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
+  '/_authenticated/correspondence': typeof AuthenticatedCorrespondenceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/archive'
     | '/calls'
+    | '/correspondence'
     | '/dashboard'
     | '/marketing'
     | '/marketplace'
@@ -803,6 +814,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/archive'
     | '/calls'
+    | '/correspondence'
     | '/dashboard'
     | '/marketing'
     | '/marketplace'
@@ -877,6 +889,7 @@ export interface FileRouteTypes {
     | '/_authenticated/appointments'
     | '/_authenticated/archive'
     | '/_authenticated/calls'
+    | '/_authenticated/correspondence'
     | '/_authenticated/dashboard'
     | '/_authenticated/marketing'
     | '/_authenticated/marketplace'
@@ -1011,6 +1024,13 @@ declare module '@tanstack/react-router' {
       path: '/calls'
       fullPath: '/calls'
       preLoaderRoute: typeof AuthenticatedCallsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/correspondence': {
+      id: '/_authenticated/correspondence'
+      path: '/correspondence'
+      fullPath: '/correspondence'
+      preLoaderRoute: typeof AuthenticatedCorrespondenceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -1513,6 +1533,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppointmentsRoute: typeof AuthenticatedAppointmentsRoute
   AuthenticatedArchiveRoute: typeof AuthenticatedArchiveRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
+  AuthenticatedCorrespondenceRoute: typeof AuthenticatedCorrespondenceRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
@@ -1563,6 +1584,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppointmentsRoute: AuthenticatedAppointmentsRoute,
   AuthenticatedArchiveRoute: AuthenticatedArchiveRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
+  AuthenticatedCorrespondenceRoute: AuthenticatedCorrespondenceRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
