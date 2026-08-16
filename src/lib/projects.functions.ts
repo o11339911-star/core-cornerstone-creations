@@ -68,20 +68,32 @@ export const listStageTemplates = createServerFn({ method: "GET" })
     return stageTemplateSchema.array().parse(rows ?? []);
   });
 
-export const createProjectInputSchema = z.object({
-  projectTemplateId: z.string().uuid(),
-  name: z.string().trim().min(2).max(160),
-  entityId: z.string().uuid().nullable().optional(),
-  city: z.string().trim().max(120).nullable().optional(),
-  district: z.string().trim().max(120).nullable().optional(),
-  landArea: z.number().positive().nullable().optional(),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-  expectedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-  notes: z.string().trim().max(2000).nullable().optional(),
-  /** Optional stage codes the user chose to include beyond the required core ones. */
-  optionalStageCodes: z.array(z.string()).optional(),
-});
+export const createProjectInputSchema = z
+  .object({
+    projectTemplateId: z.string().uuid(),
+    name: z.string().trim().min(2).max(160),
+    entityId: z.string().uuid().nullable().optional(),
+    /** When set, all property attributes are derived server-side from this property. */
+    propertyId: z.string().uuid().nullable().optional(),
+    city: z.string().trim().max(120).nullable().optional(),
+    district: z.string().trim().max(120).nullable().optional(),
+    landArea: z.number().positive().nullable().optional(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    expectedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    notes: z.string().trim().max(2000).nullable().optional(),
+    /** Optional stage codes the user chose to include beyond the required core ones. */
+    optionalStageCodes: z.array(z.string()).optional(),
+  })
+  // A linked property is the single source of truth: manual property attributes
+  // may never be sent alongside it, so the client cannot override the registry.
+  .refine(
+    (value) =>
+      !value.propertyId ||
+      (value.city == null && value.district == null && value.landArea == null),
+    { message: "PROPERTY_FIELDS_NOT_ALLOWED", path: ["propertyId"] },
+  );
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
+
 
 /**
  * Creates a project owned by the caller (optionally scoped to an entity the
