@@ -6,6 +6,7 @@ import {
   Bell,
   Building2,
   IdCard,
+  Copy,
   Loader2,
   PlusCircle,
   Repeat,
@@ -238,8 +239,31 @@ function IdentityCard() {
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">{t("profile.identity.number")}</dt>
-              <dd className="text-sm font-medium" dir="ltr">
-                {data?.last4 ? `\u2022\u2022\u2022\u2022\u2022\u2022${data.last4}` : "—"}
+              <dd className="flex items-center gap-2 text-sm font-medium" dir="ltr">
+                {/* Owner-only: the RPC returns the full number solely to auth.uid(). */}
+                <span className="tabular-nums">
+                  {data?.national_id
+                    ? toLatinDigits(data.national_id)
+                    : data?.last4
+                      ? `\u2022\u2022\u2022\u2022\u2022\u2022${data.last4}`
+                      : "—"}
+                </span>
+                {data?.national_id ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    aria-label={t("profile.identity.copy")}
+                    onClick={() => {
+                      void navigator.clipboard
+                        .writeText(toLatinDigits(data.national_id ?? ""))
+                        .then(() => toast.success(t("profile.identity.copied")));
+                    }}
+                  >
+                    <Copy className="size-4" aria-hidden="true" />
+                  </Button>
+                ) : null}
               </dd>
             </div>
           </dl>
