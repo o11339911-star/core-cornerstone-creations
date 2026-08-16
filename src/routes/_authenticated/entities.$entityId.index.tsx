@@ -269,10 +269,23 @@ function EntityHomePage() {
                 value={data.tax_number ? <Num>{data.tax_number}</Num> : dash}
               />
               <Field
+                label={t("entities.unnStatus.label")}
+                value={
+                  !data.unified_national_number
+                    ? t("entities.unnStatus.none")
+                    : data.verification_status === "verified"
+                      ? t("entities.unnStatus.verified")
+                      : t("entities.unnStatus.formatOk")
+                }
+              />
+              <Field
                 label={t("entities.detail.verification")}
                 value={t(`entities.verification.${data.verification_status ?? "unverified"}`)}
               />
             </FieldGrid>
+            <p className="mt-3 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
+              {t("entities.unnStatus.nafathDisabled")}
+            </p>
           </SectionCard>
 
           <SectionCard title={t("entities.detail.address")} icon={MapPin}>
