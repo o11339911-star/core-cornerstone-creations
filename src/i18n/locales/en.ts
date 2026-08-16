@@ -1363,10 +1363,25 @@ export const en: Translations = {
     },
     hints: {
       digitsOnly: "Digits only, no separators.",
+      unifiedNumber: "Ten digits starting with 7.",
+      unifiedNumberRequired: "Required for companies, establishments and partnerships.",
+    },
+    unnStatus: {
+      label: "Unified number status",
+      none: "Not provided yet",
+      formatOk: "Format validated / awaiting official verification",
+      verified: "Officially verified",
+      nafathDisabled:
+        "Nafath integration is not enabled; this check validates the format only and is not government verification.",
     },
     errors: {
       nameRequired: "Enter an entity name (at least 2 characters).",
       digitLength: "Must be between {min} and {max} digits.",
+      unifiedNumber: "The unified number must be 10 digits starting with 7.",
+      unifiedNumberRequired: "The unified number is required for this legal form.",
+      UNIFIED_NUMBER_REQUIRED:
+        "The unified number is required for companies, establishments and partnerships.",
+      INVALID_UNIFIED_NUMBER: "The unified number must be 10 digits starting with 7.",
       email: "Enter a valid email address.",
       OFFICIAL_ID_ALREADY_REGISTERED: "One of the official numbers belongs to another entity.",
       ENTITY_LIMIT_REACHED: "You have reached the maximum number of owned entities.",
