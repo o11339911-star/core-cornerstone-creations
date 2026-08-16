@@ -169,7 +169,8 @@ export const createDeal = createServerFn({ method: "POST" })
       if (!/^[0-9]{10}$/.test(cr)) throw new Error("SECOND_PARTY_CR_INVALID");
     }
 
-    const { data: id, error } = await context.supabase.rpc("create_contracting_deal", {
+    // الوسائط المولّدة تُعرَّف غير قابلة للـ null رغم أن الدالة تقبلها.
+    const args = {
       _entity_id: data.entityId,
       _title: data.title,
       _party_kind: data.partyKind,
@@ -182,7 +183,9 @@ export const createDeal = createServerFn({ method: "POST" })
       _amount: data.amount,
       _currency: data.currency,
       _notes: data.notes,
-    });
+    } as unknown as Parameters<typeof context.supabase.rpc<"create_contracting_deal">>[1];
+
+    const { data: id, error } = await context.supabase.rpc("create_contracting_deal", args);
     if (error) {
       if (error.message.includes("SECOND_PARTY_IS_SELF")) throw new Error("SECOND_PARTY_IS_SELF");
       if (error.message.includes("NOT_ENTITY_MEMBER")) throw new Error("NOT_ENTITY_MEMBER");
