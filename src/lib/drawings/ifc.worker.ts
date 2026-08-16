@@ -45,34 +45,39 @@ ctx.addEventListener("message", async (event: MessageEvent<IfcWorkerRequest>) =>
         if (meshes.length >= IFC_MAX_MESHES) throw new CapacityError("meshes");
         const placed = parts.get(i);
         const geometry = api.GetGeometry(modelID, placed.geometryExpressID);
-        const verts = api.GetVertexArray(geometry.GetVertexData(), geometry.GetVertexDataSize());
-        const indexData = api.GetIndexArray(geometry.GetIndexData(), geometry.GetIndexDataSize());
-        geometry.delete();
+        // `verts`/`indexData` مجرد views على ذاكرة WASM: لا يجوز `delete()` قبل
+        // نسخها إلى مصفوفات مملوكة، والحذف مضمون في `finally` حتى مع السعة/الخطأ.
+        try {
+          const verts = api.GetVertexArray(geometry.GetVertexData(), geometry.GetVertexDataSize());
+          const indexData = api.GetIndexArray(geometry.GetIndexData(), geometry.GetIndexDataSize());
 
-        const count = verts.length / 6;
-        vertexTotal += count;
-        if (vertexTotal > IFC_MAX_VERTICES) throw new CapacityError("vertices");
+          const count = verts.length / 6;
+          vertexTotal += count;
+          if (vertexTotal > IFC_MAX_VERTICES) throw new CapacityError("vertices");
 
-        const positions = new Float32Array(count * 3);
-        const normals = new Float32Array(count * 3);
-        for (let v = 0; v < count; v += 1) {
-          const src = v * 6;
-          const dst = v * 3;
-          positions[dst] = verts[src]!;
-          positions[dst + 1] = verts[src + 1]!;
-          positions[dst + 2] = verts[src + 2]!;
-          normals[dst] = verts[src + 3]!;
-          normals[dst + 1] = verts[src + 4]!;
-          normals[dst + 2] = verts[src + 5]!;
+          const positions = new Float32Array(count * 3);
+          const normals = new Float32Array(count * 3);
+          for (let v = 0; v < count; v += 1) {
+            const src = v * 6;
+            const dst = v * 3;
+            positions[dst] = verts[src]!;
+            positions[dst + 1] = verts[src + 1]!;
+            positions[dst + 2] = verts[src + 2]!;
+            normals[dst] = verts[src + 3]!;
+            normals[dst + 1] = verts[src + 4]!;
+            normals[dst + 2] = verts[src + 5]!;
+          }
+          const color = placed.color;
+          meshes.push({
+            positions,
+            normals,
+            indices: new Uint32Array(indexData),
+            color: [color.x, color.y, color.z, color.w],
+            matrix: Array.from(placed.flatTransformation as ArrayLike<number>),
+          });
+        } finally {
+          geometry.delete();
         }
-        const color = placed.color;
-        meshes.push({
-          positions,
-          normals,
-          indices: new Uint32Array(indexData),
-          color: [color.x, color.y, color.z, color.w],
-          matrix: Array.from(placed.flatTransformation as ArrayLike<number>),
-        });
       }
     });
 

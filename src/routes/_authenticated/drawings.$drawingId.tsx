@@ -338,8 +338,17 @@ function DrawingViewerPage() {
                 <Button
                   variant="ghost"
                   className="min-h-11"
-                  onClick={() => convertMutation.mutate(latest.document_version_id)}
-                  disabled={convertMutation.isPending}
+                  onClick={() => {
+                    // النسخة المُرسَلة للتحويل هي النسخة المفتوحة فعليًا، لا الأحدث.
+                    const target = previewRev?.document_version_id ?? null;
+                    const opened = previewVersionId ?? latest.document_version_id;
+                    if (!target || target !== opened) {
+                      toast.error(t("drawings.revisionMismatch"));
+                      return;
+                    }
+                    convertMutation.mutate(target);
+                  }}
+                  disabled={convertMutation.isPending || !previewRev}
                 >
                   <RefreshCw className="size-4" aria-hidden="true" />
                   {t("drawings.prepareViewer")}
