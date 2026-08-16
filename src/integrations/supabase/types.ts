@@ -1389,6 +1389,7 @@ export type Database = {
           created_by: string
           deed_date: string | null
           deed_id: string
+          document_version_id: string | null
           extracted_payload: Json | null
           file_hash: string | null
           file_path: string | null
@@ -1403,6 +1404,7 @@ export type Database = {
           created_by: string
           deed_date?: string | null
           deed_id: string
+          document_version_id?: string | null
           extracted_payload?: Json | null
           file_hash?: string | null
           file_path?: string | null
@@ -1417,6 +1419,7 @@ export type Database = {
           created_by?: string
           deed_date?: string | null
           deed_id?: string
+          document_version_id?: string | null
           extracted_payload?: Json | null
           file_hash?: string | null
           file_path?: string | null
@@ -1431,6 +1434,13 @@ export type Database = {
             columns: ["deed_id"]
             isOneToOne: false
             referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deed_versions_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -1694,6 +1704,75 @@ export type Database = {
             columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_analyses: {
+        Row: {
+          conflicts: Json
+          created_at: string
+          created_by: string
+          detected_type: string | null
+          document_id: string
+          document_version_id: string
+          engine: string
+          extracted_fields: Json
+          failure_reason: string | null
+          field_confidence: Json
+          id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          conflicts?: Json
+          created_at?: string
+          created_by: string
+          detected_type?: string | null
+          document_id: string
+          document_version_id: string
+          engine: string
+          extracted_fields?: Json
+          failure_reason?: string | null
+          field_confidence?: Json
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          conflicts?: Json
+          created_at?: string
+          created_by?: string
+          detected_type?: string | null
+          document_id?: string
+          document_version_id?: string
+          engine?: string
+          extracted_fields?: Json
+          failure_reason?: string | null
+          field_confidence?: Json
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_analyses_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_analyses_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -2841,44 +2920,89 @@ export type Database = {
       }
       entity_profiles: {
         Row: {
+          additional_no: string | null
           address_text: string | null
+          building_no: string | null
+          city: string | null
           contact_email: string | null
           contact_phone: string | null
           cr_number: string | null
           created_at: string
+          district: string | null
           entity_id: string
+          legal_form: string | null
           legal_name_ar: string | null
           legal_name_en: string | null
           logo_path: string | null
+          postal_code: string | null
+          responsible_email: string | null
+          responsible_name: string | null
+          responsible_phone: string | null
+          responsible_title: string | null
+          street: string | null
+          tax_number: string | null
+          unified_national_number: string | null
           updated_at: string
+          verification_note: string | null
+          verification_status: string
           verified_at: string | null
           verified_by: string | null
         }
         Insert: {
+          additional_no?: string | null
           address_text?: string | null
+          building_no?: string | null
+          city?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           cr_number?: string | null
           created_at?: string
+          district?: string | null
           entity_id: string
+          legal_form?: string | null
           legal_name_ar?: string | null
           legal_name_en?: string | null
           logo_path?: string | null
+          postal_code?: string | null
+          responsible_email?: string | null
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          responsible_title?: string | null
+          street?: string | null
+          tax_number?: string | null
+          unified_national_number?: string | null
           updated_at?: string
+          verification_note?: string | null
+          verification_status?: string
           verified_at?: string | null
           verified_by?: string | null
         }
         Update: {
+          additional_no?: string | null
           address_text?: string | null
+          building_no?: string | null
+          city?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           cr_number?: string | null
           created_at?: string
+          district?: string | null
           entity_id?: string
+          legal_form?: string | null
           legal_name_ar?: string | null
           legal_name_en?: string | null
           logo_path?: string | null
+          postal_code?: string | null
+          responsible_email?: string | null
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          responsible_title?: string | null
+          street?: string | null
+          tax_number?: string | null
+          unified_national_number?: string | null
           updated_at?: string
+          verification_note?: string | null
+          verification_status?: string
           verified_at?: string | null
           verified_by?: string | null
         }
@@ -2961,6 +3085,69 @@ export type Database = {
             foreignKeyName: "entity_public_profiles_entity_id_fkey"
             columns: ["entity_id"]
             isOneToOne: true
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_relationships: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          created_by: string
+          ends_on: string | null
+          id: string
+          ownership_percent: number | null
+          relationship_type: string
+          source_entity_id: string
+          starts_on: string
+          status: string
+          target_entity_id: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by: string
+          ends_on?: string | null
+          id?: string
+          ownership_percent?: number | null
+          relationship_type: string
+          source_entity_id: string
+          starts_on?: string
+          status?: string
+          target_entity_id: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by?: string
+          ends_on?: string | null
+          id?: string
+          ownership_percent?: number | null
+          relationship_type?: string
+          source_entity_id?: string
+          starts_on?: string
+          status?: string
+          target_entity_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_relationships_source_entity_id_fkey"
+            columns: ["source_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relationships_target_entity_id_fkey"
+            columns: ["target_entity_id"]
+            isOneToOne: false
             referencedRelation: "entities"
             referencedColumns: ["id"]
           },
@@ -3978,6 +4165,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          document_version_id: string | null
           expires_on: string | null
           extracted_payload: Json | null
           file_hash: string | null
@@ -3992,6 +4180,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          document_version_id?: string | null
           expires_on?: string | null
           extracted_payload?: Json | null
           file_hash?: string | null
@@ -4006,6 +4195,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          document_version_id?: string | null
           expires_on?: string | null
           extracted_payload?: Json | null
           file_hash?: string | null
@@ -4018,6 +4208,13 @@ export type Database = {
           version_no?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "license_versions_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "license_versions_license_id_fkey"
             columns: ["license_id"]
@@ -6619,6 +6816,7 @@ export type Database = {
       }
       properties: {
         Row: {
+          address: string | null
           approx_lat: number | null
           approx_lng: number | null
           city: string | null
@@ -6628,18 +6826,23 @@ export type Database = {
           deleted_at: string | null
           district: string | null
           entity_id: string | null
+          frontage: string | null
           id: string
           kind: string
           land_area: number | null
+          land_use: string | null
           name: string
           notes: string | null
           owner_id: string
           parcel_no: string | null
           plan_no: string | null
+          region: string | null
           status: string
+          streets: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           approx_lat?: number | null
           approx_lng?: number | null
           city?: string | null
@@ -6649,18 +6852,23 @@ export type Database = {
           deleted_at?: string | null
           district?: string | null
           entity_id?: string | null
+          frontage?: string | null
           id?: string
           kind: string
           land_area?: number | null
+          land_use?: string | null
           name: string
           notes?: string | null
           owner_id: string
           parcel_no?: string | null
           plan_no?: string | null
+          region?: string | null
           status?: string
+          streets?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           approx_lat?: number | null
           approx_lng?: number | null
           city?: string | null
@@ -6670,15 +6878,19 @@ export type Database = {
           deleted_at?: string | null
           district?: string | null
           entity_id?: string | null
+          frontage?: string | null
           id?: string
           kind?: string
           land_area?: number | null
+          land_use?: string | null
           name?: string
           notes?: string | null
           owner_id?: string
           parcel_no?: string | null
           plan_no?: string | null
+          region?: string | null
           status?: string
+          streets?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -9399,6 +9611,22 @@ export type Database = {
         Args: { _appointment_id: string }
         Returns: undefined
       }
+      confirm_document_analysis: {
+        Args: {
+          _analysis_id: string
+          _area?: number
+          _date_1?: string
+          _date_2?: string
+          _head_id?: string
+          _issuer?: string
+          _number?: string
+          _owner_snapshot?: string
+          _property_id: string
+          _scope_text?: string
+          _target: string
+        }
+        Returns: string
+      }
       confirm_order_payment: { Args: { _order_id: string }; Returns: undefined }
       create_cart: {
         Args: { _buyer_entity_id: string; _store_id: string }
@@ -9445,6 +9673,31 @@ export type Database = {
           _name_ar: string
           _name_en: string
           _page_setup?: Json
+        }
+        Returns: string
+      }
+      create_entity_with_owner: {
+        Args: {
+          _additional_no?: string
+          _building_no?: string
+          _city?: string
+          _contact_email?: string
+          _contact_phone?: string
+          _cr_number?: string
+          _district?: string
+          _legal_form: string
+          _legal_name_ar?: string
+          _legal_name_en?: string
+          _name: string
+          _postal_code?: string
+          _responsible_email?: string
+          _responsible_name?: string
+          _responsible_phone?: string
+          _responsible_title?: string
+          _street?: string
+          _tax_number?: string
+          _type: string
+          _unified_national_number?: string
         }
         Returns: string
       }
@@ -9621,6 +9874,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      decide_entity_relationship: {
+        Args: { _accept: boolean; _relationship_id: string }
+        Returns: boolean
+      }
       decide_project_reopen: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: undefined
@@ -9694,6 +9951,7 @@ export type Database = {
         }
       }
       get_dsr_timer: { Args: { _request_id: string }; Returns: Json }
+      get_entity_official: { Args: { _entity_id: string }; Returns: Json }
       get_legal_document: { Args: { _code: string }; Returns: Json }
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
       get_public_entity_profile: { Args: { _slug: string }; Returns: Json }
@@ -9880,6 +10138,20 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      list_entity_team: {
+        Args: { _entity_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string
+          is_self: boolean
+          membership_id: string
+          phone: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+        }[]
       }
       list_integration_requests: {
         Args: { _code?: string; _limit?: number }
@@ -10184,6 +10456,19 @@ export type Database = {
         Args: { _acceptance_id: string; _note?: string }
         Returns: undefined
       }
+      record_document_analysis: {
+        Args: {
+          _conflicts?: Json
+          _detected_type?: string
+          _document_version_id: string
+          _engine: string
+          _extracted_fields?: Json
+          _failure_reason?: string
+          _field_confidence?: Json
+          _status: string
+        }
+        Returns: string
+      }
       record_marketing_lead: {
         Args: {
           _channel_code?: string
@@ -10250,6 +10535,10 @@ export type Database = {
         Args: { _reason: string; _request_id: string }
         Returns: string
       }
+      reject_document_analysis: {
+        Args: { _analysis_id: string; _reason: string }
+        Returns: boolean
+      }
       release_retention: {
         Args: {
           _amount: number
@@ -10282,6 +10571,15 @@ export type Database = {
       }
       request_completion: {
         Args: { _note?: string; _subject_id: string; _subject_kind: string }
+        Returns: string
+      }
+      request_entity_relationship: {
+        Args: {
+          _ownership_percent?: number
+          _relationship_type: string
+          _source_entity_id: string
+          _target_slug: string
+        }
         Returns: string
       }
       request_media_shoot: {
@@ -10508,6 +10806,30 @@ export type Database = {
           _subjects_notified_at?: string
         }
         Returns: undefined
+      }
+      update_entity_official: {
+        Args: {
+          _additional_no?: string
+          _building_no?: string
+          _city?: string
+          _contact_email?: string
+          _contact_phone?: string
+          _cr_number?: string
+          _district?: string
+          _entity_id: string
+          _legal_form?: string
+          _legal_name_ar?: string
+          _legal_name_en?: string
+          _postal_code?: string
+          _responsible_email?: string
+          _responsible_name?: string
+          _responsible_phone?: string
+          _responsible_title?: string
+          _street?: string
+          _tax_number?: string
+          _unified_national_number?: string
+        }
+        Returns: boolean
       }
       update_marketing_lead_stage: {
         Args: { _lead_id: string; _stage: string }
