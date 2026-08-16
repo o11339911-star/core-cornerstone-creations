@@ -23,7 +23,7 @@ import {
   TextField,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
-import { useActiveAccount } from "@/lib/active-account";
+import { useAccountUi } from "@/lib/account-ui";
 import { PROPERTY_KINDS, createProperty, type PropertyKind } from "@/lib/properties.functions";
 
 export const Route = createFileRoute("/_authenticated/properties/new")({
@@ -50,7 +50,8 @@ export const Route = createFileRoute("/_authenticated/properties/new")({
 function NewPropertyPage() {
   const t = useT();
   const navigate = useNavigate();
-  const { scope } = useActiveAccount();
+  const account = useAccountUi();
+  const entityId = account.isDeveloper ? (account.activeEntity?.id ?? null) : null;
   const submit = useServerFn(createProperty);
 
   const [kind, setKind] = React.useState<PropertyKind | "">("");
@@ -104,7 +105,7 @@ function NewPropertyPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
         title={t("properties.newTitle")}
         subtitle={t("properties.newSubtitle")}
