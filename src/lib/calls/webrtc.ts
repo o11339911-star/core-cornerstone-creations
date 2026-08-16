@@ -219,7 +219,15 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
           }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (disposed) return;
+        // Without a live channel no answer/candidate ever arrives, so fail
+        // loudly instead of hanging on "connecting" forever.
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          setErrorKey("calls.error.signalling");
+          setPhase((p) => (p === "connected" ? p : "failed"));
+        }
+      });
 
 
     const start = async () => {

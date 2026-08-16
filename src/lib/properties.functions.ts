@@ -476,6 +476,9 @@ export const addDeedVersion = createServerFn({ method: "POST" })
         issuer: z.string().trim().max(120).nullable().optional(),
         deedDate: z.string().nullable().optional(),
         area: z.number().positive().nullable().optional(),
+        ownerNameSnapshot: z.string().trim().max(160).nullable().optional(),
+        documentVersionId: z.string().uuid().nullable().optional(),
+        /** Legacy path-only reference; prefer documentVersionId. */
         filePath: z.string().max(400).nullable().optional(),
       })
       .parse(input),
@@ -497,6 +500,19 @@ export const addDeedVersion = createServerFn({ method: "POST" })
         .single();
       if (error) throw error;
       deedId = head.id;
+    } else if (data.deedNumber !== undefined || data.issuer !== undefined) {
+      // Keep the deed head in sync so the UI never shows a stale number.
+      // RLS restricts this update to users who can manage the property.
+      const { error: headErr } = await sb
+        .from("deeds")
+        .update({
+          ...(data.deedNumber !== undefined ? { deed_number: data.deedNumber } : {}),
+          ...(data.issuer !== undefined ? { issuer: data.issuer } : {}),
+        })
+        .eq("id", deedId);
+      if (headErr) {
+        throw new Error("لا تملك صلاحية تعديل بيانات الصك لهذا العقار");
+      }
     }
 
     const { data: version, error: vErr } = await sb
@@ -507,6 +523,8 @@ export const addDeedVersion = createServerFn({ method: "POST" })
         version_no: 1,
         deed_date: data.deedDate || null,
         area: data.area ?? null,
+        owner_name_snapshot: data.ownerNameSnapshot || null,
+        document_version_id: data.documentVersionId ?? null,
         file_path: data.filePath || null,
         source: "manual",
         created_by: context.userId,
@@ -530,6 +548,9 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
         authority: z.string().trim().max(120).nullable().optional(),
         issuedOn: z.string().nullable().optional(),
         expiresOn: z.string().nullable().optional(),
+        scopeText: z.string().trim().max(400).nullable().optional(),
+        documentVersionId: z.string().uuid().nullable().optional(),
+        /** Legacy path-only reference; prefer documentVersionId. */
         filePath: z.string().max(400).nullable().optional(),
       })
       .parse(input),
@@ -551,6 +572,18 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
         .single();
       if (error) throw error;
       licenseId = head.id;
+    } else if (data.licenseNumber !== undefined || data.authority !== undefined) {
+      // Keep the licence head in sync so the UI never shows a stale number.
+      const { error: headErr } = await sb
+        .from("building_licenses")
+        .update({
+          ...(data.licenseNumber !== undefined ? { license_number: data.licenseNumber } : {}),
+          ...(data.authority !== undefined ? { authority: data.authority } : {}),
+        })
+        .eq("id", licenseId);
+      if (headErr) {
+        throw new Error("لا تملك صلاحية تعديل بيانات الرخصة لهذا العقار");
+      }
     }
 
     const { data: version, error: vErr } = await sb
@@ -561,6 +594,8 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
         version_no: 1,
         issued_on: data.issuedOn || null,
         expires_on: data.expiresOn || null,
+        scope_text: data.scopeText || null,
+        document_version_id: data.documentVersionId ?? null,
         file_path: data.filePath || null,
         source: "manual",
         created_by: context.userId,
