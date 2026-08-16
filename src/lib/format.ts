@@ -5,7 +5,7 @@
  * is rendered for the user. Global rules enforced here and nowhere else:
  *
  * - Digits are ALWAYS Latin 0-9 (`numberingSystem: "latn"`). `ar-SA` alone
- *   renders ١٢٣, so the locale extension is forced centrally.
+ *   renders Arabic-Indic digits, so the locale extension is forced centrally.
  * - Dates always use the Gregorian calendar, Asia/Riyadh, 24-hour clock.
  * - Visual shape: `15/08/2026 17:27`, `1,234,567.89`, `68%`.
  *
@@ -25,7 +25,7 @@ const EMPTY = "—";
  * Digit normalisation (display + input)
  * ---------------------------------------------------------------------- */
 
-/** Arabic-Indic (٠-٩) and Extended/Persian (۰-۹) digit ranges. */
+/** Arabic-Indic (U+0660..U+0669) and Extended/Persian (U+06F0..U+06F9) digit ranges. */
 const ARABIC_INDIC_START = 0x0660;
 const EXTENDED_ARABIC_START = 0x06f0;
 
