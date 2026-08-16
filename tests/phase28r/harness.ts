@@ -57,7 +57,10 @@ export async function rest(
 ): Promise<{ ok: boolean; status: number; body: any; reason: string }> {
   const res = await fetch(`${URL_}/rest/v1/${path}`, {
     ...init,
-    headers: headers(auth, init.prefer ? { Prefer: init.prefer } : {}),
+    headers: headers(auth, {
+      ...(init.prefer ? { Prefer: init.prefer } : {}),
+      ...((init.headers ?? {}) as Record<string, string>),
+    }),
   });
   const text = await res.text();
   let body: any = null;

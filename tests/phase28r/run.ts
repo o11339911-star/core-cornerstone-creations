@@ -164,10 +164,10 @@ async function main() {
   });
   if (viewerProject.ok) registry.rows.viewerProject = viewerProject.body?.[0]?.id;
 
-  const stTpl = await rest(SERVICE, `stage_templates?select=id,code,name_ar,name_en,kind,order_index&project_template_id=eq.${templateId}&order=order_index&limit=2`);
+  const stTpl = await rest(SERVICE, `stage_templates?select=id,name_ar,name_en,order_index&project_template_id=eq.${templateId}&order=order_index&limit=2`);
   const stageRows = (stTpl.body ?? []).map((s: any, i: number) => ({
-    project_id: registry.rows.project, stage_template_id: s.id, code: s.code, name_ar: s.name_ar,
-    name_en: s.name_en, kind: s.kind, order_index: s.order_index ?? i, status: "not_started",
+    project_id: registry.rows.project, stage_template_id: s.id, source: "template", name_ar: s.name_ar,
+    name_en: s.name_en, order_index: s.order_index ?? i, status: "not_started", is_required: true,
   }));
   const stIns = await rest(U(tokens["alpha-manager"]!.access), "project_stages", {
     method: "POST", prefer: "return=representation", body: JSON.stringify(stageRows),
@@ -361,7 +361,8 @@ async function main() {
   ];
   for (const [id, title, fn] of probes) {
     const r = await fn();
-    const emptyWrite = r.ok && Array.isArray(r.body) && r.body.length === 0;
+    const emptyWrite =
+      r.ok && ((Array.isArray(r.body) && r.body.length === 0) || r.body === null);
     const rejected = !r.ok;
     record({
       batch: "28-H", id, title,
