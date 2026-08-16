@@ -9971,6 +9971,7 @@ export type Database = {
       get_dsr_timer: { Args: { _request_id: string }; Returns: Json }
       get_entity_official: { Args: { _entity_id: string }; Returns: Json }
       get_legal_document: { Args: { _code: string }; Returns: Json }
+      get_my_identity_status: { Args: never; Returns: Json }
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
       get_public_entity_profile: { Args: { _slug: string }; Returns: Json }
       get_public_media: { Args: { _token: string }; Returns: Json }
@@ -10032,6 +10033,7 @@ export type Database = {
         Args: { _document_id: string; _profile_id: string }
         Returns: undefined
       }
+      link_personal_identity: { Args: { _national_id: string }; Returns: Json }
       list_breakglass_requests: {
         Args: never
         Returns: {

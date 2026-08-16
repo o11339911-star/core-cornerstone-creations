@@ -47,6 +47,10 @@ import {
   requestEntityRelationship,
   updateEntityOfficial,
 } from "@/lib/entities.functions";
+import {
+  UNIFIED_NUMBER_PATTERN,
+  UNIFIED_NUMBER_REQUIRED_FORMS,
+} from "@/lib/entities.functions";
 
 export const Route = createFileRoute("/_authenticated/entities/$entityId/")({
   component: EntityHomePage,
@@ -269,10 +273,23 @@ function EntityHomePage() {
                 value={data.tax_number ? <Num>{data.tax_number}</Num> : dash}
               />
               <Field
+                label={t("entities.unnStatus.label")}
+                value={
+                  !data.unified_national_number
+                    ? t("entities.unnStatus.none")
+                    : data.verification_status === "verified"
+                      ? t("entities.unnStatus.verified")
+                      : t("entities.unnStatus.formatOk")
+                }
+              />
+              <Field
                 label={t("entities.detail.verification")}
                 value={t(`entities.verification.${data.verification_status ?? "unverified"}`)}
               />
             </FieldGrid>
+            <p className="mt-3 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
+              {t("entities.unnStatus.nafathDisabled")}
+            </p>
           </SectionCard>
 
           <SectionCard title={t("entities.detail.address")} icon={MapPin}>
@@ -453,21 +470,46 @@ function EntityHomePage() {
               </SelectContent>
             </Select>
           </div>
-          {EDITABLE.map((key) => (
-            <TextField
-              key={key}
-              id={`edit-${key}`}
-              label={t(`entities.fields.${key}`)}
-              value={form[key] ?? ""}
-              onChange={(event) => {
-                const raw = toLatinDigits(event.target.value);
-                setForm((f) => ({
-                  ...f,
-                  [key]: DIGIT_KEYS.has(key) ? raw.replace(/[^0-9]/g, "") : raw,
-                }));
-              }}
-            />
-          ))}
+          {EDITABLE.map((key) => {
+            const isUnn = key === "unifiedNationalNumber";
+            const unnRequired =
+              isUnn &&
+              UNIFIED_NUMBER_REQUIRED_FORMS.includes(
+                legalForm as (typeof UNIFIED_NUMBER_REQUIRED_FORMS)[number],
+              );
+            const current = form[key] ?? "";
+            const unnError = isUnn
+              ? !current && unnRequired
+                ? t("entities.errors.unifiedNumberRequired")
+                : current && !UNIFIED_NUMBER_PATTERN.test(current)
+                  ? t("entities.errors.unifiedNumber")
+                  : undefined
+              : undefined;
+            return (
+              <TextField
+                key={key}
+                id={`edit-${key}`}
+                label={t(`entities.fields.${key}`)}
+                value={current}
+                {...(unnRequired ? { required: true } : {})}
+                {...(isUnn
+                  ? {
+                      hint: `${t("entities.hints.unifiedNumber")} ${t("entities.hints.unifiedNumberRequired")}`,
+                    }
+                  : {})}
+                {...(unnError ? { error: unnError } : {})}
+                onChange={(event) => {
+                  const raw = toLatinDigits(event.target.value);
+                  setForm((f) => ({
+                    ...f,
+                    [key]: DIGIT_KEYS.has(key)
+                      ? raw.replace(/[^0-9]/g, "").slice(0, isUnn ? 10 : undefined)
+                      : raw,
+                  }));
+                }}
+              />
+            );
+          })}
         </div>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row-reverse">
           <Button

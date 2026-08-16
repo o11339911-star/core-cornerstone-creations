@@ -63,11 +63,25 @@ const optionalText = (max: number) =>
     .or(z.literal(""))
     .transform((v) => (v ? v : undefined));
 
+/** Unified national number: exactly 10 digits, always starting with 7. */
+export const UNIFIED_NUMBER_PATTERN = /^7[0-9]{9}$/;
+
+/** Legal forms for which the unified national number is mandatory. */
+export const UNIFIED_NUMBER_REQUIRED_FORMS = ["company", "establishment", "partnership"] as const;
+
+const unifiedNumber = z
+  .string()
+  .trim()
+  .regex(UNIFIED_NUMBER_PATTERN)
+  .optional()
+  .or(z.literal(""))
+  .transform((v) => (v ? v : undefined));
+
 const officialInput = z.object({
   legalForm: z.enum(LEGAL_FORMS),
   legalNameAr: optionalText(160),
   legalNameEn: optionalText(160),
-  unifiedNationalNumber: digits(10, 15),
+  unifiedNationalNumber: unifiedNumber,
   crNumber: digits(10, 15),
   taxNumber: digits(15, 15),
   contactEmail: z.string().trim().email().optional().or(z.literal("")).transform((v) => v || undefined),
@@ -108,6 +122,8 @@ function compact<T extends Record<string, unknown>>(
 
 /** Maps a raw Postgres error to a stable, non-revealing code. */
 function mapError(message: string): string {
+  if (message.includes("UNIFIED_NUMBER_REQUIRED")) return "UNIFIED_NUMBER_REQUIRED";
+  if (message.includes("INVALID_UNIFIED_NUMBER")) return "INVALID_UNIFIED_NUMBER";
   if (message.includes("OFFICIAL_ID_ALREADY_REGISTERED")) return "OFFICIAL_ID_ALREADY_REGISTERED";
   if (message.includes("ENTITY_LIMIT_REACHED")) return "ENTITY_LIMIT_REACHED";
   if (message.includes("FORBIDDEN")) return "FORBIDDEN";

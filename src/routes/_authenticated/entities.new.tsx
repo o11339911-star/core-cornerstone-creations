@@ -17,7 +17,13 @@ import {
 import { useT } from "@/i18n";
 import { useActiveAccount } from "@/lib/active-account";
 import { toLatinDigits } from "@/lib/format";
-import { ENTITY_TYPES, LEGAL_FORMS, createEntity } from "@/lib/entities.functions";
+import {
+  ENTITY_TYPES,
+  LEGAL_FORMS,
+  UNIFIED_NUMBER_PATTERN,
+  UNIFIED_NUMBER_REQUIRED_FORMS,
+  createEntity,
+} from "@/lib/entities.functions";
 
 export const Route = createFileRoute("/_authenticated/entities/new")({
   component: NewEntityPage,
@@ -89,7 +95,7 @@ const EMPTY: Form = {
 
 /** Digit-only official identifiers are normalised and length-checked locally. */
 const DIGIT_FIELDS: Partial<Record<keyof Form, { min: number; max: number }>> = {
-  unifiedNationalNumber: { min: 10, max: 15 },
+  unifiedNationalNumber: { min: 10, max: 10 },
   crNumber: { min: 10, max: 15 },
   taxNumber: { min: 15, max: 15 },
   buildingNo: { min: 1, max: 8 },
@@ -174,6 +180,15 @@ function NewEntityPage() {
       const rule = DIGIT_FIELDS[key];
       if (rule && value && (value.length < rule.min || value.length > rule.max)) {
         next[key] = t("entities.errors.digitLength", { min: rule.min, max: rule.max });
+      }
+      if (key === "unifiedNationalNumber") {
+        const required = UNIFIED_NUMBER_REQUIRED_FORMS.includes(
+          form.legalForm as (typeof UNIFIED_NUMBER_REQUIRED_FORMS)[number],
+        );
+        if (!value && required) next[key] = t("entities.errors.unifiedNumberRequired");
+        else if (value && !UNIFIED_NUMBER_PATTERN.test(value)) {
+          next[key] = t("entities.errors.unifiedNumber");
+        } else delete next[key];
       }
       if ((key === "contactEmail" || key === "responsibleEmail") && value && !value.includes("@")) {
         next[key] = t("entities.errors.email");
@@ -301,7 +316,10 @@ function NewEntityPage() {
               <TextField
                 id="unn"
                 label={t("entities.fields.unifiedNationalNumber")}
-                hint={t("entities.hints.digitsOnly")}
+                required={UNIFIED_NUMBER_REQUIRED_FORMS.includes(
+                  form.legalForm as (typeof UNIFIED_NUMBER_REQUIRED_FORMS)[number],
+                )}
+                hint={`${t("entities.hints.unifiedNumber")} ${t("entities.hints.unifiedNumberRequired")}`}
                 value={form.unifiedNationalNumber}
                 onChange={set("unifiedNationalNumber")}
                 error={errors.unifiedNationalNumber}
@@ -463,7 +481,7 @@ function NewEntityPage() {
                 ]}
               />
               <p className="rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
-                {t("entities.new.verificationNote")}
+                {t("entities.new.verificationNote")} {t("entities.unnStatus.nafathDisabled")}
               </p>
             </div>
           ) : null}
