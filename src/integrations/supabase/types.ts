@@ -10948,35 +10948,21 @@ export type Database = {
         }
         Returns: string
       }
-      publish_service_listing:
-        | {
-            Args: {
-              _areas?: Json
-              _description: string
-              _entity_id: string
-              _price_max?: number
-              _price_min?: number
-              _publish?: boolean
-              _service_kind: string
-              _title: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              _areas?: Json
-              _description: string
-              _entity_id: string
-              _price_max?: number
-              _price_min?: number
-              _project_id?: string
-              _publish?: boolean
-              _request_id?: string
-              _service_kind: string
-              _title: string
-            }
-            Returns: string
-          }
+      publish_service_listing: {
+        Args: {
+          _areas?: Json
+          _description: string
+          _entity_id: string
+          _price_max?: number
+          _price_min?: number
+          _project_id?: string
+          _publish?: boolean
+          _request_id?: string
+          _service_kind: string
+          _title: string
+        }
+        Returns: string
+      }
       raise_punch_item: {
         Args: {
           _acceptance_id?: string

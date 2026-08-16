@@ -1,0 +1,1 @@
+drop function if exists public.publish_service_listing(uuid, text, text, text, jsonb, numeric, numeric, boolean);
