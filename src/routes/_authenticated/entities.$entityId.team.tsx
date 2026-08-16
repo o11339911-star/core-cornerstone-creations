@@ -27,6 +27,7 @@ import {
   revokeInvitation,
   type TeamRosterRow,
 } from "@/lib/team.functions";
+import { getMyPermissions } from "@/lib/permissions.functions";
 
 export const Route = createFileRoute("/_authenticated/entities/$entityId/team")({
   component: TeamPage,
@@ -59,14 +60,21 @@ function TeamPage() {
   const revoke = useServerFn(revokeInvitation);
   const changeRole = useServerFn(changeMemberRole);
   const offboard = useServerFn(offboardMemberSafely);
+  const permissionsFn = useServerFn(getMyPermissions);
 
   const teamQuery = useQuery({
     queryKey: ["entity-team", entityId],
     queryFn: () => team({ data: { entityId } }),
   });
+  const permissionsQuery = useQuery({
+    queryKey: ["entity-permissions", entityId],
+    queryFn: () => permissionsFn({ data: { entityId } }),
+  });
+  const canManage = (permissionsQuery.data ?? []).includes("members.manage_members");
   const invitesQuery = useQuery({
     queryKey: ["entity-invitations", entityId],
     queryFn: () => invitations({ data: { entityId } }),
+    enabled: canManage,
   });
 
   const [email, setEmail] = React.useState("");
@@ -83,7 +91,7 @@ function TeamPage() {
       setLink(`${window.location.origin}/invite/accept?token=${result.token}`);
       void queryClient.invalidateQueries({ queryKey: ["entity-invitations", entityId] });
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => setError(t(e.message)),
   });
 
   const revokeMutation = useMutation({
@@ -99,13 +107,13 @@ function TeamPage() {
       setError(null);
       void queryClient.invalidateQueries({ queryKey: ["entity-team", entityId] });
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => setError(t(e.message)),
   });
 
-  const isLoading = teamQuery.isPending || invitesQuery.isPending;
-  const isError = teamQuery.isError || invitesQuery.isError;
+  const isLoading = teamQuery.isPending || permissionsQuery.isPending || (canManage && invitesQuery.isPending);
+  const isError = teamQuery.isError || permissionsQuery.isError || (canManage && invitesQuery.isError);
   const teamRows = teamQuery.data ?? [];
-  const inviteRows = invitesQuery.data ?? [];
+  const inviteRows = canManage ? (invitesQuery.data ?? []) : [];
   const activeMembers = teamRows.filter((m) => m.status === "active").length;
   const pendingInvites = inviteRows.filter((i) => i.status === "pending").length;
   const activeOwners = teamRows.filter((m) => m.role === "owner" && m.status === "active").length;
@@ -120,7 +128,8 @@ function TeamPage() {
         <ErrorState
           onRetry={() => {
             void teamQuery.refetch();
-            void invitesQuery.refetch();
+            void permissionsQuery.refetch();
+            if (canManage) void invitesQuery.refetch();
           }}
         />
       ) : (
@@ -128,9 +137,12 @@ function TeamPage() {
           <StatGrid>
             <StatCard icon={Users} label={t("team.members")} value={teamRows.length} tone="primary" />
             <StatCard icon={UserCog} label={t("team.activeMembers")} value={activeMembers} tone="success" />
-            <StatCard icon={Send} label={t("team.invitations")} value={pendingInvites} tone="warning" />
+            {canManage ? (
+              <StatCard icon={Send} label={t("team.invitations")} value={pendingInvites} tone="warning" />
+            ) : null}
           </StatGrid>
 
+          {canManage ? (
           <SectionCard icon={UserPlus} title={t("team.inviteTitle")}>
             <p className="mb-4 text-xs text-muted-foreground">{t("team.inviteHint")}</p>
             <form
@@ -185,7 +197,9 @@ function TeamPage() {
               </div>
             ) : null}
           </SectionCard>
+          ) : null}
 
+          {canManage ? (
           <SectionCard icon={Send} title={t("team.invitations")} count={inviteRows.length}>
             {inviteRows.length === 0 ? (
               <SoftEmpty icon={Send} message={t("team.noInvitations")} />
@@ -210,6 +224,7 @@ function TeamPage() {
               </ul>
             )}
           </SectionCard>
+          ) : null}
 
           <SectionCard icon={Users} title={t("team.members")} count={teamRows.length}>
             {teamRows.length === 0 ? (
@@ -219,7 +234,8 @@ function TeamPage() {
                 {teamRows.map((m) => {
                   const isLastOwner = m.role === "owner" && activeOwners <= 1;
                   const lockedBySelf = m.is_self;
-                  const canManage = !lockedBySelf && !(isLastOwner && m.status === "active");
+                  const canManageRow = (row: TeamRosterRow) =>
+                    !row.is_self && !(row.role === "owner" && activeOwners <= 1 && row.status === "active");
                   return (
                     <li key={m.membership_id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
                       <div className="min-w-0">
@@ -233,29 +249,33 @@ function TeamPage() {
                           <p className="truncate text-xs text-muted-foreground">{m.email}</p>
                         ) : null}
                       </div>
-                      <select
-                        className="min-h-11 rounded-md border border-input bg-background px-2 text-xs disabled:opacity-60"
-                        value={m.role}
-                        disabled={!canManage || roleMutation.isPending}
-                        onChange={(e) =>
-                          roleMutation.mutate({
-                            membershipId: m.membership_id,
-                            newRole: e.target.value as (typeof APP_ROLES)[number],
-                          })
-                        }
-                      >
-                        {APP_ROLES.map((r) => (
-                          <option key={r} value={r}>
-                            {t(`team.roles.${r}`)}
-                          </option>
-                        ))}
-                      </select>
+                      {canManage ? (
+                        <select
+                          className="min-h-11 rounded-md border border-input bg-background px-2 text-xs disabled:opacity-60"
+                          value={m.role}
+                          disabled={!canManageRow(m) || roleMutation.isPending}
+                          onChange={(e) =>
+                            roleMutation.mutate({
+                              membershipId: m.membership_id,
+                              newRole: e.target.value as (typeof APP_ROLES)[number],
+                            })
+                          }
+                        >
+                          {APP_ROLES.map((r) => (
+                            <option key={r} value={r}>
+                              {t(`team.roles.${r}`)}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <Badge variant="secondary">{t(`team.roles.${m.role}`)}</Badge>
+                      )}
                       <span className="text-muted-foreground">{t(`team.status.${m.status}`)}</span>
-                      {m.status === "active" ? (
+                      {canManage && m.status === "active" ? (
                         <Button
                           variant="outline"
                           className="min-h-11"
-                          disabled={!canManage}
+                          disabled={!canManageRow(m)}
                           title={
                             lockedBySelf
                               ? t("team.cannotOffboardSelf")
@@ -346,7 +366,7 @@ function OffboardDialogFixed({
       void queryClient.invalidateQueries({ queryKey: ["entity-team", entityId] });
       onClose();
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => setError(t(e.message)),
   });
 
   return (

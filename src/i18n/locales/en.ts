@@ -1371,12 +1371,14 @@ export const en: Translations = {
     new: {
       cta: "Add entity",
       title: "Add a new entity",
-      subtitle: "Four short steps: identity, official numbers, national address, contact person.",
+      subtitle: "Three steps and a final review: identity, official numbers, national address & contact person, then review.",
       steps: "Registration steps",
       step1: "Entity identity",
       step2: "Official numbers",
       step3: "National address",
-      step4: "Contact person",
+      review: "Review",
+      addressGroup: "National address",
+      responsibleGroup: "Contact person",
       submit: "Create entity",
       verificationNote:
         "The entity starts as unverified; the Rakeez team reviews its official data before verification.",
@@ -1395,6 +1397,8 @@ export const en: Translations = {
       editTitle: "Edit official data",
       editBody: "Only owners and admins can edit; the server re-checks every change.",
       loadError: "Could not load entity data.",
+      masked: "This value is hidden from you; only owners and admins can edit it.",
+      documents: "Documents",
     },
     relations: {
       title: "Entity relationships",

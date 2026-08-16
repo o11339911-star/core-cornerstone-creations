@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { compactArgs } from "@/lib/rpc-args";
 
 /**
  * Entity team management: invitations, project assignments, visibility and
@@ -200,17 +201,20 @@ export const createAssignment = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: id, error } = await context.supabase.rpc("create_project_assignment", {
-      _project_id: data.projectId,
-      _user_id: data.userId,
-      _entity_id: data.entityId,
-      _job_title_ar: data.jobTitleAr,
-      _job_title_en: data.jobTitleEn,
-      _stage_id: data.stageId ?? null,
-      _starts_on: data.startsOn ?? new Date().toISOString().slice(0, 10),
-      _ends_on: data.endsOn ?? null,
-      _visibility: data.visibility,
-    });
+    const { data: id, error } = await context.supabase.rpc(
+      "create_project_assignment",
+      compactArgs({
+        _project_id: data.projectId,
+        _user_id: data.userId,
+        _entity_id: data.entityId,
+        _job_title_ar: data.jobTitleAr,
+        _job_title_en: data.jobTitleEn,
+        _stage_id: data.stageId,
+        _starts_on: data.startsOn,
+        _ends_on: data.endsOn,
+        _visibility: data.visibility,
+      }) as never,
+    );
 
     if (error) throw mapAssignmentError(error);
     return { id: id as string };
@@ -239,17 +243,20 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase.rpc("update_project_assignment", {
-      _assignment_id: data.assignmentId,
-      _job_title_ar: data.jobTitleAr ?? null,
-      _job_title_en: data.jobTitleEn ?? null,
-      _stage_id: data.stageId ?? null,
-      _clear_stage: data.clearStage,
-      _starts_on: data.startsOn ?? null,
-      _ends_on: data.endsOn ?? null,
-      _visibility: data.visibility ?? null,
-      _end_now: data.endNow,
-    });
+    const { error } = await context.supabase.rpc(
+      "update_project_assignment",
+      compactArgs({
+        _assignment_id: data.assignmentId,
+        _job_title_ar: data.jobTitleAr,
+        _job_title_en: data.jobTitleEn,
+        _stage_id: data.stageId,
+        _clear_stage: data.clearStage,
+        _starts_on: data.startsOn,
+        _ends_on: data.endsOn,
+        _visibility: data.visibility,
+        _end_now: data.endNow,
+      }) as never,
+    );
 
     if (error) throw mapAssignmentError(error);
     return { ok: true };
@@ -262,17 +269,14 @@ export const endProjectAssignment = createServerFn({ method: "POST" })
     z.object({ assignmentId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase.rpc("update_project_assignment", {
-      _assignment_id: data.assignmentId,
-      _job_title_ar: null,
-      _job_title_en: null,
-      _stage_id: null,
-      _clear_stage: false,
-      _starts_on: null,
-      _ends_on: null,
-      _visibility: null,
-      _end_now: true,
-    });
+    const { error } = await context.supabase.rpc(
+      "update_project_assignment",
+      compactArgs({
+        _assignment_id: data.assignmentId,
+        _clear_stage: false,
+        _end_now: true,
+      }) as never,
+    );
 
     if (error) throw mapAssignmentError(error);
     return { ok: true };
