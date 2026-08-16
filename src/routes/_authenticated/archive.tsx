@@ -38,7 +38,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ErrorState, HeroBadge, PageHero, ResponsiveModal, SectionCard, SoftEmpty } from "@/components/rakeez";
+import {
+  ErrorState,
+  HeroBadge,
+  PageHero,
+  ResponsiveModal,
+  SectionCard,
+  SoftEmpty,
+} from "@/components/rakeez";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DOCX_MIME,
@@ -88,7 +95,8 @@ const ACCEPTS = {
   image: "image/*",
   pdf: "application/pdf",
   word: ".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  excel: ".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  excel:
+    ".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   slides:
     ".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation",
 } as const;
@@ -122,7 +130,6 @@ function safeName(name: string) {
   return `${base || "file"}${ext ? `.${ext}` : ""}`;
 }
 
-
 function ArchivePage() {
   const qc = useQueryClient();
   const { activeEntity, loading } = useAccountUi();
@@ -142,7 +149,9 @@ function ArchivePage() {
   const [q, setQ] = React.useState("");
   const [folderDialog, setFolderDialog] = React.useState(false);
   const [folderName, setFolderName] = React.useState("");
-  const [renameTarget, setRenameTarget] = React.useState<{ id: string; title: string } | null>(null);
+  const [renameTarget, setRenameTarget] = React.useState<{ id: string; title: string } | null>(
+    null,
+  );
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
@@ -482,10 +491,7 @@ function ArchivePage() {
                 ))}
               </div>
             ) : items.isError ? (
-              <ErrorState
-                description="تعذّر تحميل الأرشيف"
-                onRetry={() => void items.refetch()}
-              />
+              <ErrorState description="تعذّر تحميل الأرشيف" onRetry={() => void items.refetch()} />
             ) : !items.data?.length ? (
               <SoftEmpty
                 icon={ArchiveIcon}
