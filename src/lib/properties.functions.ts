@@ -33,14 +33,35 @@ export type PropertyListItem = z.infer<typeof propertyListItemSchema>;
 
 export const listProperties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<PropertyListItem[]> => {
-    const { data, error } = await context.supabase
+  .inputValidator((input: unknown) =>
+    z
+      .object({ entityId: z.string().uuid().nullable().optional() })
+      .optional()
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<PropertyListItem[]> => {
+    let query = context.supabase
       .from("properties_public")
       .select("id, kind, name, status, city, district, land_area, completion_percent")
       .order("created_at", { ascending: false });
 
+    // Registry mode: the property registry belongs to a verified developer
+    // entity. The claimed entityId is re-authorized server-side.
+    if (data?.entityId) {
+      const { requireEntityOfType } = await import("@/lib/entity-scope.server");
+      const scope = await requireEntityOfType(
+        context.supabase,
+        context.userId,
+        data.entityId,
+        ["developer"],
+      );
+      query = query.eq("entity_id", scope.entityId);
+    }
+
+    const { data: rows, error } = await query;
+
     if (error) throw error;
-    return propertyListItemSchema.array().parse(data ?? []);
+    return propertyListItemSchema.array().parse(rows ?? []);
   });
 
 export const propertyProfileSchema = z.object({
@@ -235,6 +256,24 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
     });
   });
 
+/* ----------------------------- scope guard ------------------------------ */
+
+export const verifyDeveloperScope = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ entityId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true; entityId: string }> => {
+    const { requireEntityOfType } = await import("@/lib/entity-scope.server");
+    const scope = await requireEntityOfType(
+      context.supabase,
+      context.userId,
+      data.entityId,
+      ["developer"],
+    );
+    return { ok: true, entityId: scope.entityId };
+  });
+
 /* -------------------------------- create -------------------------------- */
 
 export const createProperty = createServerFn({ method: "POST" })
@@ -244,7 +283,7 @@ export const createProperty = createServerFn({ method: "POST" })
       .object({
         kind: z.enum(PROPERTY_KINDS),
         name: z.string().trim().min(2).max(160),
-        entityId: z.string().uuid().nullable().optional(),
+        entityId: z.string().uuid(),
         city: z.string().trim().max(80).optional(),
         district: z.string().trim().max(80).optional(),
         landArea: z.number().positive().nullable().optional(),
@@ -257,12 +296,21 @@ export const createProperty = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
+    // Creating a registry property requires a verified developer entity.
+    const { requireEntityOfType } = await import("@/lib/entity-scope.server");
+    const scope = await requireEntityOfType(
+      context.supabase,
+      context.userId,
+      data.entityId,
+      ["developer"],
+    );
+
     const { data: row, error } = await context.supabase
       .from("properties")
       .insert({
         owner_id: context.userId,
         created_by: context.userId,
-        entity_id: data.entityId ?? null,
+        entity_id: scope.entityId,
         kind: data.kind,
         name: data.name,
         city: data.city || null,

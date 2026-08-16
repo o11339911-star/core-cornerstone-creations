@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable, ErrorState, HeroBadge, PageHero } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { listProperties, type PropertyListItem } from "@/lib/properties.functions";
+import { useAccountUi } from "@/lib/account-ui";
+import { CardsSkeleton, SoftEmpty } from "@/components/rakeez";
 import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/properties/")({
@@ -36,9 +38,13 @@ function PropertiesPage() {
   const navigate = useNavigate();
   const fetchProperties = useServerFn(listProperties);
 
+  const account = useAccountUi();
+  const entityId = account.isDeveloper ? (account.activeEntity?.id ?? null) : null;
+
   const query = useQuery({
-    queryKey: ["properties"],
-    queryFn: () => fetchProperties(),
+    queryKey: ["properties", entityId],
+    queryFn: () => fetchProperties({ data: { entityId } }),
+    enabled: Boolean(entityId),
   });
 
   const columns = [
@@ -81,8 +87,24 @@ function PropertiesPage() {
     },
   ];
 
+  if (account.loading) {
+    return (
+      <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-6">
+        <CardsSkeleton cards={2} />
+      </div>
+    );
+  }
+
+  if (!entityId) {
+    return (
+      <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-6">
+        <SoftEmpty icon={Building2} message={t("shell.noAccessBody")} />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto min-h-screen w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
         title={t("properties.title")}
         subtitle={t("properties.subtitle")}

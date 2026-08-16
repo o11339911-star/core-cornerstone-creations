@@ -1,40 +1,42 @@
 import * as React from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { Menu, X } from "lucide-react";
 
-import { NotificationsBell } from "@/components/notifications-bell";
 import { LanguageToggle } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { useActiveAccount, type AccountScope } from "@/lib/active-account";
-import { queryClient } from "@/router";
 
-type User = {
-  id: string;
-  email: string | undefined;
-};
+type SessionState = "unknown" | "guest" | "authenticated";
 
+const NAV_LINKS: { key: string; to: string }[] = [
+  { key: "nav.home", to: "/" },
+  { key: "nav.services", to: "/#services" },
+  { key: "nav.about", to: "/#about" },
+  { key: "nav.contact", to: "/#contact" },
+];
+
+/**
+ * Public site header. The sign-in affordance is ALWAYS rendered: while the
+ * session is still resolving we keep the sign-in button in place (safe default
+ * for a visitor) instead of leaving an empty slot that shifts the layout.
+ */
 export function AuthHeader() {
   const t = useT();
-  const navigate = useNavigate();
-  const { scope, clearScope } = useActiveAccount();
-  const [user, setUser] = React.useState<User | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [session, setSession] = React.useState<SessionState>("unknown");
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const panelRef = React.useRef<HTMLDivElement | null>(null);
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
-    supabase.auth
-      .getUser()
-      .then(({ data }) => {
-        if (mounted) setUser(data.user ? { id: data.user.id, email: data.user.email } : null);
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
+    void supabase.auth.getUser().then(({ data }) => {
+      if (mounted) setSession(data.user ? "authenticated" : "guest");
+    });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+    } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next?.user ? "authenticated" : "guest");
     });
 
     return () => {
@@ -43,33 +45,54 @@ export function AuthHeader() {
     };
   }, []);
 
-  const handleSignOut = async () => {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    clearScope();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  };
+  // Focus trap + Escape handling for the mobile menu.
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    const panel = panelRef.current;
+    panel?.querySelector<HTMLElement>("a, button")?.focus();
 
-  const navLinks = [
-    { key: "nav.home", to: "/" },
-    { key: "nav.services", to: "/#services" },
-    { key: "nav.about", to: "/#about" },
-    { key: "nav.contact", to: "/#contact" },
-  ];
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        triggerRef.current?.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !panel) return;
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"),
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0]!;
+      const last = focusables[focusables.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
+
+  const isAuthenticated = session === "authenticated";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex min-h-11 items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex min-h-11 shrink-0 items-center gap-2">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
             {t("common.appInitial")}
           </span>
-          <span className="text-lg font-bold tracking-tight text-foreground">{t("common.appName")}</span>
+          <span className="text-base font-bold tracking-tight text-foreground sm:text-lg">
+            {t("common.appName")}
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex" aria-label={t("nav.home")}>
-          {navLinks.map((link) => (
+        <nav className="hidden items-center gap-6 md:flex" aria-label={t("shell.mainMenu")}>
+          {NAV_LINKS.map((link) => (
             <Link
               key={link.to}
               to={link.to}
@@ -80,49 +103,71 @@ export function AuthHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <LanguageToggle />
-          {!loading && (
-            <>
-              {user ? (
-                <div className="flex items-center gap-2">
-                  {scope && <ActiveScopeBadge scope={scope} />}
-                  <NotificationsBell />
-                  <Link
-                    to="/settings/security"
-                    className="inline-flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {t("common.settings")}
-                  </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
-                  >
-                    {t("auth.signOut")}
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  to="/auth"
-                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
-                >
-                  {t("auth.signIn")}
-                </Link>
-              )}
-            </>
+          {isAuthenticated ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90"
+            >
+              {t("common.dashboard")}
+            </Link>
+          ) : (
+            <Link
+              to="/auth"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90"
+            >
+              {t("auth.signIn")}
+            </Link>
           )}
+          <button
+            ref={triggerRef}
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-controls="public-mobile-menu"
+            aria-label={menuOpen ? t("shell.closeMenu") : t("shell.openMenu")}
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+          >
+            {menuOpen ? (
+              <X className="size-5" aria-hidden="true" />
+            ) : (
+              <Menu className="size-5" aria-hidden="true" />
+            )}
+          </button>
         </div>
       </div>
-    </header>
-  );
-}
 
-function ActiveScopeBadge({ scope }: { scope: AccountScope }) {
-  const t = useT();
-  const label = scope.kind === "personal" ? t("account.personal") : t("account.entities");
-  return (
-    <span className="hidden max-w-[10rem] truncate rounded-full border border-rakeez-gold/30 bg-rakeez-gold/10 px-3 py-1 text-xs font-medium text-rakeez-gold sm:inline-block">
-      {label}
-    </span>
+      {menuOpen && (
+        <div
+          id="public-mobile-menu"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("shell.mainMenu")}
+          className="border-t border-border bg-background px-4 pb-4 md:hidden"
+        >
+          <nav className="flex flex-col" aria-label={t("shell.mainMenu")}>
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setMenuOpen(false)}
+                className="inline-flex min-h-11 items-center border-b border-border/60 py-3 text-sm font-medium text-foreground last:border-0"
+              >
+                {t(link.key)}
+              </Link>
+            ))}
+            <Link
+              to={isAuthenticated ? "/dashboard" : "/auth"}
+              onClick={() => setMenuOpen(false)}
+              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              {isAuthenticated ? t("common.dashboard") : t("auth.signIn")}
+            </Link>
+          </nav>
+        </div>
+      )}
+    </header>
   );
 }
