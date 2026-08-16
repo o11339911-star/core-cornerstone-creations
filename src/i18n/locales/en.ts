@@ -47,6 +47,9 @@ export const en: Translations = {
     offline: "You are offline. Some data may be out of date.",
     loadingAccount: "Loading account…",
     accountError: "Could not load your account details.",
+    noAccess: "Not available for your account",
+    noAccessBody: "The property registry is available to real-estate developer entities only. Switch to a developer account to access it.",
+    quickActions: "Quick actions",
     entityTypes: {
       developer: "Real-estate developer",
       contractor: "Contractor",
