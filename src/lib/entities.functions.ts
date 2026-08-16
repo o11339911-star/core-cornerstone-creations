@@ -89,6 +89,16 @@ const officialInput = z.object({
 
 export type EntityOfficialInput = z.input<typeof officialInput>;
 
+/**
+ * Drops `undefined` keys so the RPC receives only the arguments the caller
+ * actually supplied (the SQL side keeps existing values for missing ones).
+ */
+function compact<T extends Record<string, unknown>>(args: T): T {
+  return Object.fromEntries(Object.entries(args).filter(([, v]) => v !== undefined)) as T;
+}
+
+
+
 /** Maps a raw Postgres error to a stable, non-revealing code. */
 function mapError(message: string): string {
   if (message.includes("OFFICIAL_ID_ALREADY_REGISTERED")) return "OFFICIAL_ID_ALREADY_REGISTERED";
