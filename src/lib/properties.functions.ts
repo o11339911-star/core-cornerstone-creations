@@ -336,19 +336,19 @@ export const createProperty = createServerFn({ method: "POST" })
       _kind: data.kind,
       _name: data.name,
       _entity_id: scope.entityId,
-      _city: data.city || null,
-      _district: data.district || null,
-      _land_area: data.landArea ?? null,
-      _plan_no: data.planNo || null,
-      _parcel_no: data.parcelNo || null,
-      _region: data.region || null,
-      _address: data.address || null,
-      _frontage: data.frontage || null,
-      _streets: data.streets || null,
-      _land_use: data.landUse || null,
-      _approx_lat: data.approxLat ?? null,
-      _approx_lng: data.approxLng ?? null,
-      _notes: data.notes || null,
+      _city: data.city || undefined,
+      _district: data.district || undefined,
+      _land_area: data.landArea ?? undefined,
+      _plan_no: data.planNo || undefined,
+      _parcel_no: data.parcelNo || undefined,
+      _region: data.region || undefined,
+      _address: data.address || undefined,
+      _frontage: data.frontage || undefined,
+      _streets: data.streets || undefined,
+      _land_use: data.landUse || undefined,
+      _approx_lat: data.approxLat ?? undefined,
+      _approx_lng: data.approxLng ?? undefined,
+      _notes: data.notes || undefined,
     });
 
     if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
@@ -494,7 +494,7 @@ export const setPropertyPrimaryOwner = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ id: string }> => {
     const { data: rowId, error } = await context.supabase.rpc("set_property_primary_owner", {
       _property_id: data.propertyId,
-      _entity_id: data.entityId,
+      _entity_id: data.entityId ?? undefined,
       _reason: data.reason,
     });
     if (error) {
