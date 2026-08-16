@@ -145,7 +145,7 @@ function NewEntityPage() {
       toast.success(t("entities.created"));
       await queryClient.invalidateQueries({ queryKey: ["my-memberships"] });
       setScope({ kind: "entity", entityId });
-      void navigate({ to: "/entities/$entityId", params: { entityId } });
+      void navigate({ to: "/entities/$entityId/team", params: { entityId } });
     },
     onError: (error: Error) => {
       const key = `entities.errors.${error.message}`;

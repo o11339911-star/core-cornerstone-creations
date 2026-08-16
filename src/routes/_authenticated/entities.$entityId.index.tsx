@@ -235,7 +235,7 @@ function EntityHomePage() {
       ) : officialQuery.isError ? (
         <ErrorState
           description={t("entities.detail.loadError")}
-          {...({ onRetry: () => void officialQuery.refetch() } as never)}
+          onRetry={() => void officialQuery.refetch()}
         />
       ) : data ? (
         <>
@@ -346,8 +346,7 @@ function EntityHomePage() {
         ) : (relationsQuery.data?.length ?? 0) === 0 ? (
           <SoftEmpty
             icon={Link2}
-            title={t("entities.relations.emptyTitle")}
-            description={t("entities.relations.emptyBody")}
+            message={t("entities.relations.emptyBody")}
           />
         ) : (
           <ul className="space-y-3">
