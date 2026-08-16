@@ -461,8 +461,13 @@ function PropertyProfilePage() {
         items={items}
         keepMounted
         value={openSection}
-        onValueChange={setOpenSection}
+        onValueChange={(next) => {
+          setOpenSection(next);
+          // Keep the section deep-linkable without a router navigation.
+          window.history.replaceState(null, "", next ? `#${next}` : window.location.pathname);
+        }}
       />
+
     </div>
   );
 }
