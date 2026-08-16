@@ -90,6 +90,29 @@ export const en: Translations = {
     personalAccount: "Personal account",
     personalAccountHint: "You are currently working in your personal account with no entity permissions.",
     loadError: "Could not load your profile.",
+    identity: {
+      title: "Personal identity",
+      status: "Identity status",
+      number: "Identity number",
+      none: "Not linked yet",
+      pending: "Format validated / awaiting official verification",
+      verified: "Officially verified",
+      rejected: "Rejected",
+      field: "National ID or Iqama number",
+      hint: "Ten digits starting with 1 or 2.",
+      submit: "Link / update identity",
+      saved: "Identity format validated and stored securely.",
+      nafathDisabled:
+        "Nafath integration is not enabled; this is a format check only, not official government verification.",
+      privacyNote:
+        "We never keep the full identity number; it is stored hashed with only the last four digits visible.",
+      loadError: "Could not load identity status.",
+      errors: {
+        INVALID_NATIONAL_ID: "Invalid identity number; it must be 10 digits starting with 1 or 2.",
+        IDENTITY_ALREADY_LINKED: "This identity number is linked to another account.",
+        UNKNOWN: "The operation could not be completed. Please try again.",
+      },
+    },
   },
   hero: {
     badge: "Solid digital foundations",
