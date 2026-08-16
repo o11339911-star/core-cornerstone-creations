@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, MailCheck } from "lucide-react";
+import { Loader2, MailCheck, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +14,18 @@ import { authCallbackUrl } from "@/lib/auth-origin";
 import { ResendConfirmation } from "@/components/auth/resend-confirmation";
 import { sanitizeRedirect } from "@/lib/safe-redirect";
 import { toLatinDigits } from "@/lib/format";
+import { isValidSaudiId, normalizeNationalId } from "@/lib/identity-format";
+import { signInWithIdentifierFn, signUpWithIdentityFn } from "@/lib/auth-identity.functions";
+import { NafathButton } from "@/components/auth/nafath-button";
 
 const signInSchema = z.object({
-  email: z.string().email(),
+  identifier: z
+    .string()
+    .trim()
+    .min(3)
+    .max(160)
+    // Single field: a valid e-mail OR a valid Saudi national ID / iqama.
+    .refine((v) => (v.includes("@") ? z.string().email().safeParse(v).success : isValidSaudiId(normalizeNationalId(v)))),
   password: z.string().min(8),
 });
 
@@ -26,6 +35,11 @@ const signUpSchema = z
   .object({
     fullName: z.string().trim().min(2).max(160),
     email: z.string().trim().email(),
+    nationalId: z
+      .string()
+      .trim()
+      .min(1)
+      .refine((v) => isValidSaudiId(normalizeNationalId(v)), { message: "nationalId" }),
     phone: z
       .string()
       .trim()
@@ -105,18 +119,36 @@ function SignInForm() {
 
   const form = useForm<SignInForm>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { identifier: "", password: "" },
   });
 
   const onSubmit = async (values: SignInForm) => {
     setError(null);
     setSubmitting(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: values.email,
-      password: values.password,
-    });
 
-    if (signInError) {
+    // The identifier is resolved on the server; the browser never learns the
+    // account e-mail behind a national ID, and every failure looks identical.
+    const identifier = values.identifier.includes("@")
+      ? values.identifier.trim()
+      : normalizeNationalId(values.identifier);
+
+    let result: Awaited<ReturnType<typeof signInWithIdentifierFn>>;
+    try {
+      result = await signInWithIdentifierFn({ data: { identifier, password: values.password } });
+    } catch {
+      setSubmitting(false);
+      setError(t("auth.invalidCredentials"));
+      return;
+    }
+
+    if (!result.ok) {
+      setSubmitting(false);
+      setError(result.reason === "throttled" ? t("auth.tooManyAttempts") : t("auth.invalidCredentials"));
+      return;
+    }
+
+    const { error: sessionError } = await supabase.auth.setSession(result.session);
+    if (sessionError) {
       setSubmitting(false);
       setError(t("auth.invalidCredentials"));
       return;
@@ -129,19 +161,24 @@ function SignInForm() {
     <>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <div className="space-y-2">
-          <Label htmlFor="email">{t("auth.email")}</Label>
+          <Label htmlFor="identifier">{t("auth.identifier")}</Label>
           <Input
-            id="email"
-            type="email"
-            autoComplete="email"
+            id="identifier"
+            type="text"
+            inputMode="text"
+            autoComplete="username"
             dir="ltr"
             className="h-11"
-            aria-invalid={Boolean(form.formState.errors.email)}
-            {...form.register("email")}
+            aria-describedby="identifier-hint"
+            aria-invalid={Boolean(form.formState.errors.identifier)}
+            {...form.register("identifier")}
           />
-          {form.formState.errors.email ? (
+          <p id="identifier-hint" className="text-xs text-muted-foreground">
+            {t("auth.identifierHint")}
+          </p>
+          {form.formState.errors.identifier ? (
             <p role="alert" className="text-xs font-medium text-destructive">
-              {t("auth.invalidEmail")}
+              {t("auth.identifierInvalid")}
             </p>
           ) : null}
         </div>
@@ -182,6 +219,8 @@ function SignInForm() {
         </Button>
       </form>
 
+      <NafathButton />
+
       <div className="text-sm">
         <Link to="/auth/forgot-password" className="inline-block min-h-11 py-2 text-primary hover:underline">
           {t("auth.forgotPassword")}
@@ -200,7 +239,14 @@ function SignUpFormView() {
 
   const form = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: "", email: "", phone: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      fullName: "",
+      email: "",
+      nationalId: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const onSubmit = async (values: SignUpForm) => {
@@ -209,27 +255,36 @@ function SignUpFormView() {
 
     const phone = values.phone ? toLatinDigits(values.phone).replace(/\s+/g, "") : "";
 
-    // `full_name` feeds the existing profiles trigger. No role or membership is
-    // ever derived from user metadata.
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        emailRedirectTo: authCallbackUrl(),
-        data: { full_name: values.fullName, ...(phone ? { phone } : {}) },
-      },
-    });
-
-    if (signUpError) {
+    // The account and the identity link are created in one server call; the
+    // raw identity number never touches storage, the URL or any log.
+    let result: Awaited<ReturnType<typeof signUpWithIdentityFn>>;
+    try {
+      result = await signUpWithIdentityFn({
+        data: {
+          email: values.email,
+          password: values.password,
+          fullName: values.fullName,
+          phone: phone || null,
+          nationalId: normalizeNationalId(values.nationalId),
+          redirectTo: authCallbackUrl(),
+        },
+      });
+    } catch {
       setSubmitting(false);
-      setError(signUpError.message.toLowerCase().includes("registered") ? t("auth.emailTaken") : t("auth.signUpFailed"));
+      setError(t("auth.signUpFailed"));
       return;
     }
 
-    if (data.session) {
-      if (phone) {
-        await supabase.from("profiles").update({ phone }).eq("id", data.session.user.id);
-      }
+    if (!result.ok) {
+      setSubmitting(false);
+      if (result.reason === "identity_taken") setError(t("auth.identityUnavailable"));
+      else if (result.reason === "invalid_id") setError(t("auth.nationalIdInvalid"));
+      else if (result.reason === "throttled") setError(t("auth.tooManyAttempts"));
+      else setError(t("auth.signUpFailed"));
+      return;
+    }
+
+    if (!result.needsConfirmation) {
       navigate({ to: "/dashboard", replace: true });
       return;
     }
@@ -281,6 +336,30 @@ function SignUpFormView() {
         {form.formState.errors.email ? (
           <p role="alert" className="text-xs font-medium text-destructive">
             {t("auth.invalidEmail")}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="signup-national-id">{t("auth.nationalId")}</Label>
+        <Input
+          id="signup-national-id"
+          type="text"
+          inputMode="numeric"
+          maxLength={10}
+          dir="ltr"
+          className="h-11"
+          autoComplete="off"
+          aria-describedby="national-id-hint"
+          aria-invalid={Boolean(form.formState.errors.nationalId)}
+          {...form.register("nationalId")}
+        />
+        <p id="national-id-hint" className="text-xs text-muted-foreground">
+          {t("auth.nationalIdHint")}
+        </p>
+        {form.formState.errors.nationalId ? (
+          <p role="alert" className="text-xs font-medium text-destructive">
+            {t("auth.nationalIdInvalid")}
           </p>
         ) : null}
       </div>
