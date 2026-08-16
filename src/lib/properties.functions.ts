@@ -488,11 +488,13 @@ export const addDeedVersion = createServerFn({ method: "POST" })
     let deedId = data.deedId ?? null;
 
     if (!deedId) {
+      // A new deed head without a number is not a record, it is a placeholder.
+      if (!data.deedNumber) throw new Error("DEED_NUMBER_REQUIRED");
       const { data: head, error } = await sb
         .from("deeds")
         .insert({
           property_id: data.propertyId,
-          deed_number: data.deedNumber ?? null,
+          deed_number: data.deedNumber,
           issuer: data.issuer ?? null,
           created_by: context.userId,
         })
@@ -502,15 +504,19 @@ export const addDeedVersion = createServerFn({ method: "POST" })
       deedId = head.id;
     } else if (data.deedNumber !== undefined || data.issuer !== undefined) {
       // Keep the deed head in sync so the UI never shows a stale number.
-      // RLS restricts this update to users who can manage the property.
-      const { error: headErr } = await sb
+      // Scoped by property as well as id: a head id from another property
+      // must never be reachable through this endpoint.
+      const { data: updated, error: headErr } = await sb
         .from("deeds")
         .update({
           ...(data.deedNumber !== undefined ? { deed_number: data.deedNumber } : {}),
           ...(data.issuer !== undefined ? { issuer: data.issuer } : {}),
         })
-        .eq("id", deedId);
-      if (headErr) {
+        .eq("id", deedId)
+        .eq("property_id", data.propertyId)
+        .select("id")
+        .maybeSingle();
+      if (headErr || !updated) {
         throw new Error("لا تملك صلاحية تعديل بيانات الصك لهذا العقار");
       }
     }
