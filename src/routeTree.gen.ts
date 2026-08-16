@@ -55,6 +55,7 @@ import { Route as AuthenticatedRequestsRequestIdRouteImport } from './routes/_au
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
 import { Route as AuthenticatedSettingsPrivacyRouteImport } from './routes/_authenticated/settings.privacy'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
+import { Route as AuthenticatedEntitiesEntityIdIndexRouteImport } from './routes/_authenticated/entities.$entityId.index'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdPublicProfileRouteImport } from './routes/_authenticated/entities.$entityId.public-profile'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
@@ -332,6 +333,12 @@ const AuthenticatedSettingsSecurityRoute =
     path: '/settings/security',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEntitiesEntityIdIndexRoute =
+  AuthenticatedEntitiesEntityIdIndexRouteImport.update({
+    id: '/entities/$entityId/',
+    path: '/entities/$entityId/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntitiesEntityIdInvitationsRoute =
   AuthenticatedEntitiesEntityIdInvitationsRouteImport.update({
     id: '/entities/$entityId/invitations',
@@ -531,6 +538,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/entities/$entityId/': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -598,6 +606,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/entities/$entityId': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -669,6 +678,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/_authenticated/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/_authenticated/entities/$entityId/': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/_authenticated/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -740,6 +750,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/entities/$entityId/'
     | '/projects/$projectId/'
     | '/entities/$entityId/template-imports/$importId'
   fileRoutesByTo: FileRoutesByTo
@@ -807,6 +818,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/entities/$entityId'
     | '/projects/$projectId'
     | '/entities/$entityId/template-imports/$importId'
   id:
@@ -877,6 +889,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/visits'
     | '/_authenticated/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/_authenticated/entities/$entityId/'
     | '/_authenticated/projects/$projectId/'
     | '/_authenticated/entities/$entityId/template-imports/$importId'
   fileRoutesById: FileRoutesById
@@ -1222,6 +1235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entities/$entityId/': {
+      id: '/_authenticated/entities/$entityId/'
+      path: '/entities/$entityId'
+      fullPath: '/entities/$entityId/'
+      preLoaderRoute: typeof AuthenticatedEntitiesEntityIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entities/$entityId/invitations': {
       id: '/_authenticated/entities/$entityId/invitations'
       path: '/entities/$entityId/invitations'
@@ -1449,6 +1469,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdTeamRoute: typeof AuthenticatedProjectsProjectIdTeamRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
   AuthenticatedProjectsProjectIdWarrantiesRoute: typeof AuthenticatedProjectsProjectIdWarrantiesRoute
+  AuthenticatedEntitiesEntityIdIndexRoute: typeof AuthenticatedEntitiesEntityIdIndexRoute
   AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute: typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
 }
@@ -1518,6 +1539,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdVisitsRoute,
   AuthenticatedProjectsProjectIdWarrantiesRoute:
     AuthenticatedProjectsProjectIdWarrantiesRoute,
+  AuthenticatedEntitiesEntityIdIndexRoute:
+    AuthenticatedEntitiesEntityIdIndexRoute,
   AuthenticatedProjectsProjectIdIndexRoute:
     AuthenticatedProjectsProjectIdIndexRoute,
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute:
