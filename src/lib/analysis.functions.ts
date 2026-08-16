@@ -31,13 +31,33 @@ export type AnalysisTarget = (typeof ANALYSIS_TARGETS)[number];
 
 const jsonValue: z.ZodType<unknown> = z.any();
 
-/** Persists a fresh (never yet reviewed) analysis draft for one document version. */
-export const recordAnalysis = createServerFn({ method: "POST" })
+/** Idempotently opens (or explicitly retries) the analysis job of one version. */
+export const startAnalysis = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         documentVersionId: z.string().uuid(),
+        retry: z.boolean().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: id, error } = await context.supabase.rpc("start_document_analysis", {
+      _document_version_id: data.documentVersionId,
+      _retry: data.retry ?? false,
+    });
+    if (error) throw new Error(error.message);
+    return { analysisId: id as string };
+  });
+
+/** Closes an open analysis job with the browser-side extraction outcome. */
+export const completeAnalysis = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        analysisId: z.string().uuid(),
         engine: z.enum(ANALYSIS_ENGINES),
         status: z.enum(ANALYSIS_STATUSES),
         detectedType: z.enum(ANALYSIS_DETECTED_TYPES).nullable().optional(),
@@ -49,8 +69,8 @@ export const recordAnalysis = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { data: id, error } = await context.supabase.rpc("record_document_analysis", {
-      _document_version_id: data.documentVersionId,
+    const { data: status, error } = await context.supabase.rpc("complete_document_analysis", {
+      _analysis_id: data.analysisId,
       _engine: data.engine,
       _status: data.status,
       _extracted_fields: (data.extractedFields ?? {}) as never,
@@ -60,7 +80,7 @@ export const recordAnalysis = createServerFn({ method: "POST" })
       ...(data.failureReason ? { _failure_reason: data.failureReason } : {}),
     });
     if (error) throw new Error(error.message);
-    return { analysisId: id as string };
+    return { status: String(status) };
   });
 
 /** Applies a reviewed analysis to a deed/licence head + version. Nothing is
@@ -92,6 +112,8 @@ export const confirmAnalysis = createServerFn({ method: "POST" })
         area: z.number().positive().finite().nullable().optional(),
         ownerSnapshot: z.string().trim().max(200).nullable().optional(),
         scopeText: z.string().trim().max(1000).nullable().optional(),
+        /** Only the reviewed field map (no raw document content). */
+        correctedFields: z.record(z.string(), z.string().max(500)).optional(),
       })
       .parse(input),
   )
@@ -110,6 +132,7 @@ export const confirmAnalysis = createServerFn({ method: "POST" })
         _area: data.area,
         _owner_snapshot: data.ownerSnapshot,
         _scope_text: data.scopeText,
+        _corrected_fields: data.correctedFields ?? {},
       }) as never,
     );
     if (error) throw new Error(error.message);
@@ -164,6 +187,13 @@ export const analysisRowSchema = z.object({
   review_note: z.string().nullable(),
   reviewed_by: z.string().uuid().nullable(),
   reviewed_at: z.string().nullable(),
+  attempt_no: z.number().nullable().optional(),
+  original_fields: z.record(z.string(), z.any()).nullable().optional(),
+  corrected_fields: z.record(z.string(), z.any()).nullable().optional(),
+  started_at: z.string().nullable().optional(),
+  completed_at: z.string().nullable().optional(),
+  analysis_confirmed_at: z.string().nullable().optional(),
+  analysis_confirmed_by: z.string().uuid().nullable().optional(),
   created_at: z.string(),
 });
 export type AnalysisRow = z.infer<typeof analysisRowSchema>;

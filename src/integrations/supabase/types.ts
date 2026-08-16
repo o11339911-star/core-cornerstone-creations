@@ -1710,7 +1710,12 @@ export type Database = {
       }
       document_analyses: {
         Row: {
+          analysis_confirmed_at: string | null
+          analysis_confirmed_by: string | null
+          attempt_no: number
+          completed_at: string | null
           conflicts: Json
+          corrected_fields: Json
           created_at: string
           created_by: string
           detected_type: string | null
@@ -1721,13 +1726,20 @@ export type Database = {
           failure_reason: string | null
           field_confidence: Json
           id: string
+          original_fields: Json
           review_note: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          started_at: string
           status: string
         }
         Insert: {
+          analysis_confirmed_at?: string | null
+          analysis_confirmed_by?: string | null
+          attempt_no?: number
+          completed_at?: string | null
           conflicts?: Json
+          corrected_fields?: Json
           created_at?: string
           created_by: string
           detected_type?: string | null
@@ -1738,13 +1750,20 @@ export type Database = {
           failure_reason?: string | null
           field_confidence?: Json
           id?: string
+          original_fields?: Json
           review_note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          started_at?: string
           status?: string
         }
         Update: {
+          analysis_confirmed_at?: string | null
+          analysis_confirmed_by?: string | null
+          attempt_no?: number
+          completed_at?: string | null
           conflicts?: Json
+          corrected_fields?: Json
           created_at?: string
           created_by?: string
           detected_type?: string | null
@@ -1755,9 +1774,11 @@ export type Database = {
           failure_reason?: string | null
           field_confidence?: Json
           id?: string
+          original_fields?: Json
           review_note?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          started_at?: string
           status?: string
         }
         Relationships: [
@@ -9659,6 +9680,19 @@ export type Database = {
         Args: { _appointment_id: string }
         Returns: undefined
       }
+      complete_document_analysis: {
+        Args: {
+          _analysis_id: string
+          _conflicts?: Json
+          _detected_type?: string
+          _engine: string
+          _extracted_fields?: Json
+          _failure_reason?: string
+          _field_confidence?: Json
+          _status: string
+        }
+        Returns: string
+      }
       complete_integration_request: {
         Args: {
           _error?: string
@@ -9685,6 +9719,7 @@ export type Database = {
         Args: {
           _analysis_id: string
           _area?: number
+          _corrected_fields?: Json
           _date_1?: string
           _date_2?: string
           _head_id?: string
@@ -10577,19 +10612,6 @@ export type Database = {
         Args: { _acceptance_id: string; _note?: string }
         Returns: undefined
       }
-      record_document_analysis: {
-        Args: {
-          _conflicts?: Json
-          _detected_type?: string
-          _document_version_id: string
-          _engine: string
-          _extracted_fields?: Json
-          _failure_reason?: string
-          _field_confidence?: Json
-          _status: string
-        }
-        Returns: string
-      }
       record_marketing_lead: {
         Args: {
           _channel_code?: string
@@ -10892,6 +10914,10 @@ export type Database = {
       }
       start_disbursement_review: {
         Args: { _note?: string; _request_id: string }
+        Returns: string
+      }
+      start_document_analysis: {
+        Args: { _document_version_id: string; _retry?: boolean }
         Returns: string
       }
       start_dsr_review: { Args: { _request_id: string }; Returns: undefined }
