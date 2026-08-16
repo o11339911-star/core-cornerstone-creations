@@ -420,7 +420,7 @@ export function OfficeEditor({
                       {row.slice(0, XLSX_MAX_COLS).map((cell, c) => (
                         <td key={c} className="border border-border p-0.5">
                           <Input
-                            value={cell.v}
+                            value={cell.f ?? cell.v}
                             aria-label={`خلية ${colName(c)}${r + 1}`}
                             onChange={(e) => setCell(r, c, e.target.value)}
                             className="h-9 w-28 rounded-lg text-sm"
