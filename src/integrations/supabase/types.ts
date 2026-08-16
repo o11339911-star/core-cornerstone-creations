@@ -1112,6 +1112,7 @@ export type Database = {
           id: string
           notes: string | null
           owner_user_id: string
+          second_party_status: string
           status: string
           title: string
           updated_at: string
@@ -1129,6 +1130,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_user_id: string
+          second_party_status?: string
           status?: string
           title: string
           updated_at?: string
@@ -1146,6 +1148,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_user_id?: string
+          second_party_status?: string
           status?: string
           title?: string
           updated_at?: string
@@ -1560,6 +1563,81 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      deal_parties: {
+        Row: {
+          acceptance_status: string
+          cr_number: string | null
+          created_at: string
+          deal_id: string
+          display_name: string
+          id: string
+          identifier_fingerprint: string | null
+          identifier_kind: string | null
+          identifier_last4: string | null
+          is_registered: boolean
+          matched_entity_id: string | null
+          matched_user_id: string | null
+          party_kind: string
+          party_role: string
+          responded_at: string | null
+          responded_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          acceptance_status?: string
+          cr_number?: string | null
+          created_at?: string
+          deal_id: string
+          display_name: string
+          id?: string
+          identifier_fingerprint?: string | null
+          identifier_kind?: string | null
+          identifier_last4?: string | null
+          is_registered?: boolean
+          matched_entity_id?: string | null
+          matched_user_id?: string | null
+          party_kind: string
+          party_role: string
+          responded_at?: string | null
+          responded_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acceptance_status?: string
+          cr_number?: string | null
+          created_at?: string
+          deal_id?: string
+          display_name?: string
+          id?: string
+          identifier_fingerprint?: string | null
+          identifier_kind?: string | null
+          identifier_last4?: string | null
+          is_registered?: boolean
+          matched_entity_id?: string | null
+          matched_user_id?: string | null
+          party_kind?: string
+          party_role?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_parties_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_parties_matched_entity_id_fkey"
+            columns: ["matched_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       deed_versions: {
         Row: {
@@ -10068,6 +10146,23 @@ export type Database = {
         Args: { _buyer_entity_id: string; _store_id: string }
         Returns: string
       }
+      create_contracting_deal: {
+        Args: {
+          _amount: number
+          _context_id: string
+          _context_type: string
+          _cr_number: string
+          _currency: string
+          _display_name: string
+          _entity_id: string
+          _identifier_fingerprint: string
+          _identifier_last4: string
+          _notes: string
+          _party_kind: string
+          _title: string
+        }
+        Returns: string
+      }
       create_document: {
         Args: {
           _category_code: string
@@ -11130,6 +11225,10 @@ export type Database = {
         Args: { _item_id: string; _reason: string }
         Returns: undefined
       }
+      respond_contracting_deal: {
+        Args: { _accept: boolean; _deal_id: string }
+        Returns: string
+      }
       respond_to_project_party: {
         Args: { _accept: boolean; _party_id: string }
         Returns: string
@@ -11328,6 +11427,27 @@ export type Database = {
       svc_auth_throttle: {
         Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean
+      }
+      svc_identity_backfill_pending: {
+        Args: never
+        Returns: {
+          plain: string
+          user_id: string
+        }[]
+      }
+      svc_identity_cipher: {
+        Args: { _actor: string; _user_id: string }
+        Returns: string
+      }
+      svc_identity_lookup: { Args: { _fingerprint: string }; Returns: string }
+      svc_identity_upsert: {
+        Args: {
+          _cipher: string
+          _fingerprint: string
+          _last4: string
+          _user_id: string
+        }
+        Returns: string
       }
       svc_register_identity: {
         Args: { _national_id: string; _user_id: string }
