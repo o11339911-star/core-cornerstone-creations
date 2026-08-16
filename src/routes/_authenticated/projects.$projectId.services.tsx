@@ -16,6 +16,7 @@ import {
 } from "@/components/rakeez";
 import { Wrench, ListChecks } from "lucide-react";
 import { listProperties } from "@/lib/properties.functions";
+import { useAccountUi } from "@/lib/account-ui";
 import {
   SERVICE_STATUSES,
   createServiceRequest,
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/servic
 
 function ServicesPage() {
   const t = useT();
+  const account = useAccountUi();
   const { projectId } = Route.useParams();
   const queryClient = useQueryClient();
 
@@ -64,7 +66,12 @@ function ServicesPage() {
   const [error, setError] = React.useState<string | null>(null);
 
   const catalogQuery = useQuery({ queryKey: ["service-catalog"], queryFn: () => fetchCatalog({}) });
-  const propertiesQuery = useQuery({ queryKey: ["properties"], queryFn: () => fetchProperties({}) });
+  const propertyEntityId = account.isDeveloper ? (account.activeEntity?.id ?? null) : null;
+  const propertiesQuery = useQuery({
+    queryKey: ["properties", propertyEntityId],
+    queryFn: () => fetchProperties({ data: { entityId: propertyEntityId! } }),
+    enabled: Boolean(propertyEntityId),
+  });
   const requestsQuery = useQuery({
     queryKey: ["service-requests", projectId, status],
     queryFn: () => fetchRequests({ data: { projectId, status: status === "" ? null : status } }),

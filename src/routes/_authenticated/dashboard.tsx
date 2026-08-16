@@ -97,14 +97,15 @@ function DashboardPage() {
 
   const account = useAccountUi();
 
+  // Exactly four balanced quick actions: no orphan card on a 2-column mobile
+  // grid, and the properties entry never enters the DOM for non-developers.
   const actions: { to: string; icon: typeof Store; label: string }[] = [
     { to: "/marketplace", icon: Store, label: "سوق الخدمات" },
     { to: "/appointments", icon: CalendarClock, label: "المواعيد" },
     { to: "/projects/new", icon: FolderPlus, label: "مشروع جديد" },
-    ...(account.isDeveloper
-      ? [{ to: "/properties", icon: Building2, label: "العقارات" }]
-      : []),
-    { to: "/settings/security", icon: ShieldCheck, label: t("common.security") },
+    account.isDeveloper
+      ? { to: "/properties", icon: Building2, label: "العقارات" }
+      : { to: "/settings/security", icon: ShieldCheck, label: t("common.security") },
   ];
 
   return (
@@ -176,20 +177,22 @@ function DashboardPage() {
                 <Link
                   to="/projects/$projectId"
                   params={{ projectId: r.project_id }}
-                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
+                  className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated sm:items-center sm:gap-4"
                 >
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
                     <MapPin className="size-5" aria-hidden="true" />
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-foreground">{r.name}</p>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {r.code ? `${r.code} · ` : ""}
-                      {[r.city, r.district].filter(Boolean).join(" / ") || "بلا موقع"}
-                      {` · مطابقة: ${MATCH_AR[r.match_field] ?? r.match_field}`}
-                    </p>
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-foreground">{r.name}</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {r.code ? `${r.code} · ` : ""}
+                        {[r.city, r.district].filter(Boolean).join(" / ") || "بلا موقع"}
+                        {` · مطابقة: ${MATCH_AR[r.match_field] ?? r.match_field}`}
+                      </p>
+                    </div>
+                    <div className="shrink-0">{statusChip(r.status)}</div>
                   </div>
-                  {statusChip(r.status)}
                 </Link>
               </li>
             ))}

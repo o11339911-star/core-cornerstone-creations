@@ -43,7 +43,7 @@ function PropertiesPage() {
 
   const query = useQuery({
     queryKey: ["properties", entityId],
-    queryFn: () => fetchProperties({ data: { entityId } }),
+    queryFn: () => fetchProperties({ data: { entityId: entityId! } }),
     enabled: Boolean(entityId),
   });
 
