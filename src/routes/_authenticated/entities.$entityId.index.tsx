@@ -47,6 +47,10 @@ import {
   requestEntityRelationship,
   updateEntityOfficial,
 } from "@/lib/entities.functions";
+import {
+  UNIFIED_NUMBER_PATTERN,
+  UNIFIED_NUMBER_REQUIRED_FORMS,
+} from "@/lib/entities.functions";
 
 export const Route = createFileRoute("/_authenticated/entities/$entityId/")({
   component: EntityHomePage,
