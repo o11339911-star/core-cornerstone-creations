@@ -91,11 +91,18 @@ export const propertyProfileSchema = z.object({
       owner_name_text: z.string().nullable(),
       owner_user_id: z.string().uuid().nullable(),
       owner_entity_id: z.string().uuid().nullable(),
+      owner_source: z.enum(["personal", "entity"]).nullable(),
+      owner_legal_form: z.string().nullable(),
+      owner_unified_number: z.string().nullable(),
+      owner_verification_status: z.string().nullable(),
+      is_primary: z.boolean(),
       share_percent: z.number(),
       starts_on: z.string(),
       ends_on: z.string().nullable(),
     })
     .array(),
+  can_manage_owner: z.boolean(),
+  needs_owner_fix: z.boolean(),
   deeds: z
     .object({
       id: z.string().uuid(),
@@ -196,7 +203,9 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
       await Promise.all([
         sb
           .from("property_owners")
-          .select("id, owner_name_text, owner_user_id, owner_entity_id, share_percent, starts_on, ends_on")
+          .select(
+            "id, owner_name_text, owner_user_id, owner_entity_id, owner_source, owner_legal_form, owner_unified_number, owner_verification_status, is_primary, share_percent, starts_on, ends_on",
+          )
           .eq("property_id", id)
           .order("created_at", { ascending: true }),
         sb.from("deeds").select("id, deed_number, issuer, current_version_id").eq("property_id", id),
@@ -236,12 +245,17 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
           .eq("property_id", id),
       ]);
 
+    const ownerRows = (owners.data ?? []) as PropertyProfile["owners"];
+    const { data: canManage } = await sb.rpc("can_manage_property_self", { _property_id: id });
+
     return propertyProfileSchema.parse({
       property: {
         ...property,
         can_view_exact: property.can_view_exact ?? false,
       },
-      owners: owners.data ?? [],
+      owners: ownerRows,
+      can_manage_owner: canManage,
+      needs_owner_fix: ownerRows.filter((o) => !o.ends_on).length === 0,
       deeds: (deeds.data ?? []).map((d) => ({
         ...d,
         versions: (deedVersions.data ?? []).filter((v) => v.deed_id === d.id),
@@ -307,7 +321,9 @@ export const createProperty = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    // Creating a registry property requires a verified developer entity.
+    // Creating a registry property requires a verified developer entity;
+    // the RPC re-derives the scope from the caller's own memberships and
+    // creates the 100% owner row atomically with the property.
     const { requireEntityOfType } = await import("@/lib/entity-scope.server");
     const scope = await requireEntityOfType(
       context.supabase,
@@ -316,33 +332,27 @@ export const createProperty = createServerFn({ method: "POST" })
       ["developer"],
     );
 
-    const { data: row, error } = await context.supabase
-      .from("properties")
-      .insert({
-        owner_id: context.userId,
-        created_by: context.userId,
-        entity_id: scope.entityId,
-        kind: data.kind,
-        name: data.name,
-        city: data.city || null,
-        district: data.district || null,
-        land_area: data.landArea ?? null,
-        plan_no: data.planNo || null,
-        parcel_no: data.parcelNo || null,
-        region: data.region || null,
-        address: data.address || null,
-        frontage: data.frontage || null,
-        streets: data.streets || null,
-        land_use: data.landUse || null,
-        approx_lat: data.approxLat ?? null,
-        approx_lng: data.approxLng ?? null,
-        notes: data.notes || null,
-      })
-      .select("id")
-      .single();
+    const { data: newId, error } = await context.supabase.rpc("create_property_with_owner", {
+      _kind: data.kind,
+      _name: data.name,
+      _entity_id: scope.entityId,
+      _city: data.city || null,
+      _district: data.district || null,
+      _land_area: data.landArea ?? null,
+      _plan_no: data.planNo || null,
+      _parcel_no: data.parcelNo || null,
+      _region: data.region || null,
+      _address: data.address || null,
+      _frontage: data.frontage || null,
+      _streets: data.streets || null,
+      _land_use: data.landUse || null,
+      _approx_lat: data.approxLat ?? null,
+      _approx_lng: data.approxLng ?? null,
+      _notes: data.notes || null,
+    });
 
-    if (error) throw error;
-    return { id: row.id };
+    if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
+    return { id: newId as string };
   });
 
 export const updatePropertyBasics = createServerFn({ method: "POST" })
@@ -420,46 +430,79 @@ export const setExactLocation = createServerFn({ method: "POST" })
 
 /* -------------------------------- owners -------------------------------- */
 
-export const addPropertyOwner = createServerFn({ method: "POST" })
+/** Options the correction dialog may offer: personal account + the caller's own active entities. */
+export const ownerOptionSchema = z.object({
+  value: z.string(),
+  label: z.string(),
+  kind: z.enum(["personal", "entity"]),
+  entityId: z.string().uuid().nullable(),
+});
+export type OwnerOption = z.infer<typeof ownerOptionSchema>;
+
+export const listOwnerOptions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<OwnerOption[]> => {
+    const now = new Date().toISOString();
+    const [{ data: profile }, { data: memberships }] = await Promise.all([
+      context.supabase.from("profiles").select("full_name").eq("id", context.userId).maybeSingle(),
+      context.supabase
+        .from("entity_memberships")
+        .select("entity:entities!inner(id, name, status, deleted_at)")
+        .eq("user_id", context.userId)
+        .eq("status", "active")
+        .eq("entities.status", "active")
+        .is("entities.deleted_at", null)
+        .or(`expires_at.is.null,expires_at.gt.${now}`),
+    ]);
+
+    const options: OwnerOption[] = [
+      {
+        value: "personal",
+        label: (profile as { full_name: string | null } | null)?.full_name ?? "",
+        kind: "personal",
+        entityId: null,
+      },
+    ];
+
+    for (const row of (memberships ?? []) as { entity: { id: string; name: string } }[]) {
+      options.push({
+        value: `entity:${row.entity.id}`,
+        label: row.entity.name,
+        kind: "entity",
+        entityId: row.entity.id,
+      });
+    }
+    return options;
+  });
+
+/**
+ * Replaces the primary owner with a derived one (personal or one of the
+ * caller's active entities). Authorization, the 100% share and the audit trail
+ * all live inside the RPC, so bypassing this layer changes nothing.
+ */
+export const setPropertyPrimaryOwner = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         propertyId: z.string().uuid(),
-        ownerNameText: z.string().trim().min(2).max(160).nullable().optional(),
-        ownerUserId: z.string().uuid().nullable().optional(),
-        ownerEntityId: z.string().uuid().nullable().optional(),
-        sharePercent: z.number().positive().max(100),
+        entityId: z.string().uuid().nullable(),
+        reason: z.string().trim().min(5).max(400),
       })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: row, error } = await context.supabase
-      .from("property_owners")
-      .insert({
-        property_id: data.propertyId,
-        owner_name_text: data.ownerNameText ?? null,
-        owner_user_id: data.ownerUserId ?? null,
-        owner_entity_id: data.ownerEntityId ?? null,
-        share_percent: data.sharePercent,
-      })
-      .select("id")
-      .single();
-    // The database trigger rejects any insert that pushes the live total past 100%.
-    if (error) throw error;
-    return { id: row.id };
-  });
-
-export const endPropertyOwner = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ ownerRowId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase
-      .from("property_owners")
-      .update({ ends_on: new Date().toISOString().slice(0, 10) })
-      .eq("id", data.ownerRowId);
-    if (error) throw error;
-    return { ok: true };
+    const { data: rowId, error } = await context.supabase.rpc("set_property_primary_owner", {
+      _property_id: data.propertyId,
+      _entity_id: data.entityId,
+      _reason: data.reason,
+    });
+    if (error) {
+      if (error.message.includes("FORBIDDEN")) throw new Error("FORBIDDEN");
+      if (error.message.includes("REASON_REQUIRED")) throw new Error("REASON_REQUIRED");
+      throw new Error(error.message);
+    }
+    return { id: rowId as string };
   });
 
 /* --------------------------- documents (versions) ------------------------ */
