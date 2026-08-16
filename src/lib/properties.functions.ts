@@ -265,7 +265,7 @@ export const createProperty = createServerFn({ method: "POST" })
       .object({
         kind: z.enum(PROPERTY_KINDS),
         name: z.string().trim().min(2).max(160),
-        entityId: z.string().uuid().nullable().optional(),
+        entityId: z.string().uuid(),
         city: z.string().trim().max(80).optional(),
         district: z.string().trim().max(80).optional(),
         landArea: z.number().positive().nullable().optional(),
@@ -278,12 +278,21 @@ export const createProperty = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
+    // Creating a registry property requires a verified developer entity.
+    const { requireEntityOfType } = await import("@/lib/entity-scope.server");
+    const scope = await requireEntityOfType(
+      context.supabase,
+      context.userId,
+      data.entityId,
+      ["developer"],
+    );
+
     const { data: row, error } = await context.supabase
       .from("properties")
       .insert({
         owner_id: context.userId,
         created_by: context.userId,
-        entity_id: data.entityId ?? null,
+        entity_id: scope.entityId,
         kind: data.kind,
         name: data.name,
         city: data.city || null,
