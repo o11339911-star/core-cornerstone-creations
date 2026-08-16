@@ -96,10 +96,13 @@ function NewProjectPage() {
     mutationFn: (input: Parameters<typeof createProject>[0]) => submitProject(input),
     onSuccess: (result) => {
       toast.success(t("projects.created"));
+      // The dashboard list must show the new project without a manual reload.
+      void queryClient.invalidateQueries({ queryKey: ["my-projects"] });
       navigate({ to: "/projects/$projectId", params: { projectId: result.id }, replace: true });
     },
     onError: () => toast.error(t("projects.createFailed")),
   });
+
 
   const localized = (ar: string, en: string) => (locale === "ar" ? ar : en);
 
