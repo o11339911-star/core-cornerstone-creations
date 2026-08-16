@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { ResponsiveModal, TextField, TextAreaField, normalizedInput } from "@/components/rakeez";
+import { ResponsiveModal, TextField, normalizedInput } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { addDeedVersion } from "@/lib/properties.functions";
 
