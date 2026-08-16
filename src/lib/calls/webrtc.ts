@@ -95,7 +95,12 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
     const send = async (kind: SignalRow["kind"], payload: Record<string, unknown>) => {
       await supabase
         .from("call_signals")
-        .insert({ call_id: callId, sender_entity_id: entityId, kind, payload });
+        .insert({
+          call_id: callId,
+          sender_entity_id: entityId,
+          kind,
+          payload: payload as never,
+        });
     };
 
     const pc = new RTCPeerConnection({ iceServers: iceServers() });
