@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { compactArgs } from "@/lib/rpc-args";
 
 /**
  * Unified property profile: identity, owners, deeds/licences (versioned),
@@ -332,7 +333,9 @@ export const createProperty = createServerFn({ method: "POST" })
       ["developer"],
     );
 
-    const { data: newId, error } = await context.supabase.rpc("create_property_with_owner", {
+    const { data: newId, error } = await context.supabase.rpc(
+      "create_property_with_owner",
+      compactArgs({
       _kind: data.kind,
       _name: data.name,
       _entity_id: scope.entityId,
@@ -349,7 +352,8 @@ export const createProperty = createServerFn({ method: "POST" })
       _approx_lat: data.approxLat ?? undefined,
       _approx_lng: data.approxLng ?? undefined,
       _notes: data.notes || undefined,
-    });
+      }),
+    );
 
     if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
     return { id: newId as string };
@@ -492,11 +496,14 @@ export const setPropertyPrimaryOwner = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: rowId, error } = await context.supabase.rpc("set_property_primary_owner", {
-      _property_id: data.propertyId,
-      _entity_id: data.entityId ?? undefined,
-      _reason: data.reason,
-    });
+    const { data: rowId, error } = await context.supabase.rpc(
+      "set_property_primary_owner",
+      compactArgs({
+        _property_id: data.propertyId,
+        _entity_id: data.entityId ?? undefined,
+        _reason: data.reason,
+      }),
+    );
     if (error) {
       if (error.message.includes("FORBIDDEN")) throw new Error("FORBIDDEN");
       if (error.message.includes("REASON_REQUIRED")) throw new Error("REASON_REQUIRED");
