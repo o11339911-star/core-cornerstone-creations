@@ -9,6 +9,7 @@ export const ar = {
     backHome: "العودة للرئيسية",
     cancel: "إلغاء",
     confirm: "تأكيد",
+    or: "أو",
     close: "إغلاق",
     submit: "إرسال",
     loading: "جارٍ التحميل…",

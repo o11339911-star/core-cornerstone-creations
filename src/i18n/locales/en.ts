@@ -11,6 +11,7 @@ export const en: Translations = {
     backHome: "Back to home",
     cancel: "Cancel",
     confirm: "Confirm",
+    or: "or",
     close: "Close",
     submit: "Submit",
     loading: "Loading…",
