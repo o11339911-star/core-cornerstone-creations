@@ -277,7 +277,7 @@ export function EntityClassificationCard({ entityId, legalFormCode, canManage }:
   );
 }
 
-function Chip({ label, onRemove }: { label: string; onRemove?: () => void }) {
+function Chip({ label, onRemove }: { label: string; onRemove?: (() => void) | undefined }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-xs font-medium text-primary">
       {label}
