@@ -287,7 +287,7 @@ function EntityStep({ onDone }: { onDone: () => void }) {
               <SelectContent>
                 {ENTITY_TYPES.map((item) => (
                   <SelectItem key={item} value={item}>
-                    {t(`entities.type.${item}`)}
+                    {t(`entities.types.${item}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -306,7 +306,7 @@ function EntityStep({ onDone }: { onDone: () => void }) {
               <SelectContent>
                 {REGISTRATION_LEGAL_FORMS.map((item) => (
                   <SelectItem key={item} value={item}>
-                    {t(`entities.legalForm.${item}`)}
+                    {t(`entities.legalForms.${item}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
