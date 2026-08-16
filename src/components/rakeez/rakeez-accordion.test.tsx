@@ -28,21 +28,21 @@ describe("property sections accordion", () => {
     const boundaries = screen.getByRole("button", { name: "الحدود والأطوال" });
     const units = screen.getByRole("button", { name: "الوحدات" });
 
-    expect(boundaries).toHaveAttribute("aria-expanded", "false");
-    expect(units).toHaveAttribute("aria-expanded", "false");
+    expect(boundaries.getAttribute("aria-expanded")).toBe("false");
+    expect(units.getAttribute("aria-expanded")).toBe("false");
 
     await user.click(boundaries);
-    expect(boundaries).toHaveAttribute("aria-expanded", "true");
+    expect(boundaries.getAttribute("aria-expanded")).toBe("true");
 
     // Opening "units" must close "boundaries".
     await user.click(units);
-    expect(units).toHaveAttribute("aria-expanded", "true");
-    expect(boundaries).toHaveAttribute("aria-expanded", "false");
+    expect(units.getAttribute("aria-expanded")).toBe("true");
+    expect(boundaries.getAttribute("aria-expanded")).toBe("false");
 
     // Clicking "units" again closes it, leaving every section collapsed.
     await user.click(units);
-    expect(units).toHaveAttribute("aria-expanded", "false");
-    expect(boundaries).toHaveAttribute("aria-expanded", "false");
+    expect(units.getAttribute("aria-expanded")).toBe("false");
+    expect(boundaries.getAttribute("aria-expanded")).toBe("false");
   });
 
   it("keeps closed panels mounted so unsaved input is not lost", async () => {
