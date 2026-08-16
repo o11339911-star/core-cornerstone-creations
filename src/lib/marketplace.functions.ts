@@ -25,6 +25,8 @@ export const listingSchema = z.object({
   status: z.string(),
   created_by: z.string().uuid(),
   created_at: z.string(),
+  project_id: z.string().uuid().nullable(),
+  request_id: z.string().uuid().nullable(),
 });
 export type ServiceListing = z.infer<typeof listingSchema>;
 
@@ -38,7 +40,7 @@ export const listingAreaSchema = z.object({
 export type ListingArea = z.infer<typeof listingAreaSchema>;
 
 const LISTING_COLS =
-  "id, entity_id, service_kind, title, description, price_min, price_max, status, created_by, created_at";
+  "id, entity_id, service_kind, title, description, price_min, price_max, status, created_by, created_at, project_id, request_id";
 
 export const listServiceListings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -93,6 +95,8 @@ export const publishServiceListing = createServerFn({ method: "POST" })
         priceMin: z.number().nullable().default(null),
         priceMax: z.number().nullable().default(null),
         publish: z.boolean().default(true),
+        projectId: uuid.nullable().default(null),
+        requestId: uuid.nullable().default(null),
       })
       .parse(input),
   )
@@ -106,9 +110,49 @@ export const publishServiceListing = createServerFn({ method: "POST" })
       ...(data.priceMin !== null ? { _price_min: data.priceMin } : {}),
       ...(data.priceMax !== null ? { _price_max: data.priceMax } : {}),
       _publish: data.publish,
+      _project_id: data.projectId,
+      _request_id: data.requestId,
     });
     if (error) throw new Error(error.message);
     return id as string;
+  });
+
+/**
+ * المشاريع والطلبات القابلة للربط بإعلان — من الكيان النشط حصرًا.
+ * القراءة تمر عبر RLS كالمستخدم، والتحقق النهائي يتكرر داخل
+ * publish_service_listing (رفض 42501 لأي معرّف خارج النطاق).
+ */
+export const listListingLinkables = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ entityId: uuid }).parse(input))
+  .handler(async ({ data, context }) => {
+    const projectsQ = await context.supabase
+      .from("projects")
+      .select("id, name")
+      .eq("entity_id", data.entityId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (projectsQ.error) throw new Error(projectsQ.error.message);
+    const projects = (projectsQ.data ?? []) as Array<{ id: string; name: string }>;
+
+    const projectIds = projects.map((p) => p.id);
+    const filters = [`assigned_entity_id.eq.${data.entityId}`];
+    if (projectIds.length > 0) filters.push(`project_id.in.(${projectIds.join(",")})`);
+    const requestsQ = await context.supabase
+      .from("requests")
+      .select("id, subject, request_no")
+      .or(filters.join(","))
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (requestsQ.error) throw new Error(requestsQ.error.message);
+    const requests = (requestsQ.data ?? []) as Array<{
+      id: string;
+      subject: string | null;
+      request_no: string | null;
+    }>;
+
+    return { projects, requests };
   });
 
 /* --------------------------------------------------- entitlements & plan */
