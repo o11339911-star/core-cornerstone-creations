@@ -11325,6 +11325,18 @@ export type Database = {
         Args: { _note?: string; _stage_id: string }
         Returns: string
       }
+      svc_auth_throttle: {
+        Args: { _key: string; _limit: number; _window_seconds: number }
+        Returns: boolean
+      }
+      svc_register_identity: {
+        Args: { _national_id: string; _user_id: string }
+        Returns: undefined
+      }
+      svc_resolve_identity_login: {
+        Args: { _national_id: string }
+        Returns: string
+      }
       terminate_marketing_contract: {
         Args: { _contract_id: string; _reason: string }
         Returns: undefined
