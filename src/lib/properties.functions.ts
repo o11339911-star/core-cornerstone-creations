@@ -843,6 +843,24 @@ export const addUnit = createServerFn({ method: "POST" })
 
 /* ---------------------------- project linking ---------------------------- */
 
+export const linkCandidateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  code: z.string().nullable(),
+  status: z.string(),
+  /** "own" = same account/entity, "contract" = allowed by an effective contract. */
+  source: z.enum(["own", "contract"]),
+  counterparty_name: z.string().nullable(),
+});
+export type LinkCandidate = z.infer<typeof linkCandidateSchema>;
+export type LinkCandidatePage = { items: LinkCandidate[]; total: number };
+
+/**
+ * Link creation goes through `public.link_property_project`, which re-derives
+ * authorization at write time under row locks (same entity, or an actually
+ * effective contract between both entities that explicitly covers the
+ * project). Client input can never widen that decision.
+ */
 export const linkPropertyToProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -854,15 +872,17 @@ export const linkPropertyToProject = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase.from("property_projects").insert({
-      property_id: data.propertyId,
-      project_id: data.projectId,
-      relation: data.relation,
-      linked_by: context.userId,
+  .handler(async ({ data, context }): Promise<{ ok: boolean; reason?: string }> => {
+    const { data: result, error } = await context.supabase.rpc("link_property_project", {
+      _property_id: data.propertyId,
+      _project_id: data.projectId,
+      _relation: data.relation,
     });
-    if (error) throw error;
-    return { ok: true };
+    if (error) throw new Error(error.message);
+    const parsed = z
+      .object({ ok: z.boolean(), reason: z.string().optional() })
+      .parse(result ?? { ok: false, reason: "unknown" });
+    return parsed;
   });
 
 export const unlinkPropertyFromProject = createServerFn({ method: "POST" })
@@ -877,16 +897,81 @@ export const unlinkPropertyFromProject = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Projects the current user can link this property to. */
-export const listLinkableProjects = createServerFn({ method: "GET" })
+/** Projects this property may be linked to: own account/entity, or contract-backed. */
+export const listLinkCandidateProjects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ id: string; name: string }[]> => {
-    const { data, error } = await context.supabase
-      .from("projects")
-      .select("id, name")
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) throw error;
-    return z.object({ id: z.string().uuid(), name: z.string() }).array().parse(data ?? []);
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        propertyId: z.string().uuid(),
+        q: z.string().trim().max(120).optional(),
+        page: z.number().int().min(1).max(100).optional(),
+        pageSize: z.number().int().min(1).max(50).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<LinkCandidatePage> => {
+    const pageSize = data.pageSize ?? 8;
+    const page = data.page ?? 1;
+    const { data: rows, error } = await context.supabase.rpc("list_link_candidate_projects", {
+      _property_id: data.propertyId,
+      _q: data.q && data.q.length > 0 ? data.q : undefined,
+      _limit: pageSize,
+      _offset: (page - 1) * pageSize,
+    });
+    if (error) throw new Error(error.message);
+    const list = rows ?? [];
+    return {
+      items: linkCandidateSchema.array().parse(
+        list.map((row) => ({
+          id: row.project_id,
+          name: row.name,
+          code: row.code,
+          status: row.status,
+          source: row.source,
+          counterparty_name: row.counterparty_name,
+        })),
+      ),
+      total: Number(list[0]?.total_count ?? 0),
+    };
   });
+
+/** Properties that may be linked to a project: own account/entity, or contract-backed. */
+export const listLinkCandidateProperties = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        projectId: z.string().uuid(),
+        q: z.string().trim().max(120).optional(),
+        page: z.number().int().min(1).max(100).optional(),
+        pageSize: z.number().int().min(1).max(50).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<LinkCandidatePage> => {
+    const pageSize = data.pageSize ?? 8;
+    const page = data.page ?? 1;
+    const { data: rows, error } = await context.supabase.rpc("list_link_candidate_properties", {
+      _project_id: data.projectId,
+      _q: data.q && data.q.length > 0 ? data.q : undefined,
+      _limit: pageSize,
+      _offset: (page - 1) * pageSize,
+    });
+    if (error) throw new Error(error.message);
+    const list = rows ?? [];
+    return {
+      items: linkCandidateSchema.array().parse(
+        list.map((row) => ({
+          id: row.property_id,
+          name: row.name,
+          code: row.code,
+          status: row.status,
+          source: row.source,
+          counterparty_name: row.counterparty_name,
+        })),
+      ),
+      total: Number(list[0]?.total_count ?? 0),
+    };
+  });
+
