@@ -1,11 +1,19 @@
 [
   {
     "batch": "28-C",
+    "id": "C3b",
+    "title": "بدء تنفيذ المرحلة بدور مدير",
+    "expect": "قبول",
+    "status": "PASS",
+    "evidence": "updated=1"
+  },
+  {
+    "batch": "28-C",
     "id": "C4b",
     "title": "رفع مرحلة للاعتماد بدور مدير",
     "expect": "قبول",
-    "status": "FAIL",
-    "evidence": "22023 | Only a stage in progress or in rework can be submitted (current: pending)"
+    "status": "PASS",
+    "evidence": "submitted"
   },
   {
     "batch": "28-C",
@@ -13,14 +21,14 @@
     "title": "فصل الواجبات: المدير الذي رفع لا يعتمد",
     "expect": "رفض خادمي",
     "status": "PASS",
-    "evidence": "22023 | Only a submitted stage can be approved (current: pending)"
+    "evidence": "42501 | The submitter cannot approve their own stage"
   },
   {
     "batch": "28-C",
     "id": "C6b",
     "title": "اعتماد المرحلة بدور مالك مختلف",
     "expect": "قبول",
-    "status": "FAIL",
-    "evidence": "22023 | Only a submitted stage can be approved (current: pending)"
+    "status": "PASS",
+    "evidence": "approved"
   }
 ]
