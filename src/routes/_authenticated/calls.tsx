@@ -127,7 +127,7 @@ function CallsPage() {
     if (!match) return;
     answeredRef.current = answer;
     answerMutation.mutate({ callId: match.id, accept: true, otherName: match.caller_name });
-    void navigate({ to: "/calls", search: {}, replace: true });
+    void navigate({ to: "/calls", search: { answer: undefined }, replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answer, entityId, active, center.data]);
 
