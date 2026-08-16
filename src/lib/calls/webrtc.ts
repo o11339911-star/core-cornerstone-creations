@@ -70,6 +70,9 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
   const pcRef = React.useRef<RTCPeerConnection | null>(null);
   const streamRef = React.useRef<MediaStream | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const sendRef = React.useRef<
+    ((kind: SignalRow["kind"], payload: Record<string, unknown>) => Promise<void>) | null
+  >(null);
 
   const cleanup = React.useCallback(() => {
     pcRef.current?.getSenders().forEach((s) => s.track?.stop());
@@ -89,6 +92,8 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
 
     let disposed = false;
     const handled = new Set<string>();
+    /** Candidates that arrive before the remote description is applied. */
+    const pendingIce: RTCIceCandidateInit[] = [];
     setErrorKey(null);
     setPhase("connecting");
 
@@ -102,6 +107,8 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
           payload: payload as never,
         });
     };
+    sendRef.current = send;
+
 
     const pc = new RTCPeerConnection({ iceServers: iceServers() });
     pcRef.current = pc;
