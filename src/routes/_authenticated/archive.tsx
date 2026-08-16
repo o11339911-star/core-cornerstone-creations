@@ -40,6 +40,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ErrorState, HeroBadge, PageHero, ResponsiveModal, SectionCard, SoftEmpty } from "@/components/rakeez";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  DOCX_MIME,
+  XLSX_MIME,
+  createDocxBlob,
+  createXlsxBlob,
+  withExtension,
+} from "@/lib/office-files";
 import { useAccountUi } from "@/lib/account-ui";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import {
@@ -96,6 +103,11 @@ const UPLOAD_ACTIONS: Array<{ key: AcceptKey; label: string; icon: typeof FileTe
   { key: "any", label: "رفع ملف عام", icon: Upload },
 ];
 
+const CREATE_ACTIONS = [
+  { key: "word" as const, label: "مستند Word جديد", icon: FileText },
+  { key: "excel" as const, label: "مصنف Excel جديد", icon: FileSpreadsheet },
+];
+
 const MAX_BYTES = 25 * 1024 * 1024;
 
 function safeName(name: string) {
@@ -126,6 +138,10 @@ function ArchivePage() {
   const [uploading, setUploading] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [accept, setAccept] = React.useState<string>("");
+  const [createKind, setCreateKind] = React.useState<"word" | "excel" | null>(null);
+  const [createName, setCreateName] = React.useState("");
+  const [createFolderId, setCreateFolderId] = React.useState<string | null>(null);
+  const [moveTarget, setMoveTarget] = React.useState<{ id: string; title: string } | null>(null);
 
   const folders = useQuery({
     queryKey: ["archive", "folders", entityId],
@@ -169,6 +185,65 @@ function ArchivePage() {
     },
     onError: () => toast.error("تعذّر حذف العنصر"),
   });
+
+  const moveMutation = useMutation({
+    mutationFn: (v: { id: string; folderId: string | null }) =>
+      patchItem({ data: { itemId: v.id, folderId: v.folderId } }),
+    onSuccess: () => {
+      toast.success("تم نقل العنصر");
+      setMoveTarget(null);
+      void qc.invalidateQueries({ queryKey: ["archive"] });
+    },
+    onError: () => toast.error("تعذّر نقل العنصر"),
+  });
+
+  const createOfficeMutation = useMutation({
+    mutationFn: async (v: { kind: "word" | "excel"; name: string; folderId: string | null }) => {
+      const fileName =
+        v.kind === "word" ? withExtension(v.name, ".docx") : withExtension(v.name, ".xlsx");
+      const blob =
+        v.kind === "word"
+          ? await createDocxBlob(v.name.trim())
+          : createXlsxBlob(v.name.trim(), ["البند", "الوصف", "القيمة"]);
+      const mime = v.kind === "word" ? DOCX_MIME : XLSX_MIME;
+      const prefix = await uploadPrefix({ data: { entityId } });
+      const path = `${prefix}/${crypto.randomUUID()}-${safeName(fileName)}`;
+      const { error } = await supabase.storage.from("archive").upload(path, blob, {
+        contentType: mime,
+        upsert: false,
+      });
+      if (error) throw new Error(error.message);
+      await addItem({
+        data: {
+          entityId,
+          folderId: v.folderId,
+          newFolderName: null,
+          title: fileName,
+          kind: "file",
+          sourceTable: null,
+          sourceId: null,
+          storagePath: path,
+          mimeType: mime,
+          sizeBytes: blob.size,
+          note: null,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("تم إنشاء الملف في الأرشيف");
+      setCreateKind(null);
+      setCreateName("");
+      void qc.invalidateQueries({ queryKey: ["archive"] });
+    },
+    onError: () => toast.error("تعذّر إنشاء الملف"),
+  });
+
+  const openCreate = (kind: "word" | "excel") => {
+    setSheetOpen(false);
+    setCreateKind(kind);
+    setCreateName("");
+    setCreateFolderId(folderId);
+  };
 
   const pickFile = (key: AcceptKey) => {
     setAccept(ACCEPTS[key]);
@@ -230,6 +305,11 @@ function ArchivePage() {
       <ContextMenuItem onSelect={() => setFolderDialog(true)}>
         <FolderPlus className="me-2 size-4" aria-hidden="true" /> مجلد جديد
       </ContextMenuItem>
+      {CREATE_ACTIONS.map((a) => (
+        <ContextMenuItem key={a.key} onSelect={() => openCreate(a.key)}>
+          <a.icon className="me-2 size-4" aria-hidden="true" /> {a.label}
+        </ContextMenuItem>
+      ))}
       <ContextMenuSeparator />
       {UPLOAD_ACTIONS.map((a) => (
         <ContextMenuItem key={a.key} onSelect={() => pickFile(a.key)}>
@@ -259,6 +339,22 @@ function ArchivePage() {
           >
             <Upload className="size-4" aria-hidden="true" />
             {uploading ? "جارٍ الرفع…" : "رفع ملف"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 gap-2"
+            onClick={() => openCreate("word")}
+          >
+            <FileText className="size-4" aria-hidden="true" /> مستند Word جديد
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 gap-2"
+            onClick={() => openCreate("excel")}
+          >
+            <FileSpreadsheet className="size-4" aria-hidden="true" /> مصنف Excel جديد
           </Button>
           <Button
             type="button"
@@ -417,6 +513,11 @@ function ArchivePage() {
                           </DropdownMenuItem>
                         ) : null}
                         <DropdownMenuItem
+                          onSelect={() => setMoveTarget({ id: item.id, title: item.title })}
+                        >
+                          <FolderPlus className="me-2 size-4" aria-hidden="true" /> نقل إلى مجلد
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onSelect={() => setRenameTarget({ id: item.id, title: item.title })}
                         >
                           <Pencil className="me-2 size-4" aria-hidden="true" /> إعادة تسمية
@@ -457,6 +558,17 @@ function ArchivePage() {
           >
             <FolderPlus className="size-4" aria-hidden="true" /> مجلد جديد
           </Button>
+          {CREATE_ACTIONS.map((a) => (
+            <Button
+              key={a.key}
+              type="button"
+              variant="outline"
+              className="min-h-12 justify-start gap-2"
+              onClick={() => openCreate(a.key)}
+            >
+              <a.icon className="size-4" aria-hidden="true" /> {a.label}
+            </Button>
+          ))}
           {UPLOAD_ACTIONS.map((a) => (
             <Button
               key={a.key}
@@ -494,6 +606,85 @@ function ArchivePage() {
             onChange={(e) => setFolderName(e.target.value)}
             className="min-h-11"
           />
+        </div>
+      </ResponsiveModal>
+
+      <ResponsiveModal
+        open={createKind !== null}
+        onOpenChange={(o) => !o && setCreateKind(null)}
+        title={createKind === "excel" ? "مصنف Excel جديد" : "مستند Word جديد"}
+        description="سيُنشأ ملف حقيقي داخل مخزن الأرشيف الخاص بالحساب النشط. لا يوجد محرر داخلي؛ نزّل الملف وحرّره في تطبيقك."
+        footer={
+          <Button
+            type="button"
+            className="min-h-11 w-full"
+            disabled={createOfficeMutation.isPending || createName.trim().length < 1}
+            onClick={() =>
+              createKind &&
+              createOfficeMutation.mutate({
+                kind: createKind,
+                name: createName,
+                folderId: createFolderId,
+              })
+            }
+          >
+            {createOfficeMutation.isPending ? "جارٍ الإنشاء…" : "إنشاء الملف"}
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="office-name">اسم الملف</Label>
+            <Input
+              id="office-name"
+              value={createName}
+              onChange={(e) => setCreateName(e.target.value)}
+              placeholder={createKind === "excel" ? "جدول الكميات" : "محضر اجتماع"}
+              className="min-h-11"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="office-folder">المجلد</Label>
+            <select
+              id="office-folder"
+              value={createFolderId ?? ""}
+              onChange={(e) => setCreateFolderId(e.target.value || null)}
+              className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+            >
+              <option value="">بدون مجلد</option>
+              {(folders.data ?? []).map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </ResponsiveModal>
+
+      <ResponsiveModal
+        open={moveTarget !== null}
+        onOpenChange={(o) => !o && setMoveTarget(null)}
+        title="نقل إلى مجلد"
+      >
+        <div className="space-y-2">
+          <Label htmlFor="move-folder">اختر المجلد</Label>
+          <select
+            id="move-folder"
+            defaultValue=""
+            onChange={(e) =>
+              moveTarget &&
+              moveMutation.mutate({ id: moveTarget.id, folderId: e.target.value || null })
+            }
+            className="min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+          >
+            <option value="">بدون مجلد</option>
+            {(folders.data ?? []).map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
         </div>
       </ResponsiveModal>
 
