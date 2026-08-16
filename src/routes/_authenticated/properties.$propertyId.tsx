@@ -9,13 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   CardsSkeleton,
   DataTable,
   EmptyState,
@@ -33,11 +26,10 @@ import { formatNumber } from "@/lib/format";
 import { DeedVersionModal } from "@/components/properties/DeedVersionModal";
 import { LicenseVersionModal } from "@/components/properties/LicenseVersionModal";
 import { OwnershipPanel } from "@/components/properties/OwnershipPanel";
+import { LinkProjectPanel } from "@/components/properties/LinkProjectPanel";
 import {
   getDocumentUrl,
   getPropertyProfile,
-  linkPropertyToProject,
-  listLinkableProjects,
   type PropertyProfile,
 } from "@/lib/properties.functions";
 import { getDocumentDownloadUrl } from "@/lib/documents.functions";
@@ -69,8 +61,6 @@ function PropertyProfilePage() {
   const queryClient = useQueryClient();
 
   const fetchProfile = useServerFn(getPropertyProfile);
-  const fetchProjects = useServerFn(listLinkableProjects);
-  const linkProject = useServerFn(linkPropertyToProject);
   const signUrl = useServerFn(getDocumentUrl);
   const signVersionUrl = useServerFn(getDocumentDownloadUrl);
 
@@ -79,25 +69,8 @@ function PropertyProfilePage() {
     queryFn: () => fetchProfile({ data: { propertyId } }),
   });
 
-  const projectsQuery = useQuery({
-    queryKey: ["linkable-projects"],
-    queryFn: () => fetchProjects(),
-  });
-
-  const [projectId, setProjectId] = React.useState("");
-
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
-
-  const linkMutation = useMutation({
-    mutationFn: (input: Parameters<typeof linkPropertyToProject>[0]) => linkProject(input),
-    onSuccess: () => {
-      toast.success(t("properties.links.linked"));
-      setProjectId("");
-      invalidate();
-    },
-    onError: () => toast.error(t("common.error")),
-  });
 
   const openDocument = async (versionRow: { document_version_id?: string | null; file_path: string | null }) => {
     try {
@@ -409,29 +382,7 @@ function PropertyProfilePage() {
             getRowId={(row) => row.id}
             emptyTitle={t("properties.links.none")}
           />
-          <div className="flex flex-wrap items-end gap-3">
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger className="min-h-11 w-64">
-                <SelectValue placeholder={t("properties.links.project")} />
-              </SelectTrigger>
-              <SelectContent>
-                {(projectsQuery.data ?? []).map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              className="min-h-11"
-              disabled={!projectId || linkMutation.isPending}
-              onClick={() =>
-                linkMutation.mutate({ data: { propertyId, projectId, relation: "related" } })
-              }
-            >
-              {linkMutation.isPending ? t("common.loading") : t("properties.links.link")}
-            </Button>
-          </div>
+          <LinkProjectPanel propertyId={propertyId} onLinked={invalidate} />
         </div>
       ),
     },
