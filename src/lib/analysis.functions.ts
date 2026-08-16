@@ -87,19 +87,22 @@ export const confirmAnalysis = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { data: id, error } = await context.supabase.rpc("confirm_document_analysis", {
-      _analysis_id: data.analysisId,
-      _property_id: data.propertyId,
-      _target: data.target,
-      _head_id: data.headId ?? null,
-      _number: data.number,
-      _issuer: data.issuer ?? null,
-      _date_1: data.date1 ?? null,
-      _date_2: data.date2 ?? null,
-      _area: data.area ?? null,
-      _owner_snapshot: data.ownerSnapshot ?? null,
-      _scope_text: data.scopeText ?? null,
-    });
+    const { data: id, error } = await context.supabase.rpc(
+      "confirm_document_analysis",
+      compactArgs({
+        _analysis_id: data.analysisId,
+        _property_id: data.propertyId,
+        _target: data.target,
+        _head_id: data.headId,
+        _number: data.number,
+        _issuer: data.issuer,
+        _date_1: data.date1,
+        _date_2: data.date2,
+        _area: data.area,
+        _owner_snapshot: data.ownerSnapshot,
+        _scope_text: data.scopeText,
+      }) as never,
+    );
     if (error) throw new Error(error.message);
     return { versionId: id as string };
   });

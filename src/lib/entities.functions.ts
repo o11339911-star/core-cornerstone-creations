@@ -182,8 +182,99 @@ export const entityOfficialSchema = z.object({
   verification_status: z.string().nullable(),
   verification_note: z.string().nullable(),
   verified_at: z.string().nullable(),
+  canManage: z.boolean(),
 });
 export type EntityOfficial = z.infer<typeof entityOfficialSchema>;
+
+/** Keeps only the last 4 characters of a sensitive value, masks the rest. */
+function maskTail(value: string | null): string | null {
+  if (!value) return value;
+  if (value.length <= 4) return "•".repeat(value.length);
+  return "•".repeat(value.length - 4) + value.slice(-4);
+}
+
+const MASKED_KEYS = [
+  "unified_national_number",
+  "cr_number",
+  "tax_number",
+  "contact_email",
+  "contact_phone",
+] as const;
+
+/**
+ * Derives whether the caller may see unmasked official identifiers and
+ * manage this entity's official record: owners/admins always can, and
+ * anyone else needs an explicit `members.manage_members` grant (checked the
+ * same way `entity_memberships` + `role_permissions` + `permission_grants`
+ * are checked everywhere else — deny always wins).
+ */
+async function computeCanManage(
+  supabase: { rpc: (...args: never[]) => unknown } & Record<string, never>,
+  userId: string,
+  entityId: string,
+): Promise<boolean> {
+  const sb = supabase as unknown as {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (
+          column: string,
+          value: string,
+        ) => { eq: (column: string, value: string) => { maybeSingle: () => Promise<{ data: unknown; error: unknown }> } };
+      };
+    };
+  };
+
+  const { data: membership, error: membershipError } = await sb
+    .from("entity_memberships")
+    .select("role")
+    .eq("entity_id", entityId)
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (membershipError) throw membershipError;
+
+  const role = (membership as { role?: string } | null)?.role ?? null;
+  if (role === "owner" || role === "admin") return true;
+  if (!role) return false;
+
+  const supabaseAny = supabase as unknown as {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => Record<string, unknown>;
+      };
+    };
+  };
+
+  const { data: rolePerms } = await (
+    supabaseAny.from("role_permissions").select("action") as unknown as {
+      eq: (c: string, v: string) => { eq: (c: string, v: string) => Promise<{ data: unknown }> };
+    }
+  )
+    .eq("role", role)
+    .eq("module", "members");
+  if ((rolePerms as { action: string }[] | null)?.some((p) => p.action === "manage_members")) {
+    return true;
+  }
+
+  const now = new Date().toISOString();
+  const { data: grants } = await (
+    supabaseAny
+      .from("permission_grants")
+      .select("action, effect, expires_at, revoked_at") as unknown as {
+      eq: (c: string, v: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => Promise<{ data: unknown }> } };
+    }
+  )
+    .eq("subject_user_id", userId)
+    .eq("scope_type", "entity")
+    .eq("scope_entity_id", entityId);
+
+  const live = ((grants as
+    | { action: string; effect: string; expires_at: string | null; revoked_at: string | null }[]
+    | null) ?? []).filter((g) => !g.revoked_at && (!g.expires_at || g.expires_at > now));
+  const denied = live.some((g) => g.action === "manage_members" && g.effect === "deny");
+  const allowed = live.some((g) => g.action === "manage_members" && g.effect === "allow");
+  return allowed && !denied;
+}
 
 export const getEntityOfficial = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -193,7 +284,21 @@ export const getEntityOfficial = createServerFn({ method: "GET" })
       _entity_id: data.entityId,
     });
     if (error) throw new Error(mapError(error.message));
-    return entityOfficialSchema.parse(row);
+
+    const canManage = await computeCanManage(
+      context.supabase as never,
+      context.userId,
+      data.entityId,
+    );
+
+    const parsed = entityOfficialSchema.omit({ canManage: true }).parse(row);
+    if (canManage) return { ...parsed, canManage };
+
+    const masked: EntityOfficial = { ...parsed, canManage };
+    for (const key of MASKED_KEYS) {
+      masked[key] = maskTail(parsed[key]);
+    }
+    return masked;
   });
 
 /** True when the caller can edit official data / manage relationships. */
@@ -210,7 +315,8 @@ export const getMyEntityRole = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw error;
     const role = (row as { role?: string } | null)?.role ?? null;
-    return { role, canManage: role === "owner" || role === "admin" };
+    const canManage = await computeCanManage(context.supabase as never, context.userId, data.entityId);
+    return { role, canManage };
   });
 
 /* ------------------------------- updating ------------------------------- */
