@@ -71,6 +71,11 @@ export const propertyProfileSchema = z.object({
     land_area: z.number().nullable(),
     plan_no: z.string().nullable(),
     parcel_no: z.string().nullable(),
+    region: z.string().nullable().optional(),
+    address: z.string().nullable().optional(),
+    frontage: z.string().nullable().optional(),
+    streets: z.string().nullable().optional(),
+    land_use: z.string().nullable().optional(),
     notes: z.string().nullable(),
     approx_lat: z.number().nullable(),
     approx_lng: z.number().nullable(),
@@ -103,7 +108,9 @@ export const propertyProfileSchema = z.object({
           version_no: z.number(),
           deed_date: z.string().nullable(),
           area: z.number().nullable(),
+          owner_name_snapshot: z.string().nullable().optional(),
           file_path: z.string().nullable(),
+          document_version_id: z.string().uuid().nullable().optional(),
           source: z.string(),
           created_at: z.string(),
         })
@@ -122,7 +129,9 @@ export const propertyProfileSchema = z.object({
           version_no: z.number(),
           issued_on: z.string().nullable(),
           expires_on: z.string().nullable(),
+          scope_text: z.string().nullable().optional(),
           file_path: z.string().nullable(),
+          document_version_id: z.string().uuid().nullable().optional(),
           source: z.string(),
           created_at: z.string(),
         })
@@ -193,7 +202,9 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
         sb.from("deeds").select("id, deed_number, issuer, current_version_id").eq("property_id", id),
         sb
           .from("deed_versions")
-          .select("id, deed_id, version_no, deed_date, area, file_path, source, created_at")
+          .select(
+            "id, deed_id, version_no, deed_date, area, owner_name_snapshot, file_path, document_version_id, source, created_at",
+          )
           .order("version_no", { ascending: false }),
         sb
           .from("building_licenses")
@@ -201,7 +212,9 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
           .eq("property_id", id),
         sb
           .from("license_versions")
-          .select("id, license_id, version_no, issued_on, expires_on, file_path, source, created_at")
+          .select(
+            "id, license_id, version_no, issued_on, expires_on, scope_text, file_path, document_version_id, source, created_at",
+          )
           .order("version_no", { ascending: false }),
         sb
           .from("land_boundaries")

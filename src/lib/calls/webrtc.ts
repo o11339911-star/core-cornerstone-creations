@@ -98,7 +98,9 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
     setPhase("connecting");
 
     const send = async (kind: SignalRow["kind"], payload: Record<string, unknown>) => {
-      await supabase
+      // supabase-js resolves with `{ error }` instead of throwing, so an
+      // RLS/validation rejection would otherwise stall the leg silently.
+      const { error } = await supabase
         .from("call_signals")
         .insert({
           call_id: callId,
@@ -106,6 +108,8 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
           kind,
           payload: payload as never,
         });
+      // The payload itself is never logged or surfaced.
+      if (error) throw new Error(`SIGNAL_INSERT_FAILED:${kind}`);
     };
     sendRef.current = send;
 
