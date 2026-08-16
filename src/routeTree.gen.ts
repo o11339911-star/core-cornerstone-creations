@@ -71,6 +71,7 @@ import { Route as AuthenticatedProjectsProjectIdReportsRouteImport } from './rou
 import { Route as AuthenticatedProjectsProjectIdRequestsRouteImport } from './routes/_authenticated/projects.$projectId.requests'
 import { Route as AuthenticatedProjectsProjectIdServicesRouteImport } from './routes/_authenticated/projects.$projectId.services'
 import { Route as AuthenticatedProjectsProjectIdStagesRouteImport } from './routes/_authenticated/projects.$projectId.stages'
+import { Route as AuthenticatedProjectsProjectIdTeamRouteImport } from './routes/_authenticated/projects.$projectId.team'
 import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
 import { Route as AuthenticatedProjectsProjectIdWarrantiesRouteImport } from './routes/_authenticated/projects.$projectId.warranties'
 import { Route as ApiPublicCronDurationScanRouteImport } from './routes/api.public.cron.duration-scan'
@@ -426,6 +427,12 @@ const AuthenticatedProjectsProjectIdStagesRoute =
     path: '/projects/$projectId/stages',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectsProjectIdTeamRoute =
+  AuthenticatedProjectsProjectIdTeamRouteImport.update({
+    id: '/projects/$projectId/team',
+    path: '/projects/$projectId/team',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdVisitsRoute =
   AuthenticatedProjectsProjectIdVisitsRouteImport.update({
     id: '/projects/$projectId/visits',
@@ -512,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/projects/$projectId/team': typeof AuthenticatedProjectsProjectIdTeamRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
@@ -577,6 +585,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/projects/$projectId/team': typeof AuthenticatedProjectsProjectIdTeamRoute
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
@@ -646,6 +655,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/requests': typeof AuthenticatedProjectsProjectIdRequestsRoute
   '/_authenticated/projects/$projectId/services': typeof AuthenticatedProjectsProjectIdServicesRoute
   '/_authenticated/projects/$projectId/stages': typeof AuthenticatedProjectsProjectIdStagesRoute
+  '/_authenticated/projects/$projectId/team': typeof AuthenticatedProjectsProjectIdTeamRoute
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/_authenticated/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
@@ -715,6 +725,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/requests'
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
+    | '/projects/$projectId/team'
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
@@ -780,6 +791,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/requests'
     | '/projects/$projectId/services'
     | '/projects/$projectId/stages'
+    | '/projects/$projectId/team'
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
@@ -848,6 +860,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/requests'
     | '/_authenticated/projects/$projectId/services'
     | '/_authenticated/projects/$projectId/stages'
+    | '/_authenticated/projects/$projectId/team'
     | '/_authenticated/projects/$projectId/visits'
     | '/_authenticated/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
@@ -1308,6 +1321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdStagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/projects/$projectId/team': {
+      id: '/_authenticated/projects/$projectId/team'
+      path: '/projects/$projectId/team'
+      fullPath: '/projects/$projectId/team'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects/$projectId/visits': {
       id: '/_authenticated/projects/$projectId/visits'
       path: '/projects/$projectId/visits'
@@ -1405,6 +1425,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsProjectIdRequestsRoute: typeof AuthenticatedProjectsProjectIdRequestsRoute
   AuthenticatedProjectsProjectIdServicesRoute: typeof AuthenticatedProjectsProjectIdServicesRoute
   AuthenticatedProjectsProjectIdStagesRoute: typeof AuthenticatedProjectsProjectIdStagesRoute
+  AuthenticatedProjectsProjectIdTeamRoute: typeof AuthenticatedProjectsProjectIdTeamRoute
   AuthenticatedProjectsProjectIdVisitsRoute: typeof AuthenticatedProjectsProjectIdVisitsRoute
   AuthenticatedProjectsProjectIdWarrantiesRoute: typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
@@ -1469,6 +1490,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjectsProjectIdServicesRoute,
   AuthenticatedProjectsProjectIdStagesRoute:
     AuthenticatedProjectsProjectIdStagesRoute,
+  AuthenticatedProjectsProjectIdTeamRoute:
+    AuthenticatedProjectsProjectIdTeamRoute,
   AuthenticatedProjectsProjectIdVisitsRoute:
     AuthenticatedProjectsProjectIdVisitsRoute,
   AuthenticatedProjectsProjectIdWarrantiesRoute:
