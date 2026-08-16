@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Store, MapPin, Sparkles } from "lucide-react";
+import { Store, MapPin, Plus, Sparkles } from "lucide-react";
 import { formatNumber } from "@/lib/format";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
   FieldGrid,
   HeroBadge,
   PageHero,
+  ResponsiveModal,
   SectionCard,
   SoftEmpty,
 } from "@/components/rakeez";
@@ -68,6 +69,7 @@ function MarketplacePage() {
   const publish = useServerFn(publishServiceListing);
 
   const [kindFilter, setKindFilter] = useState<string | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
   const [form, setForm] = useState({
     entityId: "",
     serviceKind: "design",
@@ -113,6 +115,7 @@ function MarketplacePage() {
       }),
     onSuccess: () => {
       toast.success("تم نشر الإعلان بهوية حسابك النشط");
+      setComposerOpen(false);
       setForm((f) => ({ ...f, title: "", description: "", city: "", priceMin: "", priceMax: "" }));
       void qc.invalidateQueries({ queryKey: ["marketplace"] });
     },

@@ -10,7 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArchiveButton } from "@/components/archive/archive-button";
 import { ErrorState, HeroBadge, PageHero, SoftEmpty } from "@/components/rakeez";
 import { useAccountUi } from "@/lib/account-ui";
-import { formatDate } from "@/lib/format";
 import { listMyProjects } from "@/lib/project-overview.functions";
 
 export const Route = createFileRoute("/_authenticated/projects/")({
@@ -128,8 +127,7 @@ function ProjectsBoxPage() {
                     <p className="mt-1 truncate text-xs text-muted-foreground">
                       {p.code ? <bdi dir="ltr">{p.code}</bdi> : null}
                       {p.city ? ` · ${p.city}` : ""}
-                      {" · "}
-                      <bdi dir="ltr">{formatDate(p.created_at)}</bdi>
+                      {p.template_name ? ` · ${p.template_name}` : ""}
                     </p>
                   </Link>
                   <ArchiveButton
