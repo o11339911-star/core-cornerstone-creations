@@ -45,6 +45,7 @@ import {
   type ExtractedFieldKey,
   type ExtractionResult,
 } from "@/lib/analysis/extract";
+import { normalizeArea, normalizeDateInput } from "@/lib/analysis/normalize";
 
 const FIELD_ORDER: ExtractedFieldKey[] = [
   "number",
