@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { compactArgs } from "@/lib/rpc-args";
 
 /**
  * Unified property profile: identity, owners, deeds/licences (versioned),
@@ -333,27 +332,32 @@ export const createProperty = createServerFn({ method: "POST" })
       ["developer"],
     );
 
-    const { data: newId, error } = await context.supabase.rpc(
-      "create_property_with_owner",
-      compactArgs({
+    // Optional RPC parameters are typed as non-nullable by the generated types;
+    // omit the empty ones so Postgres falls back to its defaults.
+    const optional: Record<string, string | number> = {};
+    const put = (key: string, value: string | number | null | undefined) => {
+      if (value !== null && value !== undefined && value !== "") optional[key] = value;
+    };
+    put("_city", data.city);
+    put("_district", data.district);
+    put("_land_area", data.landArea ?? undefined);
+    put("_plan_no", data.planNo);
+    put("_parcel_no", data.parcelNo);
+    put("_region", data.region);
+    put("_address", data.address);
+    put("_frontage", data.frontage);
+    put("_streets", data.streets);
+    put("_land_use", data.landUse);
+    put("_approx_lat", data.approxLat ?? undefined);
+    put("_approx_lng", data.approxLng ?? undefined);
+    put("_notes", data.notes);
+
+    const { data: newId, error } = await context.supabase.rpc("create_property_with_owner", {
       _kind: data.kind,
       _name: data.name,
       _entity_id: scope.entityId,
-      _city: data.city || undefined,
-      _district: data.district || undefined,
-      _land_area: data.landArea ?? undefined,
-      _plan_no: data.planNo || undefined,
-      _parcel_no: data.parcelNo || undefined,
-      _region: data.region || undefined,
-      _address: data.address || undefined,
-      _frontage: data.frontage || undefined,
-      _streets: data.streets || undefined,
-      _land_use: data.landUse || undefined,
-      _approx_lat: data.approxLat ?? undefined,
-      _approx_lng: data.approxLng ?? undefined,
-      _notes: data.notes || undefined,
-      }),
-    );
+      ...optional,
+    } as never);
 
     if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
     return { id: newId as string };
@@ -496,14 +500,11 @@ export const setPropertyPrimaryOwner = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: rowId, error } = await context.supabase.rpc(
-      "set_property_primary_owner",
-      compactArgs({
-        _property_id: data.propertyId,
-        _entity_id: data.entityId ?? undefined,
-        _reason: data.reason,
-      }),
-    );
+    const { data: rowId, error } = await context.supabase.rpc("set_property_primary_owner", {
+      _property_id: data.propertyId,
+      _reason: data.reason,
+      ...(data.entityId ? { _entity_id: data.entityId } : {}),
+    } as never);
     if (error) {
       if (error.message.includes("FORBIDDEN")) throw new Error("FORBIDDEN");
       if (error.message.includes("REASON_REQUIRED")) throw new Error("REASON_REQUIRED");
