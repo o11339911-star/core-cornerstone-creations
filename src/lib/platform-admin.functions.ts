@@ -233,3 +233,74 @@ export const denyBreakglass = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/* ------------------------------------------------------------------ *
+ * Platform admin directories (users / entities)
+ * Both RPCs re-check `private.is_platform_admin(auth.uid())` internally and
+ * never return password hashes, tokens, encrypted identity or raw metadata.
+ * ------------------------------------------------------------------ */
+
+export const adminUserRowSchema = z.object({
+  user_id: z.string(),
+  full_name: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  created_at: z.string(),
+  last_sign_in_at: z.string().nullable(),
+  email_confirmed: z.boolean(),
+  identity_status: z.string().nullable(),
+  identity_last4: z.string().nullable(),
+  active_memberships: z.number(),
+  registration_complete: z.boolean(),
+  total_count: z.number(),
+});
+export type AdminUserRow = z.infer<typeof adminUserRowSchema>;
+
+export const adminEntityRowSchema = z.object({
+  entity_id: z.string(),
+  name: z.string(),
+  type: z.string(),
+  status: z.string(),
+  legal_form: z.string().nullable(),
+  unified_national_number: z.string().nullable(),
+  verification_status: z.string().nullable(),
+  created_at: z.string(),
+  members_count: z.number(),
+  owner_name: z.string().nullable(),
+  total_count: z.number(),
+});
+export type AdminEntityRow = z.infer<typeof adminEntityRowSchema>;
+
+const listInput = z.object({
+  q: z.string().trim().max(160).optional(),
+  limit: z.number().int().min(1).max(100).optional(),
+  offset: z.number().int().min(0).optional(),
+});
+
+export const adminListUsers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => listInput.parse(input ?? {}))
+  .handler(async ({ data, context }): Promise<{ rows: AdminUserRow[]; total: number }> => {
+    const { data: rows, error } = await context.supabase.rpc("admin_list_users", {
+      _q: data.q && data.q.length > 0 ? data.q : null,
+      _limit: data.limit ?? 50,
+      _offset: data.offset ?? 0,
+    });
+    if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
+    const parsed = adminUserRowSchema.array().parse(rows ?? []);
+    return { rows: parsed, total: parsed[0]?.total_count ?? 0 };
+  });
+
+export const adminListEntities = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => listInput.parse(input ?? {}))
+  .handler(async ({ data, context }): Promise<{ rows: AdminEntityRow[]; total: number }> => {
+    const { data: rows, error } = await context.supabase.rpc("admin_list_entities", {
+      _q: data.q && data.q.length > 0 ? data.q : null,
+      _limit: data.limit ?? 50,
+      _offset: data.offset ?? 0,
+    });
+    if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
+    const parsed = adminEntityRowSchema.array().parse(rows ?? []);
+    return { rows: parsed, total: parsed[0]?.total_count ?? 0 };
+  });
