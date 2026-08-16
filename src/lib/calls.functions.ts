@@ -150,6 +150,24 @@ export const getCallCenter = createServerFn({ method: "POST" })
       };
     });
 
+    // A ringing session older than 60s is a missed call: reap it server-side so
+    // the callee never sees a stale banner and the caller sees the real outcome.
+    const stale = rows.filter((r) => r.status === "ringing" && Date.parse(r.started_at) <= cutoff);
+    if (stale.length) {
+      await Promise.all(
+        stale.map((r) =>
+          context.supabase
+            .from("call_sessions")
+            .update({ status: "missed", end_reason: "missed" })
+            .eq("id", r.id)
+            .eq("status", "ringing"),
+        ),
+      );
+      for (const r of stale) {
+        r.status = "missed";
+      }
+    }
+
     return {
       scoped: true,
       incoming: rows.filter(
@@ -162,6 +180,7 @@ export const getCallCenter = createServerFn({ method: "POST" })
       history: rows.filter((r) => r.status !== "ringing").slice(0, 25),
     };
   });
+
 
 export const startCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
