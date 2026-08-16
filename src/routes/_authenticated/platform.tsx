@@ -14,6 +14,8 @@ export const Route = createFileRoute("/_authenticated/platform")({
 
 const LINKS = [
   { to: "/platform/queue", label: "طابور المراجعة", icon: Inbox },
+  { to: "/platform/users", label: "المستخدمون", icon: UserSearch },
+  { to: "/platform/entities", label: "الكيانات", icon: Building2 },
   { to: "/platform/staff", label: "فريق المنصة", icon: Users },
   { to: "/platform/breakglass", label: "الوصول الطارئ", icon: ShieldAlert },
   { to: "/platform/integrations", label: "التكاملات", icon: PlugZap },
