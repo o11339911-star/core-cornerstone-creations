@@ -182,7 +182,7 @@ function AppointmentsPage() {
         badge={<HeroBadge>المرحلة 24</HeroBadge>}
       >
         <p className="mt-3 text-sm text-muted-foreground">
-          الاتصال المرئي المدمج مؤجَّل ولا يُدَّعى وجوده.
+          بعد تأكيد الموعد يصبح الاتصال الصوتي الداخلي متاحًا من صفحة الاتصال، بلا كشف أرقام الجوال.
         </p>
       </PageHero>
 
