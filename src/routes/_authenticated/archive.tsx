@@ -315,8 +315,6 @@ function ArchivePage() {
     }
   };
 
-  };
-
   const download = async (path: string) => {
     try {
       const url = await signUrl({ data: { path } });
