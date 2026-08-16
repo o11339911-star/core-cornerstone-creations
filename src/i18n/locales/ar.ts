@@ -1625,6 +1625,8 @@ export const ar = {
     noProperties: "لا توجد عقارات لهذا الكيان",
     startOver: "تحليل ملف آخر",
     goToProperty: "فتح ملف العقار",
+    invalidType: "نوع الملف غير مسموح لهذا التصنيف",
+    tooLarge: "حجم الملف يتجاوز الحد المسموح لهذا التصنيف",
     uploadAndAnalyze: "رفع الملف وبدء التحليل",
     stateUploaded: "تم رفع الملف",
     stateAnalyzing: "جارٍ التحليل…",

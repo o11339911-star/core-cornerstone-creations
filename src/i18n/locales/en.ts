@@ -1638,6 +1638,8 @@ export const en: Translations = {
     noProperties: "This entity has no properties",
     startOver: "Analyze another file",
     goToProperty: "Open property file",
+    invalidType: "This file type is not allowed for this category",
+    tooLarge: "File size exceeds the limit for this category",
     uploadAndAnalyze: "Upload file and start analysis",
     stateUploaded: "File uploaded",
     stateAnalyzing: "Analyzing…",

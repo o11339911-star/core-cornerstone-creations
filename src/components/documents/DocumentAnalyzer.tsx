@@ -223,11 +223,11 @@ export function DocumentAnalyzer({
       if (activeCategory) {
         const allowed = (activeCategory.allowed_mime as string[] | null) ?? null;
         if (allowed && allowed.length > 0 && file.type && !allowed.includes(file.type)) {
-          throw new Error(t("documents.invalidType"));
+          throw new Error(t("analysis.invalidType"));
         }
         const maxBytes = (activeCategory.max_size_mb ?? 0) * 1024 * 1024;
         if (maxBytes > 0 && file.size > maxBytes) {
-          throw new Error(t("documents.tooLarge"));
+          throw new Error(t("analysis.tooLarge"));
         }
       }
 
