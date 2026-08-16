@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { authCallbackUrl } from "@/lib/auth-origin";
+import { ResendConfirmation } from "@/components/auth/resend-confirmation";
 import { sanitizeRedirect } from "@/lib/safe-redirect";
 import { toLatinDigits } from "@/lib/format";
 
@@ -213,7 +215,7 @@ function SignUpFormView() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: authCallbackUrl(),
         data: { full_name: values.fullName, ...(phone ? { phone } : {}) },
       },
     });
@@ -242,6 +244,7 @@ function SignUpFormView() {
         <MailCheck className="mx-auto size-6 text-primary" aria-hidden="true" />
         <p className="text-sm font-semibold text-foreground">{t("auth.checkEmailTitle")}</p>
         <p className="text-xs text-muted-foreground">{t("auth.checkEmailBody")}</p>
+        <ResendConfirmation email={form.getValues("email")} />
       </div>
     );
   }

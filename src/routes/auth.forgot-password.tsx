@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { passwordResetUrl } from "@/lib/auth-origin";
 
 const forgotSchema = z.object({
   email: z.string().email(),
@@ -34,7 +35,7 @@ function ForgotPasswordPage() {
   const onSubmit = async (values: ForgotForm) => {
     setSubmitting(true);
     const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: passwordResetUrl(),
     });
     setSubmitting(false);
 

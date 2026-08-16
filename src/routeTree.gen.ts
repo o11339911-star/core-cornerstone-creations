@@ -25,6 +25,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthIndexRouteImport } from './routes/auth.index'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
@@ -63,6 +64,7 @@ import { Route as AuthenticatedSettingsMessagingRouteImport } from './routes/_au
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings.notifications'
 import { Route as AuthenticatedSettingsPrivacyRouteImport } from './routes/_authenticated/settings.privacy'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
+import { Route as ApiPublicTmpcheckRouteImport } from './routes/api/public/tmpcheck'
 import { Route as AuthenticatedEntitiesEntityIdIndexRouteImport } from './routes/_authenticated/entities.$entityId.index'
 import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './routes/_authenticated/entities.$entityId.invitations'
 import { Route as AuthenticatedEntitiesEntityIdPublicProfileRouteImport } from './routes/_authenticated/entities.$entityId.public-profile'
@@ -168,6 +170,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
@@ -387,6 +394,11 @@ const AuthenticatedSettingsSecurityRoute =
     path: '/settings/security',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicTmpcheckRoute = ApiPublicTmpcheckRouteImport.update({
+  id: '/api/public/tmpcheck',
+  path: '/api/public/tmpcheck',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedEntitiesEntityIdIndexRoute =
   AuthenticatedEntitiesEntityIdIndexRouteImport.update({
     id: '/entities/$entityId/',
@@ -541,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
@@ -575,6 +588,7 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/api/public/tmpcheck': typeof ApiPublicTmpcheckRoute
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
@@ -617,6 +631,7 @@ export interface FileRoutesByTo {
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
@@ -651,6 +666,7 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/api/public/tmpcheck': typeof ApiPublicTmpcheckRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
@@ -697,6 +713,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/e/$slug': typeof ESlugRoute
@@ -731,6 +748,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/privacy': typeof AuthenticatedSettingsPrivacyRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
+  '/api/public/tmpcheck': typeof ApiPublicTmpcheckRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
@@ -777,6 +795,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/platform'
     | '/profile'
+    | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/e/$slug'
@@ -811,6 +830,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/api/public/tmpcheck'
     | '/documents/'
     | '/platform/'
     | '/projects/'
@@ -853,6 +873,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/notifications'
     | '/profile'
+    | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/e/$slug'
@@ -887,6 +908,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/api/public/tmpcheck'
     | '/documents'
     | '/platform'
     | '/projects'
@@ -932,6 +954,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/_authenticated/platform'
     | '/_authenticated/profile'
+    | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/e/$slug'
@@ -966,6 +989,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/privacy'
     | '/_authenticated/settings/security'
+    | '/api/public/tmpcheck'
     | '/_authenticated/documents/'
     | '/_authenticated/platform/'
     | '/_authenticated/projects/'
@@ -1010,6 +1034,7 @@ export interface RootRouteChildren {
   MTokenRoute: typeof MTokenRoute
   MpTokenRoute: typeof MpTokenRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
+  ApiPublicTmpcheckRoute: typeof ApiPublicTmpcheckRoute
   ApiPublicCronDurationScanRoute: typeof ApiPublicCronDurationScanRoute
 }
 
@@ -1125,6 +1150,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/auth/'
       preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
     '/auth/forgot-password': {
@@ -1392,6 +1424,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/security'
       preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/tmpcheck': {
+      id: '/api/public/tmpcheck'
+      path: '/api/public/tmpcheck'
+      fullPath: '/api/public/tmpcheck'
+      preLoaderRoute: typeof ApiPublicTmpcheckRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/entities/$entityId/': {
       id: '/_authenticated/entities/$entityId/'
@@ -1725,12 +1764,14 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthIndexRoute: AuthIndexRoute,
@@ -1752,6 +1793,7 @@ const rootRouteChildren: RootRouteChildren = {
   MTokenRoute: MTokenRoute,
   MpTokenRoute: MpTokenRoute,
   VerifyTokenRoute: VerifyTokenRoute,
+  ApiPublicTmpcheckRoute: ApiPublicTmpcheckRoute,
   ApiPublicCronDurationScanRoute: ApiPublicCronDurationScanRoute,
 }
 export const routeTree = rootRouteImport
