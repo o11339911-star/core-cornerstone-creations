@@ -532,6 +532,7 @@ function ArchivePage() {
                         type="button"
                         variant="outline"
                         className="min-h-11 shrink-0 gap-2"
+                        aria-label={`فتح وتعديل ${item.title}`}
                         onClick={() =>
                           setOfficeTarget({
                             id: item.id,
