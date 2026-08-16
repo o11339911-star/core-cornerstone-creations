@@ -278,9 +278,13 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
   }, []);
 
   const hangup = React.useCallback(() => {
+    // Tell the peer before tearing the leg down; the row update that follows on
+    // the server also wipes the signalling rows.
+    void sendRef.current?.("hangup", {}).catch(() => undefined);
     cleanup();
     setPhase("ended");
   }, [cleanup]);
+
 
   const retry = React.useCallback(() => {
     cleanup();
