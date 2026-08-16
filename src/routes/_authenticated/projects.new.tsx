@@ -18,6 +18,7 @@ import { CardsSkeleton, ErrorState, FieldShell, HeroBadge, PageHero, SectionCard
 import { FolderPlus } from "lucide-react";
 import { useI18n, useT } from "@/i18n";
 import { useActiveAccount } from "@/lib/active-account";
+import { useAccountUi } from "@/lib/account-ui";
 import {
   createProject,
   listProjectTemplates,
@@ -51,6 +52,7 @@ function NewProjectPage() {
   const { locale } = useI18n();
   const navigate = useNavigate();
   const { scope } = useActiveAccount();
+  const { activeEntity, isDeveloper } = useAccountUi();
 
   const fetchTemplates = useServerFn(listProjectTemplates);
   const fetchStages = useServerFn(listStageTemplates);
@@ -63,7 +65,7 @@ function NewProjectPage() {
   const propertiesQuery = useQuery({
     queryKey: ["linkable-properties", entityId],
     queryFn: () => fetchProperties({ data: { entityId: entityId as string } }),
-    enabled: Boolean(entityId),
+    enabled: Boolean(entityId) && isDeveloper,
   });
 
   const [linkedPropertyId, setLinkedPropertyId] = React.useState<string>("");
@@ -90,6 +92,23 @@ function NewProjectPage() {
     enabled: Boolean(templateId),
   });
 
+  const retryLinkProperty = React.useCallback(
+    async (projectId: string, propertyId: string) => {
+      try {
+        await linkProperty({ data: { propertyId, projectId, relation: "primary" } });
+        toast.success(t("projects.linkRetrySuccess"));
+      } catch {
+        toast.error(t("projects.linkPropertyFailed"), {
+          action: {
+            label: t("projects.retryLink"),
+            onClick: () => void retryLinkProperty(projectId, propertyId),
+          },
+        });
+      }
+    },
+    [linkProperty, t],
+  );
+
   const mutation = useMutation({
     mutationFn: (input: Parameters<typeof createProject>[0]) => submitProject(input),
     onSuccess: async (result) => {
@@ -98,8 +117,23 @@ function NewProjectPage() {
           await linkProperty({
             data: { propertyId: linkedPropertyId, projectId: result.id, relation: "primary" },
           });
+          toast.success(t("projects.created"));
+          navigate({ to: "/dashboard", replace: true });
+          return;
         } catch {
-          toast.error(t("projects.linkPropertyFailed"));
+          // Do not pretend success: the project exists, but the link failed.
+          navigate({
+            to: "/projects/$projectId",
+            params: { projectId: result.id },
+            replace: true,
+          });
+          toast.warning(t("projects.createdLinkFailedTitle"), {
+            action: {
+              label: t("projects.retryLink"),
+              onClick: () => void retryLinkProperty(result.id, linkedPropertyId),
+            },
+          });
+          return;
         }
       }
       toast.success(t("projects.created"));
@@ -214,7 +248,9 @@ function NewProjectPage() {
 
           <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
             <span className="font-medium text-foreground">{t("projects.scope")}: </span>
-            {scope?.kind === "entity" ? scope.entityId : t("projects.scopePersonal")}
+            {scope?.kind === "entity"
+              ? (activeEntity?.name ?? t("projects.scopeEntity"))
+              : t("projects.scopePersonal")}
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
@@ -260,7 +296,7 @@ function NewProjectPage() {
             onChange={(event) => setNotes(event.target.value)}
           />
 
-          {entityId ? (
+          {entityId && isDeveloper ? (
             <FieldShell
               id="project-linked-property"
               label={t("projects.linkProperty")}
@@ -281,7 +317,11 @@ function NewProjectPage() {
                 </Select>
               )}
             </FieldShell>
-          ) : null}
+          ) : (
+            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+              {t("projects.linkPropertyNeedsDeveloper")}
+            </p>
+          )}
 
           <section aria-labelledby="stages-preview" className="rounded-xl border border-border p-4">
             <h2 id="stages-preview" className="text-base font-semibold text-foreground">

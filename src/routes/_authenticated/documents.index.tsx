@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
@@ -17,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, ErrorState, HeroBadge, PageHero, SectionCard } from "@/components/rakeez";
-import { FileText, UploadCloud } from "lucide-react";
+import { FileSearch, FileText, UploadCloud } from "lucide-react";
 import {
   DOC_VISIBILITIES,
   approveDocument,
@@ -32,9 +33,14 @@ import {
   type DocVisibility,
 } from "@/lib/documents.functions";
 
+const documentsSearchSchema = z.object({
+  entityId: z.string().uuid().optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/documents/")({
   component: DocumentsPage,
   errorComponent: ErrorState,
+  validateSearch: (search) => documentsSearchSchema.parse(search),
   head: () => ({
     meta: [
       { title: "مكتبة المستندات | ركيز" },
@@ -78,6 +84,7 @@ async function sha256Hex(file: File) {
 }
 
 function DocumentsPage() {
+  const { entityId: entityIdFilter } = Route.useSearch();
   const queryClient = useQueryClient();
   const fetchDocuments = useServerFn(listDocuments);
   const fetchCategories = useServerFn(listDocumentCategories);
@@ -102,13 +109,15 @@ function DocumentsPage() {
     queryFn: () => fetchCategories(),
   });
   const documentsQuery = useQuery({
-    queryKey: ["documents", filterVisibility],
+    queryKey: ["documents", filterVisibility, entityIdFilter],
     queryFn: () =>
       fetchDocuments({
-        data:
-          filterVisibility === "all"
+        data: {
+          ...(entityIdFilter ? { entityId: entityIdFilter } : {}),
+          ...(filterVisibility === "all"
             ? {}
-            : { visibility: filterVisibility as DocVisibility },
+            : { visibility: filterVisibility as DocVisibility }),
+        },
       }),
   });
 
@@ -269,7 +278,18 @@ function DocumentsPage() {
         badge={<HeroBadge tone="neutral">{documentsQuery.data?.length ?? 0}</HeroBadge>}
       />
 
-      <SectionCard icon={UploadCloud} title="إضافة مستند جديد">
+      <SectionCard
+        icon={UploadCloud}
+        title="إضافة مستند جديد"
+        action={
+          <Button asChild className="min-h-11">
+            <Link to="/documents/analyze">
+              <FileSearch className="me-2 size-4" />
+              رفع وتحليل
+            </Link>
+          </Button>
+        }
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label>الكيان المالك</Label>

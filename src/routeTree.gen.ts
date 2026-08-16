@@ -35,6 +35,7 @@ import { Route as MpTokenRouteImport } from './routes/mp.$token'
 import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as AuthenticatedAdminReportTemplatesRouteImport } from './routes/_authenticated/admin.report-templates'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
+import { Route as AuthenticatedDocumentsAnalyzeRouteImport } from './routes/_authenticated/documents.analyze'
 import { Route as AuthenticatedDrawingsDrawingIdRouteImport } from './routes/_authenticated/drawings.$drawingId'
 import { Route as AuthenticatedEntitiesNewRouteImport } from './routes/_authenticated/entities.new'
 import { Route as AuthenticatedNNotificationIdRouteImport } from './routes/_authenticated/n.$notificationId'
@@ -211,6 +212,12 @@ const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
     path: '/documents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDocumentsAnalyzeRoute =
+  AuthenticatedDocumentsAnalyzeRouteImport.update({
+    id: '/documents/analyze',
+    path: '/documents/analyze',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDrawingsDrawingIdRoute =
@@ -497,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth/': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/documents/analyze': typeof AuthenticatedDocumentsAnalyzeRoute
   '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -565,6 +573,7 @@ export interface FileRoutesByTo {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth': typeof AuthIndexRoute
   '/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/documents/analyze': typeof AuthenticatedDocumentsAnalyzeRoute
   '/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -637,6 +646,7 @@ export interface FileRoutesById {
   '/verify/$token': typeof VerifyTokenRoute
   '/auth/': typeof AuthIndexRoute
   '/_authenticated/admin/report-templates': typeof AuthenticatedAdminReportTemplatesRoute
+  '/_authenticated/documents/analyze': typeof AuthenticatedDocumentsAnalyzeRoute
   '/_authenticated/drawings/$drawingId': typeof AuthenticatedDrawingsDrawingIdRoute
   '/_authenticated/entities/new': typeof AuthenticatedEntitiesNewRoute
   '/_authenticated/n/$notificationId': typeof AuthenticatedNNotificationIdRoute
@@ -709,6 +719,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth/'
     | '/admin/report-templates'
+    | '/documents/analyze'
     | '/drawings/$drawingId'
     | '/entities/new'
     | '/n/$notificationId'
@@ -777,6 +788,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth'
     | '/admin/report-templates'
+    | '/documents/analyze'
     | '/drawings/$drawingId'
     | '/entities/new'
     | '/n/$notificationId'
@@ -848,6 +860,7 @@ export interface FileRouteTypes {
     | '/verify/$token'
     | '/auth/'
     | '/_authenticated/admin/report-templates'
+    | '/_authenticated/documents/analyze'
     | '/_authenticated/drawings/$drawingId'
     | '/_authenticated/entities/new'
     | '/_authenticated/n/$notificationId'
@@ -1093,6 +1106,13 @@ declare module '@tanstack/react-router' {
       path: '/documents'
       fullPath: '/documents/'
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/documents/analyze': {
+      id: '/_authenticated/documents/analyze'
+      path: '/documents/analyze'
+      fullPath: '/documents/analyze'
+      preLoaderRoute: typeof AuthenticatedDocumentsAnalyzeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/drawings/$drawingId': {
@@ -1436,6 +1456,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedAdminReportTemplatesRoute: typeof AuthenticatedAdminReportTemplatesRoute
+  AuthenticatedDocumentsAnalyzeRoute: typeof AuthenticatedDocumentsAnalyzeRoute
   AuthenticatedDrawingsDrawingIdRoute: typeof AuthenticatedDrawingsDrawingIdRoute
   AuthenticatedEntitiesNewRoute: typeof AuthenticatedEntitiesNewRoute
   AuthenticatedNNotificationIdRoute: typeof AuthenticatedNNotificationIdRoute
@@ -1485,6 +1506,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedAdminReportTemplatesRoute:
     AuthenticatedAdminReportTemplatesRoute,
+  AuthenticatedDocumentsAnalyzeRoute: AuthenticatedDocumentsAnalyzeRoute,
   AuthenticatedDrawingsDrawingIdRoute: AuthenticatedDrawingsDrawingIdRoute,
   AuthenticatedEntitiesNewRoute: AuthenticatedEntitiesNewRoute,
   AuthenticatedNNotificationIdRoute: AuthenticatedNNotificationIdRoute,
