@@ -122,7 +122,6 @@ function GateShell({
 }
 
 function CompletionFlow({ step }: { step: "identity" | "entity" }) {
-  const t = useT();
   const queryClient = useQueryClient();
   const [current, setCurrent] = React.useState<"identity" | "entity">(step);
 
