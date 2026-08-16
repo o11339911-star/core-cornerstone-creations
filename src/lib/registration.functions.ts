@@ -27,6 +27,7 @@ export type RegistrationState = z.infer<typeof registrationStateSchema>;
 export const REGISTRATION_LEGAL_FORMS = ["company", "establishment", "partnership"] as const;
 
 function mapError(message: string): string {
+  if (message.includes("EMAIL_NOT_VERIFIED")) return "EMAIL_NOT_VERIFIED";
   if (message.includes("IDENTITY_REQUIRED")) return "IDENTITY_REQUIRED";
   if (message.includes("OFFICIAL_ID_ALREADY_REGISTERED")) return "OFFICIAL_ID_ALREADY_REGISTERED";
   if (message.includes("INVALID_UNIFIED_NUMBER")) return "INVALID_UNIFIED_NUMBER";
@@ -59,6 +60,13 @@ export const completeRegistrationEntity = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ entityId: string }> => {
+    // Registration may never be completed as "verified" before Supabase Auth
+    // reports an actual confirmed e-mail address.
+    const { data: authUser, error: authError } = await context.supabase.auth.getUser();
+    if (authError || !authUser.user?.email_confirmed_at) {
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
+
     const { data: entityId, error } = await context.supabase.rpc("complete_registration_entity", {
       _name: data.name,
       _type: data.type,

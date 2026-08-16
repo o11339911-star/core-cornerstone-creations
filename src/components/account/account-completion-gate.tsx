@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ResendConfirmation } from "@/components/auth/resend-confirmation";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { toLatinDigits } from "@/lib/format";
@@ -90,6 +91,8 @@ export function AccountCompletionGate({ children }: { children: React.ReactNode 
   }
 
   if (state.data.complete) return <>{children}</>;
+
+  if (!state.data.bypass) return <EmailVerifiedGuard><CompletionFlow step={state.data.current_step === "entity" ? "entity" : "identity"} /></EmailVerifiedGuard>;
 
   return <CompletionFlow step={state.data.current_step === "entity" ? "entity" : "identity"} />;
 }
@@ -346,6 +349,47 @@ function EntityStep({ onDone }: { onDone: () => void }) {
           )}
         </Button>
       </form>
+    </GateShell>
+  );
+}
+
+/**
+ * Hard stop: nothing of the registration flow renders until Supabase Auth
+ * reports `email_confirmed_at`. The server function enforces the same rule.
+ */
+function EmailVerifiedGuard({ children }: { children: React.ReactNode }) {
+  const t = useT();
+  const verified = useQuery({
+    queryKey: ["auth-email-confirmed"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return Boolean(data.user?.email_confirmed_at);
+    },
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  if (verified.isPending) {
+    return (
+      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-10">
+        <Skeleton className="h-8 w-1/2 rounded-lg" />
+        <Skeleton className="h-48 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  if (verified.data === true) return <>{children}</>;
+
+  return (
+    <GateShell title={t("auth.emailNotVerifiedTitle")} description={t("auth.emailNotVerifiedBody")}>
+      <ResendConfirmation />
+      <Button
+        variant="outline"
+        className="min-h-11 w-full"
+        onClick={() => void verified.refetch()}
+      >
+        {t("common.retry")}
+      </Button>
     </GateShell>
   );
 }
