@@ -422,11 +422,9 @@ export function buildXlsxBlob(sheets: XlsxSheet[]): Blob {
         const ref = `${colName(c)}${r + 1}`;
         const raw = toAsciiDigits(cell.v ?? "");
         if (cell.f && isSafeFormula(cell.f)) {
-          cells.push(
-            `<c r="${ref}"><f>${esc(toAsciiDigits(cell.f).slice(1))}</f>${
-              raw ? `<v>${esc(raw)}</v>` : ""
-            }</c>`,
-          );
+          // القيمة المخزّنة تُكتب فقط إن كانت رقمية؛ Excel/LibreOffice يعيد الحساب عند الفتح
+          const cached = isNumeric(raw) ? `<v>${esc(raw.trim())}</v>` : "";
+          cells.push(`<c r="${ref}"><f>${esc(toAsciiDigits(cell.f).slice(1))}</f>${cached}</c>`);
         } else if (!raw) {
           return;
         } else if (isNumeric(raw)) {
