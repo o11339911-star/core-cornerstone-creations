@@ -25,6 +25,7 @@ import { ArchiveButton } from "@/components/archive/archive-button";
 import { getMyMemberships } from "@/lib/auth.functions";
 import {
   listListingAreas,
+  listListingLinkables,
   listServiceListings,
   publishServiceListing,
 } from "@/lib/marketplace.functions";
@@ -68,6 +69,7 @@ function MarketplacePage() {
   const fetchAreas = useServerFn(listListingAreas);
   const fetchMemberships = useServerFn(getMyMemberships);
   const publish = useServerFn(publishServiceListing);
+  const fetchLinkables = useServerFn(listListingLinkables);
 
   const [kindFilter, setKindFilter] = useState<string | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
@@ -79,12 +81,20 @@ function MarketplacePage() {
     city: "",
     priceMin: "",
     priceMax: "",
+    projectId: "",
+    requestId: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const memberships = useQuery({
     queryKey: ["my-memberships"],
     queryFn: () => fetchMemberships(),
+  });
+
+  const linkables = useQuery({
+    queryKey: ["marketplace", "linkables", form.entityId],
+    queryFn: () => fetchLinkables({ data: { entityId: form.entityId } }),
+    enabled: composerOpen && form.entityId.length > 0,
   });
 
   const listings = useQuery({
@@ -112,12 +122,23 @@ function MarketplacePage() {
           priceMin: form.priceMin ? Number(form.priceMin) : null,
           priceMax: form.priceMax ? Number(form.priceMax) : null,
           publish: true,
+          projectId: form.projectId || null,
+          requestId: form.requestId || null,
         },
       }),
     onSuccess: () => {
       toast.success("تم نشر الإعلان بهوية حسابك النشط");
       setComposerOpen(false);
-      setForm((f) => ({ ...f, title: "", description: "", city: "", priceMin: "", priceMax: "" }));
+      setForm((f) => ({
+        ...f,
+        title: "",
+        description: "",
+        city: "",
+        priceMin: "",
+        priceMax: "",
+        projectId: "",
+        requestId: "",
+      }));
       void qc.invalidateQueries({ queryKey: ["marketplace"] });
     },
     onError: (e: Error) =>
@@ -180,7 +201,9 @@ function MarketplacePage() {
             <select
               className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={form.entityId}
-              onChange={(e) => setForm({ ...form, entityId: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, entityId: e.target.value, projectId: "", requestId: "" })
+              }
             >
               <option value="">اختر الكيان…</option>
               {(memberships.data ?? []).map((m) => (
@@ -266,6 +289,48 @@ function MarketplacePage() {
           ) : null}
         </label>
 
+        <FieldGrid className="mt-4">
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium">ربط بمشروع (اختياري)</span>
+            <select
+              className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
+              value={form.projectId}
+              disabled={!form.entityId || linkables.isLoading}
+              onChange={(e) => setForm({ ...form, projectId: e.target.value })}
+            >
+              <option value="">بدون ربط</option>
+              {(linkables.data?.projects ?? []).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-muted-foreground">
+              تظهر مشاريع الكيان الناشر فقط.
+            </span>
+          </label>
+
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium">ربط بطلب (اختياري)</span>
+            <select
+              className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
+              value={form.requestId}
+              disabled={!form.entityId || linkables.isLoading}
+              onChange={(e) => setForm({ ...form, requestId: e.target.value })}
+            >
+              <option value="">بدون ربط</option>
+              {(linkables.data?.requests ?? []).map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.request_no ? `${r.request_no} — ` : ""}
+                  {r.subject ?? "طلب"}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-muted-foreground">
+              تظهر طلبات الكيان الناشر فقط.
+            </span>
+          </label>
+        </FieldGrid>
       </ResponsiveModal>
 
       <SectionCard
@@ -344,6 +409,16 @@ function MarketplacePage() {
                           ) : (
                             "غير محدد"
                           )
+                        }
+                      />
+                      <Field
+                        label="مرتبط بـ"
+                        value={
+                          l.project_id
+                            ? projectName(l.project_id)
+                            : l.request_id
+                              ? requestLabel(l.request_id)
+                              : "غير مرتبط"
                         }
                       />
                       <Field
