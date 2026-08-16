@@ -234,3 +234,11 @@ export const getArchiveFileUrl = createServerFn({ method: "POST" })
     if (error || !signed) throw new Error(error?.message ?? "SIGN_FAILED");
     return signed.signedUrl;
   });
+
+/** بادئة مسار التخزين للحساب النشط — التحقق النهائي يقع في سياسات التخزين. */
+export const getArchiveUploadPrefix = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ entityId }).parse(input ?? {}))
+  .handler(async ({ data, context }): Promise<string> =>
+    data.entityId ? `e/${data.entityId}` : `u/${context.userId}`,
+  );
