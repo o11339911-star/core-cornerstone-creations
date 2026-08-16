@@ -84,6 +84,12 @@ export const linkPersonalIdentity = createServerFn({ method: "POST" })
       _national_id: normalized,
     });
     if (error) throw new Error(mapError(error.message));
+
+    // Keep the reversible ciphertext + deterministic fingerprint in sync.
+    const { storeIdentitySecret } = await import("@/lib/identity-crypto.server");
+    const stored = await storeIdentitySecret(context.userId, normalized);
+    if (!stored) throw new Error("IDENTITY_ALREADY_LINKED");
+
     return identityStatusSchema.parse(row);
   });
 
