@@ -10955,7 +10955,9 @@ export type Database = {
           _entity_id: string
           _price_max?: number
           _price_min?: number
+          _project_id?: string
           _publish?: boolean
+          _request_id?: string
           _service_kind: string
           _title: string
         }

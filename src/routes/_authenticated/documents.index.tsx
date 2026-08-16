@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable, ErrorState, HeroBadge, PageHero, SectionCard } from "@/components/rakeez";
+import { ArchiveButton } from "@/components/archive/archive-button";
 import { FileSearch, FileText, UploadCloud } from "lucide-react";
 import {
   DOC_VISIBILITIES,
@@ -114,9 +115,7 @@ function DocumentsPage() {
       fetchDocuments({
         data: {
           ...(entityIdFilter ? { entityId: entityIdFilter } : {}),
-          ...(filterVisibility === "all"
-            ? {}
-            : { visibility: filterVisibility as DocVisibility }),
+          ...(filterVisibility === "all" ? {} : { visibility: filterVisibility as DocVisibility }),
         },
       }),
   });
@@ -257,6 +256,13 @@ function DocumentsPage() {
               اعتماد ونشر
             </Button>
           ) : null}
+          <ArchiveButton
+            compact
+            title={row.title}
+            kind="document"
+            sourceTable="documents"
+            sourceId={row.id}
+          />
           <Button
             size="sm"
             variant="ghost"
@@ -366,10 +372,7 @@ function DocumentsPage() {
 
           <div className="space-y-2 md:col-span-2">
             <Label>الملف</Label>
-            <Input
-              type="file"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            />
+            <Input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
           </div>
         </div>
         <Button

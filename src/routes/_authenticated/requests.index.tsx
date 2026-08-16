@@ -19,6 +19,7 @@ import { formatDateTime } from "@/lib/format";
 import { useAccountUi } from "@/lib/account-ui";
 import { listInboxRequests } from "@/lib/requests.functions";
 import { cn } from "@/lib/utils";
+import { ArchiveButton } from "@/components/archive/archive-button";
 
 export const Route = createFileRoute("/_authenticated/requests/")({
   component: RequestsInboxPage,
@@ -110,7 +111,16 @@ function RequestsInboxPage() {
         ) : (
           <ul className="space-y-3">
             {rows.map((r) => (
-              <li key={r.id}>
+              <li key={r.id} className="relative">
+                <span className="absolute end-3 top-3 z-10">
+                  <ArchiveButton
+                    compact
+                    title={r.subject}
+                    kind="request"
+                    sourceTable="requests"
+                    sourceId={r.id}
+                  />
+                </span>
                 <Link
                   to="/requests/$requestId"
                   params={{ requestId: r.id }}
