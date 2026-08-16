@@ -46,12 +46,15 @@ import {
   SectionCard,
   SoftEmpty,
 } from "@/components/rakeez";
+import { OfficeEditor, type OfficeTarget } from "@/components/archive/office-editor";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DOCX_MIME,
   XLSX_MIME,
   createDocxBlob,
   createXlsxBlob,
+  isMacroFile,
+  officeKindOf,
   withExtension,
 } from "@/lib/office-files";
 import { useAccountUi } from "@/lib/account-ui";
@@ -160,6 +163,7 @@ function ArchivePage() {
   const [createName, setCreateName] = React.useState("");
   const [createFolderId, setCreateFolderId] = React.useState<string | null>(null);
   const [moveTarget, setMoveTarget] = React.useState<{ id: string; title: string } | null>(null);
+  const [officeTarget, setOfficeTarget] = React.useState<OfficeTarget | null>(null);
 
   const folders = useQuery({
     queryKey: ["archive", "folders", entityId],
@@ -521,6 +525,27 @@ function ArchivePage() {
                           : ""}
                       </p>
                     </div>
+                    {item.storage_path &&
+                    officeKindOf(item.title, item.mime_type) &&
+                    !isMacroFile(item.title) ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="min-h-11 shrink-0 gap-2"
+                        onClick={() =>
+                          setOfficeTarget({
+                            id: item.id,
+                            title: item.title,
+                            storagePath: item.storage_path as string,
+                            kind: officeKindOf(item.title, item.mime_type) as "word" | "excel",
+                            folderId: item.folder_id,
+                          })
+                        }
+                      >
+                        <Pencil className="size-4" aria-hidden="true" />
+                        <span className="hidden sm:inline">فتح وتعديل</span>
+                      </Button>
+                    ) : null}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -536,6 +561,22 @@ function ArchivePage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel className="truncate">{item.title}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        {item.storage_path && officeKindOf(item.title, item.mime_type) ? (
+                          <DropdownMenuItem
+                            disabled={isMacroFile(item.title)}
+                            onSelect={() =>
+                              setOfficeTarget({
+                                id: item.id,
+                                title: item.title,
+                                storagePath: item.storage_path as string,
+                                kind: officeKindOf(item.title, item.mime_type) as "word" | "excel",
+                                folderId: item.folder_id,
+                              })
+                            }
+                          >
+                            <Pencil className="me-2 size-4" aria-hidden="true" /> فتح وتعديل
+                          </DropdownMenuItem>
+                        ) : null}
                         {item.storage_path ? (
                           <DropdownMenuItem
                             onSelect={() => void download(item.storage_path as string)}
@@ -644,7 +685,7 @@ function ArchivePage() {
         open={createKind !== null}
         onOpenChange={(o) => !o && setCreateKind(null)}
         title={createKind === "excel" ? "مصنف Excel جديد" : "مستند Word جديد"}
-        description="سيُنشأ ملف حقيقي داخل مخزن الأرشيف الخاص بالحساب النشط. لا يوجد محرر داخلي؛ نزّل الملف وحرّره في تطبيقك."
+        description="سيُنشأ ملف حقيقي داخل مخزن الأرشيف الخاص بالحساب النشط، ويمكن فتحه وتعديله داخل المنصة أو تنزيله."
         footer={
           <Button
             type="button"
@@ -746,6 +787,13 @@ function ArchivePage() {
           />
         </div>
       </ResponsiveModal>
+
+      <OfficeEditor
+        target={officeTarget}
+        entityId={entityId}
+        onClose={() => setOfficeTarget(null)}
+        onSaved={() => void qc.invalidateQueries({ queryKey: ["archive"] })}
+      />
     </div>
   );
 }
