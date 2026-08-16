@@ -480,8 +480,19 @@ export function DocumentAnalyzer({
                       id={`field-${key}`}
                       label={t(`analysis.field${toPascal(key)}` as any)}
                       value={fields[key] ?? ""}
-                      onChange={(e) => setFields((prev) => ({ ...prev, [key]: e.target.value }))}
+                      {...(fieldErrors[key] ? { error: fieldErrors[key] } : {})}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFieldErrors((prev) => {
+                          if (!prev[key]) return prev;
+                          const next = { ...prev };
+                          delete next[key];
+                          return next;
+                        });
+                        setFields((prev) => ({ ...prev, [key]: value }));
+                      }}
                     />
+                    
                   )}
                   {confidencePct !== null ? (
                     <p className="mt-1 text-xs text-muted-foreground">
