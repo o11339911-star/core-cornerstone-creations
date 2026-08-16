@@ -9614,6 +9614,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_manage_property_self: {
+        Args: { _property_id: string }
+        Returns: boolean
+      }
       cancel_appointment: {
         Args: { _appointment_id: string; _reason?: string }
         Returns: undefined
