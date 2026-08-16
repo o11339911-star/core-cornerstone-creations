@@ -25,6 +25,7 @@ import {
   resolveQueueItem,
   type QueueItem,
 } from "@/lib/platform-admin.functions";
+import { AdminIdentitySearch } from "@/components/identity/identity-search";
 
 export const Route = createFileRoute("/_authenticated/platform/queue")({
   component: PlatformQueuePage,

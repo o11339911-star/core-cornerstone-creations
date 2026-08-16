@@ -77,7 +77,7 @@ export function AdminIdentitySearch() {
       {results ? (
         results.length === 0 ? (
           <div className="mt-4">
-            <SoftEmpty icon={IdCard} title={t("identitySearch.empty")} />
+            <SoftEmpty icon={IdCard} message={t("identitySearch.empty")} />
           </div>
         ) : (
           <ul className="mt-4 divide-y divide-border text-sm">
@@ -188,7 +188,7 @@ export function ContractIdentityLookup({
 
       {notFound ? (
         <div className="mt-4">
-          <SoftEmpty icon={IdCard} title={t("identitySearch.empty")} />
+          <SoftEmpty icon={IdCard} message={t("identitySearch.empty")} />
         </div>
       ) : null}
 
