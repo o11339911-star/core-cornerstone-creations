@@ -256,6 +256,24 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
     });
   });
 
+/* ----------------------------- scope guard ------------------------------ */
+
+export const verifyDeveloperScope = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ entityId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true; entityId: string }> => {
+    const { requireEntityOfType } = await import("@/lib/entity-scope.server");
+    const scope = await requireEntityOfType(
+      context.supabase,
+      context.userId,
+      data.entityId,
+      ["developer"],
+    );
+    return { ok: true, entityId: scope.entityId };
+  });
+
 /* -------------------------------- create -------------------------------- */
 
 export const createProperty = createServerFn({ method: "POST" })
