@@ -139,9 +139,6 @@ function PropertyProfilePage() {
 
   const profile: PropertyProfile = query.data;
   const p = profile.property;
-  const totalShare = profile.owners
-    .filter((o) => !o.ends_on)
-    .reduce((sum, o) => sum + Number(o.share_percent), 0);
 
   const ownersPanel = (
     <OwnershipPanel
