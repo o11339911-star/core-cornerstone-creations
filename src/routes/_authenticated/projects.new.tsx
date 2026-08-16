@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -53,6 +53,7 @@ function NewProjectPage() {
   const t = useT();
   const { locale } = useI18n();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { scope } = useActiveAccount();
   const { activeEntity, isDeveloper } = useAccountUi();
 
