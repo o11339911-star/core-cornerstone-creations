@@ -332,6 +332,124 @@ export type Database = {
           },
         ]
       }
+      call_sessions: {
+        Row: {
+          accepted_at: string | null
+          answered_user_id: string | null
+          appointment_id: string
+          callee_entity_id: string
+          caller_entity_id: string
+          caller_user_id: string
+          created_at: string
+          duration_seconds: number | null
+          end_reason: string | null
+          ended_at: string | null
+          id: string
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          answered_user_id?: string | null
+          appointment_id: string
+          callee_entity_id: string
+          caller_entity_id: string
+          caller_user_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          answered_user_id?: string | null
+          appointment_id?: string
+          callee_entity_id?: string
+          caller_entity_id?: string
+          caller_user_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_callee_entity_id_fkey"
+            columns: ["callee_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_caller_entity_id_fkey"
+            columns: ["caller_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_signals: {
+        Row: {
+          call_id: string
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          sender_entity_id: string
+          sender_user_id: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          payload: Json
+          sender_entity_id: string
+          sender_user_id?: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          sender_entity_id?: string
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_signals_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_signals_sender_entity_id_fkey"
+            columns: ["sender_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart_items: {
         Row: {
           cart_id: string
