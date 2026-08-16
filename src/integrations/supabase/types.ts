@@ -10874,10 +10874,15 @@ export type Database = {
         }
         Returns: undefined
       }
-      set_property_primary_owner: {
-        Args: { _entity_id: string; _property_id: string; _reason: string }
-        Returns: string
-      }
+      set_property_primary_owner:
+        | {
+            Args: { _entity_id: string; _property_id: string; _reason: string }
+            Returns: string
+          }
+        | {
+            Args: { _entity_id?: string; _property_id: string; _reason: string }
+            Returns: undefined
+          }
       set_punch_item_status: {
         Args: { _item_id: string; _status: string }
         Returns: undefined
