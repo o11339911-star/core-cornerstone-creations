@@ -1,12 +1,27 @@
-import { useQuery } from "@tanstack/react-query";
+import * as React from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Bell, Building2, PlusCircle, Repeat, ShieldCheck, User } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  Bell,
+  Building2,
+  IdCard,
+  Loader2,
+  PlusCircle,
+  Repeat,
+  ShieldCheck,
+  User,
+} from "lucide-react";
+import { toast } from "sonner";
 
-import { CardsSkeleton, ErrorState, PageHero, SectionCard } from "@/components/rakeez";
+import { CardsSkeleton, ErrorState, PageHero, SectionCard, TextField } from "@/components/rakeez";
+import { Button } from "@/components/ui/button";
 import { entityTypeLabel } from "@/components/app-shell";
 import { useT } from "@/i18n";
 import { useAccountUi } from "@/lib/account-ui";
 import { getMyProfile } from "@/lib/auth.functions";
+import { toLatinDigits } from "@/lib/format";
+import { getMyIdentityStatus, isValidSaudiId, linkPersonalIdentity } from "@/lib/identity.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/profile")({
