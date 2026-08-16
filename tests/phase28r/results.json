@@ -1,0 +1,242 @@
+[
+  {
+    "batch": "28-A",
+    "id": "A1",
+    "title": "إنشاء 6 حسابات اختبار اصطناعية",
+    "expect": "إنشاء ناجح بمعرّفات مسجلة",
+    "status": "PASS",
+    "evidence": "users=6 run_id=08160355"
+  },
+  {
+    "batch": "28-A",
+    "id": "A2",
+    "title": "تسجيل الدخول بكلمة المرور لكل الحسابات",
+    "expect": "جلسة صالحة لكل حساب",
+    "status": "PASS",
+    "evidence": "sessions=6 (لا تُطبع التوكنات)"
+  },
+  {
+    "batch": "28-A",
+    "id": "A3",
+    "title": "إنشاء صف الملف الشخصي تلقائيًا",
+    "expect": "صف profiles موجود للمستخدم",
+    "status": "PASS",
+    "evidence": "rows=1"
+  },
+  {
+    "batch": "28-A",
+    "id": "A4",
+    "title": "منع قراءة ملف مستخدم آخر بلا علاقة",
+    "expect": "صفر صفوف بحكم RLS",
+    "status": "PASS",
+    "evidence": "rows=0"
+  },
+  {
+    "batch": "28-B",
+    "id": "B1",
+    "title": "كيانان اختباريان وخمس عضويات بأدوار مختلفة",
+    "expect": "تهيئة ناجحة",
+    "status": "PASS",
+    "evidence": "alpha=bcd232d7-4ccd-4d83-a929-033e0888b612 beta=dffa95e7-ace6-4f07-8a75-ffbd857c6136 memberships=5"
+  },
+  {
+    "batch": "28-B",
+    "id": "B2",
+    "title": "دعوة عضو عبر المسار الرسمي (المالك)",
+    "expect": "إنشاء دعوة ناجح",
+    "status": "PASS",
+    "evidence": "invitation created"
+  },
+  {
+    "batch": "28-B",
+    "id": "B3",
+    "title": "منع المشاهد من دعوة أعضاء",
+    "expect": "رفض خادمي صريح",
+    "status": "PASS",
+    "evidence": "42501 | Not allowed to invite members to this entity"
+  },
+  {
+    "batch": "28-B",
+    "id": "B4",
+    "title": "منع مالك كيان آخر من الدعوة داخل ألفا",
+    "expect": "رفض خادمي صريح",
+    "status": "PASS",
+    "evidence": "42501 | Not allowed to invite members to this entity"
+  },
+  {
+    "batch": "28-C",
+    "id": "C1",
+    "title": "إنشاء مشروع داخل كيان ألفا بدور مدير",
+    "expect": "إنشاء ناجح",
+    "status": "PASS",
+    "evidence": "project=96f64792-f41e-48bd-9937-a70be5048d2b"
+  },
+  {
+    "batch": "28-C",
+    "id": "C2",
+    "title": "منع المشاهد من إنشاء مشروع",
+    "expect": "رفض خادمي (RLS)",
+    "status": "FAIL",
+    "evidence": "ALLOWED (خط أحمر)"
+  },
+  {
+    "batch": "28-C",
+    "id": "C3",
+    "title": "توليد مراحل المشروع من القالب",
+    "expect": "إنشاء مراحل ناجح",
+    "status": "FAIL",
+    "evidence": "23514 | new row for relation \"project_stages\" violates check constraint \"project_stages_source_check\""
+  },
+  {
+    "batch": "28-C",
+    "id": "C7",
+    "title": "احتساب نسبة إنجاز المشروع",
+    "expect": "قيمة رقمية",
+    "status": "PASS",
+    "evidence": "{\"percent\":0,\"stages_done\":0,\"closure_done\":0,\"stages_total\":0,\"closure_total\":0}"
+  },
+  {
+    "batch": "28-E",
+    "id": "E1",
+    "title": "إنشاء طلب رسمي داخل المشروع",
+    "expect": "إنشاء ناجح",
+    "status": "PASS",
+    "evidence": "request=603ca6ad-e26e-4150-9bfb-db048bf8cdad"
+  },
+  {
+    "batch": "28-E",
+    "id": "E2",
+    "title": "إرسال رسالة داخل مراسلة الطلب",
+    "expect": "قبول",
+    "status": "PASS",
+    "evidence": "message posted"
+  },
+  {
+    "batch": "28-E",
+    "id": "E3",
+    "title": "منع كيان آخر من الكتابة في مراسلة الطلب",
+    "expect": "رفض خادمي",
+    "status": "PASS",
+    "evidence": "42501 | Not allowed to post on this request"
+  },
+  {
+    "batch": "28-G",
+    "id": "G1",
+    "title": "إنشاء سجل مخطط",
+    "expect": "إنشاء ناجح",
+    "status": "PASS",
+    "evidence": "drawing=c06d8dcb-7e61-4312-859a-048066d92a41"
+  },
+  {
+    "batch": "28-G",
+    "id": "G2",
+    "title": "تسجيل نسخة DWG جديدة",
+    "expect": "نسخة + مسار تخزين خاص",
+    "status": "PASS",
+    "evidence": "version=1 path=bcd232d7-4ccd-4d83-a929-033e0888b612/96f64792-f41e-48bd-9937…"
+  },
+  {
+    "batch": "28-G",
+    "id": "G3",
+    "title": "منع المشاهد من رفع نسخة مخطط",
+    "expect": "رفض خادمي",
+    "status": "PASS",
+    "evidence": "42501 | Not allowed to upload drawing versions"
+  },
+  {
+    "batch": "28-G",
+    "id": "G4",
+    "title": "منع كيان آخر من رفع نسخة على مخطط ألفا",
+    "expect": "رفض خادمي",
+    "status": "PASS",
+    "evidence": "42501 | Not allowed to upload drawing versions"
+  },
+  {
+    "batch": "28-G",
+    "id": "G5",
+    "title": "رابط مباشر لملف CAD بلا مصادقة",
+    "expect": "رفض",
+    "status": "PASS",
+    "evidence": "HTTP 400 :: {\"statusCode\":\"404\",\"error\":\"Bucket not found\",\"message\":\"Bucket not found\",\"code\":\"NoSuchBucket\"}"
+  },
+  {
+    "batch": "28-G",
+    "id": "G6",
+    "title": "رابط مباشر لملف CAD من كيان آخر",
+    "expect": "رفض",
+    "status": "PASS",
+    "evidence": "HTTP 400 :: {\"statusCode\":\"404\",\"error\":\"not_found\",\"message\":\"Object not found\",\"code\":\"NoSuchKey\"}"
+  },
+  {
+    "batch": "28-G",
+    "id": "G7",
+    "title": "تحويل حالة المخطط إلى قيد المراجعة",
+    "expect": "قبول",
+    "status": "PASS",
+    "evidence": "under_review"
+  },
+  {
+    "batch": "28-G",
+    "id": "G8",
+    "title": "فصل الواجبات: رافع النسخة لا يعتمدها داخليًا",
+    "expect": "رفض خادمي",
+    "status": "PASS",
+    "evidence": "42501 | The reviewer cannot be the uploader of the current revision"
+  },
+  {
+    "batch": "28-G",
+    "id": "G9",
+    "title": "بقاء تكامل APS معطّلًا (fail-closed)",
+    "expect": "الحالة disabled",
+    "status": "PASS",
+    "evidence": "{\"job_id\":\"ab418ecc-64fa-4681-af0d-77549d607822\",\"status\":\"disabled\",\"provider\":\"aps\"}"
+  },
+  {
+    "batch": "28-H",
+    "id": "H1",
+    "title": "قراءة مشروع ألفا صفًا مفردًا من بيتا",
+    "expect": "رفض خادمي موثّق (لا بيانات)",
+    "status": "PASS",
+    "evidence": "HTTP 406 :: PGRST116 | Cannot coerce the result to a single JSON object | The result contains 0 rows"
+  },
+  {
+    "batch": "28-H",
+    "id": "H2",
+    "title": "قراءة سجل مخطط ألفا من بيتا",
+    "expect": "رفض خادمي موثّق (لا بيانات)",
+    "status": "PASS",
+    "evidence": "HTTP 406 :: PGRST116 | Cannot coerce the result to a single JSON object | The result contains 0 rows"
+  },
+  {
+    "batch": "28-H",
+    "id": "H3",
+    "title": "تعديل اسم مشروع ألفا من بيتا",
+    "expect": "رفض خادمي موثّق (لا بيانات)",
+    "status": "PASS",
+    "evidence": "HTTP 200 :: صفر صفوف متأثرة (RLS تُخفي الصف قبل الكتابة)"
+  },
+  {
+    "batch": "28-H",
+    "id": "H4",
+    "title": "حذف مشروع ألفا من مستخدم خارجي",
+    "expect": "رفض خادمي موثّق (لا بيانات)",
+    "status": "PASS",
+    "evidence": "HTTP 403 :: 42501 | permission denied for table projects | Grant the required privileges to the current role with: GRANT DELETE ON public.projects TO authenticated;"
+  },
+  {
+    "batch": "28-H",
+    "id": "H5",
+    "title": "قراءة مشروع ألفا بمفتاح anon فقط",
+    "expect": "رفض خادمي موثّق (لا بيانات)",
+    "status": "PASS",
+    "evidence": "HTTP 401 :: 42501 | permission denied for table projects | Grant the required privileges to the current role with: GRANT SELECT ON public.projects TO anon;"
+  },
+  {
+    "batch": "28-H",
+    "id": "H6",
+    "title": "استدعاء RPC داخلية من كيان آخر (project_completion)",
+    "expect": "رفض خادمي موثّق (لا بيانات)",
+    "status": "PASS",
+    "evidence": "HTTP 200 :: صفر صفوف متأثرة (RLS تُخفي الصف قبل الكتابة)"
+  }
+]

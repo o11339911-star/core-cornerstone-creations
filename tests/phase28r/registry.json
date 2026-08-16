@@ -1,0 +1,35 @@
+{
+  "run_id": "08160355",
+  "users": {
+    "alpha-owner": "f15d01ca-5fa4-4d24-902e-763f0d7f23ff",
+    "alpha-manager": "e4db366e-2fc9-4346-a866-d4ee896c191d",
+    "alpha-member": "6fa0a8c1-e4a3-409a-a032-7142ec9cda6d",
+    "alpha-viewer": "3943961a-7898-4814-9181-17e458106bfc",
+    "beta-owner": "adef0905-816b-4e01-96c6-7fbbee306d3e",
+    "outsider": "e30ff84f-aeb6-4090-9d7d-b9c8aaffc7ce"
+  },
+  "entities": {
+    "alpha": "bcd232d7-4ccd-4d83-a929-033e0888b612",
+    "beta": "dffa95e7-ace6-4f07-8a75-ffbd857c6136"
+  },
+  "rows": {
+    "invitation": [
+      {
+        "invitation_id": "555fd7fe-2bdb-410f-bbb7-1ce6c564e483",
+        "token": "179e5ab53b3976a63ecf8b4d3b5fdfab0213851e5bce9811a0fdbf4aaf0afd8b"
+      }
+    ],
+    "project": "96f64792-f41e-48bd-9937-a70be5048d2b",
+    "viewerProject": "18b011a7-8fbf-4210-932e-0f294b2fb58c",
+    "stages": [
+      "81ee789d-bb87-407a-8f8d-558720eb7025",
+      "3133b3a3-ffab-484a-9e8d-a05a00072466"
+    ],
+    "request": "603ca6ad-e26e-4150-9bfb-db048bf8cdad",
+    "drawing": "c06d8dcb-7e61-4312-859a-048066d92a41",
+    "versionId": "a03c471d-18b9-4889-8adc-b56c23ea6b06",
+    "storagePath": "bcd232d7-4ccd-4d83-a929-033e0888b612/96f64792-f41e-48bd-9937-a70be5048d2b/0dd9fa99-334d-4129-a835-20c18375810c/a03c471d-18b9-4889-8adc-b56c23ea6b06.dwg",
+    "uploaded": true,
+    "document": "cb62358c-ba8e-4ff1-94dc-b087cf391ebf"
+  }
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "batch": "28-C",
+    "id": "C3",
+    "title": "توليد مراحل المشروع من القالب",
+    "expect": "إنشاء مراحل",
+    "status": "PASS",
+    "evidence": "stages=2"
+  },
+  {
+    "batch": "28-C",
+    "id": "C4",
+    "title": "رفع مرحلة للاعتماد بدور عضو",
+    "expect": "قبول أو رفض مفسَّر",
+    "status": "INFO",
+    "evidence": "42501 | Not allowed to submit this stage"
+  },
+  {
+    "batch": "28-C",
+    "id": "C5",
+    "title": "فصل الواجبات: مقدّم المرحلة لا يعتمدها",
+    "expect": "رفض خادمي",
+    "status": "PASS",
+    "evidence": "42501 | Not allowed to approve this stage"
+  },
+  {
+    "batch": "28-C",
+    "id": "C6",
+    "title": "اعتماد المرحلة بدور مدير",
+    "expect": "اعتماد ناجح",
+    "status": "INFO",
+    "evidence": "22023 | Only a submitted stage can be approved (current: pending)"
+  },
+  {
+    "batch": "28-C",
+    "id": "C8",
+    "title": "منع كيان آخر من اعتماد مرحلة ألفا",
+    "expect": "رفض خادمي",
+    "status": "PASS",
+    "evidence": "42501 | Not allowed to approve this stage"
+  },
+  {
+    "batch": "28-D",
+    "id": "D1",
+    "title": "إنشاء مستند خاص بالكيان",
+    "expect": "إنشاء ناجح",
+    "status": "PASS",
+    "evidence": "document=cb62358c-ba8e-4ff1-94dc-b087cf391ebf"
+  },
+  {
+    "batch": "28-D",
+    "id": "D2",
+    "title": "إضافة نسخة مستند (append-only)",
+    "expect": "قبول",
+    "status": "PASS",
+    "evidence": "[{\"version_id\":\"1070adac-f0fd-44d4-83a6-686d01a60e2f\",\"version_no\":1,\"storage_bucket\":\"documents\",\"storage_path\":\"bcd232"
+  },
+  {
+    "batch": "28-D",
+    "id": "D3",
+    "title": "منع كيان آخر من قراءة مستند خاص",
+    "expect": "رفض/صفر صفوف",
+    "status": "PASS",
+    "evidence": "HTTP 406 :: PGRST116 | Cannot coerce the result to a single JSON object | The result contains 0 rows"
+  },
+  {
+    "batch": "28-D",
+    "id": "D4",
+    "title": "منع anon من قراءة المستندات",
+    "expect": "رفض",
+    "status": "PASS",
+    "evidence": "HTTP 401 :: 42501 | permission denied for table documents | Grant the required privileges to the current role with: GRANT SELECT ON public.documents TO anon;"
+  }
+]
