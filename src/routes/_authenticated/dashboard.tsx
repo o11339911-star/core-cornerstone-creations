@@ -24,6 +24,7 @@ import {
 } from "@/components/rakeez";
 import { searchProjects } from "@/lib/project-overview.functions";
 import { useT } from "@/i18n";
+import { useAccountUi } from "@/lib/account-ui";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -93,6 +94,8 @@ function DashboardPage() {
     enabled: term.length >= 2,
     placeholderData: keepPreviousData,
   });
+
+  const account = useAccountUi();
 
   const actions: { to: string; icon: typeof Store; label: string }[] = [
     { to: "/marketplace", icon: Store, label: "سوق الخدمات" },
