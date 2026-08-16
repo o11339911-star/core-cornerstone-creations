@@ -215,3 +215,95 @@ export const closeRequest = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/**
+ * Cross-project requests inbox.
+ *
+ * Reuses `public.requests` and the existing correspondence thread: nothing is
+ * duplicated here. Scope is re-derived server-side from the caller's active
+ * membership; the client-sent `entityId` is only accepted after verification.
+ */
+export type InboxRequest = {
+  id: string;
+  request_no: string;
+  subject: string;
+  status: string;
+  priority: string;
+  project_id: string;
+  project_name: string;
+  updated_at: string;
+  action_required: boolean;
+};
+
+export const listInboxRequests = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        entityId: z.string().uuid().nullable().default(null),
+        filter: z.enum(["assigned", "created", "all"]).default("assigned"),
+        status: z.enum(REQUEST_STATUSES).nullable().default(null),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<InboxRequest[]> => {
+    const { requireEntityMembership } = await import("@/lib/entity-scope.server");
+
+    let entityId: string | null = null;
+    if (data.entityId) {
+      const me = await requireEntityMembership(context.supabase, context.userId, data.entityId);
+      entityId = me.entityId;
+    }
+
+    let query = context.supabase
+      .from("requests")
+      .select(
+        "id, request_no, subject, status, priority, project_id, requested_by, assigned_user_id, assigned_entity_id, updated_at, project:projects!inner(name)",
+      );
+
+    const mine = [
+      `assigned_user_id.eq.${context.userId}`,
+      ...(entityId ? [`assigned_entity_id.eq.${entityId}`] : []),
+    ];
+
+    if (data.filter === "assigned") {
+      query = query.or(mine.join(","));
+    } else if (data.filter === "created") {
+      query = query.eq("requested_by", context.userId);
+    } else {
+      query = query.or([`requested_by.eq.${context.userId}`, ...mine].join(","));
+    }
+
+    if (data.status) query = query.eq("status", data.status);
+
+    const { data: rows, error } = await query.order("updated_at", { ascending: false }).limit(100);
+    if (error) throw new Error(error.message);
+
+    type Row = {
+      id: string;
+      request_no: string;
+      subject: string;
+      status: string;
+      priority: string;
+      project_id: string;
+      assigned_user_id: string | null;
+      assigned_entity_id: string | null;
+      updated_at: string;
+      project: { name: string } | null;
+    };
+
+    return ((rows ?? []) as unknown as Row[]).map((r) => ({
+      id: r.id,
+      request_no: r.request_no,
+      subject: r.subject,
+      status: r.status,
+      priority: r.priority,
+      project_id: r.project_id,
+      project_name: r.project?.name ?? "",
+      updated_at: r.updated_at,
+      action_required:
+        ["submitted", "in_review", "info_needed"].includes(r.status) &&
+        (r.assigned_user_id === context.userId ||
+          (entityId != null && r.assigned_entity_id === entityId)),
+    }));
+  });
