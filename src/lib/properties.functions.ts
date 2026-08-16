@@ -872,7 +872,7 @@ export const linkPropertyToProject = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, context }): Promise<{ ok: boolean; reason?: string }> => {
+  .handler(async ({ data, context }): Promise<{ ok: boolean; reason: string | null }> => {
     const { data: result, error } = await context.supabase.rpc("link_property_project", {
       _property_id: data.propertyId,
       _project_id: data.projectId,
@@ -882,7 +882,7 @@ export const linkPropertyToProject = createServerFn({ method: "POST" })
     const parsed = z
       .object({ ok: z.boolean(), reason: z.string().optional() })
       .parse(result ?? { ok: false, reason: "unknown" });
-    return parsed;
+    return { ok: parsed.ok, reason: parsed.reason ?? null };
   });
 
 export const unlinkPropertyFromProject = createServerFn({ method: "POST" })
@@ -915,7 +915,7 @@ export const listLinkCandidateProjects = createServerFn({ method: "GET" })
     const page = data.page ?? 1;
     const { data: rows, error } = await context.supabase.rpc("list_link_candidate_projects", {
       _property_id: data.propertyId,
-      _q: data.q && data.q.length > 0 ? data.q : undefined,
+      ...(data.q && data.q.length > 0 ? { _q: data.q } : {}),
       _limit: pageSize,
       _offset: (page - 1) * pageSize,
     });
@@ -954,7 +954,7 @@ export const listLinkCandidateProperties = createServerFn({ method: "GET" })
     const page = data.page ?? 1;
     const { data: rows, error } = await context.supabase.rpc("list_link_candidate_properties", {
       _project_id: data.projectId,
-      _q: data.q && data.q.length > 0 ? data.q : undefined,
+      ...(data.q && data.q.length > 0 ? { _q: data.q } : {}),
       _limit: pageSize,
       _offset: (page - 1) * pageSize,
     });
