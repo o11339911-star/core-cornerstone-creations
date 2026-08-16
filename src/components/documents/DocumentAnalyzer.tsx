@@ -113,6 +113,7 @@ export function DocumentAnalyzer({
   const [analysisId, setAnalysisId] = React.useState<string | null>(null);
   const [rejectReason, setRejectReason] = React.useState("");
   const [numberError, setNumberError] = React.useState<string | undefined>(undefined);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   const propertiesQuery = useQuery({
     queryKey: ["analysis-properties", entityId],
