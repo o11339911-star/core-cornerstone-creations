@@ -374,6 +374,8 @@ export const ar = {
       addVersion: "إضافة إصدار جديد",
       number: "رقم الصك",
       numberRequired: "رقم الصك مطلوب",
+    invalidDate: "تاريخ غير صالح — استخدم صيغة يوم/شهر/سنة (ميلادي أو هجري)",
+    invalidArea: "المساحة غير صالحة — أدخل رقمًا موجبًا",
       issuer: "جهة الإصدار",
       date: "تاريخ الصك",
       ownerSnapshot: "اسم المالك وقت الإصدار",

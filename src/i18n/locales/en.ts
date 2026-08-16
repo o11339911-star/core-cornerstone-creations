@@ -380,6 +380,8 @@ export const en: Translations = {
       addVersion: "Add new version",
       number: "Deed number",
       numberRequired: "Deed number is required",
+    invalidDate: "Invalid date — use day/month/year (Gregorian or Hijri)",
+    invalidArea: "Invalid area — enter a positive number",
       issuer: "Issuer",
       date: "Deed date",
       ownerSnapshot: "Owner name at issuance",
