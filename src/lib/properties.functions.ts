@@ -472,7 +472,7 @@ export const addDeedVersion = createServerFn({ method: "POST" })
       .object({
         propertyId: z.string().uuid(),
         deedId: z.string().uuid().nullable().optional(),
-        deedNumber: z.string().trim().max(60).nullable().optional(),
+        deedNumber: z.string().trim().min(1).max(60).nullable().optional(),
         issuer: z.string().trim().max(120).nullable().optional(),
         deedDate: z.string().nullable().optional(),
         area: z.number().positive().nullable().optional(),
