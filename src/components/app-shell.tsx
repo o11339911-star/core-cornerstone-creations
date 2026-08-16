@@ -4,12 +4,17 @@ import {
   Building2,
   CalendarClock,
   Home,
+  Inbox,
   LogOut,
+  Phone,
+  PhoneCall,
   Repeat,
   ShieldCheck,
   Store,
   User,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 import {
   DropdownMenu,
@@ -25,6 +30,7 @@ import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountUi } from "@/lib/account-ui";
 import { useActiveAccount } from "@/lib/active-account";
+import { getCallCenter } from "@/lib/calls.functions";
 import { queryClient } from "@/router";
 import { cn } from "@/lib/utils";
 
@@ -34,11 +40,20 @@ type NavItem = {
   icon: typeof Home;
 };
 
+/** Mobile bottom navigation: the four surfaces used every day. */
 const BASE_NAV: NavItem[] = [
   { to: "/dashboard", labelKey: "shell.home", icon: Home },
+  { to: "/requests", labelKey: "shell.requests", icon: Inbox },
+  { to: "/calls", labelKey: "shell.calls", icon: Phone },
+  { to: "/profile", labelKey: "shell.profile", icon: User },
+];
+
+const DESKTOP_NAV: NavItem[] = [
+  { to: "/dashboard", labelKey: "shell.home", icon: Home },
+  { to: "/requests", labelKey: "shell.requests", icon: Inbox },
+  { to: "/calls", labelKey: "shell.calls", icon: Phone },
   { to: "/marketplace", labelKey: "shell.marketplace", icon: Store },
   { to: "/appointments", labelKey: "shell.appointments", icon: CalendarClock },
-  { to: "/profile", labelKey: "shell.profile", icon: User },
 ];
 
 export function entityTypeLabel(t: (key: string) => string, type: string | null | undefined) {
@@ -73,7 +88,7 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
 
   // Desktop nav only reveals modules the verified account may use.
   const desktopNav: NavItem[] = [
-    ...BASE_NAV.slice(0, 3),
+    ...DESKTOP_NAV,
     ...(isDeveloper
       ? [{ to: "/properties", labelKey: "shell.properties", icon: Building2 } as NavItem]
       : []),
@@ -155,6 +170,8 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
           </p>
         )}
       </header>
+
+      <IncomingCallBanner />
 
       <main className="flex-1 pb-24 md:pb-0">{children}</main>
 
@@ -246,5 +263,47 @@ export function AccountMenu() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/**
+ * Thin ringing banner shown anywhere inside the app shell. It only reads call
+ * metadata (party name and status); no phone number, payload or token is ever
+ * exposed here.
+ */
+function IncomingCallBanner() {
+  const t = useT();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { activeEntity } = useAccountUi();
+  const entityId = activeEntity?.id ?? null;
+  const fetchCenter = useServerFn(getCallCenter);
+
+  const center = useQuery({
+    queryKey: ["call-center-banner", entityId],
+    queryFn: () => fetchCenter({ data: { entityId } }),
+    enabled: Boolean(entityId) && !pathname.startsWith("/calls"),
+    refetchInterval: 10000,
+  });
+
+  const incoming = center.data?.incoming?.[0];
+  if (!incoming) return null;
+
+  return (
+    <div className="border-b border-primary/30 bg-secondary">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
+        <p className="inline-flex min-w-0 items-center gap-2 text-sm font-medium text-primary">
+          <PhoneCall className="size-4 shrink-0" aria-hidden="true" />
+          <span className="truncate">
+            {t("calls.incomingFrom", { name: incoming.caller_name })}
+          </span>
+        </p>
+        <Link
+          to="/calls"
+          className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        >
+          {t("calls.accept")}
+        </Link>
+      </div>
+    </div>
   );
 }

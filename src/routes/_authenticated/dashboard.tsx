@@ -6,9 +6,10 @@ import {
   Building2,
   CalendarClock,
   FolderPlus,
+  Inbox,
   MapPin,
+  Phone,
   Search,
-  ShieldCheck,
   Sparkles,
   Store,
 } from "lucide-react";
@@ -100,12 +101,12 @@ function DashboardPage() {
   // Exactly four balanced quick actions: no orphan card on a 2-column mobile
   // grid, and the properties entry never enters the DOM for non-developers.
   const actions: { to: string; icon: typeof Store; label: string }[] = [
-    { to: "/marketplace", icon: Store, label: "سوق الخدمات" },
+    { to: "/requests", icon: Inbox, label: t("requests.inbox.title") },
+    { to: "/calls", icon: Phone, label: t("calls.title") },
     { to: "/appointments", icon: CalendarClock, label: "المواعيد" },
-    { to: "/projects/new", icon: FolderPlus, label: "مشروع جديد" },
     account.isDeveloper
       ? { to: "/properties", icon: Building2, label: "العقارات" }
-      : { to: "/settings/security", icon: ShieldCheck, label: t("common.security") },
+      : { to: "/marketplace", icon: Store, label: "سوق الخدمات" },
   ];
 
   return (

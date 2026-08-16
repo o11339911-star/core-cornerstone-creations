@@ -48,3 +48,37 @@ export async function requireEntityOfType(
 
   return { entityId: entity.id, type: entity.type, role: (data as { role: string }).role };
 }
+
+/**
+ * Verify the caller holds an active, unexpired membership in `entityId`
+ * without constraining the entity type. Used by modules that are scoped to
+ * the active account context (requests inbox, internal calling).
+ */
+export async function requireEntityMembership(
+  supabase: MinimalSupabase,
+  userId: string,
+  entityId: string,
+): Promise<{ entityId: string; type: string; role: string }> {
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("entity_memberships")
+    .select("role, status, expires_at, entity:entities!inner(id, type, status, deleted_at)")
+    .eq("user_id", userId)
+    .eq("entity_id", entityId)
+    .eq("status", "active")
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  const entity = (
+    data as { entity?: { id: string; type: string; status: string; deleted_at: string | null } } | null
+  )?.entity;
+
+  if (!data || !entity || entity.status !== "active" || entity.deleted_at) {
+    throw new ScopeForbiddenError("لا تملك عضوية فعّالة في هذا الكيان.");
+  }
+
+  return { entityId: entity.id, type: entity.type, role: (data as { role: string }).role };
+}
