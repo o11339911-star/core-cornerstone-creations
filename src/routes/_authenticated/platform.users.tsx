@@ -85,14 +85,14 @@ function PlatformUsersPage() {
         </form>
 
         {query.isPending ? (
-          <CardsSkeleton count={4} />
+          <CardsSkeleton cards={4} />
         ) : query.isError ? (
           <ErrorState
             description={forbidden ? "هذه القائمة متاحة لمدير النظام فقط." : (query.error as Error).message}
             onRetry={() => void query.refetch()}
           />
         ) : rows.length === 0 ? (
-          <SoftEmpty icon={Users} title="لا توجد نتائج" description="جرّب مصطلح بحث آخر." />
+          <SoftEmpty icon={Users} message="لا توجد نتائج مطابقة — جرّب مصطلح بحث آخر." />
         ) : (
           <>
             <div className="hidden overflow-x-auto rounded-xl border border-border md:block">

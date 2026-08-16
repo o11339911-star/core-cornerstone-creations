@@ -46,6 +46,7 @@ import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/_authenticated/platform.integrations'
 import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
+import { Route as AuthenticatedPlatformUsersRouteImport } from './routes/_authenticated/platform.users'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
@@ -278,6 +279,12 @@ const AuthenticatedPlatformStaffRoute =
   AuthenticatedPlatformStaffRouteImport.update({
     id: '/staff',
     path: '/staff',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformUsersRoute =
+  AuthenticatedPlatformUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedProjectsNewRoute =
@@ -514,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
+  '/platform/users': typeof AuthenticatedPlatformUsersRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -583,6 +591,7 @@ export interface FileRoutesByTo {
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
+  '/platform/users': typeof AuthenticatedPlatformUsersRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -656,6 +665,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/_authenticated/platform/staff': typeof AuthenticatedPlatformStaffRoute
+  '/_authenticated/platform/users': typeof AuthenticatedPlatformUsersRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -729,6 +739,7 @@ export interface FileRouteTypes {
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
+    | '/platform/users'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -798,6 +809,7 @@ export interface FileRouteTypes {
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
+    | '/platform/users'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -870,6 +882,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/integrations'
     | '/_authenticated/platform/queue'
     | '/_authenticated/platform/staff'
+    | '/_authenticated/platform/users'
     | '/_authenticated/projects/new'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/properties/new'
@@ -1185,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformStaffRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
+    '/_authenticated/platform/users': {
+      id: '/_authenticated/platform/users'
+      path: '/users'
+      fullPath: '/platform/users'
+      preLoaderRoute: typeof AuthenticatedPlatformUsersRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/projects/new': {
       id: '/_authenticated/projects/new'
       path: '/projects/new'
@@ -1426,6 +1446,7 @@ interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformIntegrationsRoute: typeof AuthenticatedPlatformIntegrationsRoute
   AuthenticatedPlatformQueueRoute: typeof AuthenticatedPlatformQueueRoute
   AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
+  AuthenticatedPlatformUsersRoute: typeof AuthenticatedPlatformUsersRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
 }
 
@@ -1438,6 +1459,7 @@ const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
     AuthenticatedPlatformIntegrationsRoute,
   AuthenticatedPlatformQueueRoute: AuthenticatedPlatformQueueRoute,
   AuthenticatedPlatformStaffRoute: AuthenticatedPlatformStaffRoute,
+  AuthenticatedPlatformUsersRoute: AuthenticatedPlatformUsersRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
 }
 

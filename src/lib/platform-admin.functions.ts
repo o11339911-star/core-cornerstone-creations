@@ -282,7 +282,7 @@ export const adminListUsers = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => listInput.parse(input ?? {}))
   .handler(async ({ data, context }): Promise<{ rows: AdminUserRow[]; total: number }> => {
     const { data: rows, error } = await context.supabase.rpc("admin_list_users", {
-      _q: data.q && data.q.length > 0 ? data.q : null,
+      _q: data.q && data.q.length > 0 ? data.q : undefined,
       _limit: data.limit ?? 50,
       _offset: data.offset ?? 0,
     });
@@ -296,7 +296,7 @@ export const adminListEntities = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => listInput.parse(input ?? {}))
   .handler(async ({ data, context }): Promise<{ rows: AdminEntityRow[]; total: number }> => {
     const { data: rows, error } = await context.supabase.rpc("admin_list_entities", {
-      _q: data.q && data.q.length > 0 ? data.q : null,
+      _q: data.q && data.q.length > 0 ? data.q : undefined,
       _limit: data.limit ?? 50,
       _offset: data.offset ?? 0,
     });
