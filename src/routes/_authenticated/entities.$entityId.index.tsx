@@ -466,21 +466,46 @@ function EntityHomePage() {
               </SelectContent>
             </Select>
           </div>
-          {EDITABLE.map((key) => (
-            <TextField
-              key={key}
-              id={`edit-${key}`}
-              label={t(`entities.fields.${key}`)}
-              value={form[key] ?? ""}
-              onChange={(event) => {
-                const raw = toLatinDigits(event.target.value);
-                setForm((f) => ({
-                  ...f,
-                  [key]: DIGIT_KEYS.has(key) ? raw.replace(/[^0-9]/g, "") : raw,
-                }));
-              }}
-            />
-          ))}
+          {EDITABLE.map((key) => {
+            const isUnn = key === "unifiedNationalNumber";
+            const unnRequired =
+              isUnn &&
+              UNIFIED_NUMBER_REQUIRED_FORMS.includes(
+                legalForm as (typeof UNIFIED_NUMBER_REQUIRED_FORMS)[number],
+              );
+            const current = form[key] ?? "";
+            const unnError = isUnn
+              ? !current && unnRequired
+                ? t("entities.errors.unifiedNumberRequired")
+                : current && !UNIFIED_NUMBER_PATTERN.test(current)
+                  ? t("entities.errors.unifiedNumber")
+                  : undefined
+              : undefined;
+            return (
+              <TextField
+                key={key}
+                id={`edit-${key}`}
+                label={t(`entities.fields.${key}`)}
+                value={current}
+                {...(unnRequired ? { required: true } : {})}
+                {...(isUnn
+                  ? {
+                      hint: `${t("entities.hints.unifiedNumber")} ${t("entities.hints.unifiedNumberRequired")}`,
+                    }
+                  : {})}
+                {...(unnError ? { error: unnError } : {})}
+                onChange={(event) => {
+                  const raw = toLatinDigits(event.target.value);
+                  setForm((f) => ({
+                    ...f,
+                    [key]: DIGIT_KEYS.has(key)
+                      ? raw.replace(/[^0-9]/g, "").slice(0, isUnn ? 10 : undefined)
+                      : raw,
+                  }));
+                }}
+              />
+            );
+          })}
         </div>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row-reverse">
           <Button
