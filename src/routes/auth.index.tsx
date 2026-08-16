@@ -128,6 +128,11 @@ function SignInPage() {
             </Link>
             <span className="text-muted-foreground">{t("auth.noPublicSignup")}</span>
           </div>
+
+          <p className="text-center text-xs text-muted-foreground">
+            {t("auth.completionNote")}
+          </p>
+
         </div>
       </div>
     </div>
