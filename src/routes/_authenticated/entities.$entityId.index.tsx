@@ -292,6 +292,8 @@ function EntityHomePage() {
             </p>
           </SectionCard>
 
+          <EntityClassificationCard entityId={entityId} canManage={canManage} />
+
           <SectionCard title={t("entities.detail.address")} icon={MapPin}>
             <FieldGrid>
               <Field

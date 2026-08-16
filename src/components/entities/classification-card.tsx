@@ -11,26 +11,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SectionCard, SoftEmpty } from "@/components/rakeez";
 import {
   getEntityActivities,
+  getEntityLegalForm,
   listLegalForms,
   searchEconomicActivities,
   setEntityClassification,
   type ActivitySuggestion,
 } from "@/lib/classification.functions";
 
-type Props = { entityId: string; legalFormCode: string | null; canManage: boolean };
+type Props = { entityId: string; canManage: boolean };
 
 /**
  * الشكل النظامي (الصفة القانونية) والنشاط الاقتصادي كحقلين منفصلين تمامًا.
  * لا إسناد تلقائي: البحث يقترح فقط، والمستخدم هو من يؤكد النشاط الأساسي والثانوي.
  */
-export function EntityClassificationCard({ entityId, legalFormCode, canManage }: Props) {
+export function EntityClassificationCard({ entityId, canManage }: Props) {
   const qc = useQueryClient();
   const fetchForms = useServerFn(listLegalForms);
+  const fetchLegalForm = useServerFn(getEntityLegalForm);
   const searchFn = useServerFn(searchEconomicActivities);
   const fetchActivities = useServerFn(getEntityActivities);
   const saveFn = useServerFn(setEntityClassification);
 
-  const [legalForm, setLegalForm] = React.useState<string>(legalFormCode ?? "");
+  const [legalForm, setLegalForm] = React.useState<string>("");
   const [q, setQ] = React.useState("");
   const [debounced, setDebounced] = React.useState("");
   const [primary, setPrimary] = React.useState<ActivitySuggestion | null>(null);
@@ -43,6 +45,15 @@ export function EntityClassificationCard({ entityId, legalFormCode, canManage }:
   }, [q]);
 
   const forms = useQuery({ queryKey: ["legal-forms"], queryFn: () => fetchForms() });
+
+  const currentForm = useQuery({
+    queryKey: ["entity-legal-form", entityId],
+    queryFn: () => fetchLegalForm({ data: { entityId } }),
+  });
+
+  React.useEffect(() => {
+    if (currentForm.data && !dirty) setLegalForm(currentForm.data.legalFormCode ?? "");
+  }, [currentForm.data, dirty]);
 
   const current = useQuery({
     queryKey: ["entity-activities", entityId],
@@ -98,6 +109,7 @@ export function EntityClassificationCard({ entityId, legalFormCode, canManage }:
       toast.success("تم حفظ التصنيف");
       setDirty(false);
       void qc.invalidateQueries({ queryKey: ["entity-activities", entityId] });
+      void qc.invalidateQueries({ queryKey: ["entity-legal-form", entityId] });
     },
     onError: () => toast.error("تعذّر حفظ التصنيف"),
   });

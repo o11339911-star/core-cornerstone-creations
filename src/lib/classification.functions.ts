@@ -65,6 +65,19 @@ export const searchEconomicActivities = createServerFn({ method: "GET" })
     }));
   });
 
+export const getEntityLegalForm = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ entityId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<{ legalFormCode: string | null }> => {
+    const { data: row, error } = await context.supabase
+      .from("entity_profiles")
+      .select("legal_form_code")
+      .eq("entity_id", data.entityId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { legalFormCode: (row?.legal_form_code as string | null) ?? null };
+  });
+
 export const getEntityActivities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ entityId: z.string().uuid() }).parse(input))
