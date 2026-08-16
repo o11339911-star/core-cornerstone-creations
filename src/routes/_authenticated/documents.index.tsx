@@ -115,9 +115,7 @@ function DocumentsPage() {
       fetchDocuments({
         data: {
           ...(entityIdFilter ? { entityId: entityIdFilter } : {}),
-          ...(filterVisibility === "all"
-            ? {}
-            : { visibility: filterVisibility as DocVisibility }),
+          ...(filterVisibility === "all" ? {} : { visibility: filterVisibility as DocVisibility }),
         },
       }),
   });
@@ -374,10 +372,7 @@ function DocumentsPage() {
 
           <div className="space-y-2 md:col-span-2">
             <Label>الملف</Label>
-            <Input
-              type="file"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            />
+            <Input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
           </div>
         </div>
         <Button

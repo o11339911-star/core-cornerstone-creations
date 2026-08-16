@@ -5,7 +5,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
-import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, SectionCard, SoftEmpty, TextAreaField } from "@/components/rakeez";
+import {
+  CardsSkeleton,
+  ErrorState,
+  HeroBadge,
+  PageHero,
+  RakeezCard,
+  SectionCard,
+  SoftEmpty,
+  TextAreaField,
+} from "@/components/rakeez";
 import { FileText, MessageSquare } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import {
@@ -70,7 +79,8 @@ function RequestDetailPage() {
   const onError = (e: Error) => setError(e.message);
 
   const replyMutation = useMutation({
-    mutationFn: () => postMsg({ data: { requestId, body: body.trim(), visibility, kind: "comment" } }),
+    mutationFn: () =>
+      postMsg({ data: { requestId, body: body.trim(), visibility, kind: "comment" } }),
     onSuccess: () => {
       setBody("");
       refresh();
@@ -137,7 +147,9 @@ function RequestDetailPage() {
               badge={
                 <>
                   <HeroBadge tone="neutral">{t(`requests.statuses.${status}`)}</HeroBadge>
-                  <HeroBadge tone="warning">{t(`requests.priorities.${data.request.priority}`)}</HeroBadge>
+                  <HeroBadge tone="warning">
+                    {t(`requests.priorities.${data.request.priority}`)}
+                  </HeroBadge>
                 </>
               }
               aside={
@@ -216,88 +228,96 @@ function RequestDetailPage() {
               )}
             </SectionCard>
 
-            <SectionCard icon={MessageSquare} title={t("requests.conversation")} count={data.messages.length}>
-                {data.messages.length === 0 ? (
-                  <SoftEmpty icon={MessageSquare} message={t("requests.empty")} />
-                ) : (
-                  <ul className="space-y-3">
-                    {data.messages.map((m) => (
-                      <li
-                        key={m.id}
-                        className={
-                          m.visibility === "internal_note"
-                            ? "rounded-lg border border-dashed border-warning bg-warning-soft p-3"
-                            : "rounded-lg border border-border bg-card p-3"
-                        }
-                      >
-                        <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span>{m.author_role_snapshot ?? ""}</span>
-                          <span>{formatDateTime(m.created_at)}</span>
-                          <span className="rounded-full bg-muted px-2 py-0.5">
-                            {t(`requests.visibility.${m.visibility}`)}
-                          </span>
-                        </div>
-                        <p className="whitespace-pre-wrap text-sm text-foreground">{m.body}</p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {isOpen ? (
-                  <form
-                    className="mt-4 space-y-3"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      replyMutation.mutate();
-                    }}
-                  >
-                    <TextAreaField
-                      id="r-reply"
-                      label={t("requests.reply")}
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      required
-                    />
-                    <label className="flex max-w-xs flex-col gap-1 text-sm">
-                      <span className="font-medium text-foreground">
-                        {t("requests.visibilityLabel")}
-                      </span>
-                      <select
-                        className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-                        value={visibility}
-                        onChange={(e) => setVisibility(e.target.value as Visibility)}
-                      >
-                        <option value="shared">{t("requests.visibility.shared")}</option>
-                        <option value="party_limited">
-                          {t("requests.visibility.party_limited")}
-                        </option>
-                        <option value="internal_note">
-                          {t("requests.visibility.internal_note")}
-                        </option>
-                      </select>
-                    </label>
-                    <button
-                      type="submit"
-                      className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                      disabled={body.trim().length === 0 || replyMutation.isPending}
+            <SectionCard
+              icon={MessageSquare}
+              title={t("requests.conversation")}
+              count={data.messages.length}
+            >
+              {data.messages.length === 0 ? (
+                <SoftEmpty icon={MessageSquare} message={t("requests.empty")} />
+              ) : (
+                <ul className="space-y-3">
+                  {data.messages.map((m) => (
+                    <li
+                      key={m.id}
+                      className={
+                        m.visibility === "internal_note"
+                          ? "rounded-lg border border-dashed border-warning bg-warning-soft p-3"
+                          : "rounded-lg border border-border bg-card p-3"
+                      }
                     >
-                      {t("requests.send")}
-                    </button>
-                  </form>
-                ) : null}
-            </SectionCard>
-
-            <SectionCard icon={FileText} title={t("requests.timeline")} count={data.timeline.length}>
-                <ol className="space-y-2">
-                  {data.timeline.map((entry) => (
-                    <li key={entry.id} className="flex justify-between gap-3 text-sm">
-                      <span className="text-foreground">{entry.action}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDateTime(entry.created_at)}
-                      </span>
+                      <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span>{m.author_role_snapshot ?? ""}</span>
+                        <span>{formatDateTime(m.created_at)}</span>
+                        <span className="rounded-full bg-muted px-2 py-0.5">
+                          {t(`requests.visibility.${m.visibility}`)}
+                        </span>
+                      </div>
+                      <p className="whitespace-pre-wrap text-sm text-foreground">{m.body}</p>
                     </li>
                   ))}
-                </ol>
+                </ul>
+              )}
+
+              {isOpen ? (
+                <form
+                  className="mt-4 space-y-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    replyMutation.mutate();
+                  }}
+                >
+                  <TextAreaField
+                    id="r-reply"
+                    label={t("requests.reply")}
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    required
+                  />
+                  <label className="flex max-w-xs flex-col gap-1 text-sm">
+                    <span className="font-medium text-foreground">
+                      {t("requests.visibilityLabel")}
+                    </span>
+                    <select
+                      className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                      value={visibility}
+                      onChange={(e) => setVisibility(e.target.value as Visibility)}
+                    >
+                      <option value="shared">{t("requests.visibility.shared")}</option>
+                      <option value="party_limited">
+                        {t("requests.visibility.party_limited")}
+                      </option>
+                      <option value="internal_note">
+                        {t("requests.visibility.internal_note")}
+                      </option>
+                    </select>
+                  </label>
+                  <button
+                    type="submit"
+                    className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                    disabled={body.trim().length === 0 || replyMutation.isPending}
+                  >
+                    {t("requests.send")}
+                  </button>
+                </form>
+              ) : null}
+            </SectionCard>
+
+            <SectionCard
+              icon={FileText}
+              title={t("requests.timeline")}
+              count={data.timeline.length}
+            >
+              <ol className="space-y-2">
+                {data.timeline.map((entry) => (
+                  <li key={entry.id} className="flex justify-between gap-3 text-sm">
+                    <span className="text-foreground">{entry.action}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDateTime(entry.created_at)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
             </SectionCard>
           </>
         ) : null}

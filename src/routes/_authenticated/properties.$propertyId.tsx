@@ -43,12 +43,14 @@ export const Route = createFileRoute("/_authenticated/properties/$propertyId")({
       { title: "الملف العقاري | ركيز" },
       {
         name: "description",
-        content: "ملف عقاري موحّد في ركيز: ملخص أعلى الصفحة وتفاصيل الملكية والصكوك والرخص والوحدات.",
+        content:
+          "ملف عقاري موحّد في ركيز: ملخص أعلى الصفحة وتفاصيل الملكية والصكوك والرخص والوحدات.",
       },
       { property: "og:title", content: "الملف العقاري | ركيز" },
       {
         property: "og:description",
-        content: "ملف عقاري موحّد في ركيز: الملكية والصكوك والرخص والحدود والوحدات والمشاريع المرتبطة.",
+        content:
+          "ملف عقاري موحّد في ركيز: الملكية والصكوك والرخص والحدود والوحدات والمشاريع المرتبطة.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -80,11 +82,15 @@ function PropertyProfilePage() {
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
 
-
-  const openDocument = async (versionRow: { document_version_id?: string | null; file_path: string | null }) => {
+  const openDocument = async (versionRow: {
+    document_version_id?: string | null;
+    file_path: string | null;
+  }) => {
     try {
       if (versionRow.document_version_id) {
-        const { url } = await signVersionUrl({ data: { versionId: versionRow.document_version_id } });
+        const { url } = await signVersionUrl({
+          data: { versionId: versionRow.document_version_id },
+        });
         window.open(url, "_blank", "noopener,noreferrer");
         return;
       }
@@ -210,7 +216,10 @@ function PropertyProfilePage() {
                 },
                 {
                   id: "extra",
-                  header: kind === "deed" ? t("properties.deeds.ownerSnapshot") : t("properties.licenses.scope"),
+                  header:
+                    kind === "deed"
+                      ? t("properties.deeds.ownerSnapshot")
+                      : t("properties.licenses.scope"),
                   cell: (v: any) => (kind === "deed" ? v.owner_name_snapshot : v.scope_text) ?? "—",
                 },
                 {
@@ -378,7 +387,8 @@ function PropertyProfilePage() {
               {
                 id: "project",
                 header: t("properties.links.project"),
-                cell: (row: PropertyProfile["projects"][number]) => row.project_name ?? row.project_id,
+                cell: (row: PropertyProfile["projects"][number]) =>
+                  row.project_name ?? row.project_id,
               },
               {
                 id: "relation",
@@ -409,12 +419,7 @@ function PropertyProfilePage() {
           </>
         }
         aside={
-          <ArchiveButton
-            title={p.name}
-            kind="property"
-            sourceTable="properties"
-            sourceId={p.id}
-          />
+          <ArchiveButton title={p.name} kind="property" sourceTable="properties" sourceId={p.id} />
         }
       />
 
@@ -430,10 +435,7 @@ function PropertyProfilePage() {
           <FieldGrid>
             <Field label={t("properties.city")} value={p.city ?? "—"} />
             <Field label={t("properties.district")} value={p.district ?? "—"} />
-            <Field
-              label={t("properties.landArea")}
-              value={formatNumber(p.land_area)}
-            />
+            <Field label={t("properties.landArea")} value={formatNumber(p.land_area)} />
             <Field label={t("properties.planNo")} value={p.plan_no ?? "—"} />
             <Field label={t("properties.parcelNo")} value={p.parcel_no ?? "—"} />
             <Field label={t("properties.region")} value={p.region ?? "—"} />
@@ -476,8 +478,6 @@ function PropertyProfilePage() {
           window.history.replaceState(null, "", next ? `#${next}` : window.location.pathname);
         }}
       />
-
     </div>
   );
 }
-

@@ -153,9 +153,9 @@ function MarketplacePage() {
 
   const validate = () => {
     const next: Record<string, string> = {};
-    if (!form.entityId) next['entityId'] = "اختر الكيان الناشر";
-    if (form.title.trim().length < 4) next['title'] = "العنوان قصير جدًا (4 أحرف فأكثر)";
-    if (form.description.trim().length < 20) next['description'] = "الوصف يحتاج 20 حرفًا فأكثر";
+    if (!form.entityId) next["entityId"] = "اختر الكيان الناشر";
+    if (form.title.trim().length < 4) next["title"] = "العنوان قصير جدًا (4 أحرف فأكثر)";
+    if (form.description.trim().length < 20) next["description"] = "الوصف يحتاج 20 حرفًا فأكثر";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -212,8 +212,8 @@ function MarketplacePage() {
                 </option>
               ))}
             </select>
-            {errors['entityId'] ? (
-              <span className="text-xs text-destructive">{errors['entityId']}</span>
+            {errors["entityId"] ? (
+              <span className="text-xs text-destructive">{errors["entityId"]}</span>
             ) : null}
           </label>
 
@@ -239,8 +239,8 @@ function MarketplacePage() {
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="تصميم فلل سكنية"
             />
-            {errors['title'] ? (
-              <span className="text-xs text-destructive">{errors['title']}</span>
+            {errors["title"] ? (
+              <span className="text-xs text-destructive">{errors["title"]}</span>
             ) : null}
           </label>
 
@@ -284,8 +284,8 @@ function MarketplacePage() {
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             placeholder="اشرح نطاق الخدمة ومخرجاتها ومدتها التقديرية."
           />
-          {errors['description'] ? (
-            <span className="text-xs text-destructive">{errors['description']}</span>
+          {errors["description"] ? (
+            <span className="text-xs text-destructive">{errors["description"]}</span>
           ) : null}
         </label>
 
@@ -306,9 +306,7 @@ function MarketplacePage() {
                 </option>
               ))}
             </select>
-            <span className="text-xs text-muted-foreground">
-              تظهر مشاريع الكيان الناشر فقط.
-            </span>
+            <span className="text-xs text-muted-foreground">تظهر مشاريع الكيان الناشر فقط.</span>
           </label>
 
           <label className="space-y-1.5 text-sm">
@@ -327,9 +325,7 @@ function MarketplacePage() {
                 </option>
               ))}
             </select>
-            <span className="text-xs text-muted-foreground">
-              تظهر طلبات الكيان الناشر فقط.
-            </span>
+            <span className="text-xs text-muted-foreground">تظهر طلبات الكيان الناشر فقط.</span>
           </label>
         </FieldGrid>
       </ResponsiveModal>
