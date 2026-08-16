@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useT } from "@/i18n";
+import { ContractIdentityLookup } from "@/components/identity/identity-search";
 import {
   TextField,
   AsyncBoundary,
@@ -306,6 +307,8 @@ function ContractDetail({ contractId, projectId }: { contractId: string; project
   return (
     <div className="mt-8 grid gap-6">
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+      <ContractIdentityLookup projectId={projectId} contractId={contractId} />
 
       <SectionCard icon={ScrollText} title={t("contracts.versions")}>
         <p className="mb-3 text-xs text-muted-foreground">{t("contracts.versionsHint")}</p>

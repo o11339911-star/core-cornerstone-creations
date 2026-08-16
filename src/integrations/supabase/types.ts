@@ -9384,6 +9384,10 @@ export type Database = {
         Args: { _cart_id: string; _product_id: string; _quantity: number }
         Returns: undefined
       }
+      add_contract_person_party: {
+        Args: { _contract_id: string; _contract_role: string; _user_id: string }
+        Returns: string
+      }
       add_document_version: {
         Args: {
           _checksum_sha256: string
@@ -9450,6 +9454,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_search_identities: { Args: { _query: string }; Returns: Json }
       advance_service_request: {
         Args: { _note?: string; _request_id: string; _to_status: string }
         Returns: string
@@ -10365,6 +10370,10 @@ export type Database = {
           _title: string
         }
         Returns: string
+      }
+      lookup_identity_for_contract: {
+        Args: { _national_id: string; _project_id: string }
+        Returns: Json
       }
       mark_all_notifications_read: { Args: never; Returns: number }
       mark_notification_read: {

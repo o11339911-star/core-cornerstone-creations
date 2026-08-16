@@ -25,6 +25,7 @@ import {
   resolveQueueItem,
   type QueueItem,
 } from "@/lib/platform-admin.functions";
+import { AdminIdentitySearch } from "@/components/identity/identity-search";
 
 export const Route = createFileRoute("/_authenticated/platform/queue")({
   component: PlatformQueuePage,
@@ -164,6 +165,8 @@ function PlatformQueuePage() {
         <StatCard icon={ShuffleIcon} label="موظفون متاحون" value={availableStaff} tone="info" />
         <StatCard icon={KeyRound} label="إجمالي العناصر" value={rows.length} tone="primary" />
       </StatGrid>
+
+      <AdminIdentitySearch />
 
       <SectionCard icon={Inbox} title="العناصر" count={rows.length}>
         {items.isPending ? (
