@@ -26,12 +26,12 @@ export const Route = createFileRoute("/_authenticated/requests/")({
   errorComponent: ErrorState,
   head: () => ({
     meta: [
-      { title: "صندوق الطلبات | ركيز" },
+      { title: "الطلبات | ركيز" },
       {
         name: "description",
-        content: "كل الطلبات الموجهة إليك أو التي أنشأتها عبر مشاريع ركيز في صندوق واحد.",
+        content: "كل الطلبات الموجهة إليك أو التي أنشأتها عبر مشاريع ركيز في مكان واحد.",
       },
-      { property: "og:title", content: "صندوق الطلبات | ركيز" },
+      { property: "og:title", content: "الطلبات | ركيز" },
       {
         property: "og:description",
         content: "متابعة الطلبات حسب الحساب النشط مع تمييز ما ينتظر إجراءك.",

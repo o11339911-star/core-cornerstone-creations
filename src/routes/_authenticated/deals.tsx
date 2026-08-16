@@ -30,13 +30,13 @@ export const Route = createFileRoute("/_authenticated/deals")({
   errorComponent: ErrorState,
   head: () => ({
     meta: [
-      { title: "صندوق التعاقد | ركيز" },
+      { title: "التعاقد | ركيز" },
       {
         name: "description",
         content:
           "تابع معاملات التعاقد للحساب النشط: الطرف الآخر والسياق والحالة والمبلغ، مع إمكانية الأرشفة.",
       },
-      { property: "og:title", content: "صندوق التعاقد | ركيز" },
+      { property: "og:title", content: "التعاقد | ركيز" },
       {
         property: "og:description",
         content: "معاملة تعاقد واحدة مربوطة بمشروع أو طلب أو تكليف أو إعلان.",
@@ -184,7 +184,7 @@ function DealsPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
-        title="صندوق التعاقد"
+        title="التعاقد"
         subtitle="كل معاملة تعاقد مع سياقها وحالتها — لا يمنح التعاقد أي وصول لبيانات المشروع."
         badge={<HeroBadge tone="neutral">{activeEntity?.name ?? "حساب شخصي"}</HeroBadge>}
       >
@@ -245,7 +245,7 @@ function DealsPage() {
           ))}
         </div>
       ) : list.isError ? (
-        <ErrorState description="تعذّر تحميل صندوق التعاقد" onRetry={() => void list.refetch()} />
+        <ErrorState description="تعذّر تحميل التعاقد" onRetry={() => void list.refetch()} />
       ) : !list.data?.length ? (
         <SoftEmpty
           icon={Handshake}

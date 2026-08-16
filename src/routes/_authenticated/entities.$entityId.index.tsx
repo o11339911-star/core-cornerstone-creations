@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { EntityClassificationCard } from "@/components/entities/classification-card";
+
 import {
   CardsSkeleton,
   ErrorState,
@@ -291,6 +293,8 @@ function EntityHomePage() {
               {t("entities.unnStatus.nafathDisabled")}
             </p>
           </SectionCard>
+
+          <EntityClassificationCard entityId={entityId} canManage={canManage} />
 
           <SectionCard title={t("entities.detail.address")} icon={MapPin}>
             <FieldGrid>

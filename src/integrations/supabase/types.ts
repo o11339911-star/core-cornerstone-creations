@@ -2941,6 +2941,51 @@ export type Database = {
           },
         ]
       }
+      economic_activities: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          keywords_ar: string[]
+          keywords_en: string[]
+          level: number
+          name_ar: string
+          name_en: string
+          parent_code: string | null
+          source: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          keywords_ar?: string[]
+          keywords_en?: string[]
+          level: number
+          name_ar: string
+          name_en: string
+          parent_code?: string | null
+          source: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          keywords_ar?: string[]
+          keywords_en?: string[]
+          level?: number
+          name_ar?: string
+          name_en?: string
+          parent_code?: string | null
+          source?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       entities: {
         Row: {
           created_at: string
@@ -2991,6 +3036,47 @@ export type Database = {
           is_commercial?: boolean
         }
         Relationships: []
+      }
+      entity_activities: {
+        Row: {
+          activity_code: string
+          activity_version: string
+          created_at: string
+          created_by: string
+          entity_id: string
+          id: string
+          is_primary: boolean
+          updated_at: string
+        }
+        Insert: {
+          activity_code: string
+          activity_version: string
+          created_at?: string
+          created_by?: string
+          entity_id: string
+          id?: string
+          is_primary?: boolean
+          updated_at?: string
+        }
+        Update: {
+          activity_code?: string
+          activity_version?: string
+          created_at?: string
+          created_by?: string
+          entity_id?: string
+          id?: string
+          is_primary?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_activities_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entity_correspondence: {
         Row: {
@@ -3338,6 +3424,7 @@ export type Database = {
           district: string | null
           entity_id: string
           legal_form: string | null
+          legal_form_code: string | null
           legal_name_ar: string | null
           legal_name_en: string | null
           logo_path: string | null
@@ -3367,6 +3454,7 @@ export type Database = {
           district?: string | null
           entity_id: string
           legal_form?: string | null
+          legal_form_code?: string | null
           legal_name_ar?: string | null
           legal_name_en?: string | null
           logo_path?: string | null
@@ -3396,6 +3484,7 @@ export type Database = {
           district?: string | null
           entity_id?: string
           legal_form?: string | null
+          legal_form_code?: string | null
           legal_name_ar?: string | null
           legal_name_en?: string | null
           logo_path?: string | null
@@ -3420,6 +3509,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "entities"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_profiles_legal_form_code_fkey"
+            columns: ["legal_form_code"]
+            isOneToOne: false
+            referencedRelation: "legal_forms"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -4564,6 +4660,36 @@ export type Database = {
           id?: string
           slug?: string
           title_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      legal_forms: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          name_ar: string
+          name_en: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          name_ar: string
+          name_en: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          name_ar?: string
+          name_en?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -11295,6 +11421,18 @@ export type Database = {
         Args: { _content: Json; _page_setup?: Json; _version_id: string }
         Returns: string
       }
+      search_economic_activities: {
+        Args: { _limit?: number; _q: string; _version?: string }
+        Returns: {
+          code: string
+          level: number
+          name_ar: string
+          name_en: string
+          parent_code: string
+          path_ar: string
+          score: number
+        }[]
+      }
       search_projects: {
         Args: { _limit?: number; _q: string }
         Returns: {
@@ -11386,6 +11524,8 @@ export type Database = {
         Args: { _item_id: string; _status: string }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       simulate_subscription_expiry: {
         Args: { _entity_id: string; _grace_days?: number }
         Returns: undefined

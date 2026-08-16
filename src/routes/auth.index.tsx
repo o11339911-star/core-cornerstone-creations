@@ -16,6 +16,7 @@ import { sanitizeRedirect } from "@/lib/safe-redirect";
 import { toLatinDigits } from "@/lib/format";
 import { isValidSaudiId, normalizeNationalId } from "@/lib/identity-format";
 import { signInWithIdentifierFn, signUpWithIdentityFn } from "@/lib/auth-identity.functions";
+import { setSessionPersist } from "@/integrations/supabase/session-storage";
 import { NafathButton } from "@/components/auth/nafath-button";
 
 const signInSchema = z.object({
@@ -114,6 +115,7 @@ function SignInForm() {
   const search = useSearch({ from: "/auth" });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [rememberSession, setRememberSession] = useState(true);
 
   const redirect = sanitizeRedirect(search.redirect);
 
@@ -146,6 +148,9 @@ function SignInForm() {
       setError(result.reason === "throttled" ? t("auth.tooManyAttempts") : t("auth.invalidCredentials"));
       return;
     }
+
+    // يجب ضبط خيار الحفظ قبل كتابة الجلسة حتى تُكتب في المخزن الصحيح.
+    setSessionPersist(rememberSession);
 
     const { error: sessionError } = await supabase.auth.setSession(result.session);
     if (sessionError) {
@@ -200,6 +205,25 @@ function SignInForm() {
             </p>
           ) : null}
         </div>
+
+        <label
+          htmlFor="remember-session"
+          className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-border p-3"
+        >
+          <input
+            id="remember-session"
+            type="checkbox"
+            checked={rememberSession}
+            onChange={(e) => setRememberSession(e.target.checked)}
+            className="mt-1 size-5 accent-[var(--color-primary,currentColor)] text-primary"
+          />
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">حفظ الجلسة</span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              ابقَ مسجلًا على هذا الجهاز. لا تفعّله على جهاز مشترك.
+            </span>
+          </span>
+        </label>
 
         {error && (
           <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">

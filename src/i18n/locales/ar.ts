@@ -40,8 +40,8 @@ export const ar = {
   },
   shell: {
     archive: "الأرشيف",
-    correspondence: "المراسلات",
-    deals: "صندوق التعاقد",
+    correspondence: "المراسلات العامة",
+    deals: "التعاقد",
     projectsBox: "المشاريع",
     requests: "الطلبات",
     calls: "الاتصال",
@@ -53,7 +53,7 @@ export const ar = {
     account: "الحساب",
     profile: "الملف الشخصي",
     notifications: "الإشعارات",
-    marketplace: "السوق",
+    marketplace: "سوق الخدمات",
     appointments: "المواعيد",
     properties: "العقارات",
     home: "الرئيسية",
@@ -851,7 +851,7 @@ export const ar = {
       internal_note: "ملاحظة داخلية",
     },
     inbox: {
-      title: "صندوق الطلبات",
+      title: "الطلبات",
       subtitle: "كل الطلبات المرتبطة بحسابك النشط في مكان واحد.",
       assigned: "الموجهة إليّ",
       created: "التي أنشأتها",
