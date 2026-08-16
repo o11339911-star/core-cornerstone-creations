@@ -41,7 +41,8 @@ import {
   resolveDrawingMarkup,
   setDrawingStatus,
 } from "@/lib/drawings.functions";
-import { VIEWER_TOOLS, capabilitiesFor } from "@/lib/drawings/providers";
+import { VIEWER_TOOLS, capabilitiesFor, supportsVisualCompare } from "@/lib/drawings/providers";
+import { DrawingViewer } from "@/components/drawings/drawing-viewer";
 import { buildAssistantReport } from "@/lib/drawings/review-assistant";
 import { DISCIPLINE_KEYS, DRAWING_STATUS_KEYS, statusTone } from "./projects.$projectId.drawings";
 
@@ -91,9 +92,11 @@ const TOOL_LABEL_KEYS = {
   download: "drawings.toolDownload",
   sheets: "drawings.toolSheets",
   layers: "drawings.toolLayers",
+  properties: "drawings.toolProperties",
   measure: "drawings.toolMeasure",
   markup: "drawings.toolMarkup",
 } as const;
+
 
 function DrawingViewerPage() {
   const { drawingId } = Route.useParams();
@@ -121,6 +124,7 @@ function DrawingViewerPage() {
   const [note, setNote] = useState("");
   const [comment, setComment] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [previewVersionId, setPreviewVersionId] = useState<string | null>(null);
   const [compareA, setCompareA] = useState<string>("");
   const [compareB, setCompareB] = useState<string>("");
   const [compareUrls, setCompareUrls] = useState<{ a: string | null; b: string | null }>({
@@ -147,7 +151,10 @@ function DrawingViewerPage() {
 
   const previewMutation = useMutation({
     mutationFn: (versionId: string) => fileUrl({ data: { versionId } }),
-    onSuccess: (result) => setPreview(result.url),
+    onSuccess: (result, versionId) => {
+      setPreview(result.url);
+      setPreviewVersionId(versionId);
+    },
     onError: (error: Error) => toast.error(error.message),
   });
 
@@ -259,6 +266,9 @@ function DrawingViewerPage() {
   const { drawing, revisions, events, markups, jobs, files, linkedRequests } = data;
   const fileById = new Map(files.map((f) => [f.id, f]));
   const requestById = new Map(linkedRequests.map((r) => [r.id, r]));
+  const previewRev =
+    revisions.find((r) => r.document_version_id === previewVersionId) ?? latest;
+  const previewFile = previewVersionId ? (fileById.get(previewVersionId) ?? null) : latestFile;
   const revA = revisions.find((r) => r.document_version_id === compareA) ?? null;
   const revB = revisions.find((r) => r.document_version_id === compareB) ?? null;
   const fileA = compareA ? (fileById.get(compareA) ?? null) : null;
@@ -295,31 +305,34 @@ function DrawingViewerPage() {
                   {t(capability.reasonKey ?? "drawings.providerApsDisabled")}
                 </p>
               ) : null}
-              <Button
-                variant="outline"
-                className="min-h-11"
-                onClick={() => previewMutation.mutate(latest.document_version_id)}
-                disabled={previewMutation.isPending}
-              >
-                {previewMutation.isPending ? t("drawings.preparing") : t("drawings.openLatest")}
-              </Button>
-              {preview && capability.tools.preview ? (
-                <iframe
-                  src={preview}
-                  title={t("drawings.preview")}
-                  className="h-[480px] w-full rounded-xl border border-border"
-                />
-              ) : preview ? (
-                <a
-                  href={preview}
-                  className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
-                  rel="noreferrer"
-                  target="_blank"
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="min-h-11"
+                  onClick={() => previewMutation.mutate(latest.document_version_id)}
+                  disabled={previewMutation.isPending}
                 >
-                  {t("drawings.downloadOriginal")}
-                </a>
-              ) : null}
-              {latest.format !== "pdf" ? (
+                  {previewMutation.isPending ? t("drawings.preparing") : t("drawings.openLatest")}
+                </Button>
+                {preview ? (
+                  <a
+                    href={preview}
+                    className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {t("drawings.downloadOriginal")}
+                  </a>
+                ) : null}
+              </div>
+              <DrawingViewer
+                format={previewRev?.format ?? latest.format}
+                url={preview}
+                sizeBytes={previewFile?.sizeBytes ?? latestFile?.sizeBytes ?? null}
+                title={drawing.title}
+                apsEnabled={Boolean(moduleStatus.data?.apsReady)}
+              />
+              {latest.format === "dwg" ? (
                 <Button
                   variant="ghost"
                   className="min-h-11"
@@ -335,6 +348,7 @@ function DrawingViewerPage() {
             <SoftEmpty icon={DraftingCompass} message={t("drawings.noRevisionsHint")} />
           )}
         </SectionCard>
+
 
         <SectionCard icon={Wrench} title={t("drawings.tools")}>
           <ul className="grid gap-2 sm:grid-cols-2">
@@ -476,20 +490,28 @@ function DrawingViewerPage() {
                 </p>
               ) : null}
 
-              {compareUrls.a && compareUrls.b && revA?.format === "pdf" && revB?.format === "pdf" ? (
+              {compareUrls.a &&
+              compareUrls.b &&
+              supportsVisualCompare(revA?.format) &&
+              supportsVisualCompare(revB?.format) ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <iframe
-                    src={compareUrls.a}
+                  <DrawingViewer
+                    format={revA?.format ?? null}
+                    url={compareUrls.a}
+                    sizeBytes={fileA?.sizeBytes ?? null}
                     title={t("drawings.compareA")}
-                    className="h-[420px] w-full rounded-xl border border-border"
+                    apsEnabled={Boolean(moduleStatus.data?.apsReady)}
                   />
-                  <iframe
-                    src={compareUrls.b}
+                  <DrawingViewer
+                    format={revB?.format ?? null}
+                    url={compareUrls.b}
+                    sizeBytes={fileB?.sizeBytes ?? null}
                     title={t("drawings.compareB")}
-                    className="h-[420px] w-full rounded-xl border border-border"
+                    apsEnabled={Boolean(moduleStatus.data?.apsReady)}
                   />
                 </div>
               ) : null}
+
             </div>
           )}
         </SectionCard>
