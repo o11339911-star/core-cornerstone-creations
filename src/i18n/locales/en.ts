@@ -226,6 +226,7 @@ export const en: Translations = {
     empty: "No records to display",
   },
   auth: {
+    completionNote: "After signing in you must link your personal identity, then register your commercial entity with its unified national number.",
     signInTitle: "Sign in",
     signInSubtitle: "Enter your email and password to access your account.",
     email: "Email",
