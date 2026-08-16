@@ -100,9 +100,53 @@ const DIGIT_FIELDS: Partial<Record<keyof Form, { min: number; max: number }>> = 
 const STEP_FIELDS: (keyof Form)[][] = [
   ["name", "type", "legalForm", "legalNameAr", "legalNameEn"],
   ["unifiedNationalNumber", "crNumber", "taxNumber", "contactEmail", "contactPhone"],
-  ["buildingNo", "street", "district", "city", "postalCode", "additionalNo"],
-  ["responsibleName", "responsibleTitle", "responsibleEmail", "responsiblePhone"],
+  [
+    "buildingNo",
+    "street",
+    "district",
+    "city",
+    "postalCode",
+    "additionalNo",
+    "responsibleName",
+    "responsibleTitle",
+    "responsibleEmail",
+    "responsiblePhone",
+  ],
+  [],
 ];
+
+const REVIEW_STEP = STEP_FIELDS.length - 1;
+
+function ReviewGroup({
+  title,
+  rows,
+  onEdit,
+}: {
+  title: string;
+  rows: [string, string][];
+  onEdit: () => void;
+}) {
+  const t = useT();
+  const dash = t("common.notProvided");
+  return (
+    <div className="rounded-xl border border-border p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold">{title}</h3>
+        <Button type="button" variant="ghost" size="sm" className="h-8" onClick={onEdit}>
+          {t("common.edit")}
+        </Button>
+      </div>
+      <dl className="grid gap-2 sm:grid-cols-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="text-sm">
+            <dt className="text-xs text-muted-foreground">{label}</dt>
+            <dd className="font-medium">{value.trim() ? value : dash}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
 
 function NewEntityPage() {
   const t = useT();
@@ -182,7 +226,7 @@ function NewEntityPage() {
         ))}
       </ol>
 
-      <SectionCard title={t(`entities.new.step${step + 1}`)} icon={Building2}>
+      <SectionCard title={step === REVIEW_STEP ? t("entities.new.review") : t(`entities.new.step${step + 1}`)} icon={Building2}>
         <div className="grid gap-4 sm:grid-cols-2">
           {step === 0 ? (
             <>
@@ -340,11 +384,6 @@ function NewEntityPage() {
                 onChange={set("additionalNo")}
                 error={errors.additionalNo}
               />
-            </>
-          ) : null}
-
-          {step === 3 ? (
-            <>
               <TextField
                 id="responsible-name"
                 label={t("entities.fields.responsibleName")}
@@ -374,10 +413,59 @@ function NewEntityPage() {
                 onChange={set("responsiblePhone")}
                 error={errors.responsiblePhone}
               />
-              <p className="sm:col-span-2 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
+            </>
+          ) : null}
+
+          {step === REVIEW_STEP ? (
+            <div className="sm:col-span-2 space-y-4">
+              <ReviewGroup
+                title={t("entities.new.step1")}
+                onEdit={() => setStep(0)}
+                rows={[
+                  [t("entities.fields.name"), form.name],
+                  [t("entities.fields.type"), t(`entities.types.${form.type}`)],
+                  [t("entities.fields.legalForm"), t(`entities.legalForms.${form.legalForm}`)],
+                  [t("entities.fields.legalNameAr"), form.legalNameAr],
+                  [t("entities.fields.legalNameEn"), form.legalNameEn],
+                ]}
+              />
+              <ReviewGroup
+                title={t("entities.new.step2")}
+                onEdit={() => setStep(1)}
+                rows={[
+                  [t("entities.fields.unifiedNationalNumber"), form.unifiedNationalNumber],
+                  [t("entities.fields.crNumber"), form.crNumber],
+                  [t("entities.fields.taxNumber"), form.taxNumber],
+                  [t("entities.fields.contactEmail"), form.contactEmail],
+                  [t("entities.fields.contactPhone"), form.contactPhone],
+                ]}
+              />
+              <ReviewGroup
+                title={t("entities.new.addressGroup")}
+                onEdit={() => setStep(2)}
+                rows={[
+                  [t("entities.fields.buildingNo"), form.buildingNo],
+                  [t("entities.fields.street"), form.street],
+                  [t("entities.fields.district"), form.district],
+                  [t("entities.fields.city"), form.city],
+                  [t("entities.fields.postalCode"), form.postalCode],
+                  [t("entities.fields.additionalNo"), form.additionalNo],
+                ]}
+              />
+              <ReviewGroup
+                title={t("entities.new.responsibleGroup")}
+                onEdit={() => setStep(2)}
+                rows={[
+                  [t("entities.fields.responsibleName"), form.responsibleName],
+                  [t("entities.fields.responsibleTitle"), form.responsibleTitle],
+                  [t("entities.fields.responsibleEmail"), form.responsibleEmail],
+                  [t("entities.fields.responsiblePhone"), form.responsiblePhone],
+                ]}
+              />
+              <p className="rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
                 {t("entities.new.verificationNote")}
               </p>
-            </>
+            </div>
           ) : null}
         </div>
 

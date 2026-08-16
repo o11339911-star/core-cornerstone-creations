@@ -55,6 +55,8 @@ export const en: Translations = {
     properties: "Properties",
     home: "Home",
     switchAccount: "Switch account",
+    manageEntity: "Manage entity",
+    entityTeam: "Team",
     activeAccount: "Active account",
     personal: "Personal account",
     offline: "You are offline. Some data may be out of date.",

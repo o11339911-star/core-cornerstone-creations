@@ -53,6 +53,8 @@ export const ar = {
     properties: "العقارات",
     home: "الرئيسية",
     switchAccount: "تبديل الحساب",
+    manageEntity: "إدارة الكيان",
+    entityTeam: "فريق العمل",
     activeAccount: "الحساب النشط",
     personal: "حساب شخصي",
     offline: "لا يوجد اتصال بالإنترنت. بعض البيانات قد لا تكون محدثة.",
