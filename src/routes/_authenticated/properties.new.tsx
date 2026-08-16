@@ -14,11 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  CardsSkeleton,
   ErrorState,
   FieldShell,
   HeroBadge,
   PageHero,
   SectionCard,
+  SoftEmpty,
   TextAreaField,
   TextField,
 } from "@/components/rakeez";
@@ -85,13 +87,13 @@ function NewPropertyPage() {
     if (name.trim().length < 2) nextErrors.name = t("properties.nameRequired");
     if (!kind) nextErrors.kind = t("properties.kindRequired");
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0 || !kind) return;
+    if (Object.keys(nextErrors).length > 0 || !kind || !entityId) return;
 
     mutation.mutate({
       data: {
         kind,
         name: name.trim(),
-        entityId: scope?.kind === "entity" ? scope.entityId : null,
+        entityId,
         city: city.trim(),
         district: district.trim(),
         landArea: landArea ? Number(landArea) : null,
@@ -103,6 +105,22 @@ function NewPropertyPage() {
       },
     });
   };
+
+  if (account.loading) {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
+        <CardsSkeleton cards={1} />
+      </div>
+    );
+  }
+
+  if (!entityId) {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
+        <SoftEmpty icon={Building2} message={t("shell.noAccessBody")} />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
@@ -149,7 +167,7 @@ function NewPropertyPage() {
 
             <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
               <span className="font-medium text-foreground">{t("properties.scope")}: </span>
-              {scope?.kind === "entity" ? scope.entityId : t("properties.scopePersonal")}
+              {account.activeEntity?.name ?? t("properties.scopePersonal")}
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
