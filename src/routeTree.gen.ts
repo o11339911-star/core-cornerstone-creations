@@ -43,6 +43,7 @@ import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
 import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenticated/platform.dsr'
+import { Route as AuthenticatedPlatformEntitiesRouteImport } from './routes/_authenticated/platform.entities'
 import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/_authenticated/platform.integrations'
 import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
@@ -261,6 +262,12 @@ const AuthenticatedPlatformDsrRoute =
   AuthenticatedPlatformDsrRouteImport.update({
     id: '/dsr',
     path: '/dsr',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformEntitiesRoute =
+  AuthenticatedPlatformEntitiesRouteImport.update({
+    id: '/entities',
+    path: '/entities',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedPlatformIntegrationsRoute =
@@ -518,6 +525,7 @@ export interface FileRoutesByFullPath {
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
+  '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -588,6 +596,7 @@ export interface FileRoutesByTo {
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
+  '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -662,6 +671,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/_authenticated/platform/dsr': typeof AuthenticatedPlatformDsrRoute
+  '/_authenticated/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/_authenticated/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/_authenticated/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -736,6 +746,7 @@ export interface FileRouteTypes {
     | '/platform/breach-playbook'
     | '/platform/breakglass'
     | '/platform/dsr'
+    | '/platform/entities'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
@@ -806,6 +817,7 @@ export interface FileRouteTypes {
     | '/platform/breach-playbook'
     | '/platform/breakglass'
     | '/platform/dsr'
+    | '/platform/entities'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
@@ -879,6 +891,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
     | '/_authenticated/platform/dsr'
+    | '/_authenticated/platform/entities'
     | '/_authenticated/platform/integrations'
     | '/_authenticated/platform/queue'
     | '/_authenticated/platform/staff'
@@ -1177,6 +1190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformDsrRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
+    '/_authenticated/platform/entities': {
+      id: '/_authenticated/platform/entities'
+      path: '/entities'
+      fullPath: '/platform/entities'
+      preLoaderRoute: typeof AuthenticatedPlatformEntitiesRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/platform/integrations': {
       id: '/_authenticated/platform/integrations'
       path: '/integrations'
@@ -1443,6 +1463,7 @@ interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformBreachPlaybookRoute: typeof AuthenticatedPlatformBreachPlaybookRoute
   AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
   AuthenticatedPlatformDsrRoute: typeof AuthenticatedPlatformDsrRoute
+  AuthenticatedPlatformEntitiesRoute: typeof AuthenticatedPlatformEntitiesRoute
   AuthenticatedPlatformIntegrationsRoute: typeof AuthenticatedPlatformIntegrationsRoute
   AuthenticatedPlatformQueueRoute: typeof AuthenticatedPlatformQueueRoute
   AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
@@ -1455,6 +1476,7 @@ const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
     AuthenticatedPlatformBreachPlaybookRoute,
   AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
   AuthenticatedPlatformDsrRoute: AuthenticatedPlatformDsrRoute,
+  AuthenticatedPlatformEntitiesRoute: AuthenticatedPlatformEntitiesRoute,
   AuthenticatedPlatformIntegrationsRoute:
     AuthenticatedPlatformIntegrationsRoute,
   AuthenticatedPlatformQueueRoute: AuthenticatedPlatformQueueRoute,
