@@ -21,11 +21,15 @@
     ],
     "project": "96f64792-f41e-48bd-9937-a70be5048d2b",
     "viewerProject": "18b011a7-8fbf-4210-932e-0f294b2fb58c",
-    "stages": [],
+    "stages": [
+      "81ee789d-bb87-407a-8f8d-558720eb7025",
+      "3133b3a3-ffab-484a-9e8d-a05a00072466"
+    ],
     "request": "603ca6ad-e26e-4150-9bfb-db048bf8cdad",
     "drawing": "c06d8dcb-7e61-4312-859a-048066d92a41",
     "versionId": "a03c471d-18b9-4889-8adc-b56c23ea6b06",
     "storagePath": "bcd232d7-4ccd-4d83-a929-033e0888b612/96f64792-f41e-48bd-9937-a70be5048d2b/0dd9fa99-334d-4129-a835-20c18375810c/a03c471d-18b9-4889-8adc-b56c23ea6b06.dwg",
-    "uploaded": true
+    "uploaded": true,
+    "document": "cb62358c-ba8e-4ff1-94dc-b087cf391ebf"
   }
 }

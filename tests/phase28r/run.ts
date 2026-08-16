@@ -166,8 +166,8 @@ async function main() {
 
   const stTpl = await rest(SERVICE, `stage_templates?select=id,name_ar,name_en,order_index&project_template_id=eq.${templateId}&order=order_index&limit=2`);
   const stageRows = (stTpl.body ?? []).map((s: any, i: number) => ({
-    project_id: registry.rows.project, stage_template_id: s.id, source: "template", name_ar: s.name_ar,
-    name_en: s.name_en, order_index: s.order_index ?? i, status: "not_started", is_required: true,
+    project_id: registry.rows.project, stage_template_id: s.id, source: "core", name_ar: s.name_ar,
+    name_en: s.name_en, order_index: s.order_index ?? i, status: "pending", is_required: true,
   }));
   const stIns = await rest(U(tokens["alpha-manager"]!.access), "project_stages", {
     method: "POST", prefer: "return=representation", body: JSON.stringify(stageRows),
