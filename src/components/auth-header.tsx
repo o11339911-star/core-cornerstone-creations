@@ -8,12 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 type SessionState = "unknown" | "guest" | "authenticated";
 
-const NAV_LINKS = [
+const NAV_LINKS: { key: string; to: string }[] = [
   { key: "nav.home", to: "/" },
   { key: "nav.services", to: "/#services" },
   { key: "nav.about", to: "/#about" },
   { key: "nav.contact", to: "/#contact" },
-] as const;
+];
 
 /**
  * Public site header. The sign-in affordance is ALWAYS rendered: while the
