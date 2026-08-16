@@ -11244,6 +11244,18 @@ export type Database = {
         Args: { _code: string; _status: string }
         Returns: undefined
       }
+      set_listing_archived: {
+        Args: { _archived: boolean; _listing_id: string }
+        Returns: undefined
+      }
+      set_listing_context: {
+        Args: {
+          _listing_id: string
+          _project_id?: string
+          _request_id?: string
+        }
+        Returns: undefined
+      }
       set_marketing_contract_amount: {
         Args: {
           _amount: number
