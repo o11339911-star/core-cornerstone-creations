@@ -851,7 +851,7 @@ export const ar = {
       internal_note: "ملاحظة داخلية",
     },
     inbox: {
-      title: "صندوق الطلبات",
+      title: "الطلبات",
       subtitle: "كل الطلبات المرتبطة بحسابك النشط في مكان واحد.",
       assigned: "الموجهة إليّ",
       created: "التي أنشأتها",

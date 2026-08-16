@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/notifications")({
       {
         name: "description",
         content:
-          "صندوق إشعارات ركيز: تنبيهات مرتبطة بأحداث فعلية، بتوقيت الرياض، وروابط تُفحص صلاحيتها لحظة النقر.",
+          "إشعارات ركيز: تنبيهات مرتبطة بأحداث فعلية، بتوقيت الرياض، وروابط تُفحص صلاحيتها لحظة النقر.",
       },
       { property: "og:title", content: "الإشعارات | ركيز" },
       {

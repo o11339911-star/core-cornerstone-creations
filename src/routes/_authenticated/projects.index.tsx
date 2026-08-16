@@ -17,12 +17,12 @@ export const Route = createFileRoute("/_authenticated/projects/")({
   errorComponent: ErrorState,
   head: () => ({
     meta: [
-      { title: "صندوق المشاريع | ركيز" },
+      { title: "المشاريع | ركيز" },
       {
         name: "description",
         content: "كل مشاريع الحساب النشط في شاشة واحدة مع البحث والحالة والمدينة وإمكانية الأرشفة.",
       },
-      { property: "og:title", content: "صندوق المشاريع | ركيز" },
+      { property: "og:title", content: "المشاريع | ركيز" },
       {
         property: "og:description",
         content: "تصفّح مشاريعك وافتح ملف أي مشروع أو أضفه إلى أرشيف الكيان.",
@@ -53,7 +53,7 @@ function ProjectsBoxPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
-        title="صندوق المشاريع"
+        title="المشاريع"
         subtitle="كل مشاريع الحساب النشط في مكان واحد."
         badge={<HeroBadge tone="neutral">{activeEntity?.name ?? "حساب شخصي"}</HeroBadge>}
       >
