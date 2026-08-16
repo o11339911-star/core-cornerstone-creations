@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { EntityClassificationCard } from "@/components/entities/classification-card";
+
 import {
   CardsSkeleton,
   ErrorState,
