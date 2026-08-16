@@ -248,6 +248,9 @@ export default function IfcViewer({
 
   const cancel = useCallback(() => stopRef.current?.(), []);
   const busy = stage === "downloading" || stage === "converting" || stage === "rendering";
+  // بناء المشهد (rendering) متزامن على الخيط الرئيسي ولا يمكن للمستخدم إيقافه،
+  // فلا نعرض زر إلغاء شكليًا في تلك المرحلة.
+  const cancellable = stage === "downloading" || stage === "converting";
 
   const toolbar =
     stage === "ready" ? (
@@ -255,10 +258,10 @@ export default function IfcViewer({
         <Maximize2 className="size-4" aria-hidden="true" />
         {t("drawings.fitToView")}
       </Button>
-    ) : busy ? (
+    ) : cancellable ? (
       <Button variant="ghost" size="sm" className="min-h-11" onClick={cancel}>
         <X className="size-4" aria-hidden="true" />
-        {t("drawings.cancel")}
+        {t("common.cancel")}
       </Button>
     ) : undefined;
 
@@ -318,7 +321,7 @@ export default function IfcViewer({
             tone="error"
             title={t(errorKey)}
             body={t("drawings.viewerErrorBody")}
-            action={{ label: t("drawings.retry"), onClick: () => setToken((n) => n + 1) }}
+            action={{ label: t("common.retry"), onClick: () => setToken((n) => n + 1) }}
           />
         ) : null}
       </ViewerFrame>

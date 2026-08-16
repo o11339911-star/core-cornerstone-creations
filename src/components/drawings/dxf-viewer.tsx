@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Maximize2, Minus, Plus, RotateCcw } from "lucide-react";
+import { Maximize2, Minus, Plus, RotateCcw, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,7 +14,15 @@ import type { DxfScene } from "@/lib/drawings/dxf-geometry";
 import type { DxfWorkerResponse } from "@/lib/drawings/dxf.worker";
 import { ViewerFrame, ViewerMessage } from "./viewer-frame";
 
-type Status = "loading" | "parsing" | "ready" | "error" | "too_large" | "capacity" | "empty";
+type Status =
+  | "loading"
+  | "parsing"
+  | "ready"
+  | "error"
+  | "cancelled"
+  | "too_large"
+  | "capacity"
+  | "empty";
 
 interface View {
   scale: number;
@@ -43,6 +51,8 @@ export default function DxfViewer({
   const hiddenRef = useRef<Set<string>>(new Set());
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const wheelRef = useRef<(event: WheelEvent) => void>(() => {});
+  const stopRef = useRef<(() => void) | null>(null);
+  const statusRef = useRef<Status>("loading");
 
   const [scene, setScene] = useState<DxfScene | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -55,6 +65,10 @@ export default function DxfViewer({
   useEffect(() => {
     hiddenRef.current = hidden;
   }, [hidden]);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -132,8 +146,16 @@ export default function DxfViewer({
       worker?.terminate();
       worker = null;
     };
+    // إلغاء المستخدم: يوقف التنزيل (AbortController) والتحليل (terminate) فعليًا.
+    stopRef.current = () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      stop();
+      setStatus("cancelled");
+    };
     const timer = window.setTimeout(() => {
       if (cancelled) return;
+      cancelled = true;
       stop();
       setErrorKey("drawings.viewerTimeout");
       setStatus("error");
@@ -202,6 +224,7 @@ export default function DxfViewer({
       cancelled = true;
       window.clearTimeout(timer);
       stop();
+      stopRef.current = null;
       sceneRef.current = null;
     };
   }, [url, reloadToken, sizeCheck.ok, fit]);
@@ -255,6 +278,8 @@ export default function DxfViewer({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const handler = (event: WheelEvent) => {
+      // لا نمنع تمرير الصفحة إلا حين يكون العرض جاهزًا فعلًا للتكبير.
+      if (statusRef.current !== "ready") return;
       event.preventDefault();
       wheelRef.current(event);
     };
@@ -310,6 +335,18 @@ export default function DxfViewer({
     </>
   );
 
+  const cancelButton = (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="min-h-11"
+      onClick={() => stopRef.current?.()}
+    >
+      <X className="size-4" aria-hidden="true" />
+      {t("common.cancel")}
+    </Button>
+  );
+
   const layersPanel =
     scene && scene.layers.length > 0 && status === "ready" ? (
       <div className="rounded-xl border border-border bg-card p-3">
@@ -340,7 +377,16 @@ export default function DxfViewer({
 
   return (
     <div className="space-y-2">
-      <ViewerFrame toolbar={status === "ready" ? toolbar : undefined} side={layersPanel}>
+      <ViewerFrame
+        toolbar={
+          status === "ready"
+            ? toolbar
+            : status === "loading" || status === "parsing"
+              ? cancelButton
+              : undefined
+        }
+        side={layersPanel}
+      >
         <div ref={wrapRef} className="absolute inset-0">
           <canvas
             ref={canvasRef}
@@ -394,13 +440,23 @@ export default function DxfViewer({
               body={t("drawings.viewerEmptyBody")}
             />
           ) : null}
+          {status === "cancelled" ? (
+            <ViewerMessage
+              title={t("drawings.viewerCancelled")}
+              body={t("drawings.viewerCancelledBody")}
+              action={{
+                label: t("common.retry"),
+                onClick: () => setReloadToken((n) => n + 1),
+              }}
+            />
+          ) : null}
           {status === "error" ? (
             <ViewerMessage
               tone="error"
               title={t(errorKey)}
               body={t("drawings.viewerErrorBody")}
               action={{
-                label: t("drawings.retry"),
+                label: t("common.retry"),
                 onClick: () => setReloadToken((n) => n + 1),
               }}
             />

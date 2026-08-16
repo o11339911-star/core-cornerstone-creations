@@ -945,6 +945,8 @@ export const en: Translations = {
     openMedia: "Open tour",
   },
   drawings: {
+    viewerCancelledBody: "You stopped the preview before it finished; you can retry at any time.",
+    revisionMismatch: "The opened revision changed — reopen it and try again.",
     dxfParsing: "Parsing the drawing…",
     ifcRendering: "Building the scene…",
     viewerCancelled: "Preview cancelled",
