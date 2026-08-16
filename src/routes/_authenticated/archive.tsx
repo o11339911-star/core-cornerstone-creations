@@ -222,21 +222,27 @@ function ArchivePage() {
         upsert: false,
       });
       if (error) throw new Error(error.message);
-      await addItem({
-        data: {
-          entityId,
-          folderId: v.folderId,
-          newFolderName: null,
-          title: fileName,
-          kind: "file",
-          sourceTable: null,
-          sourceId: null,
-          storagePath: path,
-          mimeType: mime,
-          sizeBytes: blob.size,
-          note: null,
-        },
-      });
+      try {
+        await addItem({
+          data: {
+            entityId,
+            folderId: v.folderId,
+            newFolderName: null,
+            title: fileName,
+            kind: "file",
+            sourceTable: null,
+            sourceId: null,
+            storagePath: path,
+            mimeType: mime,
+            sizeBytes: blob.size,
+            note: null,
+          },
+        });
+      } catch (e) {
+        // لا نترك ملفًا يتيمًا في المخزن عند فشل إنشاء السجل
+        await supabase.storage.from("archive").remove([path]);
+        throw e;
+      }
     },
     onSuccess: () => {
       toast.success("تم إنشاء الملف في الأرشيف");
@@ -244,7 +250,10 @@ function ArchivePage() {
       setCreateName("");
       void qc.invalidateQueries({ queryKey: ["archive"] });
     },
-    onError: () => toast.error("تعذّر إنشاء الملف"),
+    onError: (e: unknown) =>
+      toast.error("تعذّر إنشاء الملف", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
   });
 
   const openCreate = (kind: "word" | "excel") => {
@@ -275,28 +284,37 @@ function ArchivePage() {
         upsert: false,
       });
       if (error) throw new Error(error.message);
-      await addItem({
-        data: {
-          entityId,
-          folderId,
-          newFolderName: null,
-          title: file.name,
-          kind: "file",
-          sourceTable: null,
-          sourceId: null,
-          storagePath: path,
-          mimeType: file.type || null,
-          sizeBytes: file.size,
-          note: null,
-        },
-      });
+      try {
+        await addItem({
+          data: {
+            entityId,
+            folderId,
+            newFolderName: null,
+            title: file.name,
+            kind: "file",
+            sourceTable: null,
+            sourceId: null,
+            storagePath: path,
+            mimeType: file.type || null,
+            sizeBytes: file.size,
+            note: null,
+          },
+        });
+      } catch (e) {
+        await supabase.storage.from("archive").remove([path]);
+        throw e;
+      }
       toast.success("تم رفع الملف إلى الأرشيف");
       void qc.invalidateQueries({ queryKey: ["archive"] });
-    } catch {
-      toast.error("تعذّر رفع الملف");
+    } catch (e) {
+      toast.error("تعذّر رفع الملف", {
+        description: e instanceof Error ? e.message : undefined,
+      });
     } finally {
       setUploading(false);
     }
+  };
+
   };
 
   const download = async (path: string) => {
