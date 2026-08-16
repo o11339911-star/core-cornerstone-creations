@@ -1,3 +1,4 @@
+import { Building2, CheckCircle2, FileSearch, UploadCloud } from "lucide-react";
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -306,7 +307,7 @@ export function DocumentAnalyzer({
     return (
       <div className="mx-auto min-h-screen w-full max-w-3xl px-4 py-8 sm:px-6">
         <PageHero title={t("analysis.title")} subtitle={t("analysis.subtitle")} />
-        <SoftEmpty message={t("analysis.selectEntityFirst")} />
+        <SoftEmpty icon={Building2} message={t("analysis.selectEntityFirst")} />
       </div>
     );
   }
@@ -316,7 +317,7 @@ export function DocumentAnalyzer({
       <PageHero title={t("analysis.title")} subtitle={t("analysis.subtitle")} />
 
       {stage === "setup" ? (
-        <SectionCard icon={SoftEmpty === undefined ? undefined! : (require("lucide-react").UploadCloud) as any} title={t("analysis.title")}>
+        <SectionCard icon={UploadCloud} title={t("analysis.title")}>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>{t("analysis.pickProperty")}</Label>
@@ -410,7 +411,7 @@ export function DocumentAnalyzer({
       {stage === "extracting" ? <CardsSkeleton cards={1} /> : null}
 
       {stage === "review" && extraction ? (
-        <SectionCard icon={(require("lucide-react").FileSearch) as any} title={t("analysis.reviewTitle")}>
+        <SectionCard icon={FileSearch} title={t("analysis.reviewTitle")}>
           <p className="mb-4 text-sm text-muted-foreground">{t("analysis.reviewHint")}</p>
           {!extraction.ok ? (
             <p className="mb-4 text-sm font-medium text-warning">
@@ -523,7 +524,7 @@ export function DocumentAnalyzer({
       ) : null}
 
       {stage === "done" ? (
-        <SectionCard icon={(require("lucide-react").CheckCircle2) as any} title={t("analysis.applied")}>
+        <SectionCard icon={CheckCircle2} title={t("analysis.applied")}>
           <div className="flex flex-wrap gap-3">
             <Button className="min-h-11" onClick={resetPipeline}>
               {t("analysis.startOver")}
