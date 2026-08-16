@@ -52,11 +52,11 @@ export const recordAnalysis = createServerFn({ method: "POST" })
       _document_version_id: data.documentVersionId,
       _engine: data.engine,
       _status: data.status,
-      _detected_type: data.detectedType ?? undefined,
-      _extracted_fields: (data.extractedFields ?? {}) as Json,
-      _field_confidence: (data.fieldConfidence ?? {}) as Json,
-      _conflicts: (data.conflicts ?? []) as Json,
-      _failure_reason: data.failureReason ?? undefined,
+      _extracted_fields: (data.extractedFields ?? {}) as never,
+      _field_confidence: (data.fieldConfidence ?? {}) as never,
+      _conflicts: (data.conflicts ?? []) as never,
+      ...(data.detectedType ? { _detected_type: data.detectedType } : {}),
+      ...(data.failureReason ? { _failure_reason: data.failureReason } : {}),
     });
     if (error) throw new Error(error.message);
     return { analysisId: id as string };

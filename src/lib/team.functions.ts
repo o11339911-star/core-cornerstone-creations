@@ -167,6 +167,21 @@ export const listProjectAssignments = createServerFn({ method: "GET" })
     return assignmentSchema.array().parse(rows ?? []);
   });
 
+function mapAssignmentError(error: { message: string }): Error {
+  if (error.message.includes("NOT_ASSIGNABLE")) {
+    return new Error("هذا العضو ليس عضوًا نشطًا في كيان مشارك بهذا المشروع.");
+  }
+  if (error.message.includes("LAST_OWNER_PROTECTED")) {
+    return new Error("team.lastOwnerProtected");
+  }
+  return new Error(error.message);
+}
+
+/**
+ * Creates a project assignment through the SECURITY DEFINER RPC only: the
+ * database re-validates that `userId` is an active member of `entityId` and
+ * that `entityId` actually participates in the project before inserting.
+ */
 export const createAssignment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -175,7 +190,7 @@ export const createAssignment = createServerFn({ method: "POST" })
         projectId: z.string().uuid(),
         stageId: z.string().uuid().nullable().optional(),
         userId: z.string().uuid(),
-        entityId: z.string().uuid().nullable().optional(),
+        entityId: z.string().uuid(),
         jobTitleAr: z.string().trim().min(2).max(120),
         jobTitleEn: z.string().trim().min(2).max(120),
         startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -185,44 +200,81 @@ export const createAssignment = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
-    const { data: row, error } = await context.supabase
-      .from("project_assignments")
-      .insert({
-        project_id: data.projectId,
-        stage_id: data.stageId ?? null,
-        user_id: data.userId,
-        entity_id: data.entityId ?? null,
-        job_title_ar: data.jobTitleAr,
-        job_title_en: data.jobTitleEn,
-        starts_on: data.startsOn ?? new Date().toISOString().slice(0, 10),
-        ends_on: data.endsOn ?? null,
-        visibility: data.visibility,
-        created_by: context.userId,
-      })
-      .select("id")
-      .single();
+    const { data: id, error } = await context.supabase.rpc("create_project_assignment", {
+      _project_id: data.projectId,
+      _user_id: data.userId,
+      _entity_id: data.entityId,
+      _job_title_ar: data.jobTitleAr,
+      _job_title_en: data.jobTitleEn,
+      _stage_id: data.stageId ?? null,
+      _starts_on: data.startsOn ?? new Date().toISOString().slice(0, 10),
+      _ends_on: data.endsOn ?? null,
+      _visibility: data.visibility,
+    });
 
-    if (error) throw error;
-    return { id: row.id };
+    if (error) throw mapAssignmentError(error);
+    return { id: id as string };
   });
 
-export const setAssignmentVisibility = createServerFn({ method: "POST" })
+/**
+ * Updates an existing assignment's job titles, stage, dates and visibility,
+ * or ends it (`endNow`) via the single SECURITY DEFINER RPC. Never a direct
+ * table update.
+ */
+export const updateProjectAssignment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         assignmentId: z.string().uuid(),
-        visibility: z.enum(VISIBILITY_LEVELS),
+        jobTitleAr: z.string().trim().min(2).max(120).optional(),
+        jobTitleEn: z.string().trim().min(2).max(120).optional(),
+        stageId: z.string().uuid().nullable().optional(),
+        clearStage: z.boolean().default(false),
+        startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        visibility: z.enum(VISIBILITY_LEVELS).optional(),
+        endNow: z.boolean().default(false),
       })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase
-      .from("project_assignments")
-      .update({ visibility: data.visibility })
-      .eq("id", data.assignmentId);
+    const { error } = await context.supabase.rpc("update_project_assignment", {
+      _assignment_id: data.assignmentId,
+      _job_title_ar: data.jobTitleAr ?? null,
+      _job_title_en: data.jobTitleEn ?? null,
+      _stage_id: data.stageId ?? null,
+      _clear_stage: data.clearStage,
+      _starts_on: data.startsOn ?? null,
+      _ends_on: data.endsOn ?? null,
+      _visibility: data.visibility ?? null,
+      _end_now: data.endNow,
+    });
 
-    if (error) throw error;
+    if (error) throw mapAssignmentError(error);
+    return { ok: true };
+  });
+
+/** Ends an assignment as of the server date, via `update_project_assignment`. */
+export const endProjectAssignment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ assignmentId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { error } = await context.supabase.rpc("update_project_assignment", {
+      _assignment_id: data.assignmentId,
+      _job_title_ar: null,
+      _job_title_en: null,
+      _stage_id: null,
+      _clear_stage: false,
+      _starts_on: null,
+      _ends_on: null,
+      _visibility: null,
+      _end_now: true,
+    });
+
+    if (error) throw mapAssignmentError(error);
     return { ok: true };
   });
 
@@ -345,7 +397,10 @@ export const changeMemberRole = createServerFn({ method: "POST" })
       .eq("id", data.membershipId)
       .eq("entity_id", data.entityId);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (error.message.includes("LAST_OWNER_PROTECTED")) throw new Error("team.lastOwnerProtected");
+      throw new Error(error.message);
+    }
     return { ok: true };
   });
 
@@ -437,7 +492,10 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
       if (data.reason) args._reason = data.reason;
 
       const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (error.message.includes("LAST_OWNER_PROTECTED")) throw new Error("team.lastOwnerProtected");
+        throw new Error(error.message);
+      }
       return { transferred: (moved as number) ?? 0 };
     },
   );
@@ -446,6 +504,7 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
 
 export const assignableMemberSchema = z.object({
   userId: z.string().uuid(),
+  entityId: z.string().uuid(),
   fullName: z.string(),
   entityName: z.string(),
 });
@@ -454,13 +513,41 @@ export type AssignableMember = z.infer<typeof assignableMemberSchema>;
 /**
  * Members eligible to receive a project assignment by name: the project
  * entity's own roster plus every entity that is an accepted project party.
- * Authorization is re-derived server-side (`projects.update`) before any
- * row is returned — never trust a client-picked project id blindly.
+ * The `list_project_assignable_members` RPC re-derives `projects.update`
+ * server-side before returning any row — never trust a client-picked
+ * project id blindly.
  */
 export const listAssignableMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<AssignableMember[]> => {
+    const { data: rows, error } = await context.supabase.rpc(
+      "list_project_assignable_members",
+      { _project_id: data.projectId },
+    );
+
+    if (error) throw new Error(error.message);
+
+    type Row = { user_id: string; entity_id: string; full_name: string; entity_name: string };
+    return ((rows ?? []) as Row[])
+      .map((row) => ({
+        userId: row.user_id,
+        entityId: row.entity_id,
+        fullName: row.full_name,
+        entityName: row.entity_name,
+      }))
+      .sort((a, b) => a.fullName.localeCompare(b.fullName, "ar"));
+  });
+
+/**
+ * Whether the caller may manage this project's team (add/edit assignments,
+ * change visibility). Mirrors the `projects.update` capability that the
+ * assignment RPCs already enforce server-side.
+ */
+export const getProjectTeamCapabilities = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<{ canManage: boolean }> => {
     const { data: project, error: projectError } = await context.supabase
       .from("projects")
       .select("id, entity_id, owner_id")
@@ -468,53 +555,10 @@ export const listAssignableMembers = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (projectError) throw projectError;
-    if (!project) throw new Error("المشروع غير موجود.");
+    if (!project) return { canManage: false };
 
-    const allowed = await callerCanUpdateProject(context.supabase, context.userId, project);
-    if (!allowed) {
-      throw new Error("لا تملك صلاحية إدارة فريق هذا المشروع.");
-    }
-
-    const entityIds = new Set<string>();
-    if (project.entity_id) entityIds.add(project.entity_id);
-
-    const { data: parties, error: partiesError } = await context.supabase
-      .from("project_parties")
-      .select("party_entity_id")
-      .eq("project_id", data.projectId)
-      .eq("status", "accepted");
-
-    if (partiesError) throw partiesError;
-    for (const p of parties ?? []) entityIds.add(p.party_entity_id);
-
-    if (entityIds.size === 0) return [];
-
-    const { data: rows, error } = await context.supabase
-      .from("entity_memberships")
-      .select("user_id, entity_id, entities(name), profiles(full_name)")
-      .in("entity_id", [...entityIds])
-      .eq("status", "active");
-
-    if (error) throw error;
-
-    type Row = {
-      user_id: string;
-      entities: { name: string } | null;
-      profiles: { full_name: string | null } | null;
-    };
-    const seen = new Set<string>();
-    const out: AssignableMember[] = [];
-    for (const row of (rows ?? []) as unknown as Row[]) {
-      const key = row.user_id;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({
-        userId: row.user_id,
-        fullName: row.profiles?.full_name ?? "عضو",
-        entityName: row.entities?.name ?? "—",
-      });
-    }
-    return out.sort((a, b) => a.fullName.localeCompare(b.fullName, "ar"));
+    const canManage = await callerCanUpdateProject(context.supabase, context.userId, project);
+    return { canManage };
   });
 
 /**
