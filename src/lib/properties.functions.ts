@@ -34,31 +34,24 @@ export type PropertyListItem = z.infer<typeof propertyListItemSchema>;
 export const listProperties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ entityId: z.string().uuid().nullable().optional() })
-      .optional()
-      .parse(input ?? {}),
+    z.object({ entityId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }): Promise<PropertyListItem[]> => {
-    let query = context.supabase
+    // No bypass path: the property registry always belongs to one verified
+    // developer entity, re-authorized server-side before any read.
+    const { requireEntityOfType } = await import("@/lib/entity-scope.server");
+    const scope = await requireEntityOfType(
+      context.supabase,
+      context.userId,
+      data.entityId,
+      ["developer"],
+    );
+
+    const { data: rows, error } = await context.supabase
       .from("properties_public")
       .select("id, kind, name, status, city, district, land_area, completion_percent")
+      .eq("entity_id", scope.entityId)
       .order("created_at", { ascending: false });
-
-    // Registry mode: the property registry belongs to a verified developer
-    // entity. The claimed entityId is re-authorized server-side.
-    if (data?.entityId) {
-      const { requireEntityOfType } = await import("@/lib/entity-scope.server");
-      const scope = await requireEntityOfType(
-        context.supabase,
-        context.userId,
-        data.entityId,
-        ["developer"],
-      );
-      query = query.eq("entity_id", scope.entityId);
-    }
-
-    const { data: rows, error } = await query;
 
     if (error) throw error;
     return propertyListItemSchema.array().parse(rows ?? []);

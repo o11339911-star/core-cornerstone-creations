@@ -134,6 +134,18 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
             <AccountMenu />
           </div>
         </div>
+        <Link
+          to="/select-account"
+          className="flex w-full items-center gap-2 border-t border-border/60 px-4 py-2 text-xs font-medium text-muted-foreground sm:hidden"
+        >
+          <Repeat className="size-3.5 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate">
+            {loading ? t("shell.loadingAccount") : (activeEntity?.name ?? t("shell.personal"))}
+          </span>
+          <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[0.6875rem] text-primary">
+            {entityTypeLabel(t, activeEntity?.type)}
+          </span>
+        </Link>
         {!online && (
           <p
             role="status"
@@ -176,7 +188,7 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
   );
 }
 
-function AccountMenu() {
+export function AccountMenu() {
   const t = useT();
   const navigate = useNavigate();
   const { clearScope } = useActiveAccount();

@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { LayoutDashboard, Menu, X } from "lucide-react";
 
+import { AccountMenu } from "@/components/app-shell";
 import { LanguageToggle } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,12 +107,17 @@ export function AuthHeader() {
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <LanguageToggle />
           {isAuthenticated ? (
-            <Link
-              to="/dashboard"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90"
-            >
-              {t("common.dashboard")}
-            </Link>
+            <>
+              <Link
+                to="/dashboard"
+                aria-label={t("common.dashboard")}
+                className="inline-flex size-11 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 sm:size-auto sm:min-h-11 sm:px-4 sm:py-2"
+              >
+                <LayoutDashboard className="size-5 sm:hidden" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("common.dashboard")}</span>
+              </Link>
+              <AccountMenu />
+            </>
           ) : (
             <Link
               to="/auth"
