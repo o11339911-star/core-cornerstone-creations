@@ -143,6 +143,7 @@ export function DocumentAnalyzer({
     setHeadId("");
     setAnalysisId(null);
     setNumberError(undefined);
+    setFieldErrors({});
   };
 
   const startAnalysis = useMutation({
