@@ -79,9 +79,17 @@ export const confirmAnalysis = createServerFn({ method: "POST" })
           .trim()
           .regex(/^[0-9A-Za-z/-]{1,60}$/, "رقم غير صالح"),
         issuer: z.string().trim().max(160).nullable().optional(),
-        date1: z.string().nullable().optional(),
-        date2: z.string().nullable().optional(),
-        area: z.number().positive().nullable().optional(),
+        date1: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ غير صالح")
+          .nullable()
+          .optional(),
+        date2: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ غير صالح")
+          .nullable()
+          .optional(),
+        area: z.number().positive().finite().nullable().optional(),
         ownerSnapshot: z.string().trim().max(200).nullable().optional(),
         scopeText: z.string().trim().max(1000).nullable().optional(),
       })
