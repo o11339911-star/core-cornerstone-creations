@@ -28,7 +28,7 @@ export default function IfcViewer({
   sizeBytes,
 }: {
   url: string;
-  sizeBytes?: number | null;
+  sizeBytes?: number | null | undefined;
 }) {
   const t = useT();
   const hostRef = useRef<HTMLDivElement | null>(null);

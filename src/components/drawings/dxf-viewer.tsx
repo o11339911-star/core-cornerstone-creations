@@ -29,8 +29,8 @@ export default function DxfViewer({
   compact = false,
 }: {
   url: string;
-  sizeBytes?: number | null;
-  compact?: boolean;
+  sizeBytes?: number | null | undefined;
+  compact?: boolean | undefined;
 }) {
   const t = useT();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
