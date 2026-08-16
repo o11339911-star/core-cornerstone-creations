@@ -1,3 +1,4 @@
+import { ArchiveButton } from "@/components/archive/archive-button";
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -37,7 +38,6 @@ import {
   type ContractType,
 } from "@/lib/contracts.functions";
 import {
-import { ArchiveButton } from "@/components/archive/archive-button";
   MESSAGE_VISIBILITY,
   createThread,
   listMessages,
