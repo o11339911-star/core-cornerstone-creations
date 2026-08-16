@@ -550,7 +550,7 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
       .object({
         propertyId: z.string().uuid(),
         licenseId: z.string().uuid().nullable().optional(),
-        licenseNumber: z.string().trim().max(60).nullable().optional(),
+        licenseNumber: z.string().trim().min(1).max(60).nullable().optional(),
         authority: z.string().trim().max(120).nullable().optional(),
         issuedOn: z.string().nullable().optional(),
         expiresOn: z.string().nullable().optional(),
@@ -566,11 +566,13 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
     let licenseId = data.licenseId ?? null;
 
     if (!licenseId) {
+      // A licence head with no number cannot be verified against the issuer.
+      if (!data.licenseNumber) throw new Error("LICENSE_NUMBER_REQUIRED");
       const { data: head, error } = await sb
         .from("building_licenses")
         .insert({
           property_id: data.propertyId,
-          license_number: data.licenseNumber ?? null,
+          license_number: data.licenseNumber,
           authority: data.authority ?? null,
           created_by: context.userId,
         })
@@ -579,15 +581,19 @@ export const addLicenseVersion = createServerFn({ method: "POST" })
       if (error) throw error;
       licenseId = head.id;
     } else if (data.licenseNumber !== undefined || data.authority !== undefined) {
-      // Keep the licence head in sync so the UI never shows a stale number.
-      const { error: headErr } = await sb
+      // Keep the licence head in sync so the UI never shows a stale number,
+      // scoped by property so a foreign head id cannot be targeted.
+      const { data: updated, error: headErr } = await sb
         .from("building_licenses")
         .update({
           ...(data.licenseNumber !== undefined ? { license_number: data.licenseNumber } : {}),
           ...(data.authority !== undefined ? { authority: data.authority } : {}),
         })
-        .eq("id", licenseId);
-      if (headErr) {
+        .eq("id", licenseId)
+        .eq("property_id", data.propertyId)
+        .select("id")
+        .maybeSingle();
+      if (headErr || !updated) {
         throw new Error("لا تملك صلاحية تعديل بيانات الرخصة لهذا العقار");
       }
     }
