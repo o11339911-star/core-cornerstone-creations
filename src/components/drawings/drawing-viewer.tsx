@@ -36,8 +36,8 @@ export function DrawingViewer({
 }: {
   format: string | null | undefined;
   url: string | null;
-  sizeBytes?: number | null;
-  title?: string;
+  sizeBytes?: number | null | undefined;
+  title?: string | undefined;
   apsEnabled: boolean;
 }) {
   const t = useT();
