@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Bell, Repeat, ShieldCheck, User } from "lucide-react";
+import { Bell, Building2, PlusCircle, Repeat, ShieldCheck, User } from "lucide-react";
 
 import { CardsSkeleton, ErrorState, PageHero, SectionCard } from "@/components/rakeez";
 import { entityTypeLabel } from "@/components/app-shell";
@@ -102,7 +102,27 @@ function ProfilePage() {
             )}
           </dl>
 
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {account.activeEntity ? (
+              <Link
+                to="/entities/$entityId"
+                params={{ entityId: account.activeEntity.id }}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40"
+              >
+                <Building2 className="size-4" aria-hidden="true" />
+                {t("entities.detail.manage")}
+              </Link>
+            ) : null}
+            <Link
+              to="/entities/new"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+            >
+              <PlusCircle className="size-4" aria-hidden="true" />
+              {t("entities.new.cta")}
+            </Link>
+          </div>
+
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
             <Link
               to="/select-account"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40"
