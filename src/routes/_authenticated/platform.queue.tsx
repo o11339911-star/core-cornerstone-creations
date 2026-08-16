@@ -166,6 +166,8 @@ function PlatformQueuePage() {
         <StatCard icon={KeyRound} label="إجمالي العناصر" value={rows.length} tone="primary" />
       </StatGrid>
 
+      <AdminIdentitySearch />
+
       <SectionCard icon={Inbox} title="العناصر" count={rows.length}>
         {items.isPending ? (
           <div className="space-y-3">
