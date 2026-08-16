@@ -261,7 +261,7 @@ export default function IfcViewer({
     ) : cancellable ? (
       <Button variant="ghost" size="sm" className="min-h-11" onClick={cancel}>
         <X className="size-4" aria-hidden="true" />
-        {t("drawings.cancel")}
+        {t("common.cancel")}
       </Button>
     ) : undefined;
 
@@ -321,7 +321,7 @@ export default function IfcViewer({
             tone="error"
             title={t(errorKey)}
             body={t("drawings.viewerErrorBody")}
-            action={{ label: t("drawings.retry"), onClick: () => setToken((n) => n + 1) }}
+            action={{ label: t("common.retry"), onClick: () => setToken((n) => n + 1) }}
           />
         ) : null}
       </ViewerFrame>

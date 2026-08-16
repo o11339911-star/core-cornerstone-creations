@@ -343,7 +343,7 @@ export default function DxfViewer({
       onClick={() => stopRef.current?.()}
     >
       <X className="size-4" aria-hidden="true" />
-      {t("drawings.cancel")}
+      {t("common.cancel")}
     </Button>
   );
 
@@ -445,7 +445,7 @@ export default function DxfViewer({
               title={t("drawings.viewerCancelled")}
               body={t("drawings.viewerCancelledBody")}
               action={{
-                label: t("drawings.retry"),
+                label: t("common.retry"),
                 onClick: () => setReloadToken((n) => n + 1),
               }}
             />
@@ -456,7 +456,7 @@ export default function DxfViewer({
               title={t(errorKey)}
               body={t("drawings.viewerErrorBody")}
               action={{
-                label: t("drawings.retry"),
+                label: t("common.retry"),
                 onClick: () => setReloadToken((n) => n + 1),
               }}
             />
