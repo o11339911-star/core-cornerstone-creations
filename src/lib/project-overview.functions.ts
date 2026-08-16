@@ -107,3 +107,101 @@ export const getProjectCompletion = createServerFn({ method: "GET" })
     if (!row) return null;
     return completionSchema.parse(row);
   });
+
+/* ------------------------- dashboard project list ------------------------ */
+
+export const projectListItemSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  code: z.string().nullable(),
+  status: z.string(),
+  city: z.string().nullable(),
+  district: z.string().nullable(),
+  template_name: z.string().nullable(),
+  property_name: z.string().nullable(),
+});
+export type ProjectListItem = z.infer<typeof projectListItemSchema>;
+
+export type ProjectListPage = { items: ProjectListItem[]; total: number };
+
+const escapeLike = (value: string) => value.replace(/[%_,()]/g, " ").trim();
+
+/**
+ * Projects visible to the caller in the ACTIVE scope only.
+ *
+ * Scope is enforced twice: an explicit `entity_id` filter here (personal scope
+ * means `entity_id is null` + owner is the caller) and RLS in the database,
+ * which remains the source of truth. The search term is an optional filter —
+ * an empty term returns the most recent projects.
+ */
+export const listMyProjects = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        entityId: z.string().uuid().nullable().optional(),
+        q: z.string().max(120).optional(),
+        page: z.number().int().min(1).max(200).optional(),
+        pageSize: z.number().int().min(1).max(50).optional(),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<ProjectListPage> => {
+    const pageSize = data.pageSize ?? 10;
+    const page = data.page ?? 1;
+    const from = (page - 1) * pageSize;
+
+    let query = context.supabase
+      .from("projects")
+      .select(
+        "id, name, code, status, city, district, created_at, project_templates(name), property_projects(properties(name))",
+        { count: "exact" },
+      )
+      .is("deleted_at", null);
+
+    if (data.entityId) {
+      query = query.eq("entity_id", data.entityId);
+    } else {
+      query = query.is("entity_id", null).eq("owner_id", context.userId);
+    }
+
+    const term = escapeLike(data.q ?? "");
+    if (term) {
+      query = query.or(`name.ilike.%${term}%,code.ilike.%${term}%`);
+    }
+
+    const { data: rows, error, count } = await query
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error) throw new Error(error.message);
+
+    const items = (rows ?? []).map((row) => {
+      const r = row as unknown as {
+        id: string;
+        name: string;
+        code: string | null;
+        status: string;
+        city: string | null;
+        district: string | null;
+        project_templates: { name: string } | { name: string }[] | null;
+        property_projects: { properties: { name: string } | { name: string }[] | null }[] | null;
+      };
+      const template = Array.isArray(r.project_templates)
+        ? (r.project_templates[0] ?? null)
+        : r.project_templates;
+      const firstLink = r.property_projects?.[0]?.properties ?? null;
+      const property = Array.isArray(firstLink) ? (firstLink[0] ?? null) : firstLink;
+      return projectListItemSchema.parse({
+        id: r.id,
+        name: r.name,
+        code: r.code,
+        status: r.status,
+        city: r.city,
+        district: r.district,
+        template_name: template?.name ?? null,
+        property_name: property?.name ?? null,
+      });
+    });
+
+    return { items, total: count ?? items.length };
+  });
