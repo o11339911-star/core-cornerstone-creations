@@ -142,13 +142,34 @@ function MarketplacePage() {
       <PageHero
         title="سوق الخدمات"
         subtitle="أعلن عن خدمات كيانك ومناطق تغطيتها. هوية النشر تُشتق من حسابك النشط في الخادم — لا نشر باسم غيرك."
-        badge={<HeroBadge>المرحلة 24</HeroBadge>}
+        badge={<HeroBadge>{formatNumber(rows.length)} إعلانًا</HeroBadge>}
       >
-        <HeroBadge>{rows.length} إعلانًا</HeroBadge>
-        <HeroBadge>منفصل عن بيانات المشاريع</HeroBadge>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button type="button" className="min-h-11 gap-2" onClick={() => setComposerOpen(true)}>
+            <Plus className="size-4" aria-hidden="true" /> إضافة إعلان
+          </Button>
+          <HeroBadge>منفصل عن بيانات المشاريع</HeroBadge>
+        </div>
       </PageHero>
 
-      <SectionCard icon={Store} title="نشر إعلان خدمة">
+      <ResponsiveModal
+        open={composerOpen}
+        onOpenChange={setComposerOpen}
+        title="إضافة إعلان خدمة"
+        description="يُنشر الإعلان بهوية الكيان المختار، ويمكن أرشفته لاحقًا."
+        footer={
+          <Button
+            type="button"
+            className="min-h-11 w-full"
+            onClick={() => {
+              if (validate()) create.mutate();
+            }}
+            disabled={create.isPending}
+          >
+            {create.isPending ? "جارٍ النشر…" : "نشر الإعلان"}
+          </Button>
+        }
+      >
         <FieldGrid>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">الكيان الناشر</span>
