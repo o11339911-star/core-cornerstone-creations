@@ -165,6 +165,108 @@ function NewProjectPage() {
 
       <SectionCard icon={FolderPlus} title={t("projects.newTitle")}>
         <form onSubmit={onSubmit} className="space-y-6" noValidate>
+          {/* Property first: search and pick before any project details. */}
+          {canLinkProperty ? (
+            <section
+              aria-labelledby="project-property"
+              className="space-y-3 rounded-xl border border-border bg-muted/20 p-3 sm:p-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="project-property" className="text-sm font-semibold text-foreground">
+                  {t("projects.linkProperty")}
+                </h2>
+                <div className="flex gap-1 rounded-lg bg-background p-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={mode === "property" ? "default" : "ghost"}
+                    className="min-h-9"
+                    onClick={() => setMode("property")}
+                  >
+                    {t("projects.propertyModeLinked")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={mode === "none" ? "default" : "ghost"}
+                    className="min-h-9"
+                    onClick={() => {
+                      setMode("none");
+                      setSelectedProperty(null);
+                    }}
+                  >
+                    {t("projects.propertyModeNone")}
+                  </Button>
+                </div>
+              </div>
+
+              {mode === "property" ? (
+                <div className="space-y-3">
+                  <PropertyPicker
+                    entityId={entityId as string}
+                    value={selectedProperty}
+                    onSelect={(option) => {
+                      setSelectedProperty(option);
+                      setErrors((prev) => ({ ...prev, property: undefined }));
+                    }}
+                    onClear={() => setSelectedProperty(null)}
+                  />
+                  {errors.property ? (
+                    <p className="text-xs text-destructive">{errors.property}</p>
+                  ) : null}
+
+                  {selectedProperty ? (
+                    <dl className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs sm:grid-cols-4">
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-muted-foreground">{t("projects.propertyName")}</dt>
+                        <dd className="truncate font-medium text-foreground">
+                          {selectedProperty.name}
+                        </dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-muted-foreground">{t("projects.propertyReference")}</dt>
+                        <dd>
+                          <PropertyReference option={selectedProperty} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("projects.city")}</dt>
+                        <dd className="text-foreground">{selectedProperty.city ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("projects.district")}</dt>
+                        <dd className="text-foreground">{selectedProperty.district ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("projects.landArea")}</dt>
+                        <dd className="text-foreground">
+                          {selectedProperty.land_area == null ? (
+                            "—"
+                          ) : (
+                            <bdi dir="ltr" className="tabular-nums">
+                              {formatNumber(selectedProperty.land_area)}
+                            </bdi>
+                          )}
+                        </dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-4">
+                        <p className="text-[11px] text-muted-foreground">
+                          {t("projects.propertyDerivedHint")}
+                        </p>
+                      </div>
+                    </dl>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("projects.propertyModeNoneHint")}</p>
+              )}
+            </section>
+          ) : (
+            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+              {t("projects.linkPropertyNeedsDeveloper")}
+            </p>
+          )}
+
           <FieldShell
             id="project-type"
             label={t("projects.type")}
@@ -216,26 +318,30 @@ function NewProjectPage() {
               : t("projects.scopePersonal")}
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <TextField
-              id="project-city"
-              label={t("projects.city")}
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-            />
-            <TextField
-              id="project-district"
-              label={t("projects.district")}
-              value={district}
-              onChange={(event) => setDistrict(event.target.value)}
-            />
-            <TextField
-              id="project-land-area"
-              label={t("projects.landArea")}
-              type="number"
-              value={landArea}
-              onChange={(event) => setLandArea(event.target.value)}
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {usesProperty ? null : (
+              <>
+                <TextField
+                  id="project-city"
+                  label={t("projects.city")}
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                />
+                <TextField
+                  id="project-district"
+                  label={t("projects.district")}
+                  value={district}
+                  onChange={(event) => setDistrict(event.target.value)}
+                />
+                <TextField
+                  id="project-land-area"
+                  label={t("projects.landArea")}
+                  type="number"
+                  value={landArea}
+                  onChange={(event) => setLandArea(event.target.value)}
+                />
+              </>
+            )}
             <TextField
               id="project-start-date"
               label={t("projects.startDate")}
@@ -259,32 +365,6 @@ function NewProjectPage() {
             onChange={(event) => setNotes(event.target.value)}
           />
 
-          {entityId && isDeveloper ? (
-            <FieldShell
-              id="project-linked-property"
-              label={t("projects.linkProperty")}
-              hint={t("projects.linkPropertyHint")}
-            >
-              {(aria) => (
-                <Select value={linkedPropertyId} onValueChange={setLinkedPropertyId}>
-                  <SelectTrigger id={aria.id} className="min-h-11">
-                    <SelectValue placeholder={t("projects.linkPropertyPlaceholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(propertiesQuery.data ?? []).map((property) => (
-                      <SelectItem key={property.id} value={property.id}>
-                        {property.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </FieldShell>
-          ) : (
-            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
-              {t("projects.linkPropertyNeedsDeveloper")}
-            </p>
-          )}
 
           <section aria-labelledby="stages-preview" className="rounded-xl border border-border p-4">
             <h2 id="stages-preview" className="text-base font-semibold text-foreground">
