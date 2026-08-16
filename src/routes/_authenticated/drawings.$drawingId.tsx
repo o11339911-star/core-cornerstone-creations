@@ -91,9 +91,11 @@ const TOOL_LABEL_KEYS = {
   download: "drawings.toolDownload",
   sheets: "drawings.toolSheets",
   layers: "drawings.toolLayers",
+  properties: "drawings.toolProperties",
   measure: "drawings.toolMeasure",
   markup: "drawings.toolMarkup",
 } as const;
+
 
 function DrawingViewerPage() {
   const { drawingId } = Route.useParams();
