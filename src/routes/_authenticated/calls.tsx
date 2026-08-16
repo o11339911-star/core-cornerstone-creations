@@ -24,9 +24,9 @@ import { formatCallDuration, useVoiceCall } from "@/lib/calls/webrtc";
 export const Route = createFileRoute("/_authenticated/calls")({
   component: CallsPage,
   errorComponent: ErrorState,
-  validateSearch: (search: Record<string, unknown>) => ({
-    answer: typeof search["answer"] === "string" ? (search["answer"] as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { answer?: string } =>
+    typeof search["answer"] === "string" ? { answer: search["answer"] } : {},
+
 
   head: () => ({
     meta: [
