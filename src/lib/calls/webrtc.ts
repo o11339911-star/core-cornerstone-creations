@@ -130,7 +130,13 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        void send("ice", { candidate: event.candidate.toJSON() as unknown as Record<string, unknown> });
+        void send("ice", {
+          candidate: event.candidate.toJSON() as unknown as Record<string, unknown>,
+        }).catch(() => {
+          if (disposed) return;
+          setErrorKey("calls.error.signalling");
+          setPhase("failed");
+        });
       }
     };
 
