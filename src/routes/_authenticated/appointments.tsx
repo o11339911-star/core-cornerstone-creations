@@ -384,6 +384,14 @@ function AppointmentsPage() {
                         تأكيد
                       </Button>
                     ) : null}
+                    {a.status === "confirmed" ? (
+                      <Button size="sm" variant="secondary" asChild>
+                        <Link to="/calls" className="inline-flex items-center gap-2">
+                          <Phone className="size-4" aria-hidden="true" />
+                          اتصال صوتي
+                        </Link>
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="outline"
@@ -393,6 +401,7 @@ function AppointmentsPage() {
                       إلغاء
                     </Button>
                   </div>
+
                 ) : null}
               </div>
             ))}
