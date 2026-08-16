@@ -24,7 +24,9 @@ import {
   listProjectTemplates,
   listStageTemplates,
 } from "@/lib/projects.functions";
-import { linkPropertyToProject, listProperties } from "@/lib/properties.functions";
+import type { PropertyOption } from "@/lib/properties.functions";
+import { PropertyPicker, PropertyReference } from "@/components/properties/PropertyPicker";
+import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/projects/new")({
   component: NewProjectPage,
@@ -57,18 +59,12 @@ function NewProjectPage() {
   const fetchTemplates = useServerFn(listProjectTemplates);
   const fetchStages = useServerFn(listStageTemplates);
   const submitProject = useServerFn(createProject);
-  const fetchProperties = useServerFn(listProperties);
-  const linkProperty = useServerFn(linkPropertyToProject);
 
   const entityId = scope?.kind === "entity" ? scope.entityId : null;
+  const canLinkProperty = Boolean(entityId) && isDeveloper;
 
-  const propertiesQuery = useQuery({
-    queryKey: ["linkable-properties", entityId],
-    queryFn: () => fetchProperties({ data: { entityId: entityId as string } }),
-    enabled: Boolean(entityId) && isDeveloper,
-  });
-
-  const [linkedPropertyId, setLinkedPropertyId] = React.useState<string>("");
+  const [mode, setMode] = React.useState<"property" | "none">("none");
+  const [selectedProperty, setSelectedProperty] = React.useState<PropertyOption | null>(null);
 
   const [templateId, setTemplateId] = React.useState<string>("");
   const [name, setName] = React.useState("");
@@ -79,7 +75,11 @@ function NewProjectPage() {
   const [expectedEndDate, setExpectedEndDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [optionalCodes, setOptionalCodes] = React.useState<string[]>([]);
-  const [errors, setErrors] = React.useState<{ name?: string; template?: string }>({});
+  const [errors, setErrors] = React.useState<{
+    name?: string;
+    template?: string;
+    property?: string;
+  }>({});
 
   const templatesQuery = useQuery({
     queryKey: ["project-templates"],
@@ -92,52 +92,11 @@ function NewProjectPage() {
     enabled: Boolean(templateId),
   });
 
-  const retryLinkProperty = React.useCallback(
-    async (projectId: string, propertyId: string) => {
-      try {
-        await linkProperty({ data: { propertyId, projectId, relation: "primary" } });
-        toast.success(t("projects.linkRetrySuccess"));
-      } catch {
-        toast.error(t("projects.linkPropertyFailed"), {
-          action: {
-            label: t("projects.retryLink"),
-            onClick: () => void retryLinkProperty(projectId, propertyId),
-          },
-        });
-      }
-    },
-    [linkProperty, t],
-  );
-
   const mutation = useMutation({
     mutationFn: (input: Parameters<typeof createProject>[0]) => submitProject(input),
-    onSuccess: async (result) => {
-      if (linkedPropertyId) {
-        try {
-          await linkProperty({
-            data: { propertyId: linkedPropertyId, projectId: result.id, relation: "primary" },
-          });
-          toast.success(t("projects.created"));
-          navigate({ to: "/dashboard", replace: true });
-          return;
-        } catch {
-          // Do not pretend success: the project exists, but the link failed.
-          navigate({
-            to: "/projects/$projectId",
-            params: { projectId: result.id },
-            replace: true,
-          });
-          toast.warning(t("projects.createdLinkFailedTitle"), {
-            action: {
-              label: t("projects.retryLink"),
-              onClick: () => void retryLinkProperty(result.id, linkedPropertyId),
-            },
-          });
-          return;
-        }
-      }
+    onSuccess: (result) => {
       toast.success(t("projects.created"));
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: "/projects/$projectId", params: { projectId: result.id }, replace: true });
     },
     onError: () => toast.error(t("projects.createFailed")),
   });
@@ -150,11 +109,14 @@ function NewProjectPage() {
     );
   };
 
+  const usesProperty = canLinkProperty && mode === "property";
+
   const onSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const nextErrors: { name?: string; template?: string } = {};
+    const nextErrors: { name?: string; template?: string; property?: string } = {};
     if (name.trim().length < 2) nextErrors.name = t("projects.nameRequired");
     if (!templateId) nextErrors.template = t("projects.typeRequired");
+    if (usesProperty && !selectedProperty) nextErrors.property = t("projects.propertyRequired");
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -163,9 +125,11 @@ function NewProjectPage() {
         projectTemplateId: templateId,
         name: name.trim(),
         entityId: scope?.kind === "entity" ? scope.entityId : null,
-        city: city.trim() || null,
-        district: district.trim() || null,
-        landArea: landArea ? Number(landArea) : null,
+        // Property attributes are derived server-side; never sent from the form.
+        propertyId: usesProperty ? (selectedProperty?.id ?? null) : null,
+        city: usesProperty ? null : city.trim() || null,
+        district: usesProperty ? null : district.trim() || null,
+        landArea: usesProperty ? null : landArea ? Number(landArea) : null,
         startDate: startDate || null,
         expectedEndDate: expectedEndDate || null,
         notes: notes.trim() || null,
@@ -192,6 +156,7 @@ function NewProjectPage() {
   const templates = templatesQuery.data ?? [];
   const stages = stagesQuery.data ?? [];
 
+
   return (
     <div className="mx-auto min-h-screen w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
       <PageHero
@@ -202,6 +167,108 @@ function NewProjectPage() {
 
       <SectionCard icon={FolderPlus} title={t("projects.newTitle")}>
         <form onSubmit={onSubmit} className="space-y-6" noValidate>
+          {/* Property first: search and pick before any project details. */}
+          {canLinkProperty ? (
+            <section
+              aria-labelledby="project-property"
+              className="space-y-3 rounded-xl border border-border bg-muted/20 p-3 sm:p-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="project-property" className="text-sm font-semibold text-foreground">
+                  {t("projects.linkProperty")}
+                </h2>
+                <div className="flex gap-1 rounded-lg bg-background p-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={mode === "property" ? "default" : "ghost"}
+                    className="min-h-9"
+                    onClick={() => setMode("property")}
+                  >
+                    {t("projects.propertyModeLinked")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={mode === "none" ? "default" : "ghost"}
+                    className="min-h-9"
+                    onClick={() => {
+                      setMode("none");
+                      setSelectedProperty(null);
+                    }}
+                  >
+                    {t("projects.propertyModeNone")}
+                  </Button>
+                </div>
+              </div>
+
+              {mode === "property" ? (
+                <div className="space-y-3">
+                  <PropertyPicker
+                    entityId={entityId as string}
+                    value={selectedProperty}
+                    onSelect={(option) => {
+                      setSelectedProperty(option);
+                      setErrors(({ property: _drop, ...rest }) => rest);
+                    }}
+                    onClear={() => setSelectedProperty(null)}
+                  />
+                  {errors.property ? (
+                    <p className="text-xs text-destructive">{errors.property}</p>
+                  ) : null}
+
+                  {selectedProperty ? (
+                    <dl className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs sm:grid-cols-4">
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-muted-foreground">{t("projects.propertyName")}</dt>
+                        <dd className="truncate font-medium text-foreground">
+                          {selectedProperty.name}
+                        </dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-muted-foreground">{t("projects.propertyReference")}</dt>
+                        <dd>
+                          <PropertyReference option={selectedProperty} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("projects.city")}</dt>
+                        <dd className="text-foreground">{selectedProperty.city ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("projects.district")}</dt>
+                        <dd className="text-foreground">{selectedProperty.district ?? "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t("projects.landArea")}</dt>
+                        <dd className="text-foreground">
+                          {selectedProperty.land_area == null ? (
+                            "—"
+                          ) : (
+                            <bdi dir="ltr" className="tabular-nums">
+                              {formatNumber(selectedProperty.land_area)}
+                            </bdi>
+                          )}
+                        </dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-4">
+                        <p className="text-[11px] text-muted-foreground">
+                          {t("projects.propertyDerivedHint")}
+                        </p>
+                      </div>
+                    </dl>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("projects.propertyModeNoneHint")}</p>
+              )}
+            </section>
+          ) : (
+            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+              {t("projects.linkPropertyNeedsDeveloper")}
+            </p>
+          )}
+
           <FieldShell
             id="project-type"
             label={t("projects.type")}
@@ -253,26 +320,30 @@ function NewProjectPage() {
               : t("projects.scopePersonal")}
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <TextField
-              id="project-city"
-              label={t("projects.city")}
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-            />
-            <TextField
-              id="project-district"
-              label={t("projects.district")}
-              value={district}
-              onChange={(event) => setDistrict(event.target.value)}
-            />
-            <TextField
-              id="project-land-area"
-              label={t("projects.landArea")}
-              type="number"
-              value={landArea}
-              onChange={(event) => setLandArea(event.target.value)}
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {usesProperty ? null : (
+              <>
+                <TextField
+                  id="project-city"
+                  label={t("projects.city")}
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                />
+                <TextField
+                  id="project-district"
+                  label={t("projects.district")}
+                  value={district}
+                  onChange={(event) => setDistrict(event.target.value)}
+                />
+                <TextField
+                  id="project-land-area"
+                  label={t("projects.landArea")}
+                  type="number"
+                  value={landArea}
+                  onChange={(event) => setLandArea(event.target.value)}
+                />
+              </>
+            )}
             <TextField
               id="project-start-date"
               label={t("projects.startDate")}
@@ -296,32 +367,6 @@ function NewProjectPage() {
             onChange={(event) => setNotes(event.target.value)}
           />
 
-          {entityId && isDeveloper ? (
-            <FieldShell
-              id="project-linked-property"
-              label={t("projects.linkProperty")}
-              hint={t("projects.linkPropertyHint")}
-            >
-              {(aria) => (
-                <Select value={linkedPropertyId} onValueChange={setLinkedPropertyId}>
-                  <SelectTrigger id={aria.id} className="min-h-11">
-                    <SelectValue placeholder={t("projects.linkPropertyPlaceholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(propertiesQuery.data ?? []).map((property) => (
-                      <SelectItem key={property.id} value={property.id}>
-                        {property.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </FieldShell>
-          ) : (
-            <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
-              {t("projects.linkPropertyNeedsDeveloper")}
-            </p>
-          )}
 
           <section aria-labelledby="stages-preview" className="rounded-xl border border-border p-4">
             <h2 id="stages-preview" className="text-base font-semibold text-foreground">

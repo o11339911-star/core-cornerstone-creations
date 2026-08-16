@@ -68,20 +68,32 @@ export const listStageTemplates = createServerFn({ method: "GET" })
     return stageTemplateSchema.array().parse(rows ?? []);
   });
 
-export const createProjectInputSchema = z.object({
-  projectTemplateId: z.string().uuid(),
-  name: z.string().trim().min(2).max(160),
-  entityId: z.string().uuid().nullable().optional(),
-  city: z.string().trim().max(120).nullable().optional(),
-  district: z.string().trim().max(120).nullable().optional(),
-  landArea: z.number().positive().nullable().optional(),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-  expectedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-  notes: z.string().trim().max(2000).nullable().optional(),
-  /** Optional stage codes the user chose to include beyond the required core ones. */
-  optionalStageCodes: z.array(z.string()).optional(),
-});
+export const createProjectInputSchema = z
+  .object({
+    projectTemplateId: z.string().uuid(),
+    name: z.string().trim().min(2).max(160),
+    entityId: z.string().uuid().nullable().optional(),
+    /** When set, all property attributes are derived server-side from this property. */
+    propertyId: z.string().uuid().nullable().optional(),
+    city: z.string().trim().max(120).nullable().optional(),
+    district: z.string().trim().max(120).nullable().optional(),
+    landArea: z.number().positive().nullable().optional(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    expectedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    notes: z.string().trim().max(2000).nullable().optional(),
+    /** Optional stage codes the user chose to include beyond the required core ones. */
+    optionalStageCodes: z.array(z.string()).optional(),
+  })
+  // A linked property is the single source of truth: manual property attributes
+  // may never be sent alongside it, so the client cannot override the registry.
+  .refine(
+    (value) =>
+      !value.propertyId ||
+      (value.city == null && value.district == null && value.landArea == null),
+    { message: "PROPERTY_FIELDS_NOT_ALLOWED", path: ["propertyId"] },
+  );
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
+
 
 /**
  * Creates a project owned by the caller (optionally scoped to an entity the
@@ -106,6 +118,31 @@ export const createProject = createServerFn({ method: "POST" })
       throw new Error("PROJECT_TEMPLATE_UNAVAILABLE");
     }
 
+    // Property-derived snapshot: read through RLS so an inaccessible property
+    // simply does not exist for this caller.
+    let derived: { city: string | null; district: string | null; landArea: number | null } = {
+      city: data.city ?? null,
+      district: data.district ?? null,
+      landArea: data.landArea ?? null,
+    };
+    if (data.propertyId) {
+      const { data: property, error: propertyError } = await supabase
+        .from("properties_public")
+        .select("id, city, district, land_area, entity_id")
+        .eq("id", data.propertyId)
+        .maybeSingle();
+      if (propertyError) throw propertyError;
+      if (!property) throw new Error("PROPERTY_NOT_ACCESSIBLE");
+      if (data.entityId && property.entity_id && property.entity_id !== data.entityId) {
+        throw new Error("PROPERTY_SCOPE_MISMATCH");
+      }
+      derived = {
+        city: property.city ?? null,
+        district: property.district ?? null,
+        landArea: property.land_area ?? null,
+      };
+    }
+
     const { data: project, error: projectError } = await supabase
       .from("projects")
       .insert({
@@ -115,9 +152,9 @@ export const createProject = createServerFn({ method: "POST" })
         project_template_id: data.projectTemplateId,
         name: data.name,
         status: "draft",
-        city: data.city ?? null,
-        district: data.district ?? null,
-        land_area: data.landArea ?? null,
+        city: derived.city,
+        district: derived.district,
+        land_area: derived.landArea,
         start_date: data.startDate ?? null,
         expected_end_date: data.expectedEndDate ?? null,
         notes: data.notes ?? null,
@@ -126,6 +163,17 @@ export const createProject = createServerFn({ method: "POST" })
       .single();
 
     if (projectError) throw projectError;
+
+    if (data.propertyId) {
+      const { error: linkError } = await supabase.from("property_projects").insert({
+        property_id: data.propertyId,
+        project_id: project.id,
+        relation: "primary",
+        linked_by: context.userId,
+      });
+      if (linkError) throw linkError;
+    }
+
 
     const { data: stages, error: stagesError } = await supabase
       .from("stage_templates")
