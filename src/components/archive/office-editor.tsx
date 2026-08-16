@@ -113,8 +113,7 @@ export function OfficeEditor({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!target) return;
-      const blob =
-        target.kind === "word" ? await buildDocxBlob(blocks) : buildXlsxBlob(sheets);
+      const blob = target.kind === "word" ? await buildDocxBlob(blocks) : buildXlsxBlob(sheets);
       const bytes = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
       if (bytes[0] !== 0x50 || bytes[1] !== 0x4b) throw new Error("الملف الناتج غير صالح.");
       const mime = target.kind === "word" ? DOCX_MIME : XLSX_MIME;
@@ -238,7 +237,12 @@ export function OfficeEditor({
         ) : loadError ? (
           <div className="space-y-3 rounded-xl border border-border p-4 text-sm text-muted-foreground">
             <p>{loadError}</p>
-            <Button type="button" variant="outline" className="min-h-11" onClick={() => void load()}>
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              onClick={() => void load()}
+            >
               إعادة المحاولة
             </Button>
           </div>
@@ -390,8 +394,8 @@ export function OfficeEditor({
             </div>
 
             <p className="text-xs text-muted-foreground">
-              الصيغ المدعومة تبدأ بـ = وتستخدم SUM وAVERAGE وMIN وMAX وCOUNT وROUND وABS وIF فقط؛
-              أي نص آخر يُحفظ نصًا ولا يُنفَّذ.
+              الصيغ المدعومة تبدأ بـ = وتستخدم SUM وAVERAGE وMIN وMAX وCOUNT وROUND وABS وIF فقط؛ أي
+              نص آخر يُحفظ نصًا ولا يُنفَّذ.
             </p>
 
             <div className="max-h-96 overflow-auto rounded-xl border border-border">

@@ -9,10 +9,8 @@ import { unzipSync, zipSync, strToU8, strFromU8 } from "fflate";
  * تُعرض تنبيهات صريحة ولا تُتلَف الملفات الأصلية (الحفظ دائمًا كنسخة جديدة).
  */
 
-export const DOCX_MIME =
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-export const XLSX_MIME =
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+export const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+export const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 export const ARABIC_DIGITS = /[\u0660-\u0669\u06F0-\u06F9]/g;
 
@@ -38,8 +36,7 @@ function esc(value: string): string {
 /* ------------------------------------------------------------------ */
 
 export type DocxBlock =
-  | { type: "paragraph"; text: string; heading: boolean }
-  | { type: "table"; rows: string[][] };
+  { type: "paragraph"; text: string; heading: boolean } | { type: "table"; rows: string[][] };
 
 export type DocxModel = {
   blocks: DocxBlock[];
@@ -62,7 +59,13 @@ export class OfficeUnsupportedError extends Error {}
 
 /** يتحقق من magic bytes لحزمة ZIP (PK\x03\x04) قبل أي قراءة. */
 export function isZipPackage(bytes: Uint8Array): boolean {
-  return bytes.length > 4 && bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04;
+  return (
+    bytes.length > 4 &&
+    bytes[0] === 0x50 &&
+    bytes[1] === 0x4b &&
+    bytes[2] === 0x03 &&
+    bytes[3] === 0x04
+  );
 }
 
 export function hasMacros(files: Record<string, Uint8Array>): boolean {
@@ -91,7 +94,9 @@ function readPackage(bytes: Uint8Array): Record<string, Uint8Array> {
     throw new OfficeUnsupportedError("تعذّر فتح حزمة الملف — قد يكون تالفًا.");
   }
   if (hasMacros(files)) {
-    throw new OfficeUnsupportedError("الملف يحتوي ماكرو (VBA) — التحرير داخل المنصة غير مسموح؛ التنزيل فقط.");
+    throw new OfficeUnsupportedError(
+      "الملف يحتوي ماكرو (VBA) — التحرير داخل المنصة غير مسموح؛ التنزيل فقط.",
+    );
   }
   return files;
 }
@@ -123,7 +128,9 @@ function isHeading(p: Element): boolean {
   const styles = Array.from(p.getElementsByTagName("*")).filter(
     (e) => e.tagName.replace(/^.*:/, "") === "pStyle",
   );
-  return styles.some((s) => /heading/i.test(s.getAttribute("w:val") ?? s.getAttribute("val") ?? ""));
+  return styles.some((s) =>
+    /heading/i.test(s.getAttribute("w:val") ?? s.getAttribute("val") ?? ""),
+  );
 }
 
 export function parseDocx(bytes: Uint8Array): DocxModel {
@@ -140,8 +147,13 @@ export function parseDocx(bytes: Uint8Array): DocxModel {
   for (const node of Array.from(body.children)) {
     const tag = node.tagName.replace(/^.*:/, "");
     if (tag === "p") {
-      if (node.getElementsByTagName("w:drawing").length || node.getElementsByTagName("w:pict").length) {
-        warnings.add("يحتوي المستند صورًا أو رسومًا لن تظهر في المحرر، وستُفقد في النسخة المحفوظة.");
+      if (
+        node.getElementsByTagName("w:drawing").length ||
+        node.getElementsByTagName("w:pict").length
+      ) {
+        warnings.add(
+          "يحتوي المستند صورًا أو رسومًا لن تظهر في المحرر، وستُفقد في النسخة المحفوظة.",
+        );
       }
       blocks.push({ type: "paragraph", text: paragraphText(node), heading: isHeading(node) });
     } else if (tag === "tbl") {
@@ -174,21 +186,16 @@ export function parseDocx(bytes: Uint8Array): DocxModel {
 /* ------------------------------------------------------------------ */
 
 async function docxDocument(blocks: DocxBlock[]) {
-  const {
-    Document,
-    Paragraph,
-    HeadingLevel,
-    TextRun,
-    Table,
-    TableRow,
-    TableCell,
-    WidthType,
-  } = await import("docx");
+  const { Document, Paragraph, HeadingLevel, TextRun, Table, TableRow, TableCell, WidthType } =
+    await import("docx");
 
   const runs = (text: string) =>
     text
       .split("\n")
-      .map((line, i) => new TextRun({ text: toAsciiDigits(line), rightToLeft: true, break: i ? 1 : 0 }));
+      .map(
+        (line, i) =>
+          new TextRun({ text: toAsciiDigits(line), rightToLeft: true, break: i ? 1 : 0 }),
+      );
 
   const children: Array<InstanceType<typeof Paragraph> | InstanceType<typeof Table>> = [];
   for (const block of blocks) {
@@ -272,7 +279,9 @@ function refToRc(ref: string): { row: number; col: number } | null {
 }
 
 function emptyGrid(rows = 20, cols = 8): XlsxCell[][] {
-  return Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ v: "", f: null })));
+  return Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => ({ v: "", f: null })),
+  );
 }
 
 export function parseXlsx(bytes: Uint8Array): XlsxModel {
@@ -285,8 +294,13 @@ export function parseXlsx(bytes: Uint8Array): XlsxModel {
   const relsFile = files["xl/_rels/workbook.xml.rels"];
   const relMap = new Map<string, string>();
   if (relsFile) {
-    for (const r of Array.from(parseXml(strFromU8(relsFile)).getElementsByTagName("Relationship"))) {
-      relMap.set(r.getAttribute("Id") ?? "", (r.getAttribute("Target") ?? "").replace(/^\/?xl\//, ""));
+    for (const r of Array.from(
+      parseXml(strFromU8(relsFile)).getElementsByTagName("Relationship"),
+    )) {
+      relMap.set(
+        r.getAttribute("Id") ?? "",
+        (r.getAttribute("Target") ?? "").replace(/^\/?xl\//, ""),
+      );
     }
   }
 
@@ -348,7 +362,9 @@ export function parseXlsx(bytes: Uint8Array): XlsxModel {
   }
 
   if (Object.keys(files).some((n) => n.startsWith("xl/charts/") || n.startsWith("xl/drawings/"))) {
-    warnings.add("المصنّف يحتوي رسومًا بيانية أو صورًا لا يدعمها المحرر ولن تُحفظ في النسخة الجديدة.");
+    warnings.add(
+      "المصنّف يحتوي رسومًا بيانية أو صورًا لا يدعمها المحرر ولن تُحفظ في النسخة الجديدة.",
+    );
   }
   if (Object.keys(files).some((n) => n.startsWith("xl/pivotTables/"))) {
     warnings.add("المصنّف يحتوي جداول محورية لا يدعمها المحرر ولن تُحفظ في النسخة الجديدة.");
@@ -393,7 +409,10 @@ function isNumeric(v: string): boolean {
 }
 
 export function sanitizeSheetName(name: string, fallback = "Sheet1"): string {
-  const clean = toAsciiDigits(name).replace(/[\\/?*[\]:]/g, " ").trim().slice(0, 31);
+  const clean = toAsciiDigits(name)
+    .replace(/[\\/?*[\]:]/g, " ")
+    .trim()
+    .slice(0, 31);
   return clean || fallback;
 }
 
