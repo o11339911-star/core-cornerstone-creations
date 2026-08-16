@@ -69,8 +69,16 @@ function PropertyProfilePage() {
     queryFn: () => fetchProfile({ data: { propertyId } }),
   });
 
+  // Single-open sections. "" = every section collapsed (the default view).
+  const [openSection, setOpenSection] = React.useState<string>("");
+  React.useEffect(() => {
+    const fromHash = window.location.hash.replace(/^#/, "");
+    if (fromHash) setOpenSection(fromHash);
+  }, []);
+
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
+
 
   const openDocument = async (versionRow: { document_version_id?: string | null; file_path: string | null }) => {
     try {
@@ -448,8 +456,19 @@ function PropertyProfilePage() {
         </div>
       </SectionCard>
 
-      {/* Details stay collapsed by default; the summary above is the default view. */}
-      <RakeezAccordion items={items} multiple />
+      {/* Single-open accordion: opening one section closes the others. */}
+      <RakeezAccordion
+        items={items}
+        keepMounted
+        value={openSection}
+        onValueChange={(next) => {
+          setOpenSection(next);
+          // Keep the section deep-linkable without a router navigation.
+          window.history.replaceState(null, "", next ? `#${next}` : window.location.pathname);
+        }}
+      />
+
     </div>
   );
 }
+

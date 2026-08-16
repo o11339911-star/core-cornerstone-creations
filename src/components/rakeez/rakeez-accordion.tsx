@@ -19,6 +19,14 @@ export type RakeezAccordionProps = {
   /** Multiple panels open at once when true. */
   multiple?: boolean | undefined;
   defaultValue?: string | string[] | undefined;
+  /** Controlled single-open value; "" means every panel is closed. */
+  value?: string | undefined;
+  onValueChange?: ((value: string) => void) | undefined;
+  /**
+   * Keep closed panels mounted (hidden) so loaded data and unsaved form
+   * input survive switching sections. Only affects rendering, not state.
+   */
+  keepMounted?: boolean | undefined;
   className?: string | undefined;
 };
 
@@ -27,6 +35,9 @@ export function RakeezAccordion({
   items,
   multiple = false,
   defaultValue,
+  value,
+  onValueChange,
+  keepMounted = false,
   className,
 }: RakeezAccordionProps) {
   const shared = (
@@ -40,7 +51,10 @@ export function RakeezAccordion({
           <AccordionTrigger className="min-h-11 text-start text-base font-medium hover:no-underline">
             {item.title}
           </AccordionTrigger>
-          <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+          <AccordionContent
+            className="text-sm leading-relaxed text-muted-foreground"
+            {...(keepMounted ? { forceMount: true as const } : {})}
+          >
             {item.content}
           </AccordionContent>
         </AccordionItem>
@@ -63,7 +77,9 @@ export function RakeezAccordion({
       type="single"
       collapsible
       className={rootClass}
-      {...(typeof defaultValue === "string" ? { defaultValue } : {})}
+      {...(value !== undefined ? { value } : {})}
+      {...(onValueChange ? { onValueChange } : {})}
+      {...(value === undefined && typeof defaultValue === "string" ? { defaultValue } : {})}
     >
       {shared}
     </Accordion>
