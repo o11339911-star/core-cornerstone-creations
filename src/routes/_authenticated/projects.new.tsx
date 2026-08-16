@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -53,6 +53,7 @@ function NewProjectPage() {
   const t = useT();
   const { locale } = useI18n();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { scope } = useActiveAccount();
   const { activeEntity, isDeveloper } = useAccountUi();
 
@@ -96,10 +97,13 @@ function NewProjectPage() {
     mutationFn: (input: Parameters<typeof createProject>[0]) => submitProject(input),
     onSuccess: (result) => {
       toast.success(t("projects.created"));
+      // The dashboard list must show the new project without a manual reload.
+      void queryClient.invalidateQueries({ queryKey: ["my-projects"] });
       navigate({ to: "/projects/$projectId", params: { projectId: result.id }, replace: true });
     },
     onError: () => toast.error(t("projects.createFailed")),
   });
+
 
   const localized = (ar: string, en: string) => (locale === "ar" ? ar : en);
 

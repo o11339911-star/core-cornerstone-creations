@@ -23,7 +23,8 @@ import {
   PageHero,
   SoftEmpty,
 } from "@/components/rakeez";
-import { searchProjects } from "@/lib/project-overview.functions";
+import { listMyProjects } from "@/lib/project-overview.functions";
+import { toLatinDigits } from "@/lib/format";
 import { useT } from "@/i18n";
 import { useAccountUi } from "@/lib/account-ui";
 
@@ -83,42 +84,50 @@ function statusChip(status: string) {
   );
 }
 
+const PAGE_SIZE = 10;
+
 function DashboardPage() {
   const t = useT();
   const [q, setQ] = useState("");
-  const runSearch = useServerFn(searchProjects);
+  const [page, setPage] = useState(1);
+  const account = useAccountUi();
+  const entityId = account.activeEntity?.id ?? null;
+  const fetchProjects = useServerFn(listMyProjects);
   const term = q.trim();
 
-  const results = useQuery({
-    queryKey: ["project-search", term],
-    queryFn: () => runSearch({ data: { q: term } }),
-    enabled: term.length >= 2,
+  const projects = useQuery({
+    queryKey: ["my-projects", entityId, term, page],
+    queryFn: () =>
+      fetchProjects({ data: { entityId, q: term, page, pageSize: PAGE_SIZE } }),
+    enabled: !account.loading,
     placeholderData: keepPreviousData,
   });
 
-  const account = useAccountUi();
+  const total = projects.data?.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  // Exactly four balanced quick actions: no orphan card on a 2-column mobile
-  // grid, and the properties entry never enters the DOM for non-developers.
+  // Quick actions never replace the project list; the property shortcut is an
+  // addition for developer entities, not a substitute.
   const actions: { to: string; icon: typeof Store; label: string }[] = [
     { to: "/requests", icon: Inbox, label: t("requests.inbox.title") },
     { to: "/calls", icon: Phone, label: t("calls.title") },
     { to: "/appointments", icon: CalendarClock, label: "المواعيد" },
-    account.isDeveloper
-      ? { to: "/properties", icon: Building2, label: "العقارات" }
-      : { to: "/marketplace", icon: Store, label: "سوق الخدمات" },
+    { to: "/marketplace", icon: Store, label: "سوق الخدمات" },
   ];
+  if (account.isDeveloper) {
+    actions.splice(3, 0, { to: "/properties", icon: Building2, label: "العقارات" });
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
         title={t("common.dashboard")}
-        subtitle="ابحث برقم المشروع أو الحي أو رقم القطعة أو المخطط أو رقم الصك."
+        subtitle={t("projects.listSubtitle")}
         badge={<HeroBadge tone="neutral">ركيز</HeroBadge>}
       >
         <div className="relative mt-4 w-full max-w-2xl">
           <label htmlFor="project-search" className="sr-only">
-            بحث المشاريع
+            {t("projects.listSearchPlaceholder")}
           </label>
           <Search
             aria-hidden="true"
@@ -127,8 +136,11 @@ function DashboardPage() {
           <Input
             id="project-search"
             value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="مثال: PRJ-1024 أو حي النرجس"
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
+            placeholder={t("projects.listSearchPlaceholder")}
             className="h-13 rounded-xl border-transparent bg-card ps-12 text-base text-foreground shadow-elevated"
             autoComplete="off"
           />
@@ -142,9 +154,8 @@ function DashboardPage() {
         </Link>
       </PageHero>
 
-
       <section aria-label={t("shell.quickActions")}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {actions.map((action) => (
             <Link
               key={action.to}
@@ -162,52 +173,85 @@ function DashboardPage() {
         </div>
       </section>
 
-
       <section aria-live="polite" className="space-y-3">
-        {term.length < 2 ? (
-          <SoftEmpty icon={Sparkles} message="اكتب حرفين على الأقل لبدء البحث في مشاريعك." />
-        ) : results.isPending ? (
+        <h2 className="text-sm font-semibold text-foreground">{t("projects.listTitle")}</h2>
+        {projects.isPending ? (
           <div className="space-y-3" role="status" aria-busy="true">
             {[0, 1, 2].map((i) => (
               <Skeleton key={i} className="h-20 w-full rounded-xl" />
             ))}
           </div>
-        ) : results.isError ? (
-          <ErrorState description={(results.error as Error).message} />
-        ) : !results.data?.length ? (
-          <EmptyState
-            title="لا نتائج"
-            description="لا يوجد مشروع مطابق ضمن ما تملك صلاحية الوصول إليه."
+        ) : projects.isError ? (
+          <ErrorState
+            description={t("projects.listFailed")}
+            onRetry={() => void projects.refetch()}
           />
+        ) : !projects.data?.items.length ? (
+          term ? (
+            <SoftEmpty icon={Sparkles} message={t("projects.listEmptyFiltered")} />
+          ) : (
+            <EmptyState title={t("projects.listTitle")} description={t("projects.listEmpty")} />
+          )
         ) : (
-          <ul className="space-y-3">
-            {results.data.map((r) => (
-              <li key={r.project_id}>
-                <Link
-                  to="/projects/$projectId"
-                  params={{ projectId: r.project_id }}
-                  className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated sm:items-center sm:gap-4"
-                >
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-                    <MapPin className="size-5" aria-hidden="true" />
-                  </span>
-                  <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-foreground">{r.name}</p>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        {r.code ? `${r.code} · ` : ""}
-                        {[r.city, r.district].filter(Boolean).join(" / ") || "بلا موقع"}
-                        {` · مطابقة: ${MATCH_AR[r.match_field] ?? r.match_field}`}
-                      </p>
+          <>
+            <ul className="space-y-3">
+              {projects.data.items.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    to="/projects/$projectId"
+                    params={{ projectId: p.id }}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated sm:items-center sm:gap-4"
+                  >
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+                      <MapPin className="size-5" aria-hidden="true" />
+                    </span>
+                    <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-foreground">{p.name}</p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          <bdi dir="ltr">{p.code ? toLatinDigits(p.code) : ""}</bdi>
+                          {p.code ? " · " : ""}
+                          {[p.template_name, p.property_name, p.city, p.district]
+                            .filter(Boolean)
+                            .join(" · ") || t("projects.listNoReference")}
+                        </p>
+                      </div>
+                      <div className="shrink-0">{statusChip(p.status)}</div>
                     </div>
-                    <div className="shrink-0">{statusChip(r.status)}</div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {pages > 1 ? (
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <button
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((n) => Math.max(1, n - 1))}
+                  className="min-h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground disabled:opacity-40"
+                >
+                  {t("projects.listPrev")}
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {t("projects.listPageOf", {
+                    page: toLatinDigits(String(page)),
+                    pages: toLatinDigits(String(pages)),
+                  })}
+                </span>
+                <button
+                  type="button"
+                  disabled={page >= pages}
+                  onClick={() => setPage((n) => Math.min(pages, n + 1))}
+                  className="min-h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground disabled:opacity-40"
+                >
+                  {t("projects.listNext")}
+                </button>
+              </div>
+            ) : null}
+          </>
         )}
       </section>
     </div>
   );
 }
+
