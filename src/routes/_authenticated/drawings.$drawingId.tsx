@@ -42,6 +42,7 @@ import {
   setDrawingStatus,
 } from "@/lib/drawings.functions";
 import { VIEWER_TOOLS, capabilitiesFor } from "@/lib/drawings/providers";
+import { DrawingViewer } from "@/components/drawings/drawing-viewer";
 import { buildAssistantReport } from "@/lib/drawings/review-assistant";
 import { DISCIPLINE_KEYS, DRAWING_STATUS_KEYS, statusTone } from "./projects.$projectId.drawings";
 
@@ -123,6 +124,7 @@ function DrawingViewerPage() {
   const [note, setNote] = useState("");
   const [comment, setComment] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [previewVersionId, setPreviewVersionId] = useState<string | null>(null);
   const [compareA, setCompareA] = useState<string>("");
   const [compareB, setCompareB] = useState<string>("");
   const [compareUrls, setCompareUrls] = useState<{ a: string | null; b: string | null }>({
@@ -149,7 +151,10 @@ function DrawingViewerPage() {
 
   const previewMutation = useMutation({
     mutationFn: (versionId: string) => fileUrl({ data: { versionId } }),
-    onSuccess: (result) => setPreview(result.url),
+    onSuccess: (result, versionId) => {
+      setPreview(result.url);
+      setPreviewVersionId(versionId);
+    },
     onError: (error: Error) => toast.error(error.message),
   });
 
@@ -261,6 +266,9 @@ function DrawingViewerPage() {
   const { drawing, revisions, events, markups, jobs, files, linkedRequests } = data;
   const fileById = new Map(files.map((f) => [f.id, f]));
   const requestById = new Map(linkedRequests.map((r) => [r.id, r]));
+  const previewRev =
+    revisions.find((r) => r.document_version_id === previewVersionId) ?? latest;
+  const previewFile = previewVersionId ? (fileById.get(previewVersionId) ?? null) : latestFile;
   const revA = revisions.find((r) => r.document_version_id === compareA) ?? null;
   const revB = revisions.find((r) => r.document_version_id === compareB) ?? null;
   const fileA = compareA ? (fileById.get(compareA) ?? null) : null;
