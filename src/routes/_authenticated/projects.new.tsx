@@ -24,7 +24,9 @@ import {
   listProjectTemplates,
   listStageTemplates,
 } from "@/lib/projects.functions";
-import { linkPropertyToProject, listProperties } from "@/lib/properties.functions";
+import type { PropertyOption } from "@/lib/properties.functions";
+import { PropertyPicker, PropertyReference } from "@/components/properties/PropertyPicker";
+import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/projects/new")({
   component: NewProjectPage,
@@ -207,7 +209,7 @@ function NewProjectPage() {
                     value={selectedProperty}
                     onSelect={(option) => {
                       setSelectedProperty(option);
-                      setErrors((prev) => ({ ...prev, property: undefined }));
+                      setErrors(({ property: _drop, ...rest }) => rest);
                     }}
                     onClear={() => setSelectedProperty(null)}
                   />
