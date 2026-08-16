@@ -9454,6 +9454,39 @@ export type Database = {
         }
         Returns: string
       }
+      admin_list_entities: {
+        Args: { _limit?: number; _offset?: number; _q?: string }
+        Returns: {
+          created_at: string
+          entity_id: string
+          legal_form: string
+          members_count: number
+          name: string
+          owner_name: string
+          status: string
+          total_count: number
+          type: string
+          unified_national_number: string
+          verification_status: string
+        }[]
+      }
+      admin_list_users: {
+        Args: { _limit?: number; _offset?: number; _q?: string }
+        Returns: {
+          active_memberships: number
+          created_at: string
+          email: string
+          email_confirmed: boolean
+          full_name: string
+          identity_last4: string
+          identity_status: string
+          last_sign_in_at: string
+          phone: string
+          registration_complete: boolean
+          total_count: number
+          user_id: string
+        }[]
+      }
       admin_search_identities: { Args: { _query: string }; Returns: Json }
       advance_service_request: {
         Args: { _note?: string; _request_id: string; _to_status: string }

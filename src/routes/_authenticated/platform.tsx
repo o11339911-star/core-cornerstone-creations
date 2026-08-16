@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookLock, Inbox, PlugZap, ShieldAlert, ShieldCheck, Users } from "lucide-react";
+import { BookLock, Building2, Inbox, PlugZap, ShieldAlert, ShieldCheck, UserSearch, Users } from "lucide-react";
 
 import { ErrorState, UnauthorizedState } from "@/components/rakeez";
 import { getPlatformMe } from "@/lib/platform-admin.functions";
@@ -14,6 +14,8 @@ export const Route = createFileRoute("/_authenticated/platform")({
 
 const LINKS = [
   { to: "/platform/queue", label: "طابور المراجعة", icon: Inbox },
+  { to: "/platform/users", label: "المستخدمون", icon: UserSearch },
+  { to: "/platform/entities", label: "الكيانات", icon: Building2 },
   { to: "/platform/staff", label: "فريق المنصة", icon: Users },
   { to: "/platform/breakglass", label: "الوصول الطارئ", icon: ShieldAlert },
   { to: "/platform/integrations", label: "التكاملات", icon: PlugZap },

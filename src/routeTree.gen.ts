@@ -43,9 +43,11 @@ import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
 import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenticated/platform.dsr'
+import { Route as AuthenticatedPlatformEntitiesRouteImport } from './routes/_authenticated/platform.entities'
 import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/_authenticated/platform.integrations'
 import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
+import { Route as AuthenticatedPlatformUsersRouteImport } from './routes/_authenticated/platform.users'
 import { Route as AuthenticatedProjectsNewRouteImport } from './routes/_authenticated/projects.new'
 import { Route as AuthenticatedPropertiesIndexRouteImport } from './routes/_authenticated/properties.index'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
@@ -262,6 +264,12 @@ const AuthenticatedPlatformDsrRoute =
     path: '/dsr',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
+const AuthenticatedPlatformEntitiesRoute =
+  AuthenticatedPlatformEntitiesRouteImport.update({
+    id: '/entities',
+    path: '/entities',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
 const AuthenticatedPlatformIntegrationsRoute =
   AuthenticatedPlatformIntegrationsRouteImport.update({
     id: '/integrations',
@@ -278,6 +286,12 @@ const AuthenticatedPlatformStaffRoute =
   AuthenticatedPlatformStaffRouteImport.update({
     id: '/staff',
     path: '/staff',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformUsersRoute =
+  AuthenticatedPlatformUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedProjectsNewRoute =
@@ -511,9 +525,11 @@ export interface FileRoutesByFullPath {
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
+  '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
+  '/platform/users': typeof AuthenticatedPlatformUsersRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -580,9 +596,11 @@ export interface FileRoutesByTo {
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
+  '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
+  '/platform/users': typeof AuthenticatedPlatformUsersRoute
   '/projects/new': typeof AuthenticatedProjectsNewRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -653,9 +671,11 @@ export interface FileRoutesById {
   '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/_authenticated/platform/dsr': typeof AuthenticatedPlatformDsrRoute
+  '/_authenticated/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/_authenticated/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
   '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
   '/_authenticated/platform/staff': typeof AuthenticatedPlatformStaffRoute
+  '/_authenticated/platform/users': typeof AuthenticatedPlatformUsersRoute
   '/_authenticated/projects/new': typeof AuthenticatedProjectsNewRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/properties/new': typeof AuthenticatedPropertiesNewRoute
@@ -726,9 +746,11 @@ export interface FileRouteTypes {
     | '/platform/breach-playbook'
     | '/platform/breakglass'
     | '/platform/dsr'
+    | '/platform/entities'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
+    | '/platform/users'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -795,9 +817,11 @@ export interface FileRouteTypes {
     | '/platform/breach-playbook'
     | '/platform/breakglass'
     | '/platform/dsr'
+    | '/platform/entities'
     | '/platform/integrations'
     | '/platform/queue'
     | '/platform/staff'
+    | '/platform/users'
     | '/projects/new'
     | '/properties/$propertyId'
     | '/properties/new'
@@ -867,9 +891,11 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
     | '/_authenticated/platform/dsr'
+    | '/_authenticated/platform/entities'
     | '/_authenticated/platform/integrations'
     | '/_authenticated/platform/queue'
     | '/_authenticated/platform/staff'
+    | '/_authenticated/platform/users'
     | '/_authenticated/projects/new'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/properties/new'
@@ -1164,6 +1190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformDsrRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
+    '/_authenticated/platform/entities': {
+      id: '/_authenticated/platform/entities'
+      path: '/entities'
+      fullPath: '/platform/entities'
+      preLoaderRoute: typeof AuthenticatedPlatformEntitiesRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/platform/integrations': {
       id: '/_authenticated/platform/integrations'
       path: '/integrations'
@@ -1183,6 +1216,13 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/platform/staff'
       preLoaderRoute: typeof AuthenticatedPlatformStaffRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/users': {
+      id: '/_authenticated/platform/users'
+      path: '/users'
+      fullPath: '/platform/users'
+      preLoaderRoute: typeof AuthenticatedPlatformUsersRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
     '/_authenticated/projects/new': {
@@ -1423,9 +1463,11 @@ interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformBreachPlaybookRoute: typeof AuthenticatedPlatformBreachPlaybookRoute
   AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
   AuthenticatedPlatformDsrRoute: typeof AuthenticatedPlatformDsrRoute
+  AuthenticatedPlatformEntitiesRoute: typeof AuthenticatedPlatformEntitiesRoute
   AuthenticatedPlatformIntegrationsRoute: typeof AuthenticatedPlatformIntegrationsRoute
   AuthenticatedPlatformQueueRoute: typeof AuthenticatedPlatformQueueRoute
   AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
+  AuthenticatedPlatformUsersRoute: typeof AuthenticatedPlatformUsersRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
 }
 
@@ -1434,10 +1476,12 @@ const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
     AuthenticatedPlatformBreachPlaybookRoute,
   AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
   AuthenticatedPlatformDsrRoute: AuthenticatedPlatformDsrRoute,
+  AuthenticatedPlatformEntitiesRoute: AuthenticatedPlatformEntitiesRoute,
   AuthenticatedPlatformIntegrationsRoute:
     AuthenticatedPlatformIntegrationsRoute,
   AuthenticatedPlatformQueueRoute: AuthenticatedPlatformQueueRoute,
   AuthenticatedPlatformStaffRoute: AuthenticatedPlatformStaffRoute,
+  AuthenticatedPlatformUsersRoute: AuthenticatedPlatformUsersRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
 }
 
