@@ -121,6 +121,13 @@ function SelectAccountPage() {
                   ))}
                 </div>
               )}
+
+              <Link
+                to="/entities/new"
+                className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+              >
+                {t("entities.new.cta")}
+              </Link>
             </div>
           </div>
         )}
