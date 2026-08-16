@@ -57,18 +57,12 @@ function NewProjectPage() {
   const fetchTemplates = useServerFn(listProjectTemplates);
   const fetchStages = useServerFn(listStageTemplates);
   const submitProject = useServerFn(createProject);
-  const fetchProperties = useServerFn(listProperties);
-  const linkProperty = useServerFn(linkPropertyToProject);
 
   const entityId = scope?.kind === "entity" ? scope.entityId : null;
+  const canLinkProperty = Boolean(entityId) && isDeveloper;
 
-  const propertiesQuery = useQuery({
-    queryKey: ["linkable-properties", entityId],
-    queryFn: () => fetchProperties({ data: { entityId: entityId as string } }),
-    enabled: Boolean(entityId) && isDeveloper,
-  });
-
-  const [linkedPropertyId, setLinkedPropertyId] = React.useState<string>("");
+  const [mode, setMode] = React.useState<"property" | "none">("none");
+  const [selectedProperty, setSelectedProperty] = React.useState<PropertyOption | null>(null);
 
   const [templateId, setTemplateId] = React.useState<string>("");
   const [name, setName] = React.useState("");
@@ -79,7 +73,11 @@ function NewProjectPage() {
   const [expectedEndDate, setExpectedEndDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [optionalCodes, setOptionalCodes] = React.useState<string[]>([]);
-  const [errors, setErrors] = React.useState<{ name?: string; template?: string }>({});
+  const [errors, setErrors] = React.useState<{
+    name?: string;
+    template?: string;
+    property?: string;
+  }>({});
 
   const templatesQuery = useQuery({
     queryKey: ["project-templates"],
@@ -92,52 +90,11 @@ function NewProjectPage() {
     enabled: Boolean(templateId),
   });
 
-  const retryLinkProperty = React.useCallback(
-    async (projectId: string, propertyId: string) => {
-      try {
-        await linkProperty({ data: { propertyId, projectId, relation: "primary" } });
-        toast.success(t("projects.linkRetrySuccess"));
-      } catch {
-        toast.error(t("projects.linkPropertyFailed"), {
-          action: {
-            label: t("projects.retryLink"),
-            onClick: () => void retryLinkProperty(projectId, propertyId),
-          },
-        });
-      }
-    },
-    [linkProperty, t],
-  );
-
   const mutation = useMutation({
     mutationFn: (input: Parameters<typeof createProject>[0]) => submitProject(input),
-    onSuccess: async (result) => {
-      if (linkedPropertyId) {
-        try {
-          await linkProperty({
-            data: { propertyId: linkedPropertyId, projectId: result.id, relation: "primary" },
-          });
-          toast.success(t("projects.created"));
-          navigate({ to: "/dashboard", replace: true });
-          return;
-        } catch {
-          // Do not pretend success: the project exists, but the link failed.
-          navigate({
-            to: "/projects/$projectId",
-            params: { projectId: result.id },
-            replace: true,
-          });
-          toast.warning(t("projects.createdLinkFailedTitle"), {
-            action: {
-              label: t("projects.retryLink"),
-              onClick: () => void retryLinkProperty(result.id, linkedPropertyId),
-            },
-          });
-          return;
-        }
-      }
+    onSuccess: (result) => {
       toast.success(t("projects.created"));
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: "/projects/$projectId", params: { projectId: result.id }, replace: true });
     },
     onError: () => toast.error(t("projects.createFailed")),
   });
@@ -150,11 +107,14 @@ function NewProjectPage() {
     );
   };
 
+  const usesProperty = canLinkProperty && mode === "property";
+
   const onSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const nextErrors: { name?: string; template?: string } = {};
+    const nextErrors: { name?: string; template?: string; property?: string } = {};
     if (name.trim().length < 2) nextErrors.name = t("projects.nameRequired");
     if (!templateId) nextErrors.template = t("projects.typeRequired");
+    if (usesProperty && !selectedProperty) nextErrors.property = t("projects.propertyRequired");
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -163,9 +123,11 @@ function NewProjectPage() {
         projectTemplateId: templateId,
         name: name.trim(),
         entityId: scope?.kind === "entity" ? scope.entityId : null,
-        city: city.trim() || null,
-        district: district.trim() || null,
-        landArea: landArea ? Number(landArea) : null,
+        // Property attributes are derived server-side; never sent from the form.
+        propertyId: usesProperty ? (selectedProperty?.id ?? null) : null,
+        city: usesProperty ? null : city.trim() || null,
+        district: usesProperty ? null : district.trim() || null,
+        landArea: usesProperty ? null : landArea ? Number(landArea) : null,
         startDate: startDate || null,
         expectedEndDate: expectedEndDate || null,
         notes: notes.trim() || null,
@@ -191,6 +153,7 @@ function NewProjectPage() {
 
   const templates = templatesQuery.data ?? [];
   const stages = stagesQuery.data ?? [];
+
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-3xl space-y-6 px-4 py-8 sm:px-6">
