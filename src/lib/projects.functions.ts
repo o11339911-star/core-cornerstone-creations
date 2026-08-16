@@ -118,6 +118,31 @@ export const createProject = createServerFn({ method: "POST" })
       throw new Error("PROJECT_TEMPLATE_UNAVAILABLE");
     }
 
+    // Property-derived snapshot: read through RLS so an inaccessible property
+    // simply does not exist for this caller.
+    let derived: { city: string | null; district: string | null; landArea: number | null } = {
+      city: data.city ?? null,
+      district: data.district ?? null,
+      landArea: data.landArea ?? null,
+    };
+    if (data.propertyId) {
+      const { data: property, error: propertyError } = await supabase
+        .from("properties_public")
+        .select("id, city, district, land_area, entity_id")
+        .eq("id", data.propertyId)
+        .maybeSingle();
+      if (propertyError) throw propertyError;
+      if (!property) throw new Error("PROPERTY_NOT_ACCESSIBLE");
+      if (data.entityId && property.entity_id && property.entity_id !== data.entityId) {
+        throw new Error("PROPERTY_SCOPE_MISMATCH");
+      }
+      derived = {
+        city: property.city ?? null,
+        district: property.district ?? null,
+        landArea: property.land_area ?? null,
+      };
+    }
+
     const { data: project, error: projectError } = await supabase
       .from("projects")
       .insert({
@@ -127,9 +152,9 @@ export const createProject = createServerFn({ method: "POST" })
         project_template_id: data.projectTemplateId,
         name: data.name,
         status: "draft",
-        city: data.city ?? null,
-        district: data.district ?? null,
-        land_area: data.landArea ?? null,
+        city: derived.city,
+        district: derived.district,
+        land_area: derived.landArea,
         start_date: data.startDate ?? null,
         expected_end_date: data.expectedEndDate ?? null,
         notes: data.notes ?? null,
@@ -138,6 +163,17 @@ export const createProject = createServerFn({ method: "POST" })
       .single();
 
     if (projectError) throw projectError;
+
+    if (data.propertyId) {
+      const { error: linkError } = await supabase.from("property_projects").insert({
+        property_id: data.propertyId,
+        project_id: project.id,
+        relation: "primary",
+        linked_by: context.userId,
+      });
+      if (linkError) throw linkError;
+    }
+
 
     const { data: stages, error: stagesError } = await supabase
       .from("stage_templates")
