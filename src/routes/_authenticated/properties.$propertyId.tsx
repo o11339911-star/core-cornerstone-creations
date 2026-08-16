@@ -448,8 +448,14 @@ function PropertyProfilePage() {
         </div>
       </SectionCard>
 
-      {/* Details stay collapsed by default; the summary above is the default view. */}
-      <RakeezAccordion items={items} multiple />
+      {/* Single-open accordion: opening one section closes the others. */}
+      <RakeezAccordion
+        items={items}
+        keepMounted
+        value={openSection}
+        onValueChange={setOpenSection}
+      />
     </div>
   );
 }
+
