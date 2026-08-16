@@ -137,65 +137,67 @@ export function PolicyAcceptanceGate({
           <Accordion
             type="single"
             collapsible
-            value={openCode || undefined}
+            value={(openCode ?? "") as LegalCode}
             onValueChange={(value) => setOpenCode(value || null)}
             className="w-full"
           >
-            {items.map((item, index) => (
-              <AccordionItem
-                key={item.version_id}
-                value={item.code}
-                className="border-0"
-              >
-                {index > 0 ? <Separator className="mx-4 w-[calc(100%-2rem)]" /> : null}
-                <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <FileText
-                      className="size-4 shrink-0 text-primary"
-                      aria-hidden="true"
-                    />
-                    <span className="truncate text-sm font-medium text-foreground">
-                      {item.title_ar}
-                    </span>
-                    <span
-                      className="shrink-0 text-xs text-muted-foreground"
-                      dir="ltr"
-                    >
-                      v{item.version}
-                    </span>
-                  </div>
+            {items.map((item, index) =>
+              isLegalCode(item.code) ? (
+                <AccordionItem
+                  key={item.version_id}
+                  value={item.code}
+                  className="border-0"
+                >
+                  {index > 0 ? (
+                    <Separator className="mx-4 w-[calc(100%-2rem)]" />
+                  ) : null}
+                  <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-5">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <FileText
+                        className="size-4 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {item.title_ar}
+                      </span>
+                      <span
+                        className="shrink-0 text-xs text-muted-foreground"
+                        dir="ltr"
+                      >
+                        v{item.version}
+                      </span>
+                    </div>
 
-                  <div className="flex shrink-0 items-center gap-2">
-                    {isLegalCode(item.code) ? (
-                      <AccordionTrigger className="flex-none rounded-md border border-input bg-background px-2.5 py-0 text-xs font-normal hover:bg-accent hover:text-accent-foreground hover:no-underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&>svg]:hidden h-9 min-h-11 sm:min-h-0">
+                    <div className="flex shrink-0 items-center gap-2">
+                      <AccordionTrigger className="flex-none h-9 min-h-11 rounded-md border border-input bg-background px-2.5 py-0 text-xs font-normal hover:bg-accent hover:text-accent-foreground hover:no-underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&>svg]:hidden sm:min-h-0">
                         {openCode === item.code ? "إخفاء النص" : "عرض النص"}
                       </AccordionTrigger>
-                    ) : null}
 
-                    <label
-                      className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-transparent hover:bg-muted/50 sm:h-9 sm:w-9"
-                      aria-label={`الموافقة على ${item.title_ar}`}
-                      title={`الموافقة على ${item.title_ar}`}
-                    >
-                      <Checkbox
-                        checked={checked[item.version_id] ?? false}
-                        onCheckedChange={(value) =>
-                          setChecked((prev) => ({
-                            ...prev,
-                            [item.version_id]: value === true,
-                          }))
-                        }
-                        className="size-5 sm:size-4"
-                      />
-                    </label>
+                      <label
+                        className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-transparent hover:bg-muted/50 sm:h-9 sm:w-9"
+                        aria-label={`الموافقة على ${item.title_ar}`}
+                        title={`الموافقة على ${item.title_ar}`}
+                      >
+                        <Checkbox
+                          checked={checked[item.version_id] ?? false}
+                          onCheckedChange={(value) =>
+                            setChecked((prev) => ({
+                              ...prev,
+                              [item.version_id]: value === true,
+                            }))
+                          }
+                          className="size-5 sm:size-4"
+                        />
+                      </label>
+                    </div>
                   </div>
-                </div>
 
-                <AccordionContent className="px-4 pb-3 sm:px-5">
-                  <DocumentBody code={item.code} />
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+                  <AccordionContent className="px-4 pb-3 sm:px-5">
+                    <DocumentBody code={item.code} />
+                  </AccordionContent>
+                </AccordionItem>
+              ) : null,
+            )}
           </Accordion>
         </CardContent>
 
