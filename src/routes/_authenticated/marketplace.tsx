@@ -289,7 +289,8 @@ function MarketplacePage() {
           ) : null}
         </label>
 
-        <FieldGrid className="mt-4">
+        <div className="mt-4" />
+        <FieldGrid>
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">ربط بمشروع (اختياري)</span>
             <select
@@ -415,9 +416,11 @@ function MarketplacePage() {
                         label="مرتبط بـ"
                         value={
                           l.project_id
-                            ? projectName(l.project_id)
+                            ? `مشروع: ${l.project?.name ?? "غير متاح للعرض"}`
                             : l.request_id
-                              ? requestLabel(l.request_id)
+                              ? `طلب: ${l.request?.request_no ?? ""} ${
+                                  l.request?.subject ?? "غير متاح للعرض"
+                                }`.trim()
                               : "غير مرتبط"
                         }
                       />

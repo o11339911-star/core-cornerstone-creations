@@ -27,6 +27,11 @@ export const listingSchema = z.object({
   created_at: z.string(),
   project_id: z.string().uuid().nullable(),
   request_id: z.string().uuid().nullable(),
+  project: z.object({ name: z.string() }).nullable().default(null),
+  request: z
+    .object({ subject: z.string().nullable(), request_no: z.string().nullable() })
+    .nullable()
+    .default(null),
 });
 export type ServiceListing = z.infer<typeof listingSchema>;
 
@@ -40,7 +45,7 @@ export const listingAreaSchema = z.object({
 export type ListingArea = z.infer<typeof listingAreaSchema>;
 
 const LISTING_COLS =
-  "id, entity_id, service_kind, title, description, price_min, price_max, status, created_by, created_at, project_id, request_id";
+  "id, entity_id, service_kind, title, description, price_min, price_max, status, created_by, created_at, project_id, request_id, project:projects!service_listings_project_id_fkey(name), request:requests!service_listings_request_id_fkey(subject, request_no)";
 
 export const listServiceListings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
