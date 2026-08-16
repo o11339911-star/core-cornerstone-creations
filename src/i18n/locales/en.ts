@@ -1638,6 +1638,17 @@ export const en: Translations = {
     noProperties: "This entity has no properties",
     startOver: "Analyze another file",
     goToProperty: "Open property file",
+    uploadAndAnalyze: "Upload file and start analysis",
+    stateUploaded: "File uploaded",
+    stateAnalyzing: "Analyzing…",
+    stateCompleted: "Analysis completed",
+    stateFailed: "Analysis failed",
+    retry: "Re-run analysis",
+    confirmAndContinue: "Approve analysis and continue",
+    lockedHint: "You cannot move to the next step before the analysis completes and is explicitly approved.",
+    failedHint: "The uploaded file is kept; retry the analysis or correct the data manually after it succeeds.",
+    attempt: "Attempt",
+    uploadedFile: "Uploaded file",
   },
 
 };

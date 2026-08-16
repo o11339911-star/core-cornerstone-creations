@@ -1,0 +1,2 @@
+drop function if exists public.confirm_document_analysis(uuid, uuid, text, uuid, text, text, date, date, numeric, text, text);
+drop function if exists public.record_document_analysis(uuid, text, text, text, jsonb, jsonb, jsonb, text);
