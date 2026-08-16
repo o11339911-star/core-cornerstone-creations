@@ -69,8 +69,16 @@ function PropertyProfilePage() {
     queryFn: () => fetchProfile({ data: { propertyId } }),
   });
 
+  // Single-open sections. "" = every section collapsed (the default view).
+  const [openSection, setOpenSection] = React.useState<string>("");
+  React.useEffect(() => {
+    const fromHash = window.location.hash.replace(/^#/, "");
+    if (fromHash) setOpenSection(fromHash);
+  }, []);
+
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
+
 
   const openDocument = async (versionRow: { document_version_id?: string | null; file_path: string | null }) => {
     try {
