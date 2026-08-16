@@ -41,7 +41,7 @@ import {
   resolveDrawingMarkup,
   setDrawingStatus,
 } from "@/lib/drawings.functions";
-import { VIEWER_TOOLS, capabilitiesFor } from "@/lib/drawings/providers";
+import { VIEWER_TOOLS, capabilitiesFor, supportsVisualCompare } from "@/lib/drawings/providers";
 import { DrawingViewer } from "@/components/drawings/drawing-viewer";
 import { buildAssistantReport } from "@/lib/drawings/review-assistant";
 import { DISCIPLINE_KEYS, DRAWING_STATUS_KEYS, statusTone } from "./projects.$projectId.drawings";
