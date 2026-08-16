@@ -202,9 +202,9 @@ export const updateArchiveItem = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
-    if (data.title !== undefined) patch["title"] = data.title;
-    if (data.folderId !== undefined) patch["folder_id"] = data.folderId;
+    const patch: { title?: string; folder_id?: string | null } = {};
+    if (data.title !== undefined) patch.title = data.title;
+    if (data.folderId !== undefined) patch.folder_id = data.folderId;
     if (Object.keys(patch).length === 0) return true;
     const { error } = await context.supabase
       .from("archive_items")
