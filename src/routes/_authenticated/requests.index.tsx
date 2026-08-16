@@ -19,6 +19,7 @@ import { formatDateTime } from "@/lib/format";
 import { useAccountUi } from "@/lib/account-ui";
 import { listInboxRequests } from "@/lib/requests.functions";
 import { cn } from "@/lib/utils";
+import { ArchiveButton } from "@/components/archive/archive-button";
 
 export const Route = createFileRoute("/_authenticated/requests/")({
   component: RequestsInboxPage,

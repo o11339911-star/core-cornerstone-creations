@@ -37,6 +37,7 @@ import {
   type ContractType,
 } from "@/lib/contracts.functions";
 import {
+import { ArchiveButton } from "@/components/archive/archive-button";
   MESSAGE_VISIBILITY,
   createThread,
   listMessages,

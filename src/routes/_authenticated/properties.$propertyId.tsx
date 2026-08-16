@@ -33,6 +33,7 @@ import {
   type PropertyProfile,
 } from "@/lib/properties.functions";
 import { getDocumentDownloadUrl } from "@/lib/documents.functions";
+import { ArchiveButton } from "@/components/archive/archive-button";
 
 export const Route = createFileRoute("/_authenticated/properties/$propertyId")({
   component: PropertyProfilePage,

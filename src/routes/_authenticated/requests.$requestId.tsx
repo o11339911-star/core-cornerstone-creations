@@ -8,6 +8,7 @@ import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, SectionCard
 import { FileText, MessageSquare } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import {
+import { ArchiveButton } from "@/components/archive/archive-button";
   askForMoreInfo,
   closeRequest,
   decideRequest,

@@ -115,8 +115,8 @@ export const publishServiceListing = createServerFn({ method: "POST" })
       ...(data.priceMin !== null ? { _price_min: data.priceMin } : {}),
       ...(data.priceMax !== null ? { _price_max: data.priceMax } : {}),
       _publish: data.publish,
-      _project_id: data.projectId,
-      _request_id: data.requestId,
+      ...(data.projectId !== null ? { _project_id: data.projectId } : {}),
+      ...(data.requestId !== null ? { _request_id: data.requestId } : {}),
     });
     if (error) throw new Error(error.message);
     return id as string;
