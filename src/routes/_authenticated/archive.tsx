@@ -38,7 +38,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ErrorState, HeroBadge, PageHero, ResponsiveModal, SectionCard, SoftEmpty } from "@/components/rakeez";
+import {
+  ErrorState,
+  HeroBadge,
+  PageHero,
+  ResponsiveModal,
+  SectionCard,
+  SoftEmpty,
+} from "@/components/rakeez";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DOCX_MIME,
@@ -88,7 +95,8 @@ const ACCEPTS = {
   image: "image/*",
   pdf: "application/pdf",
   word: ".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  excel: ".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  excel:
+    ".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   slides:
     ".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation",
 } as const;
@@ -110,8 +118,16 @@ const CREATE_ACTIONS = [
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
+// مفاتيح Supabase Storage تقبل ASCII فقط؛ الأسماء العربية تُحفظ في العنوان لا في المسار
 function safeName(name: string) {
-  return name.replace(/[^\w.\-\u0600-\u06FF ]+/g, "_").slice(-120);
+  const dot = name.lastIndexOf(".");
+  const ext = dot > 0 ? name.slice(dot + 1).replace(/[^A-Za-z0-9]+/g, "") : "";
+  const base = (dot > 0 ? name.slice(0, dot) : name)
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "")
+    .slice(0, 80);
+  return `${base || "file"}${ext ? `.${ext}` : ""}`;
 }
 
 function ArchivePage() {
@@ -133,7 +149,9 @@ function ArchivePage() {
   const [q, setQ] = React.useState("");
   const [folderDialog, setFolderDialog] = React.useState(false);
   const [folderName, setFolderName] = React.useState("");
-  const [renameTarget, setRenameTarget] = React.useState<{ id: string; title: string } | null>(null);
+  const [renameTarget, setRenameTarget] = React.useState<{ id: string; title: string } | null>(
+    null,
+  );
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
@@ -213,21 +231,27 @@ function ArchivePage() {
         upsert: false,
       });
       if (error) throw new Error(error.message);
-      await addItem({
-        data: {
-          entityId,
-          folderId: v.folderId,
-          newFolderName: null,
-          title: fileName,
-          kind: "file",
-          sourceTable: null,
-          sourceId: null,
-          storagePath: path,
-          mimeType: mime,
-          sizeBytes: blob.size,
-          note: null,
-        },
-      });
+      try {
+        await addItem({
+          data: {
+            entityId,
+            folderId: v.folderId,
+            newFolderName: null,
+            title: fileName,
+            kind: "file",
+            sourceTable: null,
+            sourceId: null,
+            storagePath: path,
+            mimeType: mime,
+            sizeBytes: blob.size,
+            note: null,
+          },
+        });
+      } catch (e) {
+        // لا نترك ملفًا يتيمًا في المخزن عند فشل إنشاء السجل
+        await supabase.storage.from("archive").remove([path]);
+        throw e;
+      }
     },
     onSuccess: () => {
       toast.success("تم إنشاء الملف في الأرشيف");
@@ -235,7 +259,10 @@ function ArchivePage() {
       setCreateName("");
       void qc.invalidateQueries({ queryKey: ["archive"] });
     },
-    onError: () => toast.error("تعذّر إنشاء الملف"),
+    onError: (e: unknown) =>
+      toast.error("تعذّر إنشاء الملف", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
   });
 
   const openCreate = (kind: "word" | "excel") => {
@@ -266,25 +293,32 @@ function ArchivePage() {
         upsert: false,
       });
       if (error) throw new Error(error.message);
-      await addItem({
-        data: {
-          entityId,
-          folderId,
-          newFolderName: null,
-          title: file.name,
-          kind: "file",
-          sourceTable: null,
-          sourceId: null,
-          storagePath: path,
-          mimeType: file.type || null,
-          sizeBytes: file.size,
-          note: null,
-        },
-      });
+      try {
+        await addItem({
+          data: {
+            entityId,
+            folderId,
+            newFolderName: null,
+            title: file.name,
+            kind: "file",
+            sourceTable: null,
+            sourceId: null,
+            storagePath: path,
+            mimeType: file.type || null,
+            sizeBytes: file.size,
+            note: null,
+          },
+        });
+      } catch (e) {
+        await supabase.storage.from("archive").remove([path]);
+        throw e;
+      }
       toast.success("تم رفع الملف إلى الأرشيف");
       void qc.invalidateQueries({ queryKey: ["archive"] });
-    } catch {
-      toast.error("تعذّر رفع الملف");
+    } catch (e) {
+      toast.error("تعذّر رفع الملف", {
+        description: e instanceof Error ? e.message : undefined,
+      });
     } finally {
       setUploading(false);
     }
@@ -457,10 +491,7 @@ function ArchivePage() {
                 ))}
               </div>
             ) : items.isError ? (
-              <ErrorState
-                description="تعذّر تحميل الأرشيف"
-                onRetry={() => void items.refetch()}
-              />
+              <ErrorState description="تعذّر تحميل الأرشيف" onRetry={() => void items.refetch()} />
             ) : !items.data?.length ? (
               <SoftEmpty
                 icon={ArchiveIcon}
