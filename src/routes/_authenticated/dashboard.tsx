@@ -95,13 +95,13 @@ function DashboardPage() {
   });
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
         title={t("common.dashboard")}
-        subtitle="ابحث برقم المشروع أو اسمه أو الحي أو رقم القطعة أو المخطط أو رقم الصك أو الرخصة."
+        subtitle="ابحث برقم المشروع أو الحي أو رقم القطعة أو المخطط أو رقم الصك."
         badge={<HeroBadge tone="neutral">ركيز</HeroBadge>}
       >
-        <div className="relative mt-6 max-w-2xl">
+        <div className="relative mt-4 w-full max-w-2xl">
           <label htmlFor="project-search" className="sr-only">
             بحث المشاريع
           </label>
@@ -113,60 +113,32 @@ function DashboardPage() {
             id="project-search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="مثال: PRJ-1024 أو حي النرجس أو 4/ب"
-            className="h-14 rounded-xl border-transparent bg-card ps-12 text-base text-foreground shadow-elevated"
+            placeholder="مثال: PRJ-1024 أو حي النرجس"
+            className="h-13 rounded-xl border-transparent bg-card ps-12 text-base text-foreground shadow-elevated"
             autoComplete="off"
           />
         </div>
       </PageHero>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Link
-          to="/marketplace"
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
-        >
-          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-            <Store className="size-5" aria-hidden="true" />
-          </span>
-          <span className="text-sm font-semibold text-foreground">سوق الخدمات</span>
-        </Link>
-        <Link
-          to="/appointments"
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
-        >
-          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-            <CalendarClock className="size-5" aria-hidden="true" />
-          </span>
-          <span className="text-sm font-semibold text-foreground">المواعيد</span>
-        </Link>
-        <Link
-          to="/projects/new"
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
-        >
-          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-            <FolderPlus className="size-5" aria-hidden="true" />
-          </span>
-          <span className="text-sm font-semibold text-foreground">مشروع جديد</span>
-        </Link>
-        <Link
-          to="/properties"
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
-        >
-          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-            <Building2 className="size-5" aria-hidden="true" />
-          </span>
-          <span className="text-sm font-semibold text-foreground">العقارات</span>
-        </Link>
-        <Link
-          to="/settings/security"
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
-        >
-          <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-            <ShieldCheck className="size-5" aria-hidden="true" />
-          </span>
-          <span className="text-sm font-semibold text-foreground">{t("common.security")}</span>
-        </Link>
-      </div>
+      <section aria-label={t("shell.quickActions")}>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {actions.map((action) => (
+            <Link
+              key={action.to}
+              to={action.to}
+              className="flex min-h-[5.5rem] flex-col justify-between gap-2 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:border-primary/40 hover:shadow-elevated"
+            >
+              <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
+                <action.icon className="size-5" aria-hidden="true" />
+              </span>
+              <span className="truncate text-sm font-semibold text-foreground">
+                {action.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
 
       <section aria-live="polite" className="space-y-3">
         {term.length < 2 ? (
