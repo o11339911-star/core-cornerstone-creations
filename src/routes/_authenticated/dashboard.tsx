@@ -94,6 +94,16 @@ function DashboardPage() {
     placeholderData: keepPreviousData,
   });
 
+  const actions: { to: string; icon: typeof Store; label: string }[] = [
+    { to: "/marketplace", icon: Store, label: "سوق الخدمات" },
+    { to: "/appointments", icon: CalendarClock, label: "المواعيد" },
+    { to: "/projects/new", icon: FolderPlus, label: "مشروع جديد" },
+    ...(account.isDeveloper
+      ? [{ to: "/properties", icon: Building2, label: "العقارات" }]
+      : []),
+    { to: "/settings/security", icon: ShieldCheck, label: t("common.security") },
+  ];
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
