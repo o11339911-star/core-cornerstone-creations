@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
+import { AccountCompletionGate } from "@/components/account/account-completion-gate";
 import { AuthenticatedAppShell } from "@/components/app-shell";
 import { PolicyAcceptanceGate } from "@/components/legal/policy-acceptance-gate";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,11 +18,14 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   return (
     <PolicyAcceptanceGate>
-      <AuthenticatedAppShell>
-        <Outlet />
-      </AuthenticatedAppShell>
+      <AccountCompletionGate>
+        <AuthenticatedAppShell>
+          <Outlet />
+        </AuthenticatedAppShell>
+      </AccountCompletionGate>
     </PolicyAcceptanceGate>
   );
 }
+
 
 

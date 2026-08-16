@@ -9616,6 +9616,15 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_registration_entity: {
+        Args: {
+          _legal_form: string
+          _name: string
+          _type: string
+          _unified_national_number: string
+        }
+        Returns: string
+      }
       confirm_appointment: {
         Args: { _appointment_id: string }
         Returns: undefined
@@ -9980,6 +9989,7 @@ export type Database = {
       get_project_overview: { Args: { _project_id: string }; Returns: Json }
       get_public_entity_profile: { Args: { _slug: string }; Returns: Json }
       get_public_media: { Args: { _token: string }; Returns: Json }
+      get_registration_completion_state: { Args: never; Returns: Json }
       grant_case_access: {
         Args: {
           _item_id: string
