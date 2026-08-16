@@ -150,6 +150,24 @@ export const getCallCenter = createServerFn({ method: "POST" })
       };
     });
 
+    // A ringing session older than 60s is a missed call: reap it server-side so
+    // the callee never sees a stale banner and the caller sees the real outcome.
+    const stale = rows.filter((r) => r.status === "ringing" && Date.parse(r.started_at) <= cutoff);
+    if (stale.length) {
+      await Promise.all(
+        stale.map((r) =>
+          context.supabase
+            .from("call_sessions")
+            .update({ status: "missed", end_reason: "missed" })
+            .eq("id", r.id)
+            .eq("status", "ringing"),
+        ),
+      );
+      for (const r of stale) {
+        r.status = "missed";
+      }
+    }
+
     return {
       scoped: true,
       incoming: rows.filter(
@@ -162,6 +180,7 @@ export const getCallCenter = createServerFn({ method: "POST" })
       history: rows.filter((r) => r.status !== "ringing").slice(0, 25),
     };
   });
+
 
 export const startCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -210,16 +229,21 @@ export const respondToCall = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const me = await requireEntityMembership(context.supabase, context.userId, data.entityId);
 
-    const { error } = await context.supabase
+    // `.select()` makes the write verifiable: an empty result means the row was
+    // already answered, cancelled or reaped, so we never report a false success.
+    const { data: updated, error } = await context.supabase
       .from("call_sessions")
       .update({ status: data.accept ? "accepted" : "declined" })
       .eq("id", data.callId)
       .eq("callee_entity_id", me.entityId)
-      .eq("status", "ringing");
+      .eq("status", "ringing")
+      .select("id, status");
 
     if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!updated || updated.length === 0) throw new Error("المكالمة لم تعد متاحة.");
+    return { ok: true, status: (updated[0] as { status: string }).status };
   });
+
 
 export const endCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -237,7 +261,7 @@ export const endCall = createServerFn({ method: "POST" })
 
     const { data: row, error: readError } = await context.supabase
       .from("call_sessions")
-      .select("id, status, caller_entity_id, callee_entity_id")
+      .select("id, status, caller_entity_id, callee_entity_id, caller_user_id, answered_user_id")
       .eq("id", data.callId)
       .maybeSingle();
 
@@ -246,21 +270,44 @@ export const endCall = createServerFn({ method: "POST" })
     if (row.caller_entity_id !== me.entityId && row.callee_entity_id !== me.entityId) {
       throw new Error("لست طرفًا في هذه المكالمة.");
     }
-    if (row.status === "ended" || row.status === "declined" || row.status === "missed") {
-      return { ok: true };
+    if (
+      row.status === "ended" ||
+      row.status === "declined" ||
+      row.status === "missed" ||
+      row.status === "cancelled"
+    ) {
+      return { ok: true, status: row.status as string };
     }
 
-    const nextStatus =
-      row.status === "ringing" && data.reason === "missed" ? "missed" : "ended";
+    // Ringing calls are cancelled by the caller (or reaped as missed after the
+    // 60s window enforced in the database); only an accepted call can "end".
+    let nextStatus: string;
+    let reason: string;
+    if (row.status === "ringing") {
+      if (data.reason === "missed") {
+        nextStatus = "missed";
+        reason = "missed";
+      } else {
+        nextStatus = "cancelled";
+        reason = "cancelled";
+      }
+    } else {
+      nextStatus = "ended";
+      reason = data.reason === "failed" ? "failed" : "hangup";
+    }
 
-    const { error } = await context.supabase
+    const { data: updated, error } = await context.supabase
       .from("call_sessions")
-      .update({ status: nextStatus, end_reason: data.reason })
-      .eq("id", data.callId);
+      .update({ status: nextStatus, end_reason: reason })
+      .eq("id", data.callId)
+      .eq("status", row.status)
+      .select("id, status");
 
     if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!updated || updated.length === 0) throw new Error("تعذّر إنهاء المكالمة.");
+    return { ok: true, status: nextStatus };
   });
+
 
 export const getCallSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

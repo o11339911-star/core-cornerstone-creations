@@ -70,6 +70,9 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
   const pcRef = React.useRef<RTCPeerConnection | null>(null);
   const streamRef = React.useRef<MediaStream | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const sendRef = React.useRef<
+    ((kind: SignalRow["kind"], payload: Record<string, unknown>) => Promise<void>) | null
+  >(null);
 
   const cleanup = React.useCallback(() => {
     pcRef.current?.getSenders().forEach((s) => s.track?.stop());
@@ -89,6 +92,8 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
 
     let disposed = false;
     const handled = new Set<string>();
+    /** Candidates that arrive before the remote description is applied. */
+    const pendingIce: RTCIceCandidateInit[] = [];
     setErrorKey(null);
     setPhase("connecting");
 
@@ -102,6 +107,8 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
           payload: payload as never,
         });
     };
+    sendRef.current = send;
+
 
     const pc = new RTCPeerConnection({ iceServers: iceServers() });
     pcRef.current = pc;
@@ -135,6 +142,18 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
       }
     };
 
+    const flushIce = async () => {
+      while (pendingIce.length) {
+        const candidate = pendingIce.shift();
+        if (!candidate) break;
+        try {
+          await pc.addIceCandidate(candidate);
+        } catch {
+          // A late or duplicate candidate is not fatal.
+        }
+      }
+    };
+
     const applySignal = async (row: SignalRow) => {
       if (disposed || handled.has(row.id) || row.sender_entity_id === entityId) return;
       handled.add(row.id);
@@ -144,18 +163,25 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         await send("answer", { type: answer.type, sdp: answer.sdp ?? "" });
+        await flushIce();
       } else if (row.kind === "answer" && role === "caller") {
         if (!pc.currentRemoteDescription) {
           await pc.setRemoteDescription(row.payload as unknown as RTCSessionDescriptionInit);
+          await flushIce();
         }
       } else if (row.kind === "ice") {
         const candidate = row.payload["candidate"] as RTCIceCandidateInit | undefined;
-        if (candidate && pc.remoteDescription) {
-          try {
-            await pc.addIceCandidate(candidate);
-          } catch {
-            // A late or duplicate candidate is not fatal.
-          }
+        if (!candidate) return;
+        // Queue until the remote description exists, otherwise the candidate is
+        // silently dropped and the connection stalls on slower networks.
+        if (!pc.remoteDescription) {
+          pendingIce.push(candidate);
+          return;
+        }
+        try {
+          await pc.addIceCandidate(candidate);
+        } catch {
+          // A late or duplicate candidate is not fatal.
         }
       } else if (row.kind === "hangup") {
         setPhase("ended");
@@ -171,7 +197,20 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
           void applySignal(payload.new as SignalRow);
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "call_sessions", filter: `id=eq.${callId}` },
+        (payload) => {
+          // The session row is the single source of truth: when the other side
+          // declines, cancels or hangs up, the local leg closes immediately.
+          const status = (payload.new as { status?: string }).status;
+          if (status && ["declined", "missed", "ended", "cancelled"].includes(status)) {
+            setPhase("ended");
+          }
+        },
+      )
       .subscribe();
+
 
     const start = async () => {
       try {
@@ -214,10 +253,12 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
 
     return () => {
       disposed = true;
+      sendRef.current = null;
       void supabase.removeChannel(channel);
       cleanup();
     };
   }, [active, callId, entityId, role, attempt, cleanup]);
+
 
   React.useEffect(() => {
     if (phase !== "connected") return;
@@ -237,9 +278,13 @@ export function useVoiceCall(options: UseVoiceCallOptions): VoiceCallState {
   }, []);
 
   const hangup = React.useCallback(() => {
+    // Tell the peer before tearing the leg down; the row update that follows on
+    // the server also wipes the signalling rows.
+    void sendRef.current?.("hangup", {}).catch(() => undefined);
     cleanup();
     setPhase("ended");
   }, [cleanup]);
+
 
   const retry = React.useCallback(() => {
     cleanup();

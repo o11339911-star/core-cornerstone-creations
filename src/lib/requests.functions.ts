@@ -255,11 +255,42 @@ export const listInboxRequests = createServerFn({ method: "POST" })
       entityId = me.entityId;
     }
 
+    // Strict project isolation: with an entity scope active, the inbox may only
+    // surface requests belonging to projects that entity actually takes part in
+    // (as owner, or as a still-running project party). An `assigned_user_id`
+    // match alone never widens the scope across entities.
+    let projectIds: string[] | null = null;
+    if (entityId) {
+      const [{ data: owned, error: ownedError }, { data: parties, error: partyError }] =
+        await Promise.all([
+          context.supabase.from("projects").select("id").eq("entity_id", entityId),
+          context.supabase
+            .from("project_parties")
+            .select("project_id, status, ended_at")
+            .eq("party_entity_id", entityId),
+        ]);
+      if (ownedError) throw new Error(ownedError.message);
+      if (partyError) throw new Error(partyError.message);
+
+      const ids = new Set<string>();
+      for (const p of owned ?? []) ids.add(p.id as string);
+      for (const p of parties ?? []) {
+        const row = p as { project_id: string; status: string | null; ended_at: string | null };
+        if (row.ended_at) continue;
+        if (row.status && !["active", "accepted", "invited"].includes(row.status)) continue;
+        ids.add(row.project_id);
+      }
+      projectIds = Array.from(ids);
+      if (projectIds.length === 0) return [];
+    }
+
     let query = context.supabase
       .from("requests")
       .select(
         "id, request_no, subject, status, priority, project_id, requested_by, assigned_user_id, assigned_entity_id, updated_at, project:projects!inner(name)",
       );
+
+    if (projectIds) query = query.in("project_id", projectIds);
 
     const mine = [
       `assigned_user_id.eq.${context.userId}`,
@@ -275,6 +306,7 @@ export const listInboxRequests = createServerFn({ method: "POST" })
     }
 
     if (data.status) query = query.eq("status", data.status);
+
 
     const { data: rows, error } = await query.order("updated_at", { ascending: false }).limit(100);
     if (error) throw new Error(error.message);

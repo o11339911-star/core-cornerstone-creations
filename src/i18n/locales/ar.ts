@@ -684,6 +684,7 @@ export const ar = {
       accepted: "مقبولة",
       declined: "مرفوضة",
       missed: "فائتة",
+      cancelled: "ملغاة",
       ended: "منتهية",
       failed: "فشلت",
     },

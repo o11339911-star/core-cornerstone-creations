@@ -690,6 +690,7 @@ export const en: Translations = {
       accepted: "Accepted",
       declined: "Declined",
       missed: "Missed",
+      cancelled: "Cancelled",
       ended: "Ended",
       failed: "Failed",
     },

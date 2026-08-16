@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarClock, CalendarPlus } from "lucide-react";
+import { CalendarClock, CalendarPlus, Phone } from "lucide-react";
 
 import { toLatinDigits } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -384,6 +384,14 @@ function AppointmentsPage() {
                         تأكيد
                       </Button>
                     ) : null}
+                    {a.status === "confirmed" ? (
+                      <Button size="sm" variant="secondary" asChild>
+                        <Link to="/calls" className="inline-flex items-center gap-2">
+                          <Phone className="size-4" aria-hidden="true" />
+                          اتصال صوتي
+                        </Link>
+                      </Button>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="outline"
@@ -393,6 +401,7 @@ function AppointmentsPage() {
                       إلغاء
                     </Button>
                   </div>
+
                 ) : null}
               </div>
             ))}

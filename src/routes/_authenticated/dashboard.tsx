@@ -133,7 +133,15 @@ function DashboardPage() {
             autoComplete="off"
           />
         </div>
+        <Link
+          to="/projects/new"
+          className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+        >
+          <FolderPlus className="size-4" aria-hidden="true" />
+          مشروع جديد
+        </Link>
       </PageHero>
+
 
       <section aria-label={t("shell.quickActions")}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
