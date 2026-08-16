@@ -10,10 +10,11 @@ import {
   checkSize,
   formatMb,
 } from "@/lib/drawings/viewer-limits";
-import { buildDxfScene, type DxfScene } from "@/lib/drawings/dxf-geometry";
+import type { DxfScene } from "@/lib/drawings/dxf-geometry";
+import type { DxfWorkerResponse } from "@/lib/drawings/dxf.worker";
 import { ViewerFrame, ViewerMessage } from "./viewer-frame";
 
-type Status = "loading" | "ready" | "error" | "too_large" | "empty";
+type Status = "loading" | "parsing" | "ready" | "error" | "too_large" | "capacity" | "empty";
 
 interface View {
   scale: number;
@@ -22,15 +23,17 @@ interface View {
 }
 
 const LINE_COLOR = "#1f2a37";
+const MARKER_PX = 4;
+const ZOOM_INTENSITY = 0.0015;
+const MIN_SCALE = 1e-6;
+const MAX_SCALE = 1e9;
 
 export default function DxfViewer({
   url,
   sizeBytes,
-  compact = false,
 }: {
   url: string;
   sizeBytes?: number | null | undefined;
-  compact?: boolean | undefined;
 }) {
   const t = useT();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -39,6 +42,7 @@ export default function DxfViewer({
   const sceneRef = useRef<DxfScene | null>(null);
   const hiddenRef = useRef<Set<string>>(new Set());
   const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const wheelRef = useRef<(event: WheelEvent) => void>(() => {});
 
   const [scene, setScene] = useState<DxfScene | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -76,12 +80,21 @@ export default function DxfViewer({
     ctx.beginPath();
     for (const path of current.paths) {
       if (hiddenRef.current.has(path.layer)) continue;
-      const pts = path.points;
-      const first = pts[0];
+      const first = path.points[0];
       if (!first) continue;
-      ctx.moveTo(first[0] * scale + offsetX, height - (first[1] * scale + offsetY));
-      for (let i = 1; i < pts.length; i += 1) {
-        const p = pts[i]!;
+      const sx = first[0] * scale + offsetX;
+      const sy = height - (first[1] * scale + offsetY);
+      if (path.marker) {
+        // علامة نقطة مرئية فعليًا: صليب صغير بحجم ثابت على الشاشة.
+        ctx.moveTo(sx - MARKER_PX, sy);
+        ctx.lineTo(sx + MARKER_PX, sy);
+        ctx.moveTo(sx, sy - MARKER_PX);
+        ctx.lineTo(sx, sy + MARKER_PX);
+        continue;
+      }
+      ctx.moveTo(sx, sy);
+      for (let i = 1; i < path.points.length; i += 1) {
+        const p = path.points[i]!;
         ctx.lineTo(p[0] * scale + offsetX, height - (p[1] * scale + offsetY));
       }
     }
@@ -112,34 +125,73 @@ export default function DxfViewer({
       return;
     }
     let cancelled = false;
+    let worker: Worker | null = null;
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), DXF_TIMEOUT_MS);
+    const stop = () => {
+      controller.abort();
+      worker?.terminate();
+      worker = null;
+    };
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      stop();
+      setErrorKey("drawings.viewerTimeout");
+      setStatus("error");
+    }, DXF_TIMEOUT_MS);
     setStatus("loading");
 
     void (async () => {
       try {
         const response = await fetch(url, { signal: controller.signal });
         if (!response.ok) throw new Error("fetch_failed");
-        const text = await response.text();
-        if (text.length > DXF_MAX_BYTES) throw new Error("too_large");
-        const mod = await import("dxf-parser");
-        const Parser = (mod.default ?? mod) as unknown as new () => {
-          parseSync: (input: string) => unknown;
-        };
-        const parsed = new Parser().parseSync(text);
-        const built = buildDxfScene(parsed);
+        // فحص الحجم الحقيقي بالبايت قبل أي فك ترميز.
+        const buffer = await response.arrayBuffer();
         if (cancelled) return;
-        sceneRef.current = built;
-        setScene(built);
-        setHidden(new Set());
-        if (built.paths.length === 0) {
-          setStatus("empty");
+        if (buffer.byteLength > DXF_MAX_BYTES) {
+          window.clearTimeout(timer);
+          setStatus("too_large");
           return;
         }
-        setStatus("ready");
-        window.requestAnimationFrame(fit);
+
+        setStatus("parsing");
+        worker = new Worker(new URL("@/lib/drawings/dxf.worker.ts", import.meta.url), {
+          type: "module",
+        });
+        worker.onmessage = (event: MessageEvent<DxfWorkerResponse>) => {
+          if (cancelled) return;
+          window.clearTimeout(timer);
+          const data = event.data;
+          worker?.terminate();
+          worker = null;
+          if (!data.ok) {
+            if (data.code === "capacity") {
+              setStatus("capacity");
+              return;
+            }
+            setErrorKey("drawings.viewerParseError");
+            setStatus("error");
+            return;
+          }
+          sceneRef.current = data.scene;
+          setScene(data.scene);
+          setHidden(new Set());
+          if (data.scene.paths.length === 0) {
+            setStatus("empty");
+            return;
+          }
+          setStatus("ready");
+          window.requestAnimationFrame(fit);
+        };
+        worker.onerror = () => {
+          if (cancelled) return;
+          window.clearTimeout(timer);
+          setErrorKey("drawings.viewerParseError");
+          setStatus("error");
+        };
+        worker.postMessage({ buffer }, [buffer]);
       } catch (error) {
         if (cancelled) return;
+        window.clearTimeout(timer);
         const aborted = error instanceof DOMException && error.name === "AbortError";
         setErrorKey(aborted ? "drawings.viewerTimeout" : "drawings.viewerParseError");
         setStatus("error");
@@ -148,8 +200,8 @@ export default function DxfViewer({
 
     return () => {
       cancelled = true;
-      controller.abort();
       window.clearTimeout(timer);
+      stop();
       sceneRef.current = null;
     };
   }, [url, reloadToken, sizeCheck.ok, fit]);
@@ -177,7 +229,7 @@ export default function DxfViewer({
       const view = viewRef.current;
       const worldX = (px - view.offsetX) / view.scale;
       const worldY = (height - py - view.offsetY) / view.scale;
-      const scale = Math.min(Math.max(view.scale * factor, 1e-6), 1e9);
+      const scale = Math.min(Math.max(view.scale * factor, MIN_SCALE), MAX_SCALE);
       viewRef.current = {
         scale,
         offsetX: px - worldX * scale,
@@ -188,12 +240,27 @@ export default function DxfViewer({
     [draw],
   );
 
-  const onWheel = (event: React.WheelEvent<HTMLCanvasElement>) => {
+  // عجلة الفأرة/اللمس: مستمع أصلي غير سلبي حتى يعمل preventDefault فعليًا،
+  // ومقدار التكبير يتناسب مع شدة الحركة بدل معامل ثابت لكل حدث.
+  wheelRef.current = (event: WheelEvent) => {
     if (status !== "ready") return;
-    event.preventDefault();
-    const rect = event.currentTarget.getBoundingClientRect();
-    zoomBy(event.deltaY < 0 ? 1.15 : 1 / 1.15, event.clientX - rect.left, event.clientY - rect.top);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const dy = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 100 : 1);
+    zoomBy(Math.exp(-dy * ZOOM_INTENSITY), event.clientX - rect.left, event.clientY - rect.top);
   };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const handler = (event: WheelEvent) => {
+      event.preventDefault();
+      wheelRef.current(event);
+    };
+    canvas.addEventListener("wheel", handler, { passive: false });
+    return () => canvas.removeEventListener("wheel", handler);
+  }, []);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLCanvasElement>) => {
     if (status !== "ready") return;
@@ -244,7 +311,7 @@ export default function DxfViewer({
   );
 
   const layersPanel =
-    !compact && scene && scene.layers.length > 0 ? (
+    scene && scene.layers.length > 0 && status === "ready" ? (
       <div className="rounded-xl border border-border bg-card p-3">
         <p className="mb-2 text-xs font-medium text-foreground">{t("drawings.layers")}</p>
         <ul className="max-h-40 space-y-1.5 overflow-y-auto pe-1">
@@ -281,7 +348,6 @@ export default function DxfViewer({
             role="img"
             aria-label={t("drawings.dxfCanvasLabel")}
             className="size-full touch-none outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onWheel={onWheel}
             onKeyDown={onKeyDown}
             onPointerDown={(event) => {
               if (status !== "ready") return;
@@ -305,11 +371,21 @@ export default function DxfViewer({
               dragRef.current = null;
             }}
           />
-          {status === "loading" ? <ViewerMessage title={t("drawings.viewerLoading")} /> : null}
-          {status === "too_large" && !sizeCheck.ok ? (
+          {status === "loading" || status === "parsing" ? (
+            <ViewerMessage
+              title={t(status === "loading" ? "drawings.viewerLoading" : "drawings.dxfParsing")}
+            />
+          ) : null}
+          {status === "too_large" ? (
             <ViewerMessage
               title={t("drawings.viewerTooLarge")}
               body={`${t("drawings.viewerLimitLabel")}: ${formatMb(DXF_MAX_BYTES)} MB`}
+            />
+          ) : null}
+          {status === "capacity" ? (
+            <ViewerMessage
+              title={t("drawings.viewerCapacity")}
+              body={t("drawings.viewerCapacityBody")}
             />
           ) : null}
           {status === "empty" ? (
