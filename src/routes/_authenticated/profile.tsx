@@ -7,6 +7,7 @@ import { entityTypeLabel } from "@/components/app-shell";
 import { useT } from "@/i18n";
 import { useAccountUi } from "@/lib/account-ui";
 import { getMyProfile } from "@/lib/auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfilePage,
@@ -49,6 +50,12 @@ function ProfilePage() {
     queryFn: () => getMyProfile(),
   });
 
+  const emailQuery = useQuery({
+    queryKey: ["my-auth-email"],
+    queryFn: async () => (await supabase.auth.getUser()).data.user?.email ?? null,
+    staleTime: 5 * 60_000,
+  });
+
   const roleLabel = (role: string) => {
     const key = `team.roles.${role}`;
     const value = t(key);
@@ -70,7 +77,7 @@ function ProfilePage() {
               label={t("profile.fullName")}
               value={profileQuery.data?.full_name || t("profile.noName")}
             />
-            <Row label={t("profile.email")} value={profileQuery.data?.email ?? "—"} />
+            <Row label={t("profile.email")} value={emailQuery.data ?? "—"} />
             <Row
               label={t("profile.phone")}
               value={profileQuery.data?.phone || t("profile.noPhone")}
