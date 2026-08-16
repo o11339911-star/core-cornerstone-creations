@@ -939,6 +939,8 @@ export const ar = {
     openMedia: "فتح الجولة",
   },
   drawings: {
+    viewerCancelledBody: "أوقفت المعاينة قبل اكتمالها؛ يمكنك إعادة المحاولة في أي وقت.",
+    revisionMismatch: "النسخة المفتوحة تغيّرت — أعد فتح النسخة ثم أعد المحاولة.",
     dxfParsing: "جارٍ تحليل المخطط…",
     ifcRendering: "جارٍ بناء المشهد…",
     viewerCancelled: "أُلغيت المعاينة",
