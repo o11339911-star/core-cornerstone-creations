@@ -9363,6 +9363,10 @@ export type Database = {
       }
     }
     Functions: {
+      abort_document_upload: {
+        Args: { _reason?: string; _version_id: string }
+        Returns: boolean
+      }
       accept_entity_invitation: { Args: { _token: string }; Returns: string }
       accept_policies: {
         Args: { _context?: string; _version_ids: string[] }
@@ -9767,6 +9771,20 @@ export type Database = {
           _stage_id?: string
           _title_ar: string
           _title_en?: string
+        }
+        Returns: string
+      }
+      create_project_assignment: {
+        Args: {
+          _ends_on?: string
+          _entity_id: string
+          _job_title_ar: string
+          _job_title_en: string
+          _project_id: string
+          _stage_id?: string
+          _starts_on?: string
+          _user_id: string
+          _visibility?: string
         }
         Returns: string
       }
@@ -10298,6 +10316,15 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      list_project_assignable_members: {
+        Args: { _project_id: string }
+        Returns: {
+          entity_id: string
+          entity_name: string
+          full_name: string
+          user_id: string
+        }[]
       }
       list_queue_items: {
         Args: { _mine?: boolean; _status?: string }
@@ -10834,6 +10861,20 @@ export type Database = {
       update_marketing_lead_stage: {
         Args: { _lead_id: string; _stage: string }
         Returns: undefined
+      }
+      update_project_assignment: {
+        Args: {
+          _assignment_id: string
+          _clear_stage?: boolean
+          _end_now?: boolean
+          _ends_on?: string
+          _job_title_ar?: string
+          _job_title_en?: string
+          _stage_id?: string
+          _starts_on?: string
+          _visibility?: string
+        }
+        Returns: boolean
       }
       update_report_template: {
         Args: {

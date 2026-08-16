@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Building2, MapPinned } from "lucide-react";
+import { Building2, FileSearch, MapPinned } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ import {
   listLinkableProjects,
   type PropertyProfile,
 } from "@/lib/properties.functions";
+import { getDocumentDownloadUrl } from "@/lib/documents.functions";
 
 export const Route = createFileRoute("/_authenticated/properties/$propertyId")({
   component: PropertyProfilePage,
@@ -72,6 +73,7 @@ function PropertyProfilePage() {
   const addOwner = useServerFn(addPropertyOwner);
   const linkProject = useServerFn(linkPropertyToProject);
   const signUrl = useServerFn(getDocumentUrl);
+  const signVersionUrl = useServerFn(getDocumentDownloadUrl);
 
   const query = useQuery({
     queryKey: ["property", propertyId],
@@ -112,17 +114,27 @@ function PropertyProfilePage() {
     onError: () => toast.error(t("common.error")),
   });
 
-  const openDocument = async (path: string | null) => {
-    if (!path) {
-      toast.error(t("properties.documents.noFile"));
-      return;
+  const openDocument = async (versionRow: { document_version_id?: string | null; file_path: string | null }) => {
+    try {
+      if (versionRow.document_version_id) {
+        const { url } = await signVersionUrl({ data: { versionId: versionRow.document_version_id } });
+        window.open(url, "_blank", "noopener,noreferrer");
+        return;
+      }
+      // Legacy rows only: no document_version_id yet, fall back to the raw path.
+      if (!versionRow.file_path) {
+        toast.error(t("properties.documents.noFile"));
+        return;
+      }
+      const { url } = await signUrl({ data: { path: versionRow.file_path } });
+      if (!url) {
+        toast.error(t("properties.documents.noFile"));
+        return;
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("common.error"));
     }
-    const { url } = await signUrl({ data: { path } });
-    if (!url) {
-      toast.error(t("properties.documents.noFile"));
-      return;
-    }
-    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   if (query.isLoading) {
@@ -246,10 +258,25 @@ function PropertyProfilePage() {
         />
       );
 
+    const analyzeButton = (
+      <Button asChild variant="outline" className="min-h-11">
+        <Link
+          to="/documents/analyze"
+          search={{ propertyId, target: kind === "deed" ? "deed" : "building_license" }}
+        >
+          <FileSearch className="me-2 size-4" />
+          {t("properties.documents.analyzeFile")}
+        </Link>
+      </Button>
+    );
+
     return docs.length === 0 ? (
       <div className="space-y-4">
         <SoftEmpty icon={Building2} message={t("properties.documents.none")} />
-        <div className="flex justify-end">{addModalFor(null)}</div>
+        <div className="flex flex-wrap justify-end gap-3">
+          {analyzeButton}
+          {addModalFor(null)}
+        </div>
       </div>
     ) : (
       <div className="space-y-6">
@@ -260,7 +287,10 @@ function PropertyProfilePage() {
                 {t("properties.documents.number")}: {numberOf(doc) ?? "—"} ·{" "}
                 {t("properties.documents.issuer")}: {issuerOf(doc) ?? "—"}
               </p>
-              {addModalFor(doc)}
+              <div className="flex flex-wrap gap-3">
+                {analyzeButton}
+                {addModalFor(doc)}
+              </div>
             </div>
             <DataTable
               columns={[
@@ -288,7 +318,7 @@ function PropertyProfilePage() {
                       variant="ghost"
                       size="sm"
                       className="min-h-9"
-                      onClick={() => void openDocument(v.file_path)}
+                      onClick={() => void openDocument(v)}
                     >
                       {t("properties.documents.open")}
                     </Button>

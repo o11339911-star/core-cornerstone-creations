@@ -244,6 +244,30 @@ export function AccountMenu() {
             {t("shell.switchAccount")}
           </Link>
         </DropdownMenuItem>
+        {activeEntity ? (
+          <>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/entities/$entityId"
+                params={{ entityId: activeEntity.id }}
+                className="flex items-center gap-2"
+              >
+                <Building2 className="size-4" aria-hidden="true" />
+                {t("shell.manageEntity")}
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/entities/$entityId/team"
+                params={{ entityId: activeEntity.id }}
+                className="flex items-center gap-2"
+              >
+                <User className="size-4" aria-hidden="true" />
+                {t("shell.entityTeam")}
+              </Link>
+            </DropdownMenuItem>
+          </>
+        ) : null}
         <DropdownMenuItem asChild>
           <Link to="/settings/security" className="flex items-center gap-2">
             <ShieldCheck className="size-4" aria-hidden="true" />

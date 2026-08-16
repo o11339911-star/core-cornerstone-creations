@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { useT } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -138,7 +140,23 @@ function MiniTable({
 
 function ProjectOverviewPage() {
   const { projectId } = Route.useParams();
+  const t = useT();
   const fetchOverview = useServerFn(getProjectOverview);
+
+  const linkedPropertyQuery = useQuery({
+    queryKey: ["project-primary-property", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("property_projects")
+        .select("property_id, relation")
+        .eq("project_id", projectId)
+        .order("relation", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const query = useQuery({
     queryKey: ["project-overview", projectId],
@@ -182,6 +200,7 @@ function ProjectOverviewPage() {
         subtitle={
           <>
             {str(b["code"]) ? `رقم المشروع: ${str(b["code"])}` : "بلا رقم مشروع"}
+            {str(b["entity_name"]) ? ` · ${str(b["entity_name"])}` : ""}
             {loc["district"] ? ` · ${str(loc["district"])}` : ""}
             {loc["city"] ? ` · ${str(loc["city"])}` : ""}
           </>
@@ -199,6 +218,27 @@ function ProjectOverviewPage() {
           </div>
         }
       />
+
+      <div className="flex justify-end">
+        {linkedPropertyQuery.data?.property_id ? (
+          <Link
+            to="/properties/$propertyId"
+            params={{ propertyId: linkedPropertyQuery.data.property_id }}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-primary transition-colors hover:bg-secondary"
+          >
+            <ScrollText className="size-4" aria-hidden="true" />
+            {t("projects.addOrLinkDeed")}
+          </Link>
+        ) : (
+          <Link
+            to="/properties/new"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-primary transition-colors hover:bg-secondary"
+          >
+            <ScrollText className="size-4" aria-hidden="true" />
+            {t("projects.addOrLinkDeed")}
+          </Link>
+        )}
+      </div>
 
       <StatGrid>
         <StatCard

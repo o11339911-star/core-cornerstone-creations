@@ -1,5 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+
+import type { Database } from "@/lib/database";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -182,8 +185,74 @@ export const entityOfficialSchema = z.object({
   verification_status: z.string().nullable(),
   verification_note: z.string().nullable(),
   verified_at: z.string().nullable(),
+  canManage: z.boolean(),
 });
 export type EntityOfficial = z.infer<typeof entityOfficialSchema>;
+
+/** Keeps only the last 4 characters of a sensitive value, masks the rest. */
+function maskTail(value: string | null): string | null {
+  if (!value) return value;
+  if (value.length <= 4) return "•".repeat(value.length);
+  return "•".repeat(value.length - 4) + value.slice(-4);
+}
+
+const MASKED_KEYS = [
+  "unified_national_number",
+  "cr_number",
+  "tax_number",
+  "contact_email",
+  "contact_phone",
+] as const;
+
+/**
+ * Derives whether the caller may see unmasked official identifiers and
+ * manage this entity's official record: owners/admins always can, and
+ * anyone else needs an explicit `members.manage_members` grant — checked
+ * the same way `entity_memberships` + `role_permissions` +
+ * `permission_grants` are checked everywhere else (deny always wins).
+ */
+async function computeCanManage(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  entityId: string,
+): Promise<boolean> {
+  const { data: membership, error: membershipError } = await supabase
+    .from("entity_memberships")
+    .select("role")
+    .eq("entity_id", entityId)
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (membershipError) throw membershipError;
+
+  const role = membership?.role ?? null;
+  if (role === "owner" || role === "admin") return true;
+  if (!role) return false;
+
+  const { data: rolePerms, error: rolePermsError } = await supabase
+    .from("role_permissions")
+    .select("action")
+    .eq("role", role)
+    .eq("module", "members");
+  if (rolePermsError) throw rolePermsError;
+  if (rolePerms?.some((p) => p.action === "manage_members")) return true;
+
+  const now = new Date().toISOString();
+  const { data: grants, error: grantsError } = await supabase
+    .from("permission_grants")
+    .select("action, effect, expires_at, revoked_at")
+    .eq("subject_user_id", userId)
+    .eq("scope_type", "entity")
+    .eq("scope_entity_id", entityId)
+    .eq("module", "members")
+    .is("revoked_at", null);
+  if (grantsError) throw grantsError;
+
+  const live = (grants ?? []).filter((g) => !g.expires_at || g.expires_at > now);
+  const denied = live.some((g) => g.action === "manage_members" && g.effect === "deny");
+  const allowed = live.some((g) => g.action === "manage_members" && g.effect === "allow");
+  return allowed && !denied;
+}
 
 export const getEntityOfficial = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -193,7 +262,21 @@ export const getEntityOfficial = createServerFn({ method: "GET" })
       _entity_id: data.entityId,
     });
     if (error) throw new Error(mapError(error.message));
-    return entityOfficialSchema.parse(row);
+
+    const canManage = await computeCanManage(
+      context.supabase,
+      context.userId,
+      data.entityId,
+    );
+
+    const parsed = entityOfficialSchema.omit({ canManage: true }).parse(row);
+    if (canManage) return { ...parsed, canManage };
+
+    const masked: EntityOfficial = { ...parsed, canManage };
+    for (const key of MASKED_KEYS) {
+      masked[key] = maskTail(parsed[key]);
+    }
+    return masked;
   });
 
 /** True when the caller can edit official data / manage relationships. */
@@ -210,7 +293,8 @@ export const getMyEntityRole = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw error;
     const role = (row as { role?: string } | null)?.role ?? null;
-    return { role, canManage: role === "owner" || role === "admin" };
+    const canManage = await computeCanManage(context.supabase, context.userId, data.entityId);
+    return { role, canManage };
   });
 
 /* ------------------------------- updating ------------------------------- */

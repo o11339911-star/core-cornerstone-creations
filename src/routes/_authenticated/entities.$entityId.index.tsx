@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   BadgeCheck,
   Building2,
+  FileText,
   Globe2,
   Link2,
   Loader2,
@@ -42,7 +43,6 @@ import {
   RELATIONSHIP_TYPES,
   decideEntityRelationship,
   getEntityOfficial,
-  getMyEntityRole,
   listEntityRelationships,
   requestEntityRelationship,
   updateEntityOfficial,
@@ -130,7 +130,6 @@ function EntityHomePage() {
   const queryClient = useQueryClient();
 
   const fetchOfficial = useServerFn(getEntityOfficial);
-  const fetchRole = useServerFn(getMyEntityRole);
   const fetchRelations = useServerFn(listEntityRelationships);
   const saveOfficial = useServerFn(updateEntityOfficial);
   const askRelation = useServerFn(requestEntityRelationship);
@@ -140,16 +139,12 @@ function EntityHomePage() {
     queryKey: ["entity-official", entityId],
     queryFn: () => fetchOfficial({ data: { entityId } }),
   });
-  const roleQuery = useQuery({
-    queryKey: ["entity-my-role", entityId],
-    queryFn: () => fetchRole({ data: { entityId } }),
-  });
   const relationsQuery = useQuery({
     queryKey: ["entity-relationships", entityId],
     queryFn: () => fetchRelations({ data: { entityId } }),
   });
 
-  const canManage = roleQuery.data?.canManage ?? false;
+  const canManage = officialQuery.data?.canManage ?? false;
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [relationOpen, setRelationOpen] = React.useState(false);
@@ -399,7 +394,7 @@ function EntityHomePage() {
         )}
       </SectionCard>
 
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           to="/entities/$entityId/team"
           params={{ entityId }}
@@ -423,6 +418,14 @@ function EntityHomePage() {
         >
           <Globe2 className="size-4" aria-hidden="true" />
           {t("entities.detail.publicProfile")}
+        </Link>
+        <Link
+          to="/documents"
+          search={{ entityId }}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold transition-colors hover:border-primary/40"
+        >
+          <FileText className="size-4" aria-hidden="true" />
+          {t("entities.detail.documents")}
         </Link>
       </div>
 

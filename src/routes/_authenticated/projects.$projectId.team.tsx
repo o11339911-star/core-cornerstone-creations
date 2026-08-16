@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Plus, Users } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus, Users, XCircle } from "lucide-react";
 
 import { useT } from "@/i18n";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,13 @@ import {
 import { formatDate } from "@/lib/format";
 import {
   createAssignment,
+  endProjectAssignment,
+  getProjectTeamCapabilities,
   listAssignableMembers,
   listProjectAssignments,
-  setAssignmentVisibility,
+  updateProjectAssignment,
   VISIBILITY_LEVELS,
+  type Assignment,
   type VisibilityLevel,
 } from "@/lib/team.functions";
 import { listProjectStages } from "@/lib/project-parties.functions";
@@ -77,12 +80,18 @@ function AddAssignmentModal({
   const [visibility, setVisibility] = React.useState<VisibilityLevel>("internal");
   const [error, setError] = React.useState<string | null>(null);
 
+  const members = membersQuery.data ?? [];
+  const stages = stagesQuery.data ?? [];
+  const selectedMember = members.find((m) => m.userId === userId) ?? null;
+
   const mutation = useMutation({
-    mutationFn: () =>
-      createFn({
+    mutationFn: () => {
+      if (!selectedMember) throw new Error(t("projectTeam.selectMember"));
+      return createFn({
         data: {
           projectId,
-          userId,
+          userId: selectedMember.userId,
+          entityId: selectedMember.entityId,
           stageId: stageId || null,
           jobTitleAr,
           jobTitleEn,
@@ -90,16 +99,15 @@ function AddAssignmentModal({
           endsOn: endsOn || null,
           visibility,
         },
-      }),
+      });
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
       onClose();
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => setError(t(e.message)),
   });
 
-  const members = membersQuery.data ?? [];
-  const stages = stagesQuery.data ?? [];
   const canSubmit = userId && jobTitleAr.trim().length >= 2 && jobTitleEn.trim().length >= 2;
 
   return (
@@ -211,29 +219,230 @@ function AddAssignmentModal({
   );
 }
 
+function EditAssignmentModal({
+  projectId,
+  assignment,
+  onClose,
+}: {
+  projectId: string;
+  assignment: Assignment;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const stagesFn = useServerFn(listProjectStages);
+  const updateFn = useServerFn(updateProjectAssignment);
+
+  const stagesQuery = useQuery({
+    queryKey: ["project-stages", projectId],
+    queryFn: () => stagesFn({ data: { projectId } }),
+  });
+
+  const [stageId, setStageId] = React.useState(assignment.stage_id ?? "");
+  const [jobTitleAr, setJobTitleAr] = React.useState(assignment.job_title_ar);
+  const [jobTitleEn, setJobTitleEn] = React.useState(assignment.job_title_en);
+  const [startsOn, setStartsOn] = React.useState(assignment.starts_on ?? "");
+  const [endsOn, setEndsOn] = React.useState(assignment.ends_on ?? "");
+  const [visibility, setVisibility] = React.useState<VisibilityLevel>(assignment.visibility);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const stages = stagesQuery.data ?? [];
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          assignmentId: assignment.id,
+          jobTitleAr,
+          jobTitleEn,
+          stageId: stageId || null,
+          clearStage: !stageId,
+          startsOn: startsOn || undefined,
+          endsOn: endsOn || null,
+          visibility,
+        },
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
+      onClose();
+    },
+    onError: (e: Error) => setError(t(e.message)),
+  });
+
+  const canSubmit = jobTitleAr.trim().length >= 2 && jobTitleEn.trim().length >= 2;
+
+  return (
+    <ResponsiveModal
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("projectTeam.editTitle")}
+      footer={
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" className="min-h-11" onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            className="min-h-11"
+            disabled={!canSubmit || mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? t("common.loading") : t("common.save")}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <TextField
+          id="edit-job-title-ar"
+          label={t("projectTeam.jobTitleAr")}
+          value={jobTitleAr}
+          onChange={(e) => setJobTitleAr(e.target.value)}
+          required
+        />
+        <TextField
+          id="edit-job-title-en"
+          label={t("projectTeam.jobTitleEn")}
+          value={jobTitleEn}
+          onChange={(e) => setJobTitleEn(e.target.value)}
+          required
+        />
+
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="font-medium text-foreground">{t("projectTeam.stage")}</span>
+          <select
+            className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+            value={stageId}
+            onChange={(e) => setStageId(e.target.value)}
+          >
+            <option value="">{t("common.optional")}</option>
+            {stages.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name_ar}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="grid grid-cols-2 gap-3">
+          <TextField
+            id="edit-starts-on"
+            label={t("projectTeam.startsOn")}
+            type="date"
+            value={startsOn}
+            onChange={(e) => setStartsOn(e.target.value)}
+          />
+          <TextField
+            id="edit-ends-on"
+            label={t("projectTeam.endsOn")}
+            type="date"
+            value={endsOn}
+            onChange={(e) => setEndsOn(e.target.value)}
+          />
+        </div>
+
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="font-medium text-foreground">{t("projectTeam.visibility")}</span>
+          <select
+            className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value as VisibilityLevel)}
+          >
+            {VISIBILITY_LEVELS.map((v) => (
+              <option key={v} value={v}>
+                {t(`projectTeam.visibilityLevels.${v}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      </div>
+    </ResponsiveModal>
+  );
+}
+
+function EndAssignmentModal({
+  projectId,
+  assignment,
+  onClose,
+}: {
+  projectId: string;
+  assignment: Assignment;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const endFn = useServerFn(endProjectAssignment);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: () => endFn({ data: { assignmentId: assignment.id } }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
+      onClose();
+    },
+    onError: (e: Error) => setError(t(e.message)),
+  });
+
+  return (
+    <ResponsiveModal
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("projectTeam.endTitle")}
+      description={t("projectTeam.endHint")}
+      footer={
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" className="min-h-11" onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            className="min-h-11"
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? t("common.loading") : t("projectTeam.endConfirm")}
+          </Button>
+        </div>
+      }
+    >
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </ResponsiveModal>
+  );
+}
+
 function ProjectTeamPage() {
   const t = useT();
   const { projectId } = Route.useParams();
   const queryClient = useQueryClient();
 
   const assignmentsFn = useServerFn(listProjectAssignments);
-  const setVisibilityFn = useServerFn(setAssignmentVisibility);
+  const capabilitiesFn = useServerFn(getProjectTeamCapabilities);
 
   const assignmentsQuery = useQuery({
     queryKey: ["project-assignments", projectId],
     queryFn: () => assignmentsFn({ data: { projectId } }),
   });
-
-  const visibilityMutation = useMutation({
-    mutationFn: (vars: { assignmentId: string; visibility: VisibilityLevel }) =>
-      setVisibilityFn({ data: vars }),
-    onSuccess: () =>
-      void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] }),
+  const capabilitiesQuery = useQuery({
+    queryKey: ["project-team-capabilities", projectId],
+    queryFn: () => capabilitiesFn({ data: { projectId } }),
   });
 
   const [showAdd, setShowAdd] = React.useState(false);
+  const [editTarget, setEditTarget] = React.useState<Assignment | null>(null);
+  const [endTarget, setEndTarget] = React.useState<Assignment | null>(null);
 
   const rows = assignmentsQuery.data ?? [];
+  const canManage = capabilitiesQuery.data?.canManage ?? false;
+
+  React.useEffect(() => {
+    // Keep the assignments list fresh once capability changes.
+    void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManage]);
+
+  const isPending = assignmentsQuery.isPending || capabilitiesQuery.isPending;
+  const isError = assignmentsQuery.isError || capabilitiesQuery.isError;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 sm:px-6">
@@ -241,17 +450,24 @@ function ProjectTeamPage() {
         title={t("projectTeam.title")}
         subtitle={t("projectTeam.subtitle")}
         aside={
-          <Button className="min-h-11" onClick={() => setShowAdd(true)}>
-            <Plus className="me-2 size-4" aria-hidden="true" />
-            {t("projectTeam.add")}
-          </Button>
+          canManage ? (
+            <Button className="min-h-11" onClick={() => setShowAdd(true)}>
+              <Plus className="me-2 size-4" aria-hidden="true" />
+              {t("projectTeam.add")}
+            </Button>
+          ) : undefined
         }
       />
 
-      {assignmentsQuery.isPending ? (
+      {isPending ? (
         <CardsSkeleton cards={1} />
-      ) : assignmentsQuery.isError ? (
-        <ErrorState onRetry={() => void assignmentsQuery.refetch()} />
+      ) : isError ? (
+        <ErrorState
+          onRetry={() => {
+            void assignmentsQuery.refetch();
+            void capabilitiesQuery.refetch();
+          }}
+        />
       ) : (
         <SectionCard icon={Users} title={t("projectTeam.assignments")} count={rows.length}>
           {rows.length === 0 ? (
@@ -271,23 +487,29 @@ function ProjectTeamPage() {
                       </p>
                     </div>
                     <Badge variant="secondary">{t(`team.status.${a.status}`)}</Badge>
-                    <select
-                      className="min-h-11 rounded-md border border-input bg-background px-2 text-xs"
-                      value={a.visibility}
-                      onChange={(e) =>
-                        visibilityMutation.mutate({
-                          assignmentId: a.id,
-                          visibility: e.target.value as VisibilityLevel,
-                        })
-                      }
-                    >
-                      {VISIBILITY_LEVELS.map((v) => (
-                        <option key={v} value={v}>
-                          {t(`projectTeam.visibilityLevels.${v}`)}
-                        </option>
-                      ))}
-                    </select>
                     <VisIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                    {canManage ? (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          className="min-h-11"
+                          onClick={() => setEditTarget(a)}
+                        >
+                          <Pencil className="me-2 size-4" aria-hidden="true" />
+                          {t("projectTeam.edit")}
+                        </Button>
+                        {a.status === "active" ? (
+                          <Button
+                            variant="outline"
+                            className="min-h-11 text-destructive"
+                            onClick={() => setEndTarget(a)}
+                          >
+                            <XCircle className="me-2 size-4" aria-hidden="true" />
+                            {t("projectTeam.endAssignment")}
+                          </Button>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </li>
                 );
               })}
@@ -297,6 +519,20 @@ function ProjectTeamPage() {
       )}
 
       {showAdd ? <AddAssignmentModal projectId={projectId} onClose={() => setShowAdd(false)} /> : null}
+      {editTarget ? (
+        <EditAssignmentModal
+          projectId={projectId}
+          assignment={editTarget}
+          onClose={() => setEditTarget(null)}
+        />
+      ) : null}
+      {endTarget ? (
+        <EndAssignmentModal
+          projectId={projectId}
+          assignment={endTarget}
+          onClose={() => setEndTarget(null)}
+        />
+      ) : null}
     </div>
   );
 }
