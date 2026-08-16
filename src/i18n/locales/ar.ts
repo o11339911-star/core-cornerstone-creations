@@ -939,6 +939,11 @@ export const ar = {
     openMedia: "فتح الجولة",
   },
   drawings: {
+    dxfParsing: "جارٍ تحليل المخطط…",
+    ifcRendering: "جارٍ بناء المشهد…",
+    viewerCancelled: "أُلغيت المعاينة",
+    viewerCapacity: "المخطط أكبر من طاقة المعاينة داخل المتصفح",
+    viewerCapacityBody: "تجاوز الملف سقف عدد العناصر أو النقاط المسموح به محليًا؛ يمكنك تنزيل الأصل كما رُفع.",
     dwgNoPreview: "معاينة DWG غير متاحة داخل المتصفح",
     dxfCanvasLabel: "معاينة مخطط DXF ثنائي الأبعاد",
     dxfDrawn: "عناصر مرسومة",
