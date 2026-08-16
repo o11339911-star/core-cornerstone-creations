@@ -110,7 +110,7 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
           </Link>
 
           <nav
-            className="hidden items-center gap-1 md:flex"
+            className="hidden items-center gap-1 lg:flex"
             aria-label={t("shell.mainMenu")}
           >
             {desktopNav.map((item) => (
@@ -173,11 +173,11 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
 
       <IncomingCallBanner />
 
-      <main className="flex-1 pb-24 md:pb-0">{children}</main>
+      <main className="flex-1 pb-24 lg:pb-0">{children}</main>
 
       <nav
         aria-label={t("shell.mainMenu")}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <ul className="mx-auto flex max-w-md items-stretch">
