@@ -32,8 +32,8 @@ import { useT } from "@/i18n";
 import { formatNumber } from "@/lib/format";
 import { DeedVersionModal } from "@/components/properties/DeedVersionModal";
 import { LicenseVersionModal } from "@/components/properties/LicenseVersionModal";
+import { OwnershipPanel } from "@/components/properties/OwnershipPanel";
 import {
-  addPropertyOwner,
   getDocumentUrl,
   getPropertyProfile,
   linkPropertyToProject,
@@ -70,7 +70,6 @@ function PropertyProfilePage() {
 
   const fetchProfile = useServerFn(getPropertyProfile);
   const fetchProjects = useServerFn(listLinkableProjects);
-  const addOwner = useServerFn(addPropertyOwner);
   const linkProject = useServerFn(linkPropertyToProject);
   const signUrl = useServerFn(getDocumentUrl);
   const signVersionUrl = useServerFn(getDocumentDownloadUrl);
@@ -85,24 +84,10 @@ function PropertyProfilePage() {
     queryFn: () => fetchProjects(),
   });
 
-  const [ownerName, setOwnerName] = React.useState("");
-  const [ownerShare, setOwnerShare] = React.useState("");
   const [projectId, setProjectId] = React.useState("");
 
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
-
-  const ownerMutation = useMutation({
-    mutationFn: (input: Parameters<typeof addPropertyOwner>[0]) => addOwner(input),
-    onSuccess: () => {
-      toast.success(t("properties.owners.added"));
-      setOwnerName("");
-      setOwnerShare("");
-      invalidate();
-    },
-    // The 100% ceiling is enforced by a database trigger, never by this form.
-    onError: () => toast.error(t("properties.owners.exceeds")),
-  });
 
   const linkMutation = useMutation({
     mutationFn: (input: Parameters<typeof linkPropertyToProject>[0]) => linkProject(input),
@@ -159,73 +144,12 @@ function PropertyProfilePage() {
     .reduce((sum, o) => sum + Number(o.share_percent), 0);
 
   const ownersPanel = (
-    <div className="space-y-4">
-      <DataTable
-        columns={[
-          {
-            id: "name",
-            header: t("properties.owners.name"),
-            cell: (row: PropertyProfile["owners"][number]) =>
-              row.owner_name_text ?? row.owner_user_id ?? row.owner_entity_id ?? "—",
-          },
-          {
-            id: "share",
-            header: t("properties.owners.share"),
-            numeric: true,
-            cell: (row: PropertyProfile["owners"][number]) => `${row.share_percent}%`,
-          },
-          {
-            id: "from",
-            header: t("properties.owners.from"),
-            cell: (row: PropertyProfile["owners"][number]) => row.starts_on,
-          },
-          {
-            id: "to",
-            header: t("properties.owners.to"),
-            cell: (row: PropertyProfile["owners"][number]) => row.ends_on ?? "—",
-          },
-        ]}
-        rows={profile.owners}
-        getRowId={(row) => row.id}
-        emptyTitle={t("properties.owners.none")}
-      />
-      <p className="text-sm text-muted-foreground">
-        {t("properties.owners.total")}: <span className="font-medium text-foreground">{totalShare}%</span>
-      </p>
-      <form
-        className="flex flex-wrap items-end gap-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const share = Number(ownerShare);
-          if (ownerName.trim().length < 2 || !Number.isFinite(share) || share <= 0) return;
-          ownerMutation.mutate({
-            data: { propertyId, ownerNameText: ownerName.trim(), sharePercent: share },
-          });
-        }}
-      >
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted-foreground">{t("properties.owners.name")}</span>
-          <input
-            className="min-h-11 rounded-md border border-input bg-background px-3"
-            value={ownerName}
-            onChange={(event) => setOwnerName(event.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted-foreground">{t("properties.owners.share")}</span>
-          <input
-            type="number"
-            step="0.01"
-            className="min-h-11 w-32 rounded-md border border-input bg-background px-3"
-            value={ownerShare}
-            onChange={(event) => setOwnerShare(event.target.value)}
-          />
-        </label>
-        <Button type="submit" className="min-h-11" disabled={ownerMutation.isPending}>
-          {ownerMutation.isPending ? t("common.loading") : t("properties.owners.add")}
-        </Button>
-      </form>
-    </div>
+    <OwnershipPanel
+      propertyId={propertyId}
+      owners={profile.owners}
+      canManage={profile.can_manage_owner}
+      needsFix={profile.needs_owner_fix}
+    />
   );
 
   const documentsPanel = (
