@@ -10157,6 +10157,10 @@ export type Database = {
         Returns: undefined
       }
       link_personal_identity: { Args: { _national_id: string }; Returns: Json }
+      link_property_project: {
+        Args: { _project_id: string; _property_id: string; _relation?: string }
+        Returns: Json
+      }
       list_breakglass_requests: {
         Args: never
         Returns: {
@@ -10364,6 +10368,40 @@ export type Database = {
           slug: string
           title_ar: string
           version: string
+        }[]
+      }
+      list_link_candidate_projects: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _property_id: string
+          _q?: string
+        }
+        Returns: {
+          code: string
+          counterparty_name: string
+          name: string
+          project_id: string
+          source: string
+          status: string
+          total_count: number
+        }[]
+      }
+      list_link_candidate_properties: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _project_id: string
+          _q?: string
+        }
+        Returns: {
+          code: string
+          counterparty_name: string
+          name: string
+          property_id: string
+          source: string
+          status: string
+          total_count: number
         }[]
       }
       list_my_dsr_requests: {
