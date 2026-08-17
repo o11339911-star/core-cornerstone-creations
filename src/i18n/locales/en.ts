@@ -1725,9 +1725,19 @@ export const en: Translations = {
     visibility: "Visibility",
     visibilityLevels: {
       internal: "Internal only",
-      limited: "Visible to selected parties",
-      project_wide: "Visible to all project parties",
+      limited: "Selected parties",
+      project_wide: "All project parties",
     },
+    visibilityHints: {
+      internal: "Visible only to authorized internal entity members.",
+      limited: "Visible only to the parties you select below.",
+      project_wide: "Visible to every accepted project party.",
+    },
+    audienceTitle: "Beneficiary parties",
+    audienceHint: "Select at least one accepted project party.",
+    audienceEmpty: "No accepted parties on this project yet. Accept or invite a party first.",
+    audienceRequired: "Select at least one project party.",
+    audienceLoading: "Loading project parties…",
   },
   analysis: {
     title: "Upload & analyze",
