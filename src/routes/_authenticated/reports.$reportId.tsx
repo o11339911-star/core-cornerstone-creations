@@ -6,9 +6,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, ReportEditor, SectionCard } from "@/components/rakeez";
 import { FileText } from "lucide-react";
 import { pageSetupSchema, reportContentSchema, type ReportContent } from "@/lib/reports/blocks";
+import { engineeringBlockMessage, reportErrorMessage } from "@/lib/reports/labels";
 import { formatDate } from "@/lib/format";
 import {
   approveReport,
+  checkEngineeringReportEligibility,
   createReportVersion,
   exportReportVersion,
   getEntityLicenseState,
@@ -59,6 +61,7 @@ function ReportDetailPage() {
   const newVersion = useServerFn(createReportVersion);
   const exportVersion = useServerFn(exportReportVersion);
   const downloadUrl = useServerFn(getReportDownloadUrl);
+  const checkEligibility = useServerFn(checkEngineeringReportEligibility);
 
   const [draft, setDraft] = React.useState<ReportContent | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
@@ -79,13 +82,22 @@ function ReportDetailPage() {
     enabled: Boolean(report?.entity_id),
   });
 
+  const eligibilityQuery = useQuery({
+    queryKey: ["report-eligibility", report?.project_id, report?.entity_id],
+    queryFn: () =>
+      checkEligibility({ data: { entityId: report!.entity_id, projectId: report!.project_id } }),
+    enabled: Boolean(report?.entity_id && report?.project_id && report?.report_kind === "engineering"),
+  });
+  const blockMessage = engineeringBlockMessage(eligibilityQuery.data?.reason ?? null);
+
   React.useEffect(() => {
     if (!current) return;
     const parsed = reportContentSchema.safeParse(current.content);
     setDraft(parsed.success ? parsed.data : { blocks: [] });
   }, [current?.id, current?.updated_at]);
 
-  const readOnly = !current || current.status !== "draft";
+  const readOnly = !current || current.status !== "draft" || Boolean(blockMessage);
+
 
   const run = (fn: () => Promise<unknown>, ok: string) => async () => {
     setError(null);
@@ -95,7 +107,7 @@ function ReportDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ["report", reportId] });
       setMessage(ok);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "تعذّر تنفيذ العملية");
+      setError(reportErrorMessage(e).message);
     }
   };
 
@@ -115,7 +127,7 @@ function ReportDetailPage() {
       setMessage("تم حفظ المسودة");
       await queryClient.invalidateQueries({ queryKey: ["report", reportId] });
     },
-    onError: (e: unknown) => setError(e instanceof Error ? e.message : "تعذّر الحفظ"),
+    onError: (e: unknown) => setError(reportErrorMessage(e).message),
   });
 
   const handleDownload = async (kind: "pdf" | "docx") => {
@@ -128,7 +140,7 @@ function ReportDetailPage() {
       window.open(url, "_blank", "noopener,noreferrer");
       setMessage("تم إنشاء رابط تنزيل صالح 60 ثانية فقط");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "تعذّر التصدير");
+      setError(reportErrorMessage(e).message);
     }
   };
 
@@ -155,11 +167,11 @@ function ReportDetailPage() {
             <PageHero
               title={report.title}
               subtitle={`${report.report_number} · إصدار ${current.version_no}${report.is_certified ? " · موثّق" : ""}`}
-              badge={<HeroBadge tone="neutral">{VERSION_STATUS[current.status] ?? current.status}</HeroBadge>}
+              badge={<HeroBadge tone="neutral">{VERSION_STATUS[current.status] ?? "غير محدد"}</HeroBadge>}
             />
             <div className="flex flex-wrap justify-end gap-3">
               <div className="flex flex-wrap gap-2">
-                {current.status === "draft" ? (
+                {current.status === "draft" && !blockMessage ? (
                   <>
                     <button
                       type="button"
@@ -178,7 +190,7 @@ function ReportDetailPage() {
                     </button>
                   </>
                 ) : null}
-                {current.status === "pending_approval" ? (
+                {current.status === "pending_approval" && !blockMessage ? (
                   <button
                     type="button"
                     onClick={run(() => approve({ data: { versionId: current.id } }), "تم اعتماد التقرير وختمه")}
@@ -187,7 +199,7 @@ function ReportDetailPage() {
                     اعتماد وختم
                   </button>
                 ) : null}
-                {current.status === "approved" ? (
+                {current.status === "approved" && !blockMessage ? (
                   <button
                     type="button"
                     onClick={run(() => newVersion({ data: { reportId } }), "تم إنشاء إصدار جديد")}
@@ -213,9 +225,14 @@ function ReportDetailPage() {
               </div>
             </div>
 
+            {blockMessage ? (
+              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+                {blockMessage} هذا التقرير متاح للقراءة والمراجعة فقط.
+              </p>
+            ) : null}
             {licenseQuery.data && !licenseQuery.data.is_valid ? (
               <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-                رخصة الكيان غير سارية ({licenseQuery.data.reason}) — سيصدر التقرير غير موثّق ولا يمكن ختمه.
+                رخصة الجهة غير سارية. حدّث الرخصة أو اختر جهة إصدار مؤهلة.
               </p>
             ) : null}
             {message ? <p className="text-sm text-primary">{message}</p> : null}
@@ -236,7 +253,7 @@ function ReportDetailPage() {
                   <li key={version.id} className="flex items-center justify-between rounded-md border border-border p-3">
                     <span>إصدار {version.version_no}</span>
                     <span className="text-xs text-muted-foreground">
-                      {VERSION_STATUS[version.status] ?? version.status}
+                      {VERSION_STATUS[version.status] ?? "غير محدد"}
                       {version.approved_at
                         ? ` · ${formatDate(version.approved_at)}`
                         : ""}

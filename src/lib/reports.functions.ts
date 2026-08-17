@@ -132,6 +132,8 @@ export const createReport = createServerFn({ method: "POST" })
         stageId: z.string().uuid().nullable().optional(),
         visitId: z.string().uuid().nullable().optional(),
         propertyId: z.string().uuid().nullable().optional(),
+        reportKind: z.enum(["engineering", "administrative"]).default("engineering"),
+        requestId: z.string().uuid().nullable().optional(),
       })
       .parse(input),
   )
@@ -141,11 +143,13 @@ export const createReport = createServerFn({ method: "POST" })
       _project_id: data.projectId,
       _title: data.title,
       _language: data.language,
+      _report_kind: data.reportKind,
     };
     if (data.templateId) args["_template_id"] = data.templateId;
     if (data.stageId) args["_stage_id"] = data.stageId;
     if (data.visitId) args["_visit_id"] = data.visitId;
     if (data.propertyId) args["_property_id"] = data.propertyId;
+    if (data.requestId) args["_request_id"] = data.requestId;
 
     const { data: id, error } = await context.supabase.rpc(
       "create_report",
@@ -154,6 +158,63 @@ export const createReport = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { reportId: id as string };
   });
+
+/** Server-side eligibility probe: returns a technical reason code, or null when allowed. */
+export const checkEngineeringReportEligibility = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ entityId: z.string().uuid(), projectId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: reason, error } = await context.supabase.rpc("can_issue_engineering_report", {
+      _entity_id: data.entityId,
+      _project_id: data.projectId,
+    });
+    if (error) throw new Error(error.message);
+    return { reason: (reason as string | null) ?? null };
+  });
+
+/** Engineering offices accepted on the project — the only valid report request targets. */
+export const listProjectEngineeringOffices = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase.rpc("list_project_engineering_offices", {
+      _project_id: data.projectId,
+    });
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as Array<{
+      entity_id: string;
+      name: string;
+      entity_type: string;
+      party_role: string | null;
+    }>;
+  });
+
+export const requestEngineeringReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        projectId: z.string().uuid(),
+        toEntityId: z.string().uuid(),
+        subject: z.string().min(2).max(300),
+        body: z.string().max(4000).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: id, error } = await context.supabase.rpc("request_engineering_report", {
+      _project_id: data.projectId,
+      _to_entity_id: data.toEntityId,
+      _subject: data.subject,
+      ...(data.body ? { _body: data.body } : {}),
+    });
+
+    if (error) throw new Error(error.message);
+    return { requestId: id as string };
+  });
+
 
 export const saveReportDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
