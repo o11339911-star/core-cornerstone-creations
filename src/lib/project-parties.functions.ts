@@ -155,15 +155,11 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional(),
-        endsOn: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .nullable()
-          .optional(),
-        stageIds: z.array(z.string().uuid()).default([]),
+        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ الانتهاء إلزامي"),
+        stageIds: z.array(z.string().uuid()).min(1, "اختر مرحلة واحدة على الأقل"),
         permissions: z
           .array(z.object({ module: z.enum(PARTY_MODULES), action: z.enum(PARTY_ACTIONS) }))
-          .default([]),
+          .min(1, "اختر صلاحية واحدة على الأقل"),
       })
       .parse(input),
   )
@@ -177,7 +173,7 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
       _permissions: { module: string; action: string }[];
       _scope_text_ar?: string;
       _scope_text_en?: string;
-      _ends_on?: string;
+      _ends_on: string;
     } = {
       _project_id: data.projectId,
       _party_entity_id: data.partyEntityId,
@@ -185,10 +181,11 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
       _starts_on: data.startsOn ?? new Date().toISOString().slice(0, 10),
       _stage_ids: data.stageIds,
       _permissions: data.permissions,
+      _ends_on: data.endsOn,
     };
     if (data.scopeTextAr) args._scope_text_ar = data.scopeTextAr;
     if (data.scopeTextEn) args._scope_text_en = data.scopeTextEn;
-    if (data.endsOn) args._ends_on = data.endsOn;
+
 
     const { data: id, error } = await context.supabase.rpc("invite_project_party", args);
 
