@@ -124,7 +124,7 @@ function AppointmentsPage() {
       propose({
         data: {
           requesterEntityId: form.requesterEntityId,
-          providerEntityId: form.providerEntityId,
+          providerEntityId: form.providerEntityId.trim(),
           kind: form.kind,
           title: form.title.trim(),
           startsAt: new Date(form.startsAt).toISOString(),
