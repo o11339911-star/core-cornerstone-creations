@@ -6967,6 +6967,77 @@ export type Database = {
           },
         ]
       }
+      project_identity_audience: {
+        Row: {
+          created_at: string
+          id: string
+          project_party_id: string
+          visibility_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_party_id: string
+          visibility_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_party_id?: string
+          visibility_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_identity_audience_project_party_id_fkey"
+            columns: ["project_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_identity_audience_visibility_id_fkey"
+            columns: ["visibility_id"]
+            isOneToOne: false
+            referencedRelation: "project_identity_visibility"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_identity_visibility: {
+        Row: {
+          created_at: string
+          field_group: string
+          id: string
+          level: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_group: string
+          id?: string
+          level?: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_group?: string
+          id?: string
+          level?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_identity_visibility_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_location_audit: {
         Row: {
           actor_id: string
@@ -11354,8 +11425,14 @@ export type Database = {
         Returns: string
       }
       project_completion: { Args: { _project_id: string }; Returns: Json }
+      project_identity: { Args: { _project_id: string }; Returns: Json }
+      project_identity_visibility_settings: {
+        Args: { _project_id: string }
+        Returns: Json
+      }
       project_precise_location: { Args: { _project_id: string }; Returns: Json }
       property_completion: { Args: { _property_id: string }; Returns: number }
+      property_identity: { Args: { _property_id: string }; Returns: Json }
       propose_appointment: {
         Args: {
           _cancel_hours?: number
@@ -11747,6 +11824,15 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      set_project_identity_visibility: {
+        Args: {
+          _field_group: string
+          _level: string
+          _party_ids?: string[]
+          _project_id: string
+        }
+        Returns: Json
       }
       set_project_precise_location: {
         Args: {
