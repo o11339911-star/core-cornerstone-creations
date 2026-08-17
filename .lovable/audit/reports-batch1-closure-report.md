@@ -96,3 +96,13 @@
 - `bunx tsgo` نظيف، `vitest` 10/10، `bun run build` ناجح.
 - المراجع: 6 عناصر، 6 مراجع فريدة، 0 مخالف للنمط.
 - صفحة التحقق على عرض 390px: بلا overflow، بلا أخطاء console، ولا تسريب لأي بيانات عند عدم وجود مطابقة.
+
+## الدفعة 3 — التعاقد والطلبات (تقرير تدقيق)
+- الرفض: `respond_contracting_deal` يضبط `recipient_status=rejected` + `status=cancelled` مع السبب والوقت والمنفّذ في `contracting_deal_events`؛ رُحّلت السجلات القديمة المرفوضة إلى «ملغي».
+- المرجع: `private.gen_request_reference()` عشوائي `REQ-XXXX-XXXX-XXXX` وغير قابل للتغيير بعد الإنشاء (trigger).
+- إعادة الطلب: معاملة جديدة بمعرّف ومرجع جديدين مرتبطة عبر `resubmitted_from_id`، دون المساس بالسجل الملغي.
+- الردود والمرفقات: `deal_messages` + `deal_message_attachments` + bucket خاص `deal-attachments`، تحقق MIME/الامتداد/الحجم عميلًا وخادميًا، أسماء تخزين عشوائية، RLS تحصر الرؤية بأطراف المعاملة.
+- الصلاحيات: قراءة فقط لـ`authenticated` على جداول الردود، والكتابة عبر RPC؛ لا وصول لـ`anon` على أي دالة جديدة.
+- الإشعارات: عبر نظام `notifications` الحالي (`deal.received/responded/message`) وفتح الرابط يذهب إلى `/deals?deal=<id>` ويعلّم الإشعار مقروءًا.
+- المشروع: `project_id` محمي بـ`private.deal_project_guard` ولا يمنح أي وصول قبل القبول والصلاحية.
+- التحقق: typecheck ✔ — 10/10 اختبارات ✔ — build ✔ — بدون نشر.
