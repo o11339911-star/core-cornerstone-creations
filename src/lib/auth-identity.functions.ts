@@ -24,20 +24,17 @@ export const signUpWithIdentityFn = createServerFn({ method: "POST" })
         fullName: z.string().trim().min(2).max(160),
         phone: z.string().trim().max(20).nullable().default(null),
         nationalId: z.string().trim().min(1).max(40),
-        redirectTo: z.string().url().max(300),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const { signUpWithIdentity } = await import("@/lib/auth-identity.server");
     const { PRODUCTION_ORIGIN } = await import("@/lib/auth-origin");
-    // Only same-app origins may be used as the confirmation destination.
-    const allowed =
-      /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|[a-z0-9-]+\.lovable\.app)(\/|$)/i;
-    const redirectTo = allowed.test(data.redirectTo)
-      ? data.redirectTo
-      : `${PRODUCTION_ORIGIN}/auth/callback`;
-    return signUpWithIdentity({ ...data, redirectTo });
+    // الوجهة تُشتق خادميًا فقط؛ لا يقبل الخادم أي origin من المتصفح.
+    return signUpWithIdentity({
+      ...data,
+      redirectTo: `${PRODUCTION_ORIGIN}/auth/callback`,
+    });
   });
 
 /**

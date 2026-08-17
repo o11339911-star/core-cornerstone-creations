@@ -11,7 +11,6 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { authCallbackUrl } from "@/lib/auth-origin";
 import { ResendConfirmation } from "@/components/auth/resend-confirmation";
 import { sanitizeRedirect } from "@/lib/safe-redirect";
 import { toLatinDigits } from "@/lib/format";
@@ -299,7 +298,6 @@ function SignUpFormView() {
           fullName: values.fullName,
           phone: phone || null,
           nationalId: normalizeNationalId(values.nationalId),
-          redirectTo: authCallbackUrl(),
         },
       });
     } catch {
