@@ -88,6 +88,7 @@ function DealsPage() {
   const [scope, setScope] = React.useState<"mine" | "incoming">("mine");
   const [filter, setFilter] = React.useState<(typeof DEAL_STATUSES)[number] | null>(null);
   const [open, setOpen] = React.useState(false);
+  const [viewDealId, setViewDealId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
     title: "",
