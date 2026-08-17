@@ -327,7 +327,30 @@ function DealsPage() {
             <li key={deal.id} className="rounded-xl border border-border bg-card p-4 shadow-card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                    <bdi dir="ltr">{deal.reference_no}</bdi>
+                  </p>
                   <p className="truncate font-semibold text-foreground">{deal.title}</p>
+                  {(() => {
+                    const first = deal.parties.find((p) => p.party_role === "first");
+                    return (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        طالب الخدمة: {first?.display_name ?? "غير متوفر"}
+                        {first?.party_kind === "person" && first.identifier_last4 ? (
+                          <>
+                            {" · هوية تنتهي بـ "}
+                            <bdi dir="ltr">{first.identifier_last4}</bdi>
+                          </>
+                        ) : null}
+                        {first?.party_kind === "entity" && first.cr_number ? (
+                          <>
+                            {" · السجل/الرقم الموحّد: "}
+                            <bdi dir="ltr">{first.cr_number}</bdi>
+                          </>
+                        ) : null}
+                      </p>
+                    );
+                  })()}
                   <p className="mt-1 text-xs text-muted-foreground">
                     {CONTEXT_AR[deal.context_type] ?? deal.context_type}
                     {deal.context_title ? ` · ${deal.context_title}` : ""}
