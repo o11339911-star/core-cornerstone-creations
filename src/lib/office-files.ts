@@ -621,10 +621,3 @@ export function withExtension(name: string, ext: ".docx" | ".xlsx"): string {
 }
 
 /** اسم النسخة الجديدة: «الاسم — نسخة YYYY-MM-DD HH:mm». */
-export function versionedName(title: string, at: Date = new Date()): string {
-  const kind = /\.xlsx$/i.test(title) ? ".xlsx" : ".docx";
-  const base = title.replace(/\.(docx|xlsx)$/i, "").replace(/ — نسخة [\d\-: ]+$/, "");
-  const p = (n: number) => String(n).padStart(2, "0");
-  const stamp = `${at.getFullYear()}-${p(at.getMonth() + 1)}-${p(at.getDate())} ${p(at.getHours())}:${p(at.getMinutes())}`;
-  return `${base} — نسخة ${stamp}${kind}`;
-}

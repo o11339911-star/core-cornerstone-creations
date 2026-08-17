@@ -389,15 +389,6 @@ function ArchivePage() {
     }
   };
 
-  const download = async (path: string) => {
-    try {
-      const url = await signUrl({ data: { path } });
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error("تعذّر فتح الملف");
-    }
-  };
-
   const menuItems = (
     <>
       <ContextMenuLabel>إنشاء</ContextMenuLabel>
