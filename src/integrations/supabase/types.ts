@@ -12317,6 +12317,13 @@ export type Database = {
         Args: { _contract_id: string; _reason: string }
         Returns: undefined
       }
+      test_issue_archive_stamp: {
+        Args: never
+        Returns: {
+          result: string
+          test: string
+        }[]
+      }
       unlink_document: { Args: { _link_id: string }; Returns: boolean }
       update_data_incident: {
         Args: {
