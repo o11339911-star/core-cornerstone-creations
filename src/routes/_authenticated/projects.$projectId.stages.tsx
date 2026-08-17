@@ -270,7 +270,9 @@ function StagesPage() {
                 </button>
               </form>
             </SectionCard>
+            </div>
           ) : null}
+
 
           <SectionCard icon={ListChecks} title={t("stages.criteria")}>
             <AsyncBoundary
