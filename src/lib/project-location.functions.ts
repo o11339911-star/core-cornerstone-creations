@@ -164,3 +164,49 @@ export const suggestProjectLocation = createServerFn({ method: "GET" })
     }
     return suggestions.slice(0, 3);
   });
+
+/** Same stored record as the project view, read from the property side. */
+export const getPropertyLocation = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ propertyId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<PreciseLocation> => {
+    const [{ data: row, error }, { data: canManage }] = await Promise.all([
+      context.supabase
+        .from("property_exact_locations")
+        .select("exact_address, exact_lat, exact_lng, boundary_geojson")
+        .eq("property_id", data.propertyId)
+        .maybeSingle(),
+      context.supabase.rpc("can_manage_property_self", { _property_id: data.propertyId }),
+    ]);
+    // A blocked read (no exact-location right) surfaces as "not visible".
+    if (error) {
+      return {
+        source: "property",
+        property_id: data.propertyId,
+        visible: false,
+        can_edit: false,
+        complete: false,
+        address: null,
+        lat: null,
+        lng: null,
+        has_boundary: false,
+        boundary: null,
+      };
+    }
+    const boundary = boundarySchema.safeParse(row?.boundary_geojson ?? null);
+    const lat = row?.exact_lat ?? null;
+    const lng = row?.exact_lng ?? null;
+    const address = row?.exact_address ?? null;
+    return {
+      source: "property",
+      property_id: data.propertyId,
+      visible: true,
+      can_edit: Boolean(canManage),
+      complete: Boolean(address && address.trim() && lat != null && lng != null),
+      address,
+      lat,
+      lng,
+      has_boundary: boundary.success && boundary.data != null,
+      boundary: boundary.success ? boundary.data : null,
+    };
+  });
