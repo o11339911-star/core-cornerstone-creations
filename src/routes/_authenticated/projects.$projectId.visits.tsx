@@ -22,7 +22,6 @@ import { formatDateTime } from "@/lib/format";
 import {
   OBSERVATION_KINDS,
   OBSERVATION_SEVERITIES,
-  VISIT_REASONS,
   addObservationAction,
   createObservation,
   createVisit,
@@ -57,7 +56,6 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/visits
 
 type Kind = (typeof OBSERVATION_KINDS)[number];
 type Severity = (typeof OBSERVATION_SEVERITIES)[number];
-type Reason = (typeof VISIT_REASONS)[number];
 
 function VisitsPage() {
   const t = useT();
