@@ -10239,6 +10239,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_manage_project_parties: {
+        Args: { _project_id: string }
+        Returns: boolean
+      }
       can_manage_property_self: {
         Args: { _property_id: string }
         Returns: boolean
