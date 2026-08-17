@@ -14,21 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _test_archive_stamp_results: {
-        Row: {
-          result: string | null
-          test: string
-        }
-        Insert: {
-          result?: string | null
-          test: string
-        }
-        Update: {
-          result?: string | null
-          test?: string
-        }
-        Relationships: []
-      }
       acceptance_status_transitions: {
         Row: {
           from_status: string
