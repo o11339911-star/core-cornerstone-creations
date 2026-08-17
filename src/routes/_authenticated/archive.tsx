@@ -4,7 +4,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Archive as ArchiveIcon,
+  Copy,
   Download,
+  Info,
   FileSpreadsheet,
   FileText,
   FolderPlus,
