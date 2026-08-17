@@ -261,6 +261,7 @@ export const en: Translations = {
     identifierHint: "Enter your email address or your 10-digit national ID.",
     identifierInvalid: "Enter a valid email address or a valid 10-digit national ID.",
     tooManyAttempts: "Too many attempts. Please wait a moment and try again.",
+    serviceUnavailable: "Sign-in is temporarily unavailable. Please try again shortly.",
     nationalId: "National ID / Iqama",
     nationalIdHint: "10 digits starting with 1 or 2. Stored encrypted and never shown.",
     nationalIdInvalid: "Invalid national ID. Please check the 10 digits.",
