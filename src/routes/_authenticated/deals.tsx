@@ -642,6 +642,86 @@ function DealsPage() {
           ) : null}
         </div>
       </ResponsiveModal>
+
+      <ResponsiveModal
+        open={viewDealId !== null}
+        onOpenChange={(o) => !o && setViewDealId(null)}
+        title="تفاصيل المعاملة"
+      >
+        {(() => {
+          const deal = list.data?.find((d) => d.id === viewDealId);
+          if (!deal) {
+            return <p className="text-sm text-muted-foreground">لم تعد هذه المعاملة متاحة.</p>;
+          }
+          const second = deal.parties.find((p) => p.party_role === "second");
+          const rows: { label: string; value: React.ReactNode }[] = [
+            { label: "العنوان", value: deal.title },
+            { label: "السياق", value: CONTEXT_AR[deal.context_type] ?? deal.context_type },
+            { label: "الحالة", value: STATUS_AR[deal.status] ?? deal.status },
+            {
+              label: "حالة الطرف الثاني",
+              value:
+                deal.second_party_status === "accepted"
+                  ? "قَبِل"
+                  : deal.second_party_status === "declined"
+                    ? "رفض"
+                    : "بانتظار الرد",
+            },
+            {
+              label: "الطرف الثاني",
+              value: second?.display_name ?? "بدون اسم",
+            },
+            {
+              label: "المعرّف",
+              value:
+                second?.identifier_kind === "cr_number" && second.cr_number ? (
+                  <bdi dir="ltr">{second.cr_number}</bdi>
+                ) : second?.identifier_last4 ? (
+                  <bdi dir="ltr">{`•••• ${second.identifier_last4}`}</bdi>
+                ) : (
+                  "—"
+                ),
+            },
+            {
+              label: "التسجيل في ركيز",
+              value: second?.is_registered ? "مسجّل" : "غير مسجّل بعد",
+            },
+            {
+              label: "المبلغ",
+              value:
+                deal.amount !== null && deal.amount !== undefined ? (
+                  <bdi dir="ltr">{formatMoney(Number(deal.amount), deal.currency)}</bdi>
+                ) : (
+                  "—"
+                ),
+            },
+            {
+              label: "تاريخ الإنشاء",
+              value: <bdi dir="ltr">{formatDateTime(deal.created_at)}</bdi>,
+            },
+          ];
+          return (
+            <div className="space-y-3">
+              <dl className="space-y-2">
+                {rows.map((r) => (
+                  <div key={r.label} className="flex flex-wrap gap-2 text-sm">
+                    <dt className="min-w-28 shrink-0 text-muted-foreground">{r.label}</dt>
+                    <dd className="min-w-0 flex-1 break-words font-medium text-foreground">
+                      {r.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              {deal.notes ? (
+                <div className="rounded-lg bg-muted/50 p-3 text-sm">
+                  <p className="mb-1 text-xs text-muted-foreground">ملاحظات</p>
+                  <p className="whitespace-pre-wrap break-words text-foreground">{deal.notes}</p>
+                </div>
+              ) : null}
+            </div>
+          );
+        })()}
+      </ResponsiveModal>
     </div>
   );
 }
