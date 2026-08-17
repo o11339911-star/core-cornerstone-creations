@@ -52,6 +52,29 @@ export async function allowAttempt(key: string, limit: number, windowSeconds: nu
   return data !== false;
 }
 
+/**
+ * نسخة fail-closed تُستخدم في المسارات الحساسة (تسجيل الدخول): إذا تعذّر
+ * الوصول لمخزن التقييد لا نسمح بالمتابعة إلى حلّ الهوية أو Supabase Auth.
+ */
+async function checkAttemptStrict(
+  key: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<"allowed" | "blocked" | "unavailable"> {
+  try {
+    const client = await admin();
+    const { data, error } = await client.rpc("svc_auth_throttle", {
+      _key: key,
+      _limit: limit,
+      _window_seconds: windowSeconds,
+    });
+    if (error) return "unavailable";
+    return data === false ? "blocked" : "allowed";
+  } catch {
+    return "unavailable";
+  }
+}
+
 export type SessionPayload = { access_token: string; refresh_token: string };
 
 export type SignInResult =
@@ -82,18 +105,34 @@ async function resolveUserIdByNationalId(
   }
 }
 
-/** Resolves e-mail OR national ID to an account and signs in — server-side only. */
+/**
+ * Resolves e-mail OR national ID to an account and signs in — server-side only.
+ * `clientKey` بصمة عميل خادمية (HMAC لعنوان موثوق من حافة المنصة) أو نص فارغ.
+ */
 export async function signInWithIdentifier(
   rawIdentifier: string,
   password: string,
+  clientKey = "",
 ): Promise<SignInResult> {
   const identifier = rawIdentifier.trim();
+
+  // بعدان: بصمة المعرّف المطبّع دائمًا، وبصمة العميل الموثوقة إن توفّرت.
+  let identifierKey: string;
   try {
-    if (!(await allowAttempt(throttleKey("login", identifier), 8, 600)))
-      return { ok: false, reason: "throttled" };
+    identifierKey = throttleKey("login", identifier.toLowerCase());
   } catch {
-    // عدّاد المحاولات غير متاح: لا نمنع المستخدم بسببه.
+    // مفتاح HMAC الخادمي غير مضبوط: لا نُكمل بمفتاح ضعيف أو بلا تقييد.
+    return { ok: false, reason: "unavailable" };
   }
+
+  const gates: Array<Promise<"allowed" | "blocked" | "unavailable">> = [
+    checkAttemptStrict(identifierKey, 8, 600),
+  ];
+  if (clientKey) gates.push(checkAttemptStrict(`login-client:${clientKey}`, 30, 600));
+
+  const verdicts = await Promise.all(gates);
+  if (verdicts.includes("unavailable")) return { ok: false, reason: "unavailable" };
+  if (verdicts.includes("blocked")) return { ok: false, reason: "throttled" };
 
   let email: string | null = null;
 
