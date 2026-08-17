@@ -11,7 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { ResponsiveModal } from "@/components/rakeez";
 import { supabase } from "@/integrations/supabase/client";
-import { addToArchive, getArchiveFileUrl, getArchiveUploadPrefix } from "@/lib/archive.functions";
+import {
+  getArchiveFileUrl,
+  getArchiveUploadPrefix,
+  saveArchiveFileVersion,
+} from "@/lib/archive.functions";
 import {
   DOCX_MIME,
   OfficeUnsupportedError,
@@ -26,7 +30,6 @@ import {
   parseXlsx,
   sanitizeSheetName,
   toAsciiDigits,
-  versionedName,
   type DocxBlock,
   type XlsxSheet,
 } from "@/lib/office-files";
@@ -64,7 +67,7 @@ export function OfficeEditor({
 }) {
   const signUrl = useServerFn(getArchiveFileUrl);
   const uploadPrefix = useServerFn(getArchiveUploadPrefix);
-  const addItem = useServerFn(addToArchive);
+  const saveVersion = useServerFn(saveArchiveFileVersion);
 
   const [loading, setLoading] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -94,7 +97,7 @@ export function OfficeEditor({
         setActiveSheet(0);
         setWarnings(model.warnings);
       }
-      setSaveName(versionedName(target.title));
+      setSaveName(target.title);
     } catch (e) {
       setLoadError(
         e instanceof OfficeUnsupportedError || e instanceof Error
@@ -127,19 +130,14 @@ export function OfficeEditor({
         .upload(path, blob, { contentType: mime, upsert: false });
       if (error) throw new Error(error.message);
       try {
-        await addItem({
+        // نفس archive_item_id ونفس البطاقة — التعديل يُسجَّل في سجل النسخ فقط
+        await saveVersion({
           data: {
-            entityId,
-            folderId: target.folderId,
-            newFolderName: null,
+            itemId: target.id,
             title,
-            kind: "file",
-            sourceTable: null,
-            sourceId: null,
             storagePath: path,
             mimeType: mime,
             sizeBytes: blob.size,
-            note: `نسخة جديدة من: ${target.title}`,
           },
         });
       } catch (e) {
@@ -148,12 +146,12 @@ export function OfficeEditor({
       }
     },
     onSuccess: () => {
-      toast.success("تم حفظ نسخة جديدة في نفس المجلد");
+      toast.success("تم حفظ التعديل على نفس الملف");
       onSaved();
       onClose();
     },
     onError: (e: unknown) =>
-      toast.error("تعذّر حفظ النسخة", {
+      toast.error("تعذّر حفظ التعديل", {
         description: e instanceof Error ? e.message : undefined,
       }),
   });
@@ -185,35 +183,34 @@ export function OfficeEditor({
       open={target !== null}
       onOpenChange={(o) => !o && onClose()}
       title={target?.kind === "excel" ? "فتح وتعديل مصنّف Excel" : "فتح وتعديل مستند Word"}
-      description="التعديل داخل المنصة يحفظ نسخة جديدة، ولا يغيّر الملف الأصلي."
+      description="التعديل يحدّث نفس الملف ويُسجَّل في سجل تعديلات الملف داخل التفاصيل."
       footer={
-        <div className="flex w-full flex-col gap-2">
-          <div className="space-y-2">
-            <Label htmlFor="office-save-name">اسم النسخة الجديدة</Label>
-            <Input
-              id="office-save-name"
-              value={saveName}
-              onChange={(e) => setSaveName(toAsciiDigits(e.target.value))}
-              className="min-h-11"
-            />
-          </div>
-          <Button
-            type="button"
-            className="min-h-11 w-full gap-2"
-            disabled={loading || !!loadError || saveMutation.isPending || !saveName.trim()}
-            onClick={() => saveMutation.mutate()}
-          >
-            {saveMutation.isPending ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : (
-              <Save className="size-4" aria-hidden="true" />
-            )}
-            {saveMutation.isPending ? "جارٍ الحفظ…" : "حفظ كنسخة جديدة"}
-          </Button>
-        </div>
+        <Button
+          type="button"
+          className="min-h-11 w-full gap-2"
+          disabled={loading || !!loadError || saveMutation.isPending || !saveName.trim()}
+          onClick={() => saveMutation.mutate()}
+        >
+          {saveMutation.isPending ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <Save className="size-4" aria-hidden="true" />
+          )}
+          {saveMutation.isPending ? "جارٍ الحفظ…" : "حفظ التعديل"}
+        </Button>
       }
     >
       <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="office-save-name">اسم الملف</Label>
+          <Input
+            id="office-save-name"
+            value={saveName}
+            onChange={(e) => setSaveName(toAsciiDigits(e.target.value))}
+            className="min-h-11"
+          />
+        </div>
+
         {warnings.length ? (
           <div
             role="status"
@@ -253,7 +250,7 @@ export function OfficeEditor({
                 <div key={i} className="space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
-                      {block.heading ? "عنوان" : "فقرة"}
+                      {block.heading ? "العنوان" : "الفقرة — اكتب محتواك داخل المربع"}
                     </span>
                     <Button
                       type="button"
