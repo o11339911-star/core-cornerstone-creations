@@ -3,7 +3,6 @@ import * as React from "react";
 import {
   BLOCK_TYPES,
   COMPLIANCE_VALUES,
-  FIELD_SOURCES,
   SEVERITY_VALUES,
   emptyBlock,
   resolveField,
@@ -11,7 +10,9 @@ import {
   type ReportBlock,
   type ReportContent,
 } from "@/lib/reports/blocks";
+import { FIELD_SOURCE_OPTIONS, HEADING_LEVEL_LABEL, fieldLabel } from "@/lib/reports/labels";
 import { TextAreaField, TextField } from "@/components/rakeez/form-field";
+
 
 const BLOCK_LABEL: Record<BlockType, string> = {
   heading: "عنوان",
@@ -155,11 +156,13 @@ function BlockEditor({
               value={block.level}
               onChange={(e) => onChange({ ...block, level: Number(e.target.value) as 1 | 2 | 3 })}
               className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+              aria-label="مستوى العنوان"
             >
-              <option value={1}>H1</option>
-              <option value={2}>H2</option>
-              <option value={3}>H3</option>
+              <option value={1}>{HEADING_LEVEL_LABEL[1]}</option>
+              <option value={2}>{HEADING_LEVEL_LABEL[2]}</option>
+              <option value={3}>{HEADING_LEVEL_LABEL[3]}</option>
             </select>
+
           ) : null}
           {readOnly ? (
             <p className={block.level === 1 ? "text-2xl font-bold" : block.level === 2 ? "text-xl font-semibold" : "text-lg font-semibold"}>
