@@ -257,10 +257,14 @@ export const createAssignment = createServerFn({ method: "POST" })
     );
 
     if (error) throw mapAssignmentError(error);
-    await applyPartyAudience(context.supabase, id as string, data.visibility, data.audiencePartyIds);
+    await applyPartyAudience(
+      context.supabase,
+      id as string,
+      data.visibility,
+      data.audiencePartyIds,
+    );
     return { id: id as string };
   });
-
 
 /**
  * Updates an existing assignment's job titles, stage, dates and visibility,
@@ -319,7 +323,6 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
-
 
 /** Ends an assignment as of the server date, via `update_project_assignment`. */
 export const endProjectAssignment = createServerFn({ method: "POST" })

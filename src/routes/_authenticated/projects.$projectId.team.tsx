@@ -53,7 +53,6 @@ const VISIBILITY_ICON: Record<VisibilityLevel, typeof Eye> = {
   project_wide: Eye,
 };
 
-
 const PARTY_ROLE_KEY: Record<string, string> = {
   design_office: "parties.roles.design_office",
   supervision: "parties.roles.supervision",
