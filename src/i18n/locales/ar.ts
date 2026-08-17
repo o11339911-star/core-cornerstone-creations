@@ -3,7 +3,7 @@ export const ar = {
     appName: "ركيز",
     appInitial: "ر",
     language: "اللغة",
-    switchToEnglish: "English",
+    switchToEnglish: "الإنجليزية",
     switchToArabic: "العربية",
     retry: "المحاولة مجددًا",
     backHome: "العودة للرئيسية",
