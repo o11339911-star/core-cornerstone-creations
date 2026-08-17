@@ -171,6 +171,18 @@ function DealsPage() {
     enabled: !loading,
   });
 
+  // بيانات طالب الخدمة الكاملة تُجلب عند فتح معاملة محددة فقط ولا تبقى في الكاش بعد الإغلاق.
+  const requesterQuery = useQuery({
+    queryKey: ["deal-requester", viewDealId],
+    queryFn: () => fetchRequester({ data: { dealId: viewDealId! } }),
+    enabled: viewDealId !== null,
+    gcTime: 0,
+    staleTime: 0,
+    retry: false,
+  });
+
+
+
   const createMutation = useMutation({
     mutationFn: () =>
       create({
