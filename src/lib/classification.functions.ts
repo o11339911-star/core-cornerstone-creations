@@ -122,15 +122,16 @@ export const setEntityClassification = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.rpc("set_entity_classification", {
+    const args = {
       _entity_id: data.entityId,
-      _legal_form_code: data.legalFormCode ?? undefined,
       _set_legal_form: data.setLegalForm,
       _apply_activities: data.applyActivities,
-      _primary_code: data.primaryCode ?? undefined,
       _secondary_codes: data.secondaryCodes.filter((c) => c !== data.primaryCode),
       _version: ACTIVITY_VERSION,
-    });
+      ...(data.legalFormCode ? { _legal_form_code: data.legalFormCode } : {}),
+      ...(data.primaryCode ? { _primary_code: data.primaryCode } : {}),
+    };
+    const { error } = await context.supabase.rpc("set_entity_classification", args);
     if (error) {
       const m = error.message;
       if (m.includes("FORBIDDEN") || m.includes("AUTH_REQUIRED")) throw new Error("FORBIDDEN");
