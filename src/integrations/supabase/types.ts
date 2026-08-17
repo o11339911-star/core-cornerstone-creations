@@ -1136,6 +1136,7 @@ export type Database = {
           id: string
           notes: string | null
           owner_user_id: string
+          reference_no: string
           second_party_status: string
           status: string
           title: string
@@ -1154,6 +1155,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_user_id: string
+          reference_no?: string
           second_party_status?: string
           status?: string
           title: string
@@ -1172,6 +1174,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_user_id?: string
+          reference_no?: string
           second_party_status?: string
           status?: string
           title?: string
@@ -10568,6 +10571,7 @@ export type Database = {
           storage_path: string
         }[]
       }
+      deal_requester_details: { Args: { _deal_id: string }; Returns: Json }
       decide_acceptance: {
         Args: { _acceptance_id: string; _decision: string; _note?: string }
         Returns: undefined
