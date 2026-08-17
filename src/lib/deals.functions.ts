@@ -35,6 +35,8 @@ export type DealParty = {
 
 export type Deal = {
   id: string;
+  /** الرقم المرجعي المعتمد (REQ-000000) من التسلسل المركزي نفسه للطلبات. */
+  reference_no: string;
   title: string;
   counterparty_name: string | null;
   context_type: string;
@@ -88,7 +90,7 @@ export const listDeals = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("contracting_deals")
       .select(
-        "id, title, counterparty_name, context_type, context_id, status, second_party_status, amount, currency, notes, archived_at, created_at, owner_user_id, entity_id, deal_parties(party_role, party_kind, identifier_kind, identifier_last4, cr_number, display_name, is_registered, acceptance_status, responded_at, matched_user_id, matched_entity_id)",
+        "id, reference_no, title, counterparty_name, context_type, context_id, status, second_party_status, amount, currency, notes, archived_at, created_at, owner_user_id, entity_id, deal_parties(party_role, party_kind, identifier_kind, identifier_last4, cr_number, display_name, is_registered, acceptance_status, responded_at, matched_user_id, matched_entity_id)",
       );
     if (data.scope === "mine") {
       q = data.entityId ? q.eq("entity_id", data.entityId) : q.is("entity_id", null);
