@@ -23,7 +23,12 @@ const boundarySchema = z
   .object({
     type: z.literal("Polygon"),
     coordinates: z
-      .array(z.array(z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)])).min(4).max(2000))
+      .array(
+        z
+          .array(z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]))
+          .min(4)
+          .max(2000),
+      )
       .min(1)
       .max(10),
   })

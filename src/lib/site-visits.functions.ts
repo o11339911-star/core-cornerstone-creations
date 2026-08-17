@@ -137,7 +137,11 @@ export const createObservation = createServerFn({ method: "POST" })
         severity: z.enum(OBSERVATION_SEVERITIES).default("low"),
         title: z.string().trim().min(3).max(200),
         body: z.string().trim().max(6000).nullable().optional(),
-        dueOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        dueOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
       })
       .parse(input),
   )
@@ -182,7 +186,11 @@ export const addObservationAction = createServerFn({ method: "POST" })
         observationId: z.string().uuid(),
         actionText: z.string().trim().min(3).max(2000),
         assignedTo: z.string().uuid().nullable().optional(),
-        dueOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        dueOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
       })
       .parse(input),
   )

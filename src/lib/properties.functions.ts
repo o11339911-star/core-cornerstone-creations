@@ -61,12 +61,9 @@ export const searchLinkableProperties = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }): Promise<PropertyOption[]> => {
     const { requireEntityOfType } = await import("@/lib/entity-scope.server");
-    const scope = await requireEntityOfType(
-      context.supabase,
-      context.userId,
-      data.entityId,
-      ["developer"],
-    );
+    const scope = await requireEntityOfType(context.supabase, context.userId, data.entityId, [
+      "developer",
+    ]);
 
     const term = escapeLike(data.query ?? "");
 
@@ -99,9 +96,7 @@ export const searchLinkableProperties = createServerFn({ method: "GET" })
       builder = builder.or(filters.join(","));
     }
 
-    const { data: rows, error } = await builder
-      .order("created_at", { ascending: false })
-      .limit(20);
+    const { data: rows, error } = await builder.order("created_at", { ascending: false }).limit(20);
     if (error) throw error;
 
     const list = (rows ?? []).filter((row) => row.id && row.name && row.kind);
@@ -135,22 +130,16 @@ export const searchLinkableProperties = createServerFn({ method: "GET" })
     );
   });
 
-
 export const listProperties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ entityId: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ entityId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<PropertyListItem[]> => {
     // No bypass path: the property registry always belongs to one verified
     // developer entity, re-authorized server-side before any read.
     const { requireEntityOfType } = await import("@/lib/entity-scope.server");
-    const scope = await requireEntityOfType(
-      context.supabase,
-      context.userId,
-      data.entityId,
-      ["developer"],
-    );
+    const scope = await requireEntityOfType(context.supabase, context.userId, data.entityId, [
+      "developer",
+    ]);
 
     const { data: rows, error } = await context.supabase
       .from("properties_public")
@@ -304,51 +293,60 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
     if (error) throw error;
     if (!property) throw new Error("Property not found or not accessible");
 
-    const [owners, deeds, deedVersions, licenses, licenseVersions, boundaries, units, services, links] =
-      await Promise.all([
-        sb
-          .from("property_owners")
-          .select(
-            "id, owner_name_text, owner_user_id, owner_entity_id, owner_source, owner_legal_form, owner_unified_number, owner_verification_status, is_primary, share_percent, starts_on, ends_on",
-          )
-          .eq("property_id", id)
-          .order("created_at", { ascending: true }),
-        sb.from("deeds").select("id, deed_number, issuer, current_version_id").eq("property_id", id),
-        sb
-          .from("deed_versions")
-          .select(
-            "id, deed_id, version_no, deed_date, area, owner_name_snapshot, file_path, document_version_id, source, created_at",
-          )
-          .order("version_no", { ascending: false }),
-        sb
-          .from("building_licenses")
-          .select("id, license_number, authority, current_version_id")
-          .eq("property_id", id),
-        sb
-          .from("license_versions")
-          .select(
-            "id, license_id, version_no, issued_on, expires_on, scope_text, file_path, document_version_id, source, created_at",
-          )
-          .order("version_no", { ascending: false }),
-        sb
-          .from("land_boundaries")
-          .select("id, side, length_m, neighbor_text, description")
-          .eq("property_id", id)
-          .order("order_index", { ascending: true }),
-        sb
-          .from("property_units")
-          .select("id, unit_no, unit_type, floor_no, area, rooms, status")
-          .eq("property_id", id)
-          .order("unit_no", { ascending: true }),
-        sb
-          .from("property_services")
-          .select("id, service_type, status, reference_no")
-          .eq("property_id", id),
-        sb
-          .from("property_projects")
-          .select("id, project_id, relation, projects(name)")
-          .eq("property_id", id),
-      ]);
+    const [
+      owners,
+      deeds,
+      deedVersions,
+      licenses,
+      licenseVersions,
+      boundaries,
+      units,
+      services,
+      links,
+    ] = await Promise.all([
+      sb
+        .from("property_owners")
+        .select(
+          "id, owner_name_text, owner_user_id, owner_entity_id, owner_source, owner_legal_form, owner_unified_number, owner_verification_status, is_primary, share_percent, starts_on, ends_on",
+        )
+        .eq("property_id", id)
+        .order("created_at", { ascending: true }),
+      sb.from("deeds").select("id, deed_number, issuer, current_version_id").eq("property_id", id),
+      sb
+        .from("deed_versions")
+        .select(
+          "id, deed_id, version_no, deed_date, area, owner_name_snapshot, file_path, document_version_id, source, created_at",
+        )
+        .order("version_no", { ascending: false }),
+      sb
+        .from("building_licenses")
+        .select("id, license_number, authority, current_version_id")
+        .eq("property_id", id),
+      sb
+        .from("license_versions")
+        .select(
+          "id, license_id, version_no, issued_on, expires_on, scope_text, file_path, document_version_id, source, created_at",
+        )
+        .order("version_no", { ascending: false }),
+      sb
+        .from("land_boundaries")
+        .select("id, side, length_m, neighbor_text, description")
+        .eq("property_id", id)
+        .order("order_index", { ascending: true }),
+      sb
+        .from("property_units")
+        .select("id, unit_no, unit_type, floor_no, area, rooms, status")
+        .eq("property_id", id)
+        .order("unit_no", { ascending: true }),
+      sb
+        .from("property_services")
+        .select("id, service_type, status, reference_no")
+        .eq("property_id", id),
+      sb
+        .from("property_projects")
+        .select("id, project_id, relation, projects(name)")
+        .eq("property_id", id),
+    ]);
 
     const ownerRows = (owners.data ?? []) as PropertyProfile["owners"];
     const { data: canManage } = await sb.rpc("can_manage_property_self", { _property_id: id });
@@ -385,17 +383,12 @@ export const getPropertyProfile = createServerFn({ method: "GET" })
 
 export const verifyDeveloperScope = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ entityId: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ entityId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true; entityId: string }> => {
     const { requireEntityOfType } = await import("@/lib/entity-scope.server");
-    const scope = await requireEntityOfType(
-      context.supabase,
-      context.userId,
-      data.entityId,
-      ["developer"],
-    );
+    const scope = await requireEntityOfType(context.supabase, context.userId, data.entityId, [
+      "developer",
+    ]);
     return { ok: true, entityId: scope.entityId };
   });
 
@@ -430,12 +423,9 @@ export const createProperty = createServerFn({ method: "POST" })
     // the RPC re-derives the scope from the caller's own memberships and
     // creates the 100% owner row atomically with the property.
     const { requireEntityOfType } = await import("@/lib/entity-scope.server");
-    const scope = await requireEntityOfType(
-      context.supabase,
-      context.userId,
-      data.entityId,
-      ["developer"],
-    );
+    const scope = await requireEntityOfType(context.supabase, context.userId, data.entityId, [
+      "developer",
+    ]);
 
     // Optional RPC parameters are typed as non-nullable by the generated types;
     // omit the empty ones so Postgres falls back to its defaults.
@@ -976,4 +966,3 @@ export const listLinkCandidateProperties = createServerFn({ method: "GET" })
       total: Number(list[0]?.total_count ?? 0),
     };
   });
-

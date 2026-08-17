@@ -36,7 +36,8 @@ const clampText = (value: string) => value.slice(0, 400);
  * property) — nothing is duplicated between the project and the property.
  */
 export function PreciseLocationSection(
-  props: { projectId: string; propertyId?: undefined } | { propertyId: string; projectId?: undefined },
+  props:
+    { projectId: string; propertyId?: undefined } | { propertyId: string; projectId?: undefined },
 ) {
   const projectId = props.projectId ?? null;
   const directPropertyId = props.propertyId ?? null;
@@ -126,7 +127,9 @@ export function PreciseLocationSection(
   };
 
   if (locationQuery.isLoading) {
-    return <div className="h-16 w-full animate-pulse rounded-xl border border-border bg-muted/40" />;
+    return (
+      <div className="h-16 w-full animate-pulse rounded-xl border border-border bg-muted/40" />
+    );
   }
   if (!loc?.visible) {
     return (
@@ -195,7 +198,12 @@ export function PreciseLocationSection(
         className="sm:max-w-2xl"
         footer={
           <div className="flex w-full flex-wrap justify-end gap-2">
-            <Button type="button" variant="ghost" className="min-h-11" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11"
+              onClick={() => setOpen(false)}
+            >
               إلغاء
             </Button>
             <Button
@@ -222,8 +230,7 @@ export function PreciseLocationSection(
                     {s.lat != null && s.lng != null ? (
                       <>
                         {" · "}
-                        <Num>{s.lat.toFixed(6)}</Num>,{" "}
-                        <Num>{s.lng.toFixed(6)}</Num>
+                        <Num>{s.lat.toFixed(6)}</Num>, <Num>{s.lng.toFixed(6)}</Num>
                       </>
                     ) : null}
                   </span>
@@ -298,7 +305,9 @@ export function PreciseLocationSection(
             fallback={<div className="h-64 w-full animate-pulse rounded-xl bg-muted/40 sm:h-80" />}
           >
             <React.Suspense
-              fallback={<div className="h-64 w-full animate-pulse rounded-xl bg-muted/40 sm:h-80" />}
+              fallback={
+                <div className="h-64 w-full animate-pulse rounded-xl bg-muted/40 sm:h-80" />
+              }
             >
               <MapPicker
                 lat={lat}
