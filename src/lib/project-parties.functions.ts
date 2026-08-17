@@ -52,11 +52,12 @@ const partySchema = z.object({
   ended_at: z.string().nullable(),
   end_reason: z.string().nullable(),
   created_at: z.string(),
+  party_reference: z.string().nullable().default(null),
 });
 export type ProjectParty = z.infer<typeof partySchema>;
 
 const PARTY_COLUMNS =
-  "id, project_id, party_entity_id, party_kind, identifier_kind, identifier_last4, cr_number, party_display_name, party_role, scope_text_ar, scope_text_en, starts_on, ends_on, status, responded_at, ended_at, end_reason, created_at";
+  "id, project_id, party_entity_id, party_kind, identifier_kind, identifier_last4, cr_number, party_display_name, party_role, scope_text_ar, scope_text_en, starts_on, ends_on, status, responded_at, ended_at, end_reason, created_at, party_reference";
 
 export const listProjectParties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
