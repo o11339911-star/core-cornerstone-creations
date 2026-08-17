@@ -198,32 +198,54 @@ function StagesPage() {
 
         <div className="grid gap-4">
           {current ? (
+            <div
+              id={`stage-${current.id}`}
+              className={
+                highlighted ? "rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+              }
+            >
             <SectionCard icon={Layers} title={current.name_ar}>
+              {highlighted ? (
+                <p className="mb-2 text-xs font-medium text-primary">{t("stages.highlighted")}</p>
+              ) : null}
               <p className="mb-3 text-xs text-muted-foreground">{t(`stages.statuses.${current.status}`)}</p>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="min-h-11 rounded-md border border-border px-4 text-sm"
-                  onClick={() => startMutation.mutate()}
-                >
-                  {t("stages.start")}
-                </button>
-                <button
-                  type="button"
-                  className="min-h-11 rounded-md border border-border px-4 text-sm"
-                  onClick={() => submitMutation.mutate()}
-                >
-                  {t("stages.submit")}
-                </button>
-                <button
-                  type="button"
-                  className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground"
-                  onClick={() => approveMutation.mutate()}
-                >
-                  {t("stages.approve")}
-                </button>
+                {caps.canStart ? (
+                  <button
+                    type="button"
+                    disabled={startMutation.isPending}
+                    className="min-h-11 rounded-md border border-border px-4 text-sm disabled:opacity-60"
+                    onClick={() => startMutation.mutate()}
+                  >
+                    {startMutation.isPending ? t("common.loading") : t("stages.start")}
+                  </button>
+                ) : null}
+                {caps.canSubmit ? (
+                  <button
+                    type="button"
+                    disabled={submitMutation.isPending}
+                    className="min-h-11 rounded-md border border-border px-4 text-sm disabled:opacity-60"
+                    onClick={() => submitMutation.mutate()}
+                  >
+                    {submitMutation.isPending ? t("common.loading") : t("stages.submit")}
+                  </button>
+                ) : null}
+                {caps.canApprove ? (
+                  <button
+                    type="button"
+                    disabled={approveMutation.isPending}
+                    className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground disabled:opacity-60"
+                    onClick={() => approveMutation.mutate()}
+                  >
+                    {approveMutation.isPending ? t("common.loading") : t("stages.approve")}
+                  </button>
+                ) : null}
+                {!caps.canStart && !caps.canSubmit && !caps.canApprove && !capabilitiesQuery.isLoading ? (
+                  <p className="text-xs text-muted-foreground">{t("stages.noActions")}</p>
+                ) : null}
               </div>
               <p className="mt-2 text-xs text-muted-foreground">{t("stages.approveHint")}</p>
+
 
               <form
                 className="mt-4 flex flex-wrap items-end gap-3"
