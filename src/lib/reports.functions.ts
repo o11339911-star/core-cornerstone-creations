@@ -132,7 +132,9 @@ export const createReport = createServerFn({ method: "POST" })
         stageId: z.string().uuid().nullable().optional(),
         visitId: z.string().uuid().nullable().optional(),
         propertyId: z.string().uuid().nullable().optional(),
-        reportKind: z.enum(["engineering", "administrative"]).default("engineering"),
+        reportKind: z
+          .enum(["engineering", "administrative", "inspection", "technical_test"])
+          .default("engineering"),
         requestId: z.string().uuid().nullable().optional(),
       })
       .parse(input),
