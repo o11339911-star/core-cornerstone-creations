@@ -11,13 +11,12 @@
  *   so neither e-mail nor identity existence can be enumerated.
  */
 
-import { createHash } from "crypto";
-
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/database";
 import { isValidSaudiId, looksLikeEmail, normalizeNationalId } from "@/lib/identity-format";
 import { findUserByNationalId, storeIdentitySecret } from "@/lib/identity-crypto.server";
+import { subjectHmac } from "@/lib/subject-hash.server";
 
 export const GENERIC_AUTH_ERROR = "AUTH_FAILED";
 
@@ -37,7 +36,8 @@ async function admin() {
 
 /** Throttle keys are hashed: no e-mail and no identity number is ever stored. */
 function throttleKey(scope: string, value: string) {
-  return `${scope}:${createHash("sha256").update(value.trim().toLowerCase()).digest("hex").slice(0, 32)}`;
+  // HMAC keyed with a server-only secret; never a guessable plain digest.
+  return `${scope}:${subjectHmac(value).slice(0, 32)}`;
 }
 
 /** Sliding-window throttle stored server-side. Returns false when over budget. */
@@ -59,9 +59,13 @@ export type SignInResult =
   | { ok: false; reason: "invalid" | "throttled" | "unconfirmed" };
 
 /** Resolves e-mail OR national ID to an account and signs in — server-side only. */
-export async function signInWithIdentifier(rawIdentifier: string, password: string): Promise<SignInResult> {
+export async function signInWithIdentifier(
+  rawIdentifier: string,
+  password: string,
+): Promise<SignInResult> {
   const identifier = rawIdentifier.trim();
-  if (!(await allowAttempt(throttleKey("login", identifier), 8, 600))) return { ok: false, reason: "throttled" };
+  if (!(await allowAttempt(throttleKey("login", identifier), 8, 600)))
+    return { ok: false, reason: "throttled" };
 
   let email: string | null = null;
 

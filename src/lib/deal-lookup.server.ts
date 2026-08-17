@@ -8,10 +8,9 @@
  * entity id (the real link is re-resolved inside `create_contracting_deal`).
  */
 
-import { createHash } from "crypto";
-
 import { isValidSaudiId } from "@/lib/identity-format";
 import { allowAttempt } from "@/lib/auth-identity.server";
+import { subjectHmac } from "@/lib/subject-hash.server";
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -47,7 +46,13 @@ export async function lookupDealCounterparty(input: {
 
   // Per-actor budget stops bulk enumeration regardless of the number tried.
   const allowed = await allowAttempt(`deal-lookup:${actorUserId}`, 30, 600);
-  const hash = createHash("sha256").update(`${partyKind}:${digits}`).digest("hex");
+  let hash: string;
+  try {
+    hash = subjectHmac(`${partyKind}:${digits}`);
+  } catch {
+    // Missing server key: fail internally with a neutral answer.
+    return { status: "invalid" };
+  }
   if (!allowed) {
     await audit(hash, "throttled");
     return { status: "throttled" };

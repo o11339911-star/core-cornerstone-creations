@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n";
-import { passwordResetUrl } from "@/lib/auth-origin";
 import { isValidSaudiId, looksLikeEmail, normalizeNationalId } from "@/lib/identity-format";
 import { requestPasswordResetFn } from "@/lib/auth-identity.functions";
 
@@ -39,7 +38,6 @@ export const Route = createFileRoute("/auth/forgot-password")({
 function ForgotPasswordPage() {
   const t = useT();
   const [sent, setSent] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<ForgotForm>({
@@ -48,7 +46,6 @@ function ForgotPasswordPage() {
   });
 
   const onSubmit = async (values: ForgotForm) => {
-    setNotice(null);
     setSubmitting(true);
 
     // البريد أو الهوية يُحلّان داخل الخادم فقط؛ المتصفح لا يعرف البريد المرتبط.
@@ -57,14 +54,9 @@ function ForgotPasswordPage() {
       : normalizeNationalId(values.identifier);
 
     try {
-      const result = await requestPasswordResetFn({
-        data: { identifier, redirectTo: passwordResetUrl() },
-      });
+      // الوجهة تُشتق داخل الخادم؛ المتصفح لا يرسل أي redirect.
+      await requestPasswordResetFn({ data: { identifier } });
       setSubmitting(false);
-      if (!result.ok) {
-        setNotice("محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.");
-        return;
-      }
     } catch {
       // حتى الأخطاء الخادمية تُعرض بالرسالة الموحّدة نفسها.
       setSubmitting(false);
@@ -115,15 +107,6 @@ function ForgotPasswordPage() {
                   </p>
                 ) : null}
               </div>
-
-              {notice ? (
-                <div
-                  role="alert"
-                  className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
-                >
-                  {notice}
-                </div>
-              ) : null}
 
               <Button type="submit" className="min-h-11 w-full" disabled={submitting}>
                 {submitting ? (
