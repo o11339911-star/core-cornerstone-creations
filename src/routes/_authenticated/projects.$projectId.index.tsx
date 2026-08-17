@@ -205,9 +205,7 @@ function ProjectOverviewPage() {
             {loc["city"] ? ` · ${str(loc["city"])}` : ""}
           </>
         }
-        badge={
-          <HeroBadge tone={statusTone(status)}>{STATUS_AR[status ?? ""] ?? status}</HeroBadge>
-        }
+        badge={<HeroBadge tone={statusTone(status)}>{STATUS_AR[status ?? ""] ?? status}</HeroBadge>}
         aside={
           <div className="flex flex-col items-center gap-2">
             <ProgressRing value={percent} size={96} label="اكتمال المشروع" />
@@ -409,7 +407,6 @@ function ProjectOverviewPage() {
           </Link>
         </SectionCard>
 
-
         <SectionCard icon={FileText} title="حالة المستندات" count={docsCount}>
           {Object.keys(o.documents).length ? (
             <div className="flex flex-wrap gap-2">
@@ -487,9 +484,7 @@ function ProjectOverviewPage() {
                 ...o.finance.milestones.map((m, i) => ({
                   key: `fm-${i}`,
                   primary: `دفعة ${str(m["seq"]) ?? ""} — ${str(m["title_ar"]) ?? ""}`,
-                  secondary: m["amount"]
-                    ? `${str(m["amount"])} ${str(m["currency"]) ?? ""}`
-                    : null,
+                  secondary: m["amount"] ? `${str(m["amount"])} ${str(m["currency"]) ?? ""}` : null,
                   badge: STATUS_AR[str(m["status"]) ?? ""] ?? str(m["status"]),
                 })),
               ]}
