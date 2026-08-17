@@ -280,8 +280,12 @@ function PartiesPage() {
               label={t("parties.endsOn")}
               type="date"
               value={endsOn}
+              min={minEndsOn}
+              required
+              hint={t("parties.endsOnHint")}
               onChange={(e) => setEndsOn(e.target.value)}
             />
+
           </div>
 
           <TextField
