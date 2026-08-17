@@ -36,7 +36,12 @@ export const PARTY_ACTIONS = ["view", "create", "update", "execute", "export"] a
 const partySchema = z.object({
   id: z.string().uuid(),
   project_id: z.string().uuid(),
-  party_entity_id: z.string().uuid(),
+  party_entity_id: z.string().uuid().nullable(),
+  party_kind: z.enum(["person", "entity"]).default("entity"),
+  identifier_kind: z.enum(["national_id", "cr_number"]).nullable().default(null),
+  identifier_last4: z.string().nullable().default(null),
+  cr_number: z.string().nullable().default(null),
+  party_display_name: z.string().nullable().default(null),
   party_role: z.enum(PARTY_ROLES),
   scope_text_ar: z.string().nullable(),
   scope_text_en: z.string().nullable(),
@@ -51,7 +56,7 @@ const partySchema = z.object({
 export type ProjectParty = z.infer<typeof partySchema>;
 
 const PARTY_COLUMNS =
-  "id, project_id, party_entity_id, party_role, scope_text_ar, scope_text_en, starts_on, ends_on, status, responded_at, ended_at, end_reason, created_at";
+  "id, project_id, party_entity_id, party_kind, identifier_kind, identifier_last4, cr_number, party_display_name, party_role, scope_text_ar, scope_text_en, starts_on, ends_on, status, responded_at, ended_at, end_reason, created_at";
 
 export const listProjectParties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -218,4 +223,126 @@ export const endProjectParty = createServerFn({ method: "POST" })
 
     if (error) throw new Error(error.message);
     return { endedAssignments: (moved as number) ?? 0 };
+  });
+
+
+/* ------------------- identifier-based party invitations ------------------ */
+
+export type { PartyLookupResult } from "@/lib/party-lookup.server";
+
+/**
+ * بحث تلقائي عن الطرف بمعرّفه. لا يُرجع معرّف مستخدم أو كيان ولا أي نص مشفّر،
+ * ولا يعمل إلا لمن يملك إدارة أطراف هذا المشروع.
+ */
+export const lookupProjectPartyIdentifier = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        projectId: z.string().uuid(),
+        partyKind: z.enum(["person", "entity"]),
+        identifier: z.string().trim().min(1).max(40),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: allowed } = await context.supabase.rpc("can_manage_project_parties", {
+      _project_id: data.projectId,
+    });
+    if (allowed !== true) return { status: "invalid" as const };
+
+    const { normalizeNationalId } = await import("@/lib/identity-format");
+    const { resolvePartyIdentifier } = await import("@/lib/party-lookup.server");
+    const resolved = await resolvePartyIdentifier({
+      partyKind: data.partyKind,
+      digits: normalizeNationalId(data.identifier),
+      actorUserId: context.userId,
+    });
+    return resolved.result;
+  });
+
+const IDENTIFIED_INVITE_ERRORS: Record<string, string> = {
+  AUTH_REQUIRED: "يلزم تسجيل الدخول.",
+  FORBIDDEN: "لا تملك صلاحية دعوة أطراف في هذا المشروع.",
+  NOT_FOUND: "المشروع غير موجود.",
+  DUPLICATE_PARTY: "هذا الطرف مدعو مسبقًا في هذا المشروع.",
+  OWNER_ENTITY_NOT_PARTY: "لا يمكن دعوة الجهة المالكة للمشروع كطرف خارجي.",
+  STAGE_NOT_IN_PROJECT: "إحدى المراحل المحددة لا تتبع هذا المشروع.",
+  IDENTIFIER_REQUIRED: "أدخل معرّفًا صحيحًا.",
+};
+
+function mapInviteError(message: string): Error {
+  for (const [code, text] of Object.entries(IDENTIFIED_INVITE_ERRORS)) {
+    if (message.includes(code)) return new Error(text);
+  }
+  return new Error("تعذّر إرسال الدعوة. حاول مرة أخرى.");
+}
+
+/**
+ * دعوة طرف بالمعرّف (هوية شخص أو سجل/رقم موحّد لمنشأة). المطابقة تُحسم خادميًا
+ * فقط؛ العميل لا يرسل أي UUID للطرف. بلا مطابقة = دعوة معلّقة بلا صلاحيات.
+ */
+export const inviteProjectPartyByIdentifier = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        projectId: z.string().uuid(),
+        partyKind: z.enum(["person", "entity"]),
+        identifier: z.string().trim().min(1).max(40),
+        partyRole: z.enum(PARTY_ROLES),
+        displayName: z.string().trim().max(200).nullable().optional(),
+        scopeTextAr: z.string().trim().max(1000).nullable().optional(),
+        endsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
+        stageIds: z.array(z.string().uuid()).default([]),
+        permissions: z
+          .array(z.object({ module: z.enum(PARTY_MODULES), action: z.enum(PARTY_ACTIONS) }))
+          .default([]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ id: string; pending: boolean }> => {
+    const { normalizeNationalId } = await import("@/lib/identity-format");
+    const { resolvePartyIdentifier } = await import("@/lib/party-lookup.server");
+    const digits = normalizeNationalId(data.identifier);
+    const resolved = await resolvePartyIdentifier({
+      partyKind: data.partyKind,
+      digits,
+      actorUserId: context.userId,
+    });
+
+    if (resolved.result.status === "throttled") {
+      throw new Error("محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.");
+    }
+    if (!resolved.fingerprint) {
+      throw new Error(
+        data.partyKind === "person"
+          ? "رقم الهوية يجب أن يكون عشرة أرقام ويبدأ بـ 1 أو 2."
+          : "السجل التجاري / الرقم الموحّد يجب أن يكون عشرة أرقام.",
+      );
+    }
+
+    const { data: id, error } = await context.supabase.rpc("invite_project_party_identified", {
+      _project_id: data.projectId,
+      _party_kind: data.partyKind,
+      _identifier_kind: data.partyKind === "person" ? "national_id" : "cr_number",
+      _identifier_fingerprint: resolved.fingerprint,
+      _identifier_last4: resolved.last4,
+      _cr_number: data.partyKind === "entity" ? digits : null,
+      _matched_entity_id: resolved.matchedEntityId,
+      _matched_user_id: resolved.matchedUserId,
+      _display_name: resolved.displayName ?? data.displayName ?? null,
+      _party_role: data.partyRole,
+      _scope_text_ar: data.scopeTextAr ?? null,
+      _ends_on: data.endsOn ?? null,
+      _stage_ids: data.stageIds,
+      _permissions: data.permissions,
+    });
+
+    if (error) throw mapInviteError(error.message);
+    return { id: id as string, pending: resolved.matchedEntityId === null };
   });
