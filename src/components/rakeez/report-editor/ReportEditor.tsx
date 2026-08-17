@@ -370,26 +370,28 @@ function BlockEditor({
       return <div className="my-2 border-t-2 border-dashed border-border text-center text-[11px] text-muted-foreground">— فاصل صفحة —</div>;
     case "field":
       return (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {!readOnly ? (
             <select
               value={block.source}
               onChange={(e) => onChange({ ...block, source: e.target.value as typeof block.source })}
               className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+              aria-label="نوع الحقل التلقائي"
             >
-              {FIELD_SOURCES.map((source) => (
+              {FIELD_SOURCE_OPTIONS.map((source) => (
                 <option key={source} value={source}>
-                  {source}
+                  {fieldLabel(source)}
                 </option>
               ))}
             </select>
           ) : null}
           <span className="text-sm">
-            <span className="font-semibold">{block.label ?? block.source}: </span>
+            <span className="font-semibold">{block.label ?? fieldLabel(block.source)}: </span>
             {resolveField(snapshot, block.source)}
           </span>
         </div>
       );
+
     case "engineering_item":
     default: {
       const item = block;
