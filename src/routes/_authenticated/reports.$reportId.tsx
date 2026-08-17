@@ -79,13 +79,22 @@ function ReportDetailPage() {
     enabled: Boolean(report?.entity_id),
   });
 
+  const eligibilityQuery = useQuery({
+    queryKey: ["report-eligibility", report?.project_id, report?.entity_id],
+    queryFn: () =>
+      checkEligibility({ data: { entityId: report!.entity_id, projectId: report!.project_id } }),
+    enabled: Boolean(report?.entity_id && report?.project_id && report?.report_kind === "engineering"),
+  });
+  const blockMessage = engineeringBlockMessage(eligibilityQuery.data?.reason ?? null);
+
   React.useEffect(() => {
     if (!current) return;
     const parsed = reportContentSchema.safeParse(current.content);
     setDraft(parsed.success ? parsed.data : { blocks: [] });
   }, [current?.id, current?.updated_at]);
 
-  const readOnly = !current || current.status !== "draft";
+  const readOnly = !current || current.status !== "draft" || Boolean(blockMessage);
+
 
   const run = (fn: () => Promise<unknown>, ok: string) => async () => {
     setError(null);
