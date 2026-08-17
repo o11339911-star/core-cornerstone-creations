@@ -204,6 +204,7 @@ function PartiesPage() {
               }
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+              inputMode="numeric"
               maxLength={10}
               dir="ltr"
               required

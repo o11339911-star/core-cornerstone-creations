@@ -86,10 +86,16 @@ export function TextField({
   disabled,
   type = "text",
   onChange,
+  inputMode,
+  maxLength,
+  dir,
   ...shell
 }: BaseFieldProps & {
   type?: React.HTMLInputTypeAttribute | undefined;
   onChange?: ((event: React.ChangeEvent<HTMLInputElement>) => void) | undefined;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"] | undefined;
+  maxLength?: number | undefined;
+  dir?: "ltr" | "rtl" | undefined;
 }) {
   return (
     <FieldShell {...shell}>
@@ -104,6 +110,9 @@ export function TextField({
           {...(defaultValue !== undefined ? { defaultValue } : {})}
           {...(disabled !== undefined ? { disabled } : {})}
           {...(onChange ? { onChange } : {})}
+          {...(inputMode ? { inputMode } : {})}
+          {...(maxLength !== undefined ? { maxLength } : {})}
+          {...(dir ? { dir } : {})}
         />
       )}
     </FieldShell>
