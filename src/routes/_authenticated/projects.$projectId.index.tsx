@@ -38,6 +38,7 @@ import {
 } from "@/components/rakeez";
 import { getProjectOverview, type ProjectOverview } from "@/lib/project-overview.functions";
 import { PreciseLocationSection } from "@/components/location/precise-location";
+import { UnifiedIdentitySection } from "@/components/identity/unified-identity";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/")({
   component: ProjectOverviewPage,
@@ -99,8 +100,8 @@ const TABS = [
   { to: "/projects/$projectId/finance", label: "المالية", icon: Banknote },
   { to: "/projects/$projectId/requests", label: "الطلبات", icon: MessageSquare },
   { to: "/projects/$projectId/services", label: "الخدمات", icon: Wrench },
-  { to: "/projects/$projectId/parties", label: "الأطراف", icon: Users },
-  { to: "/projects/$projectId/team", label: "فريق المشروع", icon: Users },
+  { to: "/projects/$projectId/parties", label: "أطراف المشروع", icon: Users },
+  { to: "/projects/$projectId/team", label: "الأعضاء الداخليون", icon: Users },
   { to: "/projects/$projectId/visits", label: "الزيارات", icon: MapPin },
   { to: "/projects/$projectId/drawings", label: "المخططات", icon: DraftingCompass },
   { to: "/projects/$projectId/reports", label: "التقارير", icon: FileText },
@@ -241,6 +242,8 @@ function ProjectOverviewPage() {
 
       <PreciseLocationSection projectId={projectId} />
 
+      <UnifiedIdentitySection projectId={projectId} />
+
       <StatGrid>
         <StatCard
           icon={Layers}
@@ -257,7 +260,7 @@ function ProjectOverviewPage() {
         <StatCard icon={FileText} label="المستندات" value={docsCount} tone="info" />
         <StatCard
           icon={Users}
-          label="الأطراف والمشرفون"
+          label="أطراف المشروع والمشرفون"
           value={o.parties.length + o.supervisors.length}
           tone="primary"
         />
@@ -358,7 +361,7 @@ function ProjectOverviewPage() {
 
         <SectionCard
           icon={Users}
-          title="الأطراف والمشرفون"
+          title="أطراف المشروع والمشرفون"
           count={o.parties.length + o.supervisors.length}
         >
           {o.parties.length || o.supervisors.length ? (
@@ -398,7 +401,7 @@ function ProjectOverviewPage() {
             className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"
           >
             <Users className="size-4" aria-hidden="true" />
-            فريق المشروع
+            الأعضاء الداخليون
           </Link>
         </SectionCard>
 

@@ -38,9 +38,9 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/team")
   component: ProjectTeamPage,
   head: () => ({
     meta: [
-      { title: "فريق المشروع — ركيز" },
-      { name: "description", content: "إدارة فريق المشروع، الإسنادات، ومستويات الظهور." },
-      { property: "og:title", content: "فريق المشروع — ركيز" },
+      { title: "الأعضاء الداخليون — ركيز" },
+      { name: "description", content: "إدارة الأعضاء الداخليين المسندين للمشروع، الإسنادات، ومستويات الظهور." },
+      { property: "og:title", content: "الأعضاء الداخليون — ركيز" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

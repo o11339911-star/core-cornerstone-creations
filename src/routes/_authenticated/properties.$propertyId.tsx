@@ -23,6 +23,7 @@ import {
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { PreciseLocationSection } from "@/components/location/precise-location";
+import { UnifiedIdentitySection } from "@/components/identity/unified-identity";
 import { formatNumber } from "@/lib/format";
 import { DeedVersionModal } from "@/components/properties/DeedVersionModal";
 import { LicenseVersionModal } from "@/components/properties/LicenseVersionModal";
@@ -454,6 +455,7 @@ function PropertyProfilePage() {
             />
           </FieldGrid>
           <PreciseLocationSection propertyId={p.id} />
+          <UnifiedIdentitySection propertyId={p.id} />
         </div>
       </SectionCard>
 

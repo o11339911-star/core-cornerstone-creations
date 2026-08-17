@@ -662,7 +662,7 @@ export const en: Translations = {
     permissions: "Granted permissions",
     permissionsHint: "You cannot grant a permission the project owner does not hold.",
     send: "Send invitation",
-    list: "Parties",
+    list: "Project parties",
     none: "No parties linked to this project",
     end: "End party",
     endHint: "Stops access immediately and archives past contributions without deleting them.",
