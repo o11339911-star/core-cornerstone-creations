@@ -20,6 +20,7 @@ import {
   createDeal,
   DEAL_CONTEXTS,
   DEAL_STATUSES,
+  getDealRequester,
   listDeals,
   PARTY_KINDS,
   respondToDeal,
