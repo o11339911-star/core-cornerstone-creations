@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      _test_archive_stamp_results: {
+        Row: {
+          result: string | null
+          test: string
+        }
+        Insert: {
+          result?: string | null
+          test: string
+        }
+        Update: {
+          result?: string | null
+          test?: string
+        }
+        Relationships: []
+      }
       acceptance_status_transitions: {
         Row: {
           from_status: string
@@ -12316,13 +12331,6 @@ export type Database = {
       terminate_marketing_contract: {
         Args: { _contract_id: string; _reason: string }
         Returns: undefined
-      }
-      test_issue_archive_stamp: {
-        Args: never
-        Returns: {
-          result: string
-          test: string
-        }[]
       }
       unlink_document: { Args: { _link_id: string }; Returns: boolean }
       update_data_incident: {
