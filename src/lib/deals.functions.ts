@@ -25,7 +25,7 @@ export type DealParty = {
   identifier_kind: "national_id" | "cr_number" | null;
   identifier_last4: string | null;
   cr_number: string | null;
-  display_name: string;
+  display_name: string | null;
   is_registered: boolean;
   acceptance_status: "pending" | "accepted" | "declined";
   responded_at: string | null;
@@ -140,7 +140,8 @@ export const createDeal = createServerFn({ method: "POST" })
         nationalId: z.string().trim().max(40).nullable().default(null),
         /** رقم السجل التجاري (10 أرقام) عندما يكون الطرف الثاني منشأة. */
         crNumber: z.string().trim().max(40).nullable().default(null),
-        counterpartyName: z.string().trim().min(2, "اسم الطرف الثاني مطلوب").max(160),
+        /** اسم الطرف الثاني اختياري تمامًا؛ الخادم يعيد اشتقاقه عند وجود مطابقة. */
+        counterpartyName: z.string().trim().max(160).nullable().default(null),
         contextType: z.enum(DEAL_CONTEXTS).default("other"),
         contextId: uuid.nullable().default(null),
         amount: z.number().min(0).nullable().default(null),
@@ -177,7 +178,7 @@ export const createDeal = createServerFn({ method: "POST" })
       _identifier_fingerprint: fingerprint,
       _identifier_last4: last4,
       _cr_number: cr,
-      _display_name: data.counterpartyName,
+      _display_name: data.counterpartyName?.trim() ? data.counterpartyName.trim() : null,
       _context_type: data.contextType,
       _context_id: data.contextId,
       _amount: data.amount,
