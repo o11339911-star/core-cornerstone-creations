@@ -263,11 +263,8 @@ function ProjectOverviewPage() {
         <StatCard icon={Wrench} label="الخدمات" value={o.services.length} tone="info" />
       </StatGrid>
 
-      <nav
-        aria-label="تبويبات المشروع"
-        className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0"
-      >
-        <ul className="flex w-max gap-1 rounded-xl border border-border bg-card p-1.5 shadow-card sm:w-full">
+      <nav aria-label="تبويبات المشروع" className="w-full">
+        <ul className="flex w-full flex-wrap gap-1 rounded-xl border border-border bg-card p-1.5 shadow-card">
           {TABS.map((tab) => (
             <li key={tab.to}>
               <Link
