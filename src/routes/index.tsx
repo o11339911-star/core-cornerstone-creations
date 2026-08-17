@@ -291,6 +291,12 @@ function Footer() {
             {t("footer.rights", { year: new Date().getFullYear() })}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <Link
+              to="/verify-file"
+              className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
+            >
+              تحقق من ملف
+            </Link>
             {links.map((link) => (
               <a
                 key={link.to}
