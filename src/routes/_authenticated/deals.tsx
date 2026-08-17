@@ -181,8 +181,6 @@ function DealsPage() {
     retry: false,
   });
 
-
-
   const createMutation = useMutation({
     mutationFn: () =>
       create({
@@ -720,7 +718,12 @@ function DealsPage() {
             },
             {
               label: "نوع طالب الخدمة",
-              value: requester?.kind === "person" ? "شخص" : requester?.kind === "entity" ? "منشأة" : "غير متوفر",
+              value:
+                requester?.kind === "person"
+                  ? "شخص"
+                  : requester?.kind === "entity"
+                    ? "منشأة"
+                    : "غير متوفر",
             },
             {
               label:
@@ -731,7 +734,7 @@ function DealsPage() {
                   : "هوية طالب الخدمة",
               value:
                 requester?.kind === "entity" ? (
-                  requester.crNumber ?? requester.unifiedNationalNumber ? (
+                  (requester.crNumber ?? requester.unifiedNationalNumber) ? (
                     <bdi dir="ltr">{requester.crNumber ?? requester.unifiedNationalNumber}</bdi>
                   ) : (
                     "غير متوفر"
