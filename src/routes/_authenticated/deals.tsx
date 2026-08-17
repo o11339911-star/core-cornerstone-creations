@@ -94,6 +94,8 @@ function DealsPage() {
     partyKind: "person" as (typeof PARTY_KINDS)[number],
     identifier: "",
     counterpartyName: "",
+    /** هل الاسم الحالي مستخرج تلقائيًا من ركيز؟ */
+    autoName: false,
     contextType: "other" as (typeof DEAL_CONTEXTS)[number],
     amount: "",
     notes: "",
@@ -105,6 +107,7 @@ function DealsPage() {
       partyKind: "person",
       identifier: "",
       counterpartyName: "",
+      autoName: false,
       contextType: "other",
       amount: "",
       notes: "",
@@ -113,17 +116,19 @@ function DealsPage() {
   // ——— بحث تلقائي عن الطرف الثاني بعد اكتمال رقم صحيح ———
   const lookupParty = useServerFn(lookupDealCounterpartyFn);
   const [lookup, setLookup] = React.useState<{
-    state: "idle" | "checking" | "registered" | "unregistered" | "throttled";
+    state: "idle" | "checking" | "registered" | "unregistered" | "failed";
     name?: string | null;
   }>({ state: "idle" });
+  const [retryToken, setRetryToken] = React.useState(0);
 
   const digits = form.identifier.replace(/[^0-9]/g, "");
   const identifierValid =
     form.partyKind === "person" ? isValidSaudiId(digits) : /^[0-9]{10}$/.test(digits);
 
   React.useEffect(() => {
-    // أي تغيير في الرقم يمسح نتيجة المطابقة السابقة فورًا.
+    // أي تغيير في الرقم يمسح نتيجة المطابقة السابقة والاسم المستخرج فورًا.
     setLookup({ state: "idle" });
+    setForm((f) => (f.autoName ? { ...f, counterpartyName: "", autoName: false } : f));
     if (!identifierValid) return;
 
     let cancelled = false;
@@ -136,26 +141,25 @@ function DealsPage() {
             setLookup({ state: "registered", name: res.displayName });
             // الاسم النظامي المسموح عرضه فقط؛ الربط يُعاد التحقق منه خادميًا.
             if (res.displayName) {
-              setForm((f) =>
-                f.counterpartyName.trim() ? f : { ...f, counterpartyName: res.displayName! },
-              );
+              setForm((f) => ({ ...f, counterpartyName: res.displayName!, autoName: true }));
             }
-          } else if (res.status === "throttled") {
-            setLookup({ state: "throttled" });
-          } else {
+          } else if (res.status === "unregistered") {
             setLookup({ state: "unregistered" });
+          } else {
+            // invalid / throttled: تعذّر التحقق — لا يمنع الإنشاء.
+            setLookup({ state: "failed" });
           }
         })
         .catch(() => {
-          if (!cancelled) setLookup({ state: "idle" });
+          if (!cancelled) setLookup({ state: "failed" });
         });
-    }, 600);
+    }, 400);
 
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [digits, form.partyKind, identifierValid, lookupParty]);
+  }, [digits, form.partyKind, identifierValid, lookupParty, retryToken]);
 
   const list = useQuery({
     queryKey: ["deals", entityId, filter, scope],
@@ -173,7 +177,7 @@ function DealsPage() {
           partyKind: form.partyKind,
           nationalId: form.partyKind === "person" ? form.identifier.trim() : null,
           crNumber: form.partyKind === "entity" ? form.identifier.trim() : null,
-          counterpartyName: form.counterpartyName.trim(),
+          counterpartyName: form.counterpartyName.trim() || null,
           contextType: form.contextType,
           contextId: null,
           amount: form.amount.trim() ? Number(form.amount) : null,
@@ -455,15 +459,11 @@ function DealsPage() {
           <Button
             type="button"
             className="min-h-11 w-full"
-            disabled={createMutation.isPending || lookup.state === "checking"}
+            disabled={createMutation.isPending}
             onClick={() => {
               setError(null);
               if (form.title.trim().length < 2) {
                 setError("اكتب عنوانًا واضحًا للمعاملة");
-                return;
-              }
-              if (form.counterpartyName.trim().length < 2) {
-                setError("اكتب اسم الطرف الثاني");
                 return;
               }
               if (!identifierValid) {
@@ -497,7 +497,7 @@ function DealsPage() {
           </div>
           <fieldset className="space-y-3 rounded-xl border border-border p-3">
             <legend className="px-1 text-sm font-semibold text-foreground">
-              الطرف الثاني (إلزامي)
+              الطرف الثاني — المعرّف إلزامي
             </legend>
             <div className="flex gap-2">
               {PARTY_KINDS.map((kind) => (
@@ -505,7 +505,15 @@ function DealsPage() {
                   key={kind}
                   type="button"
                   aria-pressed={form.partyKind === kind}
-                  onClick={() => setForm((f) => ({ ...f, partyKind: kind, identifier: "" }))}
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      partyKind: kind,
+                      identifier: "",
+                      counterpartyName: f.autoName ? "" : f.counterpartyName,
+                      autoName: false,
+                    }))
+                  }
                   className={`min-h-11 flex-1 rounded-xl border px-3 text-sm font-medium ${
                     form.partyKind === kind
                       ? "border-primary bg-secondary text-primary"
@@ -542,23 +550,39 @@ function DealsPage() {
                   <span className="text-primary">طرف مسجل في ركيز — سيرسل له طلب قبول</span>
                 ) : lookup.state === "unregistered" ? (
                   <span className="text-muted-foreground">
-                    غير مسجل — ستبقى المعاملة بانتظار انضمامه
+                    لم يُعثر على طرف مسجل في ركيز؛ يمكنك إدخال الاسم اختياريًا.
                   </span>
-                ) : lookup.state === "throttled" ? (
+                ) : lookup.state === "failed" ? (
                   <span className="text-destructive">
-                    محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.
+                    تعذّر التحقق الآن — يمكنك المتابعة أو{" "}
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => setRetryToken((n) => n + 1)}
+                    >
+                      إعادة المحاولة
+                    </button>
                   </span>
                 ) : null}
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="d-party">اسم الطرف الثاني</Label>
+              <Label htmlFor="d-party">اسم الطرف الثاني (اختياري)</Label>
               <Input
                 id="d-party"
                 value={form.counterpartyName}
-                onChange={(e) => setForm((f) => ({ ...f, counterpartyName: e.target.value }))}
+                readOnly={form.autoName}
+                aria-readonly={form.autoName}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, counterpartyName: e.target.value, autoName: false }))
+                }
                 className="min-h-11"
               />
+              <p className="text-xs text-muted-foreground">
+                {form.autoName
+                  ? "الاسم مستخرج تلقائيًا من ركيز."
+                  : "المعرّف وحده إلزامي؛ يمكن ترك الاسم فارغًا."}
+              </p>
             </div>
           </fieldset>
           <div className="space-y-2">
