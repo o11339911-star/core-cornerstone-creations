@@ -172,7 +172,7 @@ export function PreciseLocationSection({ projectId }: { projectId: string }) {
 
       {complete && loc.lat != null && loc.lng != null ? (
         <p className="mt-2 text-xs text-muted-foreground">
-          <Num value={loc.lat} maximumFractionDigits={6} /> , <Num value={loc.lng} maximumFractionDigits={6} />
+          <Num>{loc.lat.toFixed(6)}</Num> , <Num>{loc.lng.toFixed(6)}</Num>
         </p>
       ) : null}
 
@@ -211,8 +211,8 @@ export function PreciseLocationSection({ projectId }: { projectId: string }) {
                     {s.lat != null && s.lng != null ? (
                       <>
                         {" · "}
-                        <Num value={s.lat} maximumFractionDigits={6} />,{" "}
-                        <Num value={s.lng} maximumFractionDigits={6} />
+                        <Num>{s.lat.toFixed(6)}</Num>,{" "}
+                        <Num>{s.lng.toFixed(6)}</Num>
                       </>
                     ) : null}
                   </span>
@@ -221,7 +221,7 @@ export function PreciseLocationSection({ projectId }: { projectId: string }) {
                     {s.confidence != null ? (
                       <>
                         {" · الثقة "}
-                        <Num value={Math.round(s.confidence * (s.confidence <= 1 ? 100 : 1))} />%
+                        <Num>{Math.round(s.confidence * (s.confidence <= 1 ? 100 : 1))}</Num>%
                       </>
                     ) : null}
                   </span>
@@ -263,7 +263,7 @@ export function PreciseLocationSection({ projectId }: { projectId: string }) {
             {ring.length > 0 ? (
               <>
                 <span className="text-xs text-muted-foreground">
-                  النقاط: <Num value={ring.length} />
+                  النقاط: <Num>{ring.length}</Num>
                 </span>
                 <Button
                   type="button"
