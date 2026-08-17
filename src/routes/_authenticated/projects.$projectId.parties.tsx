@@ -412,7 +412,7 @@ function PartiesPage() {
               <dd className="font-mono text-xs text-muted-foreground" dir="ltr">
                 <bdi>
                   {"\u2022\u2022\u2022\u2022"}
-                  <Num value={digits.slice(-4)} />
+                  <Num>{digits.slice(-4)}</Num>
                 </bdi>
               </dd>
             </div>
