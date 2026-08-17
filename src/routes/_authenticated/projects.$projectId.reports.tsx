@@ -2,7 +2,7 @@ import * as React from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText } from "lucide-react";
+import { FileText, Send } from "lucide-react";
 
 import {
   CardsSkeleton,
@@ -11,14 +11,24 @@ import {
   PageHero,
   SectionCard,
   SoftEmpty,
+  TextAreaField,
   TextField,
 } from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import {
+  REPORT_KIND_LABEL,
+  REPORT_STATUS_LABEL,
+  engineeringBlockMessage,
+  reportErrorMessage,
+} from "@/lib/reports/labels";
+import {
+  checkEngineeringReportEligibility,
   createReport,
   listMyReportEntities,
+  listProjectEngineeringOffices,
   listReportTemplates,
   listReports,
+  requestEngineeringReport,
 } from "@/lib/reports.functions";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/reports")({
@@ -42,14 +52,6 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/report
   }),
 });
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "مسودة",
-  in_review: "قيد المراجعة",
-  approved: "معتمد",
-  superseded: "مستبدل",
-  archived: "مؤرشف",
-};
-
 function ReportsPage() {
   const { projectId } = Route.useParams();
   const queryClient = useQueryClient();
@@ -57,12 +59,22 @@ function ReportsPage() {
   const fetchReports = useServerFn(listReports);
   const fetchEntities = useServerFn(listMyReportEntities);
   const fetchTemplates = useServerFn(listReportTemplates);
+  const checkEligibility = useServerFn(checkEngineeringReportEligibility);
+  const fetchOffices = useServerFn(listProjectEngineeringOffices);
   const newReport = useServerFn(createReport);
+  const askForReport = useServerFn(requestEngineeringReport);
 
   const [title, setTitle] = React.useState("");
   const [entityId, setEntityId] = React.useState("");
   const [templateId, setTemplateId] = React.useState("");
+  const [reportKind, setReportKind] = React.useState<"engineering" | "administrative">("engineering");
   const [error, setError] = React.useState<string | null>(null);
+
+  const [officeId, setOfficeId] = React.useState("");
+  const [requestSubject, setRequestSubject] = React.useState("");
+  const [requestBody, setRequestBody] = React.useState("");
+  const [requestError, setRequestError] = React.useState<string | null>(null);
+  const [requestDone, setRequestDone] = React.useState<string | null>(null);
 
   const reportsQuery = useQuery({
     queryKey: ["reports", projectId],
@@ -70,6 +82,34 @@ function ReportsPage() {
   });
   const entitiesQuery = useQuery({ queryKey: ["report-entities"], queryFn: () => fetchEntities({}) });
   const templatesQuery = useQuery({ queryKey: ["report-templates"], queryFn: () => fetchTemplates({}) });
+
+  const entities = entitiesQuery.data ?? [];
+  React.useEffect(() => {
+    if (!entityId && entities.length > 0) setEntityId(entities[0]!.entity_id);
+  }, [entities, entityId]);
+
+  const eligibilityQuery = useQuery({
+    queryKey: ["report-eligibility", projectId, entityId],
+    queryFn: () => checkEligibility({ data: { projectId, entityId } }),
+    enabled: Boolean(entityId),
+  });
+  const blockReason = eligibilityQuery.data?.reason ?? null;
+  const blockMessage = engineeringBlockMessage(blockReason);
+  const canIssueEngineering = Boolean(entityId) && !eligibilityQuery.isLoading && blockReason === null;
+
+  React.useEffect(() => {
+    if (!canIssueEngineering) setReportKind("administrative");
+  }, [canIssueEngineering]);
+
+  const officesQuery = useQuery({
+    queryKey: ["project-engineering-offices", projectId],
+    queryFn: () => fetchOffices({ data: { projectId } }),
+    enabled: Boolean(blockReason),
+  });
+  const offices = officesQuery.data ?? [];
+  React.useEffect(() => {
+    if (!officeId && offices.length > 0) setOfficeId(offices[0]!.entity_id);
+  }, [offices, officeId]);
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -79,6 +119,7 @@ function ReportsPage() {
           entityId,
           title,
           language: "ar" as const,
+          reportKind,
           ...(templateId ? { templateId } : {}),
         },
       }),
@@ -87,13 +128,30 @@ function ReportsPage() {
       setError(null);
       await queryClient.invalidateQueries({ queryKey: ["reports", projectId] });
     },
-    onError: (e: unknown) => setError(e instanceof Error ? e.message : "تعذّر إنشاء التقرير"),
+    onError: (e: unknown) => setError(reportErrorMessage(e).message),
   });
 
-  const entities = entitiesQuery.data ?? [];
-  React.useEffect(() => {
-    if (!entityId && entities.length > 0) setEntityId(entities[0]!.entity_id);
-  }, [entities, entityId]);
+  const requestMutation = useMutation({
+    mutationFn: () =>
+      askForReport({
+        data: {
+          projectId,
+          toEntityId: officeId,
+          subject: requestSubject,
+          ...(requestBody.trim() ? { body: requestBody.trim() } : {}),
+        },
+      }),
+    onSuccess: () => {
+      setRequestError(null);
+      setRequestSubject("");
+      setRequestBody("");
+      setRequestDone("تم إرسال طلب التقرير الهندسي إلى المكتب المختار.");
+    },
+    onError: (e: unknown) => {
+      setRequestDone(null);
+      setRequestError(reportErrorMessage(e).message);
+    },
+  });
 
   const reports = reportsQuery.data ?? [];
 
@@ -108,7 +166,7 @@ function ReportsPage() {
       <SectionCard icon={FileText} title="تقرير جديد">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-xs text-muted-foreground">
-            الكيان المُصدِر
+            الجهة المُصدِرة
             <select
               value={entityId}
               onChange={(e) => setEntityId(e.target.value)}
@@ -119,6 +177,19 @@ function ReportsPage() {
                   {entity.name}
                 </option>
               ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            نوع التقرير
+            <select
+              value={reportKind}
+              onChange={(e) => setReportKind(e.target.value as "engineering" | "administrative")}
+              className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            >
+              {canIssueEngineering ? (
+                <option value="engineering">{REPORT_KIND_LABEL["engineering"]}</option>
+              ) : null}
+              <option value="administrative">{REPORT_KIND_LABEL["administrative"]}</option>
             </select>
           </label>
           <label className="text-xs text-muted-foreground">
@@ -143,7 +214,14 @@ function ReportsPage() {
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
+
+        {blockMessage ? (
+          <p className="mt-3 rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+            {blockMessage}
+          </p>
+        ) : null}
         {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
+
         <Button
           type="button"
           disabled={!entityId || title.trim().length < 2 || createMutation.isPending}
@@ -153,6 +231,61 @@ function ReportsPage() {
           {createMutation.isPending ? "جارٍ الإنشاء…" : "إنشاء التقرير"}
         </Button>
       </SectionCard>
+
+      {blockReason ? (
+        <SectionCard icon={Send} title="طلب تقرير هندسي من مكتب هندسي">
+          {officesQuery.isLoading ? (
+            <CardsSkeleton cards={1} />
+          ) : offices.length === 0 ? (
+            <SoftEmpty
+              icon={Send}
+              message="لا يوجد مكتب هندسي مقبول على هذا المشروع بعد — أضف مكتبًا هندسيًا ضمن أطراف المشروع أولًا."
+            />
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs text-muted-foreground">
+                  المكتب الهندسي
+                  <select
+                    value={officeId}
+                    onChange={(e) => setOfficeId(e.target.value)}
+                    className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                  >
+                    {offices.map((office) => (
+                      <option key={office.entity_id} value={office.entity_id}>
+                        {office.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <TextField
+                  id="report-request-subject"
+                  label="موضوع الطلب"
+                  value={requestSubject}
+                  onChange={(e) => setRequestSubject(e.target.value)}
+                />
+              </div>
+              <TextAreaField
+                id="report-request-body"
+                label="تفاصيل الطلب (اختياري)"
+                rows={3}
+                value={requestBody}
+                onChange={(e) => setRequestBody(e.target.value)}
+              />
+              {requestError ? <p className="mt-2 text-sm text-destructive">{requestError}</p> : null}
+              {requestDone ? <p className="mt-2 text-sm text-primary">{requestDone}</p> : null}
+              <Button
+                type="button"
+                disabled={!officeId || requestSubject.trim().length < 2 || requestMutation.isPending}
+                onClick={() => requestMutation.mutate()}
+                className="mt-3 min-h-11"
+              >
+                {requestMutation.isPending ? "جارٍ الإرسال…" : "طلب تقرير هندسي"}
+              </Button>
+            </>
+          )}
+        </SectionCard>
+      ) : null}
 
       {reportsQuery.isLoading ? (
         <CardsSkeleton cards={2} />
@@ -173,12 +306,12 @@ function ReportsPage() {
                   <span className="block truncate font-medium text-foreground">{report.title}</span>
                   <span className="block text-xs text-muted-foreground">{report.report_number}</span>
                 </span>
-                <span className="flex shrink-0 items-center gap-2 text-xs">
+                <span className="flex shrink-0 flex-wrap items-center justify-end gap-2 text-xs">
                   {report.is_certified ? (
                     <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">موثّق</span>
                   ) : null}
                   <span className="rounded-full bg-muted px-2 py-1 text-muted-foreground">
-                    {STATUS_LABEL[report.status] ?? report.status}
+                    {REPORT_STATUS_LABEL[report.status] ?? "غير محدد"}
                   </span>
                 </span>
               </Link>
