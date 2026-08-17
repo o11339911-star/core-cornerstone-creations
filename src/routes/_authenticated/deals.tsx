@@ -338,7 +338,7 @@ function DealsPage() {
                     if (!second) return null;
                     return (
                       <p className="mt-1 text-xs text-muted-foreground">
-                        الطرف الثاني: {second.display_name}
+                        الطرف الثاني: {second.display_name ?? "بدون اسم"}
                         {second.identifier_kind === "national_id" && second.identifier_last4 ? (
                           <>
                             {" · هوية تنتهي بـ "}
