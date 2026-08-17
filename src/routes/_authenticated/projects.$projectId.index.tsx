@@ -205,9 +205,7 @@ function ProjectOverviewPage() {
             {loc["city"] ? ` · ${str(loc["city"])}` : ""}
           </>
         }
-        badge={
-          <HeroBadge tone={statusTone(status)}>{STATUS_AR[status ?? ""] ?? status}</HeroBadge>
-        }
+        badge={<HeroBadge tone={statusTone(status)}>{STATUS_AR[status ?? ""] ?? status}</HeroBadge>}
         aside={
           <div className="flex flex-col items-center gap-2">
             <ProgressRing value={percent} size={96} label="اكتمال المشروع" />
@@ -263,11 +261,8 @@ function ProjectOverviewPage() {
         <StatCard icon={Wrench} label="الخدمات" value={o.services.length} tone="info" />
       </StatGrid>
 
-      <nav
-        aria-label="تبويبات المشروع"
-        className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0"
-      >
-        <ul className="flex w-max gap-1 rounded-xl border border-border bg-card p-1.5 shadow-card sm:w-full">
+      <nav aria-label="تبويبات المشروع" className="w-full">
+        <ul className="flex w-full flex-wrap gap-1 rounded-xl border border-border bg-card p-1.5 shadow-card">
           {TABS.map((tab) => (
             <li key={tab.to}>
               <Link
@@ -412,7 +407,6 @@ function ProjectOverviewPage() {
           </Link>
         </SectionCard>
 
-
         <SectionCard icon={FileText} title="حالة المستندات" count={docsCount}>
           {Object.keys(o.documents).length ? (
             <div className="flex flex-wrap gap-2">
@@ -490,9 +484,7 @@ function ProjectOverviewPage() {
                 ...o.finance.milestones.map((m, i) => ({
                   key: `fm-${i}`,
                   primary: `دفعة ${str(m["seq"]) ?? ""} — ${str(m["title_ar"]) ?? ""}`,
-                  secondary: m["amount"]
-                    ? `${str(m["amount"])} ${str(m["currency"]) ?? ""}`
-                    : null,
+                  secondary: m["amount"] ? `${str(m["amount"])} ${str(m["currency"]) ?? ""}` : null,
                   badge: STATUS_AR[str(m["status"]) ?? ""] ?? str(m["status"]),
                 })),
               ]}

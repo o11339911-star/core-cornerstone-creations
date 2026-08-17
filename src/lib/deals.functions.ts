@@ -15,7 +15,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const uuid = z.string().uuid();
 const entityId = uuid.nullable().default(null);
 
-export const DEAL_STATUSES = ["draft", "negotiating", "agreed", "signed", "cancelled"] as const;
+export const DEAL_STATUSES = ["new", "negotiating", "agreed", "signed", "cancelled"] as const;
 export const DEAL_CONTEXTS = ["project", "request", "assignment", "listing", "other"] as const;
 export const PARTY_KINDS = ["person", "entity"] as const;
 
