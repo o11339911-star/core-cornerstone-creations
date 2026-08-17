@@ -162,15 +162,20 @@ function AppointmentsPage() {
     onError: failure,
   });
 
+  const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
   const validate = () => {
     const next: Record<string, string> = {};
     if (!form.requesterEntityId) next['requesterEntityId'] = "اختر كيانك الطالب";
     if (!form.providerEntityId) next['providerEntityId'] = "أدخل معرّف كيان مقدّم الخدمة";
+    else if (!UUID_RE.test(form.providerEntityId.trim()))
+      next['providerEntityId'] = "معرّف الكيان غير صحيح. الصق المعرّف الكامل كما يظهر في صفحة الكيان";
     if (form.title.trim().length < 3) next['title'] = "أدخل عنوانًا واضحًا للموعد";
     if (!form.startsAt) next['startsAt'] = "حدد تاريخ ووقت البداية";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
+
 
   const rows = list.data ?? [];
 
