@@ -152,7 +152,11 @@ function SignInForm() {
     if (!result.ok) {
       setSubmitting(false);
       setError(
-        result.reason === "throttled" ? t("auth.tooManyAttempts") : t("auth.invalidCredentials"),
+        result.reason === "throttled"
+          ? t("auth.tooManyAttempts")
+          : result.reason === "unavailable"
+            ? t("auth.serviceUnavailable")
+            : t("auth.invalidCredentials"),
       );
       return;
     }
