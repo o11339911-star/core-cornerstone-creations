@@ -19,6 +19,8 @@ import {
 import { formatDate } from "@/lib/format";
 import {
   createAssignment,
+  createExternalAssignment,
+  lookupExternalMember,
   endProjectAssignment,
   getProjectTeamCapabilities,
   listAssignableMembers,
@@ -61,6 +63,8 @@ function AddAssignmentModal({
   const membersFn = useServerFn(listAssignableMembers);
   const stagesFn = useServerFn(listProjectStages);
   const createFn = useServerFn(createAssignment);
+  const createExternalFn = useServerFn(createExternalAssignment);
+  const lookupFn = useServerFn(lookupExternalMember);
 
   const membersQuery = useQuery({
     queryKey: ["assignable-members", projectId],
@@ -71,6 +75,9 @@ function AddAssignmentModal({
     queryFn: () => stagesFn({ data: { projectId } }),
   });
 
+  const [memberKind, setMemberKind] = React.useState<"registered" | "external">("registered");
+  const [identifier, setIdentifier] = React.useState("");
+  const [externalName, setExternalName] = React.useState("");
   const [userId, setUserId] = React.useState("");
   const [stageId, setStageId] = React.useState("");
   const [jobTitleAr, setJobTitleAr] = React.useState("");
@@ -84,8 +91,67 @@ function AddAssignmentModal({
   const stages = stagesQuery.data ?? [];
   const selectedMember = members.find((m) => m.userId === userId) ?? null;
 
+  type LookupState =
+    | { status: "idle" }
+    | { status: "searching" }
+    | { status: "invalid" }
+    | { status: "throttled" }
+    | { status: "registered"; displayName: string | null; last4: string }
+    | { status: "unregistered"; last4: string };
+
+  const [lookupState, setLookupState] = React.useState<LookupState>({ status: "idle" });
+
+  const digits = identifier.replace(/[^0-9]/g, "").slice(0, 10);
+  const identifierComplete = digits.length === 10 && /^[12]/.test(digits);
+
+  React.useEffect(() => {
+    if (memberKind !== "external") return;
+    setLookupState({ status: "idle" });
+    setExternalName("");
+    if (!identifierComplete) return;
+    let cancelled = false;
+    setLookupState({ status: "searching" });
+    const timer = window.setTimeout(() => {
+      void lookupFn({ data: { projectId, identifier: digits } })
+        .then((result) => {
+          if (cancelled) return;
+          setLookupState(result as LookupState);
+          if (result.status === "registered" && result.displayName) {
+            setExternalName(result.displayName);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setLookupState({ status: "invalid" });
+        });
+    }, 400);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [digits, identifierComplete, memberKind, projectId, lookupFn]);
+
+  React.useEffect(() => {
+    if (memberKind !== "registered" || !selectedMember) return;
+    setJobTitleAr((prev) => prev || selectedMember.fullName);
+  }, [memberKind, selectedMember]);
+
   const mutation = useMutation({
     mutationFn: () => {
+      if (memberKind === "external") {
+        return createExternalFn({
+          data: {
+            projectId,
+            identifier: digits,
+            displayName: externalName.trim() || null,
+            jobTitleAr: jobTitleAr.trim(),
+            jobTitleEn: jobTitleEn.trim(),
+            stageId: stageId || null,
+            startsOn: startsOn || null,
+            endsOn: endsOn || null,
+            visibility,
+          },
+        }).then(() => undefined);
+      }
       if (!selectedMember) throw new Error(t("projectTeam.selectMember"));
       return createFn({
         data: {
@@ -93,13 +159,13 @@ function AddAssignmentModal({
           userId: selectedMember.userId,
           entityId: selectedMember.entityId,
           stageId: stageId || null,
-          jobTitleAr,
-          jobTitleEn,
+          jobTitleAr: jobTitleAr.trim() || selectedMember.fullName,
+          jobTitleEn: jobTitleEn.trim() || selectedMember.fullName,
           startsOn: startsOn || undefined,
           endsOn: endsOn || null,
           visibility,
         },
-      });
+      }).then(() => undefined);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
@@ -108,7 +174,7 @@ function AddAssignmentModal({
     onError: (e: Error) => setError(t(e.message)),
   });
 
-  const canSubmit = userId && jobTitleAr.trim().length >= 2 && jobTitleEn.trim().length >= 2;
+  const canSubmit = memberKind === "external" ? identifierComplete : Boolean(userId);
 
   return (
     <ResponsiveModal
@@ -132,6 +198,65 @@ function AddAssignmentModal({
     >
       <div className="space-y-4">
         <label className="flex flex-col gap-1 text-sm">
+          <span className="font-medium text-foreground">{t("projectTeam.memberKind")}</span>
+          <select
+            className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+            value={memberKind}
+            onChange={(e) => setMemberKind(e.target.value as "registered" | "external")}
+          >
+            <option value="registered">{t("projectTeam.kindRegistered")}</option>
+            <option value="external">{t("projectTeam.kindExternal")}</option>
+          </select>
+        </label>
+
+        {memberKind === "external" ? (
+          <>
+            <TextField
+              id="external-identifier"
+              label={t("projectTeam.nationalId")}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+              inputMode="numeric"
+              maxLength={10}
+              dir="ltr"
+              hint={t("projectTeam.nationalIdHint")}
+              required
+            />
+            {lookupState.status !== "idle" ? (
+              <p
+                aria-live="polite"
+                className={
+                  lookupState.status === "invalid" || lookupState.status === "throttled"
+                    ? "text-sm text-destructive"
+                    : "text-sm text-muted-foreground"
+                }
+              >
+                {lookupState.status === "searching" ? t("projectTeam.lookupSearching") : null}
+                {lookupState.status === "invalid" ? t("projectTeam.lookupInvalid") : null}
+                {lookupState.status === "throttled" ? t("projectTeam.lookupThrottled") : null}
+                {lookupState.status === "unregistered"
+                  ? t("projectTeam.lookupUnregistered")
+                  : null}
+                {lookupState.status === "registered"
+                  ? lookupState.displayName
+                    ? t("projectTeam.lookupRegistered", { name: lookupState.displayName })
+                    : t("projectTeam.lookupRegisteredNoName")
+                  : null}
+              </p>
+            ) : null}
+            <TextField
+              id="external-name"
+              label={t("projectTeam.nameOptional")}
+              value={externalName}
+              onChange={(e) => setExternalName(e.target.value)}
+            />
+          </>
+        ) : null}
+
+        <label
+          className="flex flex-col gap-1 text-sm"
+          hidden={memberKind === "external"}
+        >
           <span className="font-medium text-foreground">{t("projectTeam.member")}</span>
           <select
             className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
@@ -146,7 +271,7 @@ function AddAssignmentModal({
             ))}
           </select>
         </label>
-        {members.length === 0 && !membersQuery.isPending ? (
+        {memberKind === "registered" && members.length === 0 && !membersQuery.isPending ? (
           <p className="text-xs text-muted-foreground">{t("projectTeam.noAssignableMembers")}</p>
         ) : null}
 
@@ -155,14 +280,14 @@ function AddAssignmentModal({
           label={t("projectTeam.jobTitleAr")}
           value={jobTitleAr}
           onChange={(e) => setJobTitleAr(e.target.value)}
-          required
+          hint={t("projectTeam.jobTitleOptional")}
         />
         <TextField
           id="job-title-en"
           label={t("projectTeam.jobTitleEn")}
           value={jobTitleEn}
           onChange={(e) => setJobTitleEn(e.target.value)}
-          required
+          hint={t("projectTeam.jobTitleOptional")}
         />
 
         <label className="flex flex-col gap-1 text-sm">
