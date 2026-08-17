@@ -12,7 +12,20 @@ export const signInWithIdentifierFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { signInWithIdentifier } = await import("@/lib/auth-identity.server");
-    return signInWithIdentifier(data.identifier, data.password);
+    const { subjectHmac } = await import("@/lib/subject-hash.server");
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+
+    // بعد IP يُعتمد فقط من ترويسة حافة المنصة الموثوقة (Cloudflare)، لا من
+    // X-Forwarded-For الذي يمكن للعميل تزويره. عند غيابها نكتفي ببصمة المعرّف.
+    let clientKey = "";
+    try {
+      const edgeIp = getRequestHeader("cf-connecting-ip");
+      if (edgeIp) clientKey = subjectHmac(`login-ip|${edgeIp}`).slice(0, 32);
+    } catch {
+      /* لا سياق طلب أو لا مفتاح خادمي: يبقى بعد المعرّف وحده */
+    }
+
+    return signInWithIdentifier(data.identifier, data.password, clientKey);
   });
 
 export const signUpWithIdentityFn = createServerFn({ method: "POST" })
