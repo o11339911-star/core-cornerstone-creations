@@ -156,7 +156,7 @@ export function PreciseLocationSection(
           ) : (
             <p className="inline-flex items-center gap-1 text-sm font-medium text-destructive">
               <AlertTriangle className="size-4" aria-hidden="true" />
-              الموقع مطلوب — لا تكتمل المرحلة الأولى بدونه
+              {projectId ? "الموقع مطلوب — لا تكتمل المرحلة الأولى بدونه" : "الموقع مطلوب"}
             </p>
           )}
         </div>

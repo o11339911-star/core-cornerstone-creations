@@ -22,6 +22,7 @@ import {
   SoftEmpty,
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
+import { PreciseLocationSection } from "@/components/location/precise-location";
 import { formatNumber } from "@/lib/format";
 import { DeedVersionModal } from "@/components/properties/DeedVersionModal";
 import { LicenseVersionModal } from "@/components/properties/LicenseVersionModal";
@@ -451,19 +452,8 @@ function PropertyProfilePage() {
                   : "—"
               }
             />
-            <Field
-              label={t("properties.exactLocation")}
-              value={
-                p.can_view_exact
-                  ? (p.exact_address ??
-                    (p.exact_lat != null ? `${p.exact_lat}, ${p.exact_lng}` : "—"))
-                  : t("properties.exactHidden")
-              }
-            />
           </FieldGrid>
-          {!p.can_view_exact ? (
-            <p className="text-xs text-muted-foreground">{t("properties.exactHiddenHint")}</p>
-          ) : null}
+          <PreciseLocationSection propertyId={p.id} />
         </div>
       </SectionCard>
 
