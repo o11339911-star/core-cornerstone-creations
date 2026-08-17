@@ -323,15 +323,33 @@ export const getDealRequester = createServerFn({ method: "POST" })
     }
 
     let nationalId: string | null = null;
-    const cipher = typeof r["id_cipher"] === "string" ? (r["id_cipher"] as string) : null;
-    if (cipher) {
-      try {
-        const { decryptIdentity } = await import("@/lib/identity-crypto.server");
-        nationalId = decryptIdentity(cipher);
-      } catch {
-        nationalId = null;
+    if (r["kind"] === "person") {
+      // معرّف الطرف الأول يُقرأ بصلاحية المستخدم نفسه (RLS/deal_visible)، ثم يُفكّ التشفير
+      // خادميًا فقط عبر المسار الخدمي — لا يخرج أي cipher من القاعدة إلى الواجهة.
+      const { data: firstParty } = await context.supabase
+        .from("deal_parties")
+        .select("matched_user_id")
+        .eq("deal_id", data.dealId)
+        .eq("party_role", "first")
+        .maybeSingle();
+      const subjectId = (firstParty?.matched_user_id as string | null) ?? null;
+      if (subjectId) {
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: cipher } = await supabaseAdmin.rpc("svc_identity_cipher", {
+            _user_id: subjectId,
+            _actor: context.userId,
+          });
+          if (typeof cipher === "string" && cipher) {
+            const { decryptIdentity } = await import("@/lib/identity-crypto.server");
+            nationalId = decryptIdentity(cipher);
+          }
+        } catch {
+          nationalId = null;
+        }
       }
     }
+
 
     return {
       found: true,
