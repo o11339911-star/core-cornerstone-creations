@@ -480,8 +480,29 @@ export function sanitizeSheetName(name: string, fallback = "Sheet1"): string {
 }
 
 /** يبني XLSX قياسيًا من الأوراق والخلايا (نصوص مضمّنة + صيغ آمنة). */
-export function buildXlsxBlob(sheets: XlsxSheet[]): Blob {
-  const list = sheets.length ? sheets : [{ name: "Sheet1", cells: emptyGrid() }];
+export function buildXlsxBlob(sheets: XlsxSheet[], footer?: ArchiveFooter | null): Blob {
+  let list = sheets.length ? sheets : [{ name: "Sheet1", cells: emptyGrid() }];
+  if (footer) {
+    const lines = footerLines(footer);
+    list = list.map((s, i) =>
+      i !== 0
+        ? s
+        : {
+            ...s,
+            cells: [
+              ...s.cells,
+              Array.from({ length: s.cells[0]?.length ?? 8 }, () => ({ v: "", f: null })),
+              ...lines.map((line, li) =>
+                Array.from({ length: s.cells[0]?.length ?? 8 }, (_, ci) => ({
+                  v: ci === 0 ? line : "",
+                  f: null as string | null,
+                  ...(li < 0 ? {} : {}),
+                })),
+              ),
+            ],
+          },
+    );
+  }
   const names = new Set<string>();
   const safeSheets = list.map((s, i) => {
     let name = sanitizeSheetName(s.name, `Sheet${i + 1}`);
