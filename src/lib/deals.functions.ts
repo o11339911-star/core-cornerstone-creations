@@ -143,9 +143,15 @@ export const listDeals = createServerFn({ method: "GET" })
       const { deal_parties: _drop, ...rest } = row as Record<string, unknown> & {
         deal_parties?: unknown;
       };
+      const req = row.context_id ? requestMap.get(row.context_id as string) : undefined;
       return {
-        ...(rest as Omit<Deal, "parties" | "can_respond" | "is_owner">),
+        ...(rest as Omit<
+          Deal,
+          "parties" | "can_respond" | "is_owner" | "context_title" | "context_no"
+        >),
         parties,
+        context_title: req?.subject || null,
+        context_no: req?.no || null,
         can_respond: isSecond && second?.acceptance_status === "pending",
         is_owner: isOwner,
       } satisfies Deal;
