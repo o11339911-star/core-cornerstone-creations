@@ -279,7 +279,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          archive_reference: string
+          archive_reference?: string
           archived_at?: string
           archived_from?: string | null
           copied_from_id?: string | null
