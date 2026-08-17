@@ -179,6 +179,34 @@ function mapAssignmentError(error: { message: string }): Error {
   return new Error(error.message);
 }
 
+/** حفظ ذرّي لجمهور "أطراف محددة"؛ أي مستوى آخر ينظّف الروابط المحفوظة. */
+async function applyPartyAudience(
+  supabase: { rpc: (fn: string, args: unknown) => Promise<{ error: { message: string } | null }> },
+  assignmentId: string,
+  visibility: VisibilityLevel,
+  partyIds: string[] | undefined,
+): Promise<void> {
+  const ids = visibility === "limited" ? (partyIds ?? []) : [];
+  if (visibility === "limited" && ids.length === 0) {
+    throw new Error("اختر طرفًا واحدًا على الأقل من أطراف المشروع.");
+  }
+  const { error } = await supabase.rpc("set_assignment_party_audience", {
+    _assignment_id: assignmentId,
+    _party_ids: ids,
+  });
+  if (!error) return;
+  if (error.message.includes("NOT_AUTHORIZED")) {
+    throw new Error("لا تملك صلاحية تحديد جمهور الظهور في هذا المشروع.");
+  }
+  if (error.message.includes("PARTY_NOT_ELIGIBLE")) {
+    throw new Error("أحد الأطراف المختارة غير مؤهل (غير مقبول أو منتهي).");
+  }
+  if (error.message.includes("AUDIENCE_REQUIRED")) {
+    throw new Error("اختر طرفًا واحدًا على الأقل من أطراف المشروع.");
+  }
+  throw new Error("تعذّر حفظ جمهور الظهور. حاول مرة أخرى.");
+}
+
 /**
  * Creates a project assignment through the SECURITY DEFINER RPC only: the
  * database re-validates that `userId` is an active member of `entityId` and
