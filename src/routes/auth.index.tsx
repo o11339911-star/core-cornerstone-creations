@@ -257,6 +257,12 @@ function SignInForm() {
         >
           {t("auth.forgotPassword")}
         </Link>
+        <span className="px-2 text-muted-foreground" aria-hidden="true">
+          ·
+        </span>
+        <Link to="/verify-file" className="inline-block min-h-11 py-2 text-primary hover:underline">
+          تحقق من ملف
+        </Link>
       </div>
     </>
   );
