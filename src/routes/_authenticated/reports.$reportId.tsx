@@ -6,9 +6,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CardsSkeleton, ErrorState, HeroBadge, PageHero, RakeezCard, ReportEditor, SectionCard } from "@/components/rakeez";
 import { FileText } from "lucide-react";
 import { pageSetupSchema, reportContentSchema, type ReportContent } from "@/lib/reports/blocks";
+import { engineeringBlockMessage, reportErrorMessage } from "@/lib/reports/labels";
 import { formatDate } from "@/lib/format";
 import {
   approveReport,
+  checkEngineeringReportEligibility,
   createReportVersion,
   exportReportVersion,
   getEntityLicenseState,
@@ -59,6 +61,7 @@ function ReportDetailPage() {
   const newVersion = useServerFn(createReportVersion);
   const exportVersion = useServerFn(exportReportVersion);
   const downloadUrl = useServerFn(getReportDownloadUrl);
+  const checkEligibility = useServerFn(checkEngineeringReportEligibility);
 
   const [draft, setDraft] = React.useState<ReportContent | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
@@ -104,7 +107,7 @@ function ReportDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ["report", reportId] });
       setMessage(ok);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "تعذّر تنفيذ العملية");
+      setError(reportErrorMessage(e).message);
     }
   };
 
@@ -124,7 +127,7 @@ function ReportDetailPage() {
       setMessage("تم حفظ المسودة");
       await queryClient.invalidateQueries({ queryKey: ["report", reportId] });
     },
-    onError: (e: unknown) => setError(e instanceof Error ? e.message : "تعذّر الحفظ"),
+    onError: (e: unknown) => setError(reportErrorMessage(e).message),
   });
 
   const handleDownload = async (kind: "pdf" | "docx") => {
@@ -137,7 +140,7 @@ function ReportDetailPage() {
       window.open(url, "_blank", "noopener,noreferrer");
       setMessage("تم إنشاء رابط تنزيل صالح 60 ثانية فقط");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "تعذّر التصدير");
+      setError(reportErrorMessage(e).message);
     }
   };
 
@@ -168,7 +171,7 @@ function ReportDetailPage() {
             />
             <div className="flex flex-wrap justify-end gap-3">
               <div className="flex flex-wrap gap-2">
-                {current.status === "draft" ? (
+                {current.status === "draft" && !blockMessage ? (
                   <>
                     <button
                       type="button"
@@ -187,7 +190,7 @@ function ReportDetailPage() {
                     </button>
                   </>
                 ) : null}
-                {current.status === "pending_approval" ? (
+                {current.status === "pending_approval" && !blockMessage ? (
                   <button
                     type="button"
                     onClick={run(() => approve({ data: { versionId: current.id } }), "تم اعتماد التقرير وختمه")}
@@ -196,7 +199,7 @@ function ReportDetailPage() {
                     اعتماد وختم
                   </button>
                 ) : null}
-                {current.status === "approved" ? (
+                {current.status === "approved" && !blockMessage ? (
                   <button
                     type="button"
                     onClick={run(() => newVersion({ data: { reportId } }), "تم إنشاء إصدار جديد")}
@@ -222,6 +225,11 @@ function ReportDetailPage() {
               </div>
             </div>
 
+            {blockMessage ? (
+              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+                {blockMessage} هذا التقرير متاح للقراءة والمراجعة فقط.
+              </p>
+            ) : null}
             {licenseQuery.data && !licenseQuery.data.is_valid ? (
               <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
                 رخصة الجهة غير سارية. حدّث الرخصة أو اختر جهة إصدار مؤهلة.
