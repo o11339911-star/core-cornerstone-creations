@@ -6800,15 +6800,19 @@ export type Database = {
           deleted_at: string | null
           ends_on: string | null
           entity_id: string | null
+          external_display_name: string | null
           id: string
+          identifier_fingerprint: string | null
+          identifier_last4: string | null
           job_title_ar: string
           job_title_en: string
+          matched_user_id: string | null
           project_id: string
           stage_id: string | null
           starts_on: string
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
           visibility: Database["public"]["Enums"]["visibility_level"]
         }
         Insert: {
@@ -6817,15 +6821,19 @@ export type Database = {
           deleted_at?: string | null
           ends_on?: string | null
           entity_id?: string | null
+          external_display_name?: string | null
           id?: string
+          identifier_fingerprint?: string | null
+          identifier_last4?: string | null
           job_title_ar: string
           job_title_en: string
+          matched_user_id?: string | null
           project_id: string
           stage_id?: string | null
           starts_on?: string
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           visibility?: Database["public"]["Enums"]["visibility_level"]
         }
         Update: {
@@ -6834,15 +6842,19 @@ export type Database = {
           deleted_at?: string | null
           ends_on?: string | null
           entity_id?: string | null
+          external_display_name?: string | null
           id?: string
+          identifier_fingerprint?: string | null
+          identifier_last4?: string | null
           job_title_ar?: string
           job_title_en?: string
+          matched_user_id?: string | null
           project_id?: string
           stage_id?: string | null
           starts_on?: string
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           visibility?: Database["public"]["Enums"]["visibility_level"]
         }
         Relationships: [
@@ -6947,13 +6959,20 @@ export type Database = {
       }
       project_parties: {
         Row: {
+          cr_number: string | null
           created_at: string
           end_reason: string | null
           ended_at: string | null
           ends_on: string | null
           id: string
+          identifier_fingerprint: string | null
+          identifier_kind: string | null
+          identifier_last4: string | null
           invited_by: string
-          party_entity_id: string
+          matched_user_id: string | null
+          party_display_name: string | null
+          party_entity_id: string | null
+          party_kind: string
           party_role: Database["public"]["Enums"]["project_party_role"]
           project_id: string
           responded_at: string | null
@@ -6965,13 +6984,20 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cr_number?: string | null
           created_at?: string
           end_reason?: string | null
           ended_at?: string | null
           ends_on?: string | null
           id?: string
+          identifier_fingerprint?: string | null
+          identifier_kind?: string | null
+          identifier_last4?: string | null
           invited_by: string
-          party_entity_id: string
+          matched_user_id?: string | null
+          party_display_name?: string | null
+          party_entity_id?: string | null
+          party_kind?: string
           party_role: Database["public"]["Enums"]["project_party_role"]
           project_id: string
           responded_at?: string | null
@@ -6983,13 +7009,20 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cr_number?: string | null
           created_at?: string
           end_reason?: string | null
           ended_at?: string | null
           ends_on?: string | null
           id?: string
+          identifier_fingerprint?: string | null
+          identifier_kind?: string | null
+          identifier_last4?: string | null
           invited_by?: string
-          party_entity_id?: string
+          matched_user_id?: string | null
+          party_display_name?: string | null
+          party_entity_id?: string | null
+          party_kind?: string
           party_role?: Database["public"]["Enums"]["project_party_role"]
           project_id?: string
           responded_at?: string | null
@@ -9859,7 +9892,10 @@ export type Database = {
           display_name: string | null
           ends_on: string | null
           entity_id: string | null
+          external_display_name: string | null
           id: string | null
+          identifier_last4: string | null
+          is_external: boolean | null
           is_identified: boolean | null
           job_title_ar: string | null
           job_title_en: string | null
@@ -9874,7 +9910,10 @@ export type Database = {
           display_name?: never
           ends_on?: string | null
           entity_id?: string | null
+          external_display_name?: string | null
           id?: string | null
+          identifier_last4?: never
+          is_external?: never
           is_identified?: never
           job_title_ar?: string | null
           job_title_en?: string | null
@@ -9889,7 +9928,10 @@ export type Database = {
           display_name?: never
           ends_on?: string | null
           entity_id?: string | null
+          external_display_name?: string | null
           id?: string | null
+          identifier_last4?: never
+          is_external?: never
           is_identified?: never
           job_title_ar?: string | null
           job_title_en?: string | null
@@ -10385,6 +10427,22 @@ export type Database = {
         }
         Returns: string
       }
+      create_external_project_assignment: {
+        Args: {
+          _display_name: string
+          _ends_on?: string
+          _identifier_fingerprint: string
+          _identifier_last4: string
+          _job_title_ar: string
+          _job_title_en: string
+          _matched_user_id?: string
+          _project_id: string
+          _stage_id?: string
+          _starts_on?: string
+          _visibility?: string
+        }
+        Returns: string
+      }
       create_financial_document: {
         Args: {
           _contract_id?: string
@@ -10702,6 +10760,25 @@ export type Database = {
           _scope_text_en?: string
           _stage_ids?: string[]
           _starts_on?: string
+        }
+        Returns: string
+      }
+      invite_project_party_identified: {
+        Args: {
+          _cr_number: string
+          _display_name: string
+          _ends_on?: string
+          _identifier_fingerprint: string
+          _identifier_kind: string
+          _identifier_last4: string
+          _matched_entity_id: string
+          _matched_user_id: string
+          _party_kind: string
+          _party_role: Database["public"]["Enums"]["project_party_role"]
+          _permissions?: Json
+          _project_id: string
+          _scope_text_ar?: string
+          _stage_ids?: string[]
         }
         Returns: string
       }
