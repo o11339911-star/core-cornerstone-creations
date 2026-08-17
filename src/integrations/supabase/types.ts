@@ -207,8 +207,59 @@ export type Database = {
           },
         ]
       }
+      archive_item_versions: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          item_id: string
+          mime_type: string | null
+          note: string | null
+          size_bytes: number | null
+          storage_path: string
+          title: string
+          version_no: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          item_id: string
+          mime_type?: string | null
+          note?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          title: string
+          version_no: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          item_id?: string
+          mime_type?: string | null
+          note?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          title?: string
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archive_item_versions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "archive_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       archive_items: {
         Row: {
+          archive_reference: string
+          archived_at: string
+          archived_from: string | null
+          copied_from_id: string | null
           created_at: string
           created_by: string
           entity_id: string | null
@@ -217,15 +268,21 @@ export type Database = {
           kind: string
           mime_type: string | null
           note: string | null
+          original_file_number: string | null
           owner_user_id: string
           size_bytes: number | null
           source_id: string | null
           source_table: string | null
+          source_type: string | null
           storage_path: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          archive_reference?: string
+          archived_at?: string
+          archived_from?: string | null
+          copied_from_id?: string | null
           created_at?: string
           created_by: string
           entity_id?: string | null
@@ -234,15 +291,21 @@ export type Database = {
           kind?: string
           mime_type?: string | null
           note?: string | null
+          original_file_number?: string | null
           owner_user_id: string
           size_bytes?: number | null
           source_id?: string | null
           source_table?: string | null
+          source_type?: string | null
           storage_path?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          archive_reference?: string
+          archived_at?: string
+          archived_from?: string | null
+          copied_from_id?: string | null
           created_at?: string
           created_by?: string
           entity_id?: string | null
@@ -251,15 +314,24 @@ export type Database = {
           kind?: string
           mime_type?: string | null
           note?: string | null
+          original_file_number?: string | null
           owner_user_id?: string
           size_bytes?: number | null
           source_id?: string | null
           source_table?: string | null
+          source_type?: string | null
           storage_path?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "archive_items_copied_from_id_fkey"
+            columns: ["copied_from_id"]
+            isOneToOne: false
+            referencedRelation: "archive_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "archive_items_entity_id_fkey"
             columns: ["entity_id"]
@@ -272,6 +344,57 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "archive_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      archive_stamps: {
+        Row: {
+          checksum_sha256: string
+          created_by: string
+          id: string
+          issued_at: string
+          issuer_public_name: string
+          item_id: string
+          public_title: string
+          status: string
+          version_id: string | null
+        }
+        Insert: {
+          checksum_sha256: string
+          created_by: string
+          id?: string
+          issued_at?: string
+          issuer_public_name: string
+          item_id: string
+          public_title: string
+          status?: string
+          version_id?: string | null
+        }
+        Update: {
+          checksum_sha256?: string
+          created_by?: string
+          id?: string
+          issued_at?: string
+          issuer_public_name?: string
+          item_id?: string
+          public_title?: string
+          status?: string
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archive_stamps_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "archive_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archive_stamps_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "archive_item_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -10988,6 +11111,10 @@ export type Database = {
         }
         Returns: string
       }
+      issue_archive_stamp: {
+        Args: { p_checksum: string; p_item_id: string; p_version_id?: string }
+        Returns: Json
+      }
       issue_financial_document: {
         Args: { _document_id: string }
         Returns: string
@@ -12133,6 +12260,10 @@ export type Database = {
         Returns: string
       }
       use_advanced_analytics: { Args: { _entity_id: string }; Returns: Json }
+      verify_archive_file: {
+        Args: { p_issued_on: string; p_reference: string }
+        Returns: Json
+      }
       verify_dsr_identity: {
         Args: { _method: string; _note_ar?: string; _request_id: string }
         Returns: undefined

@@ -185,9 +185,54 @@ export function parseDocx(bytes: Uint8Array): DocxModel {
 /* DOCX — بناء                                                         */
 /* ------------------------------------------------------------------ */
 
-async function docxDocument(blocks: DocxBlock[]) {
-  const { Document, Paragraph, HeadingLevel, TextRun, Table, TableRow, TableCell, WidthType } =
-    await import("docx");
+/** تذييل الملف الصادر من أرشيف ركيز (يظهر أسفل كل مستند منزّل). */
+export type ArchiveFooter = {
+  reference: string;
+  fileDate: string;
+  platformName?: string;
+  platformUrl?: string;
+  verifyUrl?: string;
+  fingerprint?: string | null;
+};
+
+export const RAKEEZ_PLATFORM_NAME = "منصة ركيز";
+export const RAKEEZ_PLATFORM_URL = "https://core-cornerstone-creations.lovable.app";
+export const RAKEEZ_VERIFY_URL = `${RAKEEZ_PLATFORM_URL}/verify-file`;
+
+/** أسطر التذييل الموحدة (أرقام غربية فقط). */
+export function footerLines(footer: ArchiveFooter): string[] {
+  const lines = [
+    "ملف صادر من أرشيف ركيز",
+    `${footer.platformName ?? RAKEEZ_PLATFORM_NAME} — ${footer.platformUrl ?? RAKEEZ_PLATFORM_URL}`,
+    `رقم الملف: ${toAsciiDigits(footer.reference)}`,
+    `تاريخ الملف: ${toAsciiDigits(footer.fileDate)}`,
+    `رابط التحقق: ${footer.verifyUrl ?? RAKEEZ_VERIFY_URL}`,
+  ];
+  if (footer.fingerprint) lines.push(`بصمة ركيز: ${footer.fingerprint}`);
+  return lines;
+}
+
+/** بصمة SHA-256 بصيغة hex صغيرة — سجل سلامة داخلي وليس توقيعًا حكوميًا. */
+export async function sha256Hex(blob: Blob): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function docxDocument(blocks: DocxBlock[], footer?: ArchiveFooter | null) {
+  const {
+    Document,
+    Paragraph,
+    HeadingLevel,
+    TextRun,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+    Footer,
+    AlignmentType,
+  } = await import("docx");
 
   const runs = (text: string) =>
     text
@@ -233,16 +278,34 @@ async function docxDocument(blocks: DocxBlock[]) {
   }
   if (!children.length) children.push(new Paragraph({ bidirectional: true, children: [] }));
 
+  const footers = footer
+    ? {
+        default: new Footer({
+          children: footerLines(footer).map(
+            (line) =>
+              new Paragraph({
+                bidirectional: true,
+                alignment: AlignmentType.CENTER,
+                children: [new TextRun({ text: line, rightToLeft: true, size: 16 })],
+              }),
+          ),
+        }),
+      }
+    : undefined;
+
   return new Document({
     styles: { default: { document: { run: { font: "Arial", size: 24 } } } },
-    sections: [{ properties: {}, children }],
+    sections: [{ properties: {}, ...(footers ? { footers } : {}), children }],
   });
 }
 
 /** يبني DOCX قياسيًا من نموذج التحرير. */
-export async function buildDocxBlob(blocks: DocxBlock[]): Promise<Blob> {
+export async function buildDocxBlob(
+  blocks: DocxBlock[],
+  footer?: ArchiveFooter | null,
+): Promise<Blob> {
   const { Packer } = await import("docx");
-  const doc = await docxDocument(blocks);
+  const doc = await docxDocument(blocks, footer);
   const blob = await Packer.toBlob(doc);
   return new Blob([blob], { type: DOCX_MIME });
 }
@@ -417,8 +480,28 @@ export function sanitizeSheetName(name: string, fallback = "Sheet1"): string {
 }
 
 /** يبني XLSX قياسيًا من الأوراق والخلايا (نصوص مضمّنة + صيغ آمنة). */
-export function buildXlsxBlob(sheets: XlsxSheet[]): Blob {
-  const list = sheets.length ? sheets : [{ name: "Sheet1", cells: emptyGrid() }];
+export function buildXlsxBlob(sheets: XlsxSheet[], footer?: ArchiveFooter | null): Blob {
+  let list = sheets.length ? sheets : [{ name: "Sheet1", cells: emptyGrid() }];
+  if (footer) {
+    const lines = footerLines(footer);
+    list = list.map((s, i) =>
+      i !== 0
+        ? s
+        : {
+            ...s,
+            cells: [
+              ...s.cells,
+              Array.from({ length: s.cells[0]?.length ?? 8 }, () => ({ v: "", f: null })),
+              ...lines.map((line) =>
+                Array.from({ length: s.cells[0]?.length ?? 8 }, (_, ci) => ({
+                  v: ci === 0 ? line : "",
+                  f: null as string | null,
+                })),
+              ),
+            ],
+          },
+    );
+  }
   const names = new Set<string>();
   const safeSheets = list.map((s, i) => {
     let name = sanitizeSheetName(s.name, `Sheet${i + 1}`);
@@ -538,10 +621,3 @@ export function withExtension(name: string, ext: ".docx" | ".xlsx"): string {
 }
 
 /** اسم النسخة الجديدة: «الاسم — نسخة YYYY-MM-DD HH:mm». */
-export function versionedName(title: string, at: Date = new Date()): string {
-  const kind = /\.xlsx$/i.test(title) ? ".xlsx" : ".docx";
-  const base = title.replace(/\.(docx|xlsx)$/i, "").replace(/ — نسخة [\d\-: ]+$/, "");
-  const p = (n: number) => String(n).padStart(2, "0");
-  const stamp = `${at.getFullYear()}-${p(at.getMonth() + 1)}-${p(at.getDate())} ${p(at.getHours())}:${p(at.getMinutes())}`;
-  return `${base} — نسخة ${stamp}${kind}`;
-}

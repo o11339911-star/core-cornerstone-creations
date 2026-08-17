@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
+import { Route as VerifyFileRouteImport } from './routes/verify-file'
 import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
 import { Route as AuthenticatedArchiveRouteImport } from './routes/_authenticated/archive'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
@@ -105,6 +106,11 @@ const AuthRoute = AuthRouteImport.update({
 const SelectAccountRoute = SelectAccountRouteImport.update({
   id: '/select-account',
   path: '/select-account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyFileRoute = VerifyFileRouteImport.update({
+  id: '/verify-file',
+  path: '/verify-file',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppointmentsRoute =
@@ -536,6 +542,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/verify-file': typeof VerifyFileRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/archive': typeof AuthenticatedArchiveRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -614,6 +621,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/select-account': typeof SelectAccountRoute
+  '/verify-file': typeof VerifyFileRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/archive': typeof AuthenticatedArchiveRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -694,6 +702,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/verify-file': typeof VerifyFileRoute
   '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
   '/_authenticated/archive': typeof AuthenticatedArchiveRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
@@ -775,6 +784,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/select-account'
+    | '/verify-file'
     | '/appointments'
     | '/archive'
     | '/calls'
@@ -853,6 +863,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/select-account'
+    | '/verify-file'
     | '/appointments'
     | '/archive'
     | '/calls'
@@ -932,6 +943,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/select-account'
+    | '/verify-file'
     | '/_authenticated/appointments'
     | '/_authenticated/archive'
     | '/_authenticated/calls'
@@ -1013,6 +1025,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   SelectAccountRoute: typeof SelectAccountRoute
+  VerifyFileRoute: typeof VerifyFileRoute
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
   LegalComplaintsRoute: typeof LegalComplaintsRoute
@@ -1053,6 +1066,13 @@ declare module '@tanstack/react-router' {
       path: '/select-account'
       fullPath: '/select-account'
       preLoaderRoute: typeof SelectAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-file': {
+      id: '/verify-file'
+      path: '/verify-file'
+      fullPath: '/verify-file'
+      preLoaderRoute: typeof VerifyFileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/appointments': {
@@ -1764,6 +1784,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   SelectAccountRoute: SelectAccountRoute,
+  VerifyFileRoute: VerifyFileRoute,
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,
   LegalComplaintsRoute: LegalComplaintsRoute,

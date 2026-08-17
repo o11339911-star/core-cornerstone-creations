@@ -4,7 +4,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Archive as ArchiveIcon,
+  Copy,
   Download,
+  Info,
   FileSpreadsheet,
   FileText,
   FolderPlus,
@@ -46,6 +48,7 @@ import {
   SectionCard,
   SoftEmpty,
 } from "@/components/rakeez";
+import { DownloadDialog, type DownloadTarget } from "@/components/archive/download-dialog";
 import { OfficeEditor, type OfficeTarget } from "@/components/archive/office-editor";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -62,7 +65,9 @@ import { formatDateTime, formatNumber } from "@/lib/format";
 import {
   addToArchive,
   createArchiveFolder,
+  copyArchiveFile,
   getArchiveFileUrl,
+  listArchiveVersions,
   getArchiveUploadPrefix,
   listArchiveFolders,
   listArchiveItems,
@@ -146,6 +151,8 @@ function ArchivePage() {
   const patchItem = useServerFn(updateArchiveItem);
   const deleteItem = useServerFn(removeArchiveItem);
   const signUrl = useServerFn(getArchiveFileUrl);
+  const copyFile = useServerFn(copyArchiveFile);
+  const fetchVersions = useServerFn(listArchiveVersions);
   const uploadPrefix = useServerFn(getArchiveUploadPrefix);
 
   const [folderId, setFolderId] = React.useState<string | null>(null);
@@ -164,6 +171,60 @@ function ArchivePage() {
   const [createFolderId, setCreateFolderId] = React.useState<string | null>(null);
   const [moveTarget, setMoveTarget] = React.useState<{ id: string; title: string } | null>(null);
   const [officeTarget, setOfficeTarget] = React.useState<OfficeTarget | null>(null);
+  const [downloadTarget, setDownloadTarget] = React.useState<DownloadTarget | null>(null);
+  const [detailsTarget, setDetailsTarget] = React.useState<{
+    id: string;
+    title: string;
+    reference: string;
+    archivedAt: string;
+    originalNumber: string | null;
+    copiedFrom: string | null;
+  } | null>(null);
+
+  const versions = useQuery({
+    queryKey: ["archive", "versions", detailsTarget?.id],
+    queryFn: () => fetchVersions({ data: { itemId: detailsTarget!.id } }),
+    enabled: !!detailsTarget,
+  });
+
+  // «نسخ ملف» هو الإجراء الوحيد الذي ينشئ بطاقة وملفًا جديدين بمرجع جديد
+  const copyMutation = useMutation({
+    mutationFn: async (item: { id: string; title: string; storagePath: string }) => {
+      const url = await signUrl({ data: { path: item.storagePath } });
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("تعذّر قراءة الملف الأصلي.");
+      const blob = await res.blob();
+      const title = `نسخة من ${item.title}`;
+      const prefix = await uploadPrefix({ data: { entityId } });
+      const path = `${prefix}/${crypto.randomUUID()}-${safeName(title)}`;
+      const { error } = await supabase.storage
+        .from("archive")
+        .upload(path, blob, { contentType: blob.type || "application/octet-stream", upsert: false });
+      if (error) throw new Error(error.message);
+      try {
+        await copyFile({
+          data: {
+            sourceItemId: item.id,
+            title,
+            storagePath: path,
+            mimeType: blob.type || null,
+            sizeBytes: blob.size,
+          },
+        });
+      } catch (e) {
+        await supabase.storage.from("archive").remove([path]);
+        throw e;
+      }
+    },
+    onSuccess: () => {
+      toast.success("تم إنشاء نسخة جديدة بمرجع مستقل");
+      void qc.invalidateQueries({ queryKey: ["archive"] });
+    },
+    onError: (e: unknown) =>
+      toast.error("تعذّر نسخ الملف", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
+  });
 
   const folders = useQuery({
     queryKey: ["archive", "folders", entityId],
@@ -325,15 +386,6 @@ function ArchivePage() {
       });
     } finally {
       setUploading(false);
-    }
-  };
-
-  const download = async (path: string) => {
-    try {
-      const url = await signUrl({ data: { path } });
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error("تعذّر فتح الملف");
     }
   };
 
@@ -519,7 +571,9 @@ function ArchivePage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-foreground">{item.title}</p>
                       <p className="mt-1 truncate text-xs text-muted-foreground">
-                        <bdi dir="ltr">{formatDateTime(item.created_at)}</bdi>
+                        <bdi dir="ltr">{item.archive_reference}</bdi>
+                        {" · "}
+                        <bdi dir="ltr">{formatDateTime(item.archived_at ?? item.created_at)}</bdi>
                         {item.size_bytes
                           ? ` · ${formatNumber(Math.round(item.size_bytes / 1024))} KB`
                           : ""}
@@ -580,11 +634,48 @@ function ArchivePage() {
                         ) : null}
                         {item.storage_path ? (
                           <DropdownMenuItem
-                            onSelect={() => void download(item.storage_path as string)}
+                            onSelect={() =>
+                              setDownloadTarget({
+                                id: item.id,
+                                title: item.title,
+                                storagePath: item.storage_path as string,
+                                reference: item.archive_reference,
+                                archivedAt: item.archived_at ?? item.created_at,
+                                mimeType: item.mime_type,
+                              })
+                            }
                           >
                             <Download className="me-2 size-4" aria-hidden="true" /> تنزيل
                           </DropdownMenuItem>
                         ) : null}
+                        {item.storage_path ? (
+                          <DropdownMenuItem
+                            disabled={copyMutation.isPending}
+                            onSelect={() =>
+                              copyMutation.mutate({
+                                id: item.id,
+                                title: item.title,
+                                storagePath: item.storage_path as string,
+                              })
+                            }
+                          >
+                            <Copy className="me-2 size-4" aria-hidden="true" /> نسخ ملف
+                          </DropdownMenuItem>
+                        ) : null}
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            setDetailsTarget({
+                              id: item.id,
+                              title: item.title,
+                              reference: item.archive_reference,
+                              archivedAt: item.archived_at ?? item.created_at,
+                              originalNumber: item.original_file_number,
+                              copiedFrom: item.copied_from_id,
+                            })
+                          }
+                        >
+                          <Info className="me-2 size-4" aria-hidden="true" /> تفاصيل وسجل التعديلات
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onSelect={() => setMoveTarget({ id: item.id, title: item.title })}
                         >
@@ -613,6 +704,79 @@ function ArchivePage() {
       </ContextMenu>
 
       {/* Action Sheet للجوال */}
+      <DownloadDialog target={downloadTarget} onClose={() => setDownloadTarget(null)} />
+
+      <ResponsiveModal
+        open={detailsTarget !== null}
+        onOpenChange={(o) => !o && setDetailsTarget(null)}
+        title="تفاصيل الملف"
+        description="سجل تعديلات الملف داخلي ولا يكرر الملف في القائمة."
+      >
+        {detailsTarget ? (
+          <div className="space-y-4 pb-2">
+            <dl className="grid gap-2 text-sm">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">اسم الملف</dt>
+                <dd className="font-medium text-foreground">{detailsTarget.title}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">رقم الملف</dt>
+                <dd className="font-medium text-foreground">
+                  <bdi dir="ltr">{detailsTarget.reference}</bdi>
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">تاريخ الأرشفة</dt>
+                <dd className="font-medium text-foreground">
+                  <bdi dir="ltr">{formatDateTime(detailsTarget.archivedAt)}</bdi>
+                </dd>
+              </div>
+              {detailsTarget.originalNumber ? (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">رقم الأصل</dt>
+                  <dd className="font-medium text-foreground">
+                    <bdi dir="ltr">{detailsTarget.originalNumber}</bdi>
+                  </dd>
+                </div>
+              ) : null}
+              {detailsTarget.copiedFrom ? (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted-foreground">المصدر</dt>
+                  <dd className="font-medium text-foreground">نسخة من ملف آخر في الأرشيف</dd>
+                </div>
+              ) : null}
+            </dl>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-foreground">سجل تعديلات الملف</p>
+              {versions.isPending ? (
+                <Skeleton className="h-16 w-full rounded-xl" />
+              ) : versions.isError ? (
+                <ErrorState
+                  description="تعذّر تحميل سجل التعديلات"
+                  onRetry={() => void versions.refetch()}
+                />
+              ) : !versions.data?.length ? (
+                <p className="text-xs text-muted-foreground">لا توجد تعديلات محفوظة بعد.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {versions.data.map((v) => (
+                    <li key={v.id} className="rounded-xl border border-border p-3 text-xs">
+                      <p className="font-medium text-foreground">
+                        التعديل رقم <bdi dir="ltr">{formatNumber(v.version_no)}</bdi> — {v.title}
+                      </p>
+                      <p className="mt-1 text-muted-foreground">
+                        <bdi dir="ltr">{formatDateTime(v.created_at)}</bdi>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        ) : null}
+      </ResponsiveModal>
+
       <ResponsiveModal
         open={sheetOpen}
         onOpenChange={setSheetOpen}

@@ -36,6 +36,10 @@ export type ArchiveFolder = {
 
 export type ArchiveItem = {
   id: string;
+  archive_reference: string;
+  archived_at: string;
+  original_file_number: string | null;
+  copied_from_id: string | null;
   folder_id: string | null;
   title: string;
   kind: string;
@@ -118,7 +122,7 @@ export const listArchiveItems = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("archive_items")
       .select(
-        "id, folder_id, title, kind, source_table, source_id, storage_path, mime_type, size_bytes, note, created_at",
+        "id, archive_reference, archived_at, original_file_number, copied_from_id, folder_id, title, kind, source_table, source_id, storage_path, mime_type, size_bytes, note, created_at",
       );
     q = data.entityId ? q.eq("entity_id", data.entityId) : q.is("entity_id", null);
     if (data.folderId) q = q.eq("folder_id", data.folderId);
@@ -242,3 +246,164 @@ export const getArchiveUploadPrefix = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<string> =>
     data.entityId ? `e/${data.entityId}` : `u/${context.userId}`,
   );
+
+/* ------------------------------------------------------------------ */
+/* سجل النسخ، النسخ، والتوثيق                                          */
+/* ------------------------------------------------------------------ */
+
+export type ArchiveVersion = {
+  id: string;
+  version_no: number;
+  title: string;
+  storage_path: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  note: string | null;
+  created_at: string;
+};
+
+/** سجل تعديلات ملف واحد — داخلي، لا يظهر في قائمة الأرشيف. */
+export const listArchiveVersions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ itemId: uuid }).parse(input))
+  .handler(async ({ data, context }): Promise<ArchiveVersion[]> => {
+    const { data: rows, error } = await context.supabase
+      .from("archive_item_versions")
+      .select("id, version_no, title, storage_path, mime_type, size_bytes, note, created_at")
+      .eq("item_id", data.itemId)
+      .order("version_no", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as ArchiveVersion[];
+  });
+
+/**
+ * حفظ تعديل على نفس الملف: يحدّث نفس archive_item_id ونفس البطاقة،
+ * ويسجّل النسخة في version_history — لا ينشئ بطاقة جديدة أبدًا.
+ */
+export const saveArchiveFileVersion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        itemId: uuid,
+        title: z.string().trim().min(1).max(200),
+        storagePath: z.string().min(3).max(400),
+        mimeType: z.string().max(160),
+        sizeBytes: z.number().int().min(0),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ previousPath: string | null }> => {
+    const { data: item, error: readError } = await context.supabase
+      .from("archive_items")
+      .select("id, storage_path")
+      .eq("id", data.itemId)
+      .maybeSingle();
+    if (readError) throw new Error(readError.message);
+    if (!item) throw new Error("NOT_FOUND");
+
+    const { data: last } = await context.supabase
+      .from("archive_item_versions")
+      .select("version_no")
+      .eq("item_id", data.itemId)
+      .order("version_no", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextNo = ((last?.version_no as number | undefined) ?? 0) + 1;
+
+    const { error: versionError } = await context.supabase.from("archive_item_versions").insert({
+      item_id: data.itemId,
+      version_no: nextNo,
+      title: data.title,
+      storage_path: data.storagePath,
+      mime_type: data.mimeType,
+      size_bytes: data.sizeBytes,
+      created_by: context.userId,
+    });
+    if (versionError) throw new Error(versionError.message);
+
+    const { error } = await context.supabase
+      .from("archive_items")
+      .update({
+        title: data.title,
+        storage_path: data.storagePath,
+        mime_type: data.mimeType,
+        size_bytes: data.sizeBytes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.itemId);
+    if (error) throw new Error(error.message);
+
+    return { previousPath: (item.storage_path as string | null) ?? null };
+  });
+
+/** نسخ ملف: بطاقة جديدة بمرجع جديد مع حفظ copied_from_id. */
+export const copyArchiveFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        sourceItemId: uuid,
+        title: z.string().trim().min(1).max(200),
+        storagePath: z.string().min(3).max(400),
+        mimeType: z.string().max(160).nullable().default(null),
+        sizeBytes: z.number().int().min(0).nullable().default(null),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ id: string; reference: string }> => {
+    const { data: src, error: readError } = await context.supabase
+      .from("archive_items")
+      .select("entity_id, folder_id, kind, original_file_number, archive_reference")
+      .eq("id", data.sourceItemId)
+      .maybeSingle();
+    if (readError) throw new Error(readError.message);
+    if (!src) throw new Error("NOT_FOUND");
+
+    const { data: row, error } = await context.supabase
+      .from("archive_items")
+      .insert({
+        entity_id: src.entity_id as string | null,
+        owner_user_id: context.userId,
+        folder_id: src.folder_id as string | null,
+        title: data.title,
+        kind: "file",
+        storage_path: data.storagePath,
+        mime_type: data.mimeType,
+        size_bytes: data.sizeBytes,
+        original_file_number: (src.original_file_number as string | null) ?? null,
+        copied_from_id: data.sourceItemId,
+        archived_from: "archive_copy",
+        source_type: "archive_item",
+        source_id: data.sourceItemId,
+        created_by: context.userId,
+      })
+      .select("id, archive_reference")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: row.id as string, reference: row.archive_reference as string };
+  });
+
+/** إصدار بصمة ركيز لنسخة ثابتة — سجل سلامة داخلي وليس توقيعًا حكوميًا. */
+export const issueArchiveStamp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ itemId: uuid, checksum: z.string().regex(/^[0-9a-f]{64}$/) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: res, error } = await context.supabase.rpc("issue_archive_stamp", {
+      p_item_id: data.itemId,
+      p_checksum: data.checksum,
+    });
+    if (error) throw new Error(error.message);
+    return res as {
+      reference: string;
+      issued_at: string;
+      fingerprint: string;
+      issuer: string;
+      status: string;
+    };
+  });
