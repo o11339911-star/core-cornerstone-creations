@@ -37,6 +37,7 @@ import {
   StatGrid,
 } from "@/components/rakeez";
 import { getProjectOverview, type ProjectOverview } from "@/lib/project-overview.functions";
+import { PreciseLocationSection } from "@/components/location/precise-location";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/")({
   component: ProjectOverviewPage,
@@ -238,6 +239,8 @@ function ProjectOverviewPage() {
         )}
       </div>
 
+      <PreciseLocationSection projectId={projectId} />
+
       <StatGrid>
         <StatCard
           icon={Layers}
@@ -297,14 +300,6 @@ function ProjectOverviewPage() {
         </SectionCard>
 
         <SectionCard icon={MapPin} title="الموقع">
-          <div
-            aria-hidden="true"
-            className="mb-4 flex h-28 items-center justify-center rounded-lg bg-secondary/60 bg-[radial-gradient(circle_at_1px_1px,var(--color-primary)_1px,transparent_0)] [background-size:14px_14px]"
-          >
-            <span className="rounded-full bg-card px-3 py-1 text-xs font-medium text-primary shadow-card">
-              {loc["district"] ? str(loc["district"]) : "الموقع"}
-            </span>
-          </div>
           <FieldGrid>
             <Field label="المدينة" value={str(loc["city"])} />
             <Field label="الحي" value={str(loc["district"])} />

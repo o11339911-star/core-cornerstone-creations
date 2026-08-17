@@ -16,12 +16,12 @@ import {
   CardsSkeleton,
 } from "@/components/rakeez";
 import { MapPin, AlertTriangle, ClipboardList } from "lucide-react";
+import { PreciseLocationSection } from "@/components/location/precise-location";
 import { listStages } from "@/lib/stages.functions";
 import { formatDateTime } from "@/lib/format";
 import {
   OBSERVATION_KINDS,
   OBSERVATION_SEVERITIES,
-  VISIT_REASONS,
   addObservationAction,
   createObservation,
   createVisit,
@@ -56,7 +56,6 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/visits
 
 type Kind = (typeof OBSERVATION_KINDS)[number];
 type Severity = (typeof OBSERVATION_SEVERITIES)[number];
-type Reason = (typeof VISIT_REASONS)[number];
 
 function VisitsPage() {
   const t = useT();
@@ -71,10 +70,6 @@ function VisitsPage() {
 
   const [error, setError] = React.useState<string | null>(null);
   const [summary, setSummary] = React.useState("");
-  const [consent, setConsent] = React.useState(false);
-  const [reason, setReason] = React.useState<Reason>("inspection");
-  const [lat, setLat] = React.useState("");
-  const [lng, setLng] = React.useState("");
   const [obsStage, setObsStage] = React.useState("");
   const [obsKind, setObsKind] = React.useState<Kind>("nonconformity");
   const [obsSeverity, setObsSeverity] = React.useState<Severity>("medium");
@@ -111,16 +106,9 @@ function VisitsPage() {
           data: {
             projectId,
             summary: summary.trim() || null,
-            locationConsent: consent,
-            locationReason: consent ? reason : null,
-            lat: consent && lat ? Number(lat) : null,
-            lng: consent && lng ? Number(lng) : null,
           },
         });
         setSummary("");
-        setLat("");
-        setLng("");
-        setConsent(false);
       }),
   });
 
@@ -153,7 +141,12 @@ function VisitsPage() {
       ) : null}
 
       <SectionCard icon={MapPin} title={t("visits.newVisit")}>
-        <p className="mb-4 text-xs text-muted-foreground">{t("visits.locationHint")}</p>
+        <p className="mb-4 text-xs text-muted-foreground">
+          لا تسجّل الزيارة موقعًا جديدًا؛ يُعتمد الموقع الدقيق المحفوظ للمشروع.
+        </p>
+        <div className="mb-4">
+          <PreciseLocationSection projectId={projectId} />
+        </div>
         <form
           className="grid gap-4"
           onSubmit={(e) => {
@@ -167,44 +160,6 @@ function VisitsPage() {
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
           />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-            />
-            <span>{t("visits.locationConsent")}</span>
-          </label>
-          {consent ? (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-foreground">{t("visits.locationReason")}</span>
-                <select
-                  className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value as Reason)}
-                >
-                  {VISIT_REASONS.map((r) => (
-                    <option key={r} value={r}>
-                      {t(`visits.reasons.${r}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <TextField
-                id="visit-lat"
-                label="Lat"
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-              />
-              <TextField
-                id="visit-lng"
-                label="Lng"
-                value={lng}
-                onChange={(e) => setLng(e.target.value)}
-              />
-            </div>
-          ) : null}
           <button
             type="submit"
             className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground"
@@ -214,104 +169,110 @@ function VisitsPage() {
         </form>
       </SectionCard>
 
-      <SectionCard icon={ClipboardList} title={t("visits.title")} count={visitsQuery.data?.length ?? 0}>
-          <AsyncBoundary
-            isLoading={visitsQuery.isLoading}
-            isError={visitsQuery.isError}
-            loadingFallback={<CardsSkeleton cards={1} />}
-          >
-            {(visitsQuery.data ?? []).length === 0 ? (
-              <SoftEmpty icon={ClipboardList} message={t("visits.noVisits")} />
-            ) : (
-              <ul className="grid gap-2 text-sm">
-                {(visitsQuery.data ?? []).map((v) => (
-                  <li key={v.id} className="flex flex-wrap justify-between gap-2">
-                    <span>{v.summary ?? "—"}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDateTime(v.visit_start)}
-                      {v.location_consent ? ` · ${t(`visits.reasons.${v.location_reason ?? "other"}`)}` : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </AsyncBoundary>
+      <SectionCard
+        icon={ClipboardList}
+        title={t("visits.title")}
+        count={visitsQuery.data?.length ?? 0}
+      >
+        <AsyncBoundary
+          isLoading={visitsQuery.isLoading}
+          isError={visitsQuery.isError}
+          loadingFallback={<CardsSkeleton cards={1} />}
+        >
+          {(visitsQuery.data ?? []).length === 0 ? (
+            <SoftEmpty icon={ClipboardList} message={t("visits.noVisits")} />
+          ) : (
+            <ul className="grid gap-2 text-sm">
+              {(visitsQuery.data ?? []).map((v) => (
+                <li key={v.id} className="flex flex-wrap justify-between gap-2">
+                  <span>{v.summary ?? "—"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDateTime(v.visit_start)}
+                    {v.location_consent
+                      ? ` · ${t(`visits.reasons.${v.location_reason ?? "other"}`)}`
+                      : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AsyncBoundary>
       </SectionCard>
 
       <SectionCard icon={AlertTriangle} title={t("visits.newObservation")}>
-          <form
-            className="grid gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              observationMutation.mutate();
-            }}
+        <form
+          className="grid gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            observationMutation.mutate();
+          }}
+        >
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium text-foreground">{t("stages.stage")}</span>
+              <select
+                className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                value={obsStage}
+                onChange={(e) => setObsStage(e.target.value)}
+                required
+              >
+                <option value="">—</option>
+                {(stagesQuery.data ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name_ar}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium text-foreground">{t("visits.kind")}</span>
+              <select
+                className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                value={obsKind}
+                onChange={(e) => setObsKind(e.target.value as Kind)}
+              >
+                {OBSERVATION_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {t(`visits.kinds.${k}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium text-foreground">{t("visits.severity")}</span>
+              <select
+                className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                value={obsSeverity}
+                onChange={(e) => setObsSeverity(e.target.value as Severity)}
+              >
+                {OBSERVATION_SEVERITIES.map((s) => (
+                  <option key={s} value={s}>
+                    {t(`visits.severities.${s}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <TextField
+            id="obs-title"
+            label={t("visits.obsTitle")}
+            value={obsTitle}
+            onChange={(e) => setObsTitle(e.target.value)}
+            required
+          />
+          <TextAreaField
+            id="obs-body"
+            label={t("visits.obsBody")}
+            value={obsBody}
+            onChange={(e) => setObsBody(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground"
           >
-            <div className="grid gap-4 sm:grid-cols-3">
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-foreground">{t("stages.stage")}</span>
-                <select
-                  className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-                  value={obsStage}
-                  onChange={(e) => setObsStage(e.target.value)}
-                  required
-                >
-                  <option value="">—</option>
-                  {(stagesQuery.data ?? []).map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name_ar}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-foreground">{t("visits.kind")}</span>
-                <select
-                  className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-                  value={obsKind}
-                  onChange={(e) => setObsKind(e.target.value as Kind)}
-                >
-                  {OBSERVATION_KINDS.map((k) => (
-                    <option key={k} value={k}>
-                      {t(`visits.kinds.${k}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-foreground">{t("visits.severity")}</span>
-                <select
-                  className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-                  value={obsSeverity}
-                  onChange={(e) => setObsSeverity(e.target.value as Severity)}
-                >
-                  {OBSERVATION_SEVERITIES.map((s) => (
-                    <option key={s} value={s}>
-                      {t(`visits.severities.${s}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <TextField
-              id="obs-title"
-              label={t("visits.obsTitle")}
-              value={obsTitle}
-              onChange={(e) => setObsTitle(e.target.value)}
-              required
-            />
-            <TextAreaField
-              id="obs-body"
-              label={t("visits.obsBody")}
-              value={obsBody}
-              onChange={(e) => setObsBody(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground"
-            >
-              {t("visits.newObservation")}
-            </button>
-          </form>
+            {t("visits.newObservation")}
+          </button>
+        </form>
       </SectionCard>
 
       <div className="grid gap-4">
@@ -321,9 +282,14 @@ function VisitsPage() {
           loadingFallback={<CardsSkeleton cards={1} />}
         >
           {(observationsQuery.data ?? []).map((o) => (
-            <ObservationCard key={o.id} observationId={o.id} title={o.title}
+            <ObservationCard
+              key={o.id}
+              observationId={o.id}
+              title={o.title}
               subtitle={`${t(`visits.kinds.${o.kind}`)} · ${t(`visits.severities.${o.severity}`)} · ${t(`visits.obsStatuses.${o.status}`)}`}
-              onChanged={refresh} onError={setError} />
+              onChanged={refresh}
+              onError={setError}
+            />
           ))}
         </AsyncBoundary>
       </div>
