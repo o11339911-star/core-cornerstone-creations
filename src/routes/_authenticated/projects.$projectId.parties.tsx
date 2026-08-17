@@ -133,6 +133,23 @@ function PartiesPage() {
     };
   }, [digits, identifierComplete, partyKind, projectId, lookup]);
 
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const minEndsOn = React.useMemo(() => riyadhTomorrow(), []);
+
+  /** أخطاء التحقق العميلية — نفس القواعد المفروضة خادميًا. */
+  const validationError = React.useMemo((): string | null => {
+    if (containsNonAsciiDigits(identifier) || containsNonAsciiDigits(endsOn)) {
+      return `${NON_ASCII_DIGITS_MESSAGE}.`;
+    }
+    if (!identifierComplete) return t("parties.errIdentifier");
+    if (!endsOn) return t("parties.errEndsRequired");
+    if (!isRealCalendarDate(endsOn)) return t("parties.errEndsInvalid");
+    if (endsOn <= riyadhToday()) return t("parties.errEndsFuture");
+    if (stageIds.length === 0) return t("parties.errStages");
+    if (perms.length === 0) return t("parties.errPerms");
+    return null;
+  }, [identifier, identifierComplete, endsOn, stageIds, perms, t]);
+
   const inviteMutation = useMutation({
     mutationFn: () =>
       invite({
@@ -143,7 +160,7 @@ function PartiesPage() {
           displayName: displayName.trim() || null,
           partyRole: role,
           scopeTextAr: scopeAr.trim() || null,
-          endsOn: endsOn || null,
+          endsOn,
           stageIds,
           permissions: perms.map((p) => {
             const [module, action] = p.split(":");
@@ -156,16 +173,22 @@ function PartiesPage() {
       }),
     onSuccess: (result) => {
       setError(null);
+      setConfirmOpen(false);
       setNotice(result.pending ? t("parties.invitedPending") : t("parties.invitedMatched"));
       setIdentifier("");
       setDisplayName("");
       setLookupState({ status: "idle" });
       setScopeAr("");
+      setEndsOn("");
       setStageIds([]);
       void queryClient.invalidateQueries({ queryKey: ["project-parties", projectId] });
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => {
+      setConfirmOpen(false);
+      setError(e.message);
+    },
   });
+
 
   const endMutation = useMutation({
     mutationFn: (partyId: string) => endParty({ data: { partyId } }),
