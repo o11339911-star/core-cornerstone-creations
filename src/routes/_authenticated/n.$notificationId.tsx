@@ -56,7 +56,13 @@ function NotificationTargetPage() {
     } else if (kind === "request" && targetId) {
       void navigate({ to: "/requests/$requestId", params: { requestId: targetId }, replace: true });
     } else if (kind === "stage" && projectId) {
-      void navigate({ to: "/projects/$projectId/stages", params: { projectId }, replace: true });
+      // يفتح المشروع على المرحلة المحددة ويُبرز بطاقتها.
+      void navigate({
+        to: "/projects/$projectId/stages",
+        params: { projectId },
+        search: targetId ? { stage: targetId } : {},
+        replace: true,
+      });
     } else if (kind === "contract" && projectId) {
       void navigate({ to: "/projects/$projectId/contracts", params: { projectId }, replace: true });
     } else if (kind === "document") {

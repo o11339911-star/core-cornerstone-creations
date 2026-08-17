@@ -12226,6 +12226,7 @@ export type Database = {
         Args: { _document_id: string; _reason: string }
         Returns: string
       }
+      stage_capabilities: { Args: { _stage_id: string }; Returns: Json }
       start_disbursement_review: {
         Args: { _note?: string; _request_id: string }
         Returns: string
@@ -12235,6 +12236,7 @@ export type Database = {
         Returns: string
       }
       start_dsr_review: { Args: { _request_id: string }; Returns: undefined }
+      start_stage: { Args: { _stage_id: string }; Returns: string }
       submit_disbursement_request: {
         Args: {
           _evidence: Json

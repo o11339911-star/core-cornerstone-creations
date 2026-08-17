@@ -18,6 +18,7 @@ import { formatDateTime } from "@/lib/format";
 import {
   addStageCriterion,
   approveStage,
+  getStageCapabilities,
   listStageCriteria,
   listStageTimeline,
   listStages,
@@ -27,10 +28,15 @@ import {
   submitStage,
   type Stage,
 } from "@/lib/stages.functions";
+import { auditActionLabelAr, auditObjectLabelAr } from "@/lib/audit-labels";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/stages")({
   component: StagesPage,
   errorComponent: ErrorState,
+  validateSearch: (search: Record<string, unknown>): { stage?: string } => {
+    const stage = typeof search["stage"] === "string" ? (search["stage"] as string) : undefined;
+    return stage ? { stage } : {};
+  },
   head: () => ({
     meta: [
       { title: "مراحل المشروع والتنفيذ — ركيز" },
@@ -50,14 +56,17 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/stages
   }),
 });
 
+
 function StagesPage() {
   const t = useT();
   const { projectId } = Route.useParams();
+  const search = Route.useSearch();
   const queryClient = useQueryClient();
 
   const fetchStages = useServerFn(listStages);
   const fetchCriteria = useServerFn(listStageCriteria);
   const fetchTimeline = useServerFn(listStageTimeline);
+  const fetchCapabilities = useServerFn(getStageCapabilities);
   const start = useServerFn(startStage);
   const submit = useServerFn(submitStage);
   const approve = useServerFn(approveStage);
@@ -65,12 +74,16 @@ function StagesPage() {
   const setResult = useServerFn(setCriterionResult);
   const reportProgress = useServerFn(reportStageProgress);
 
-  const [selected, setSelected] = React.useState<string | null>(null);
+  const [selected, setSelected] = React.useState<string | null>(search.stage ?? null);
   const [error, setError] = React.useState<string | null>(null);
   const [code, setCode] = React.useState("");
   const [labelAr, setLabelAr] = React.useState("");
   const [labelEn, setLabelEn] = React.useState("");
   const [percent, setPercent] = React.useState("");
+
+  React.useEffect(() => {
+    if (search.stage) setSelected(search.stage);
+  }, [search.stage]);
 
   const stagesQuery = useQuery({
     queryKey: ["stages", projectId],
@@ -78,6 +91,7 @@ function StagesPage() {
   });
 
   const stageId = selected ?? stagesQuery.data?.[0]?.id ?? null;
+  const highlighted = !!search.stage && search.stage === stageId;
 
   const criteriaQuery = useQuery({
     queryKey: ["stage-criteria", stageId],
@@ -89,6 +103,13 @@ function StagesPage() {
     queryFn: () => fetchTimeline({ data: { projectId, stageId: stageId as string } }),
     enabled: !!stageId,
   });
+  const capabilitiesQuery = useQuery({
+    queryKey: ["stage-capabilities", stageId],
+    queryFn: () => fetchCapabilities({ data: { stageId: stageId as string } }),
+    enabled: !!stageId,
+  });
+  const caps = capabilitiesQuery.data ?? { canStart: false, canSubmit: false, canApprove: false };
+
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["stages", projectId] });
@@ -177,32 +198,54 @@ function StagesPage() {
 
         <div className="grid gap-4">
           {current ? (
+            <div
+              id={`stage-${current.id}`}
+              className={
+                highlighted ? "rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+              }
+            >
             <SectionCard icon={Layers} title={current.name_ar}>
+              {highlighted ? (
+                <p className="mb-2 text-xs font-medium text-primary">{t("stages.highlighted")}</p>
+              ) : null}
               <p className="mb-3 text-xs text-muted-foreground">{t(`stages.statuses.${current.status}`)}</p>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="min-h-11 rounded-md border border-border px-4 text-sm"
-                  onClick={() => startMutation.mutate()}
-                >
-                  {t("stages.start")}
-                </button>
-                <button
-                  type="button"
-                  className="min-h-11 rounded-md border border-border px-4 text-sm"
-                  onClick={() => submitMutation.mutate()}
-                >
-                  {t("stages.submit")}
-                </button>
-                <button
-                  type="button"
-                  className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground"
-                  onClick={() => approveMutation.mutate()}
-                >
-                  {t("stages.approve")}
-                </button>
+                {caps.canStart ? (
+                  <button
+                    type="button"
+                    disabled={startMutation.isPending}
+                    className="min-h-11 rounded-md border border-border px-4 text-sm disabled:opacity-60"
+                    onClick={() => startMutation.mutate()}
+                  >
+                    {startMutation.isPending ? t("common.loading") : t("stages.start")}
+                  </button>
+                ) : null}
+                {caps.canSubmit ? (
+                  <button
+                    type="button"
+                    disabled={submitMutation.isPending}
+                    className="min-h-11 rounded-md border border-border px-4 text-sm disabled:opacity-60"
+                    onClick={() => submitMutation.mutate()}
+                  >
+                    {submitMutation.isPending ? t("common.loading") : t("stages.submit")}
+                  </button>
+                ) : null}
+                {caps.canApprove ? (
+                  <button
+                    type="button"
+                    disabled={approveMutation.isPending}
+                    className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground disabled:opacity-60"
+                    onClick={() => approveMutation.mutate()}
+                  >
+                    {approveMutation.isPending ? t("common.loading") : t("stages.approve")}
+                  </button>
+                ) : null}
+                {!caps.canStart && !caps.canSubmit && !caps.canApprove && !capabilitiesQuery.isLoading ? (
+                  <p className="text-xs text-muted-foreground">{t("stages.noActions")}</p>
+                ) : null}
               </div>
               <p className="mt-2 text-xs text-muted-foreground">{t("stages.approveHint")}</p>
+
 
               <form
                 className="mt-4 flex flex-wrap items-end gap-3"
@@ -227,7 +270,9 @@ function StagesPage() {
                 </button>
               </form>
             </SectionCard>
+            </div>
           ) : null}
+
 
           <SectionCard icon={ListChecks} title={t("stages.criteria")}>
             <AsyncBoundary
@@ -290,13 +335,21 @@ function StagesPage() {
                 onChange={(e) => setLabelAr(e.target.value)}
                 required
               />
-              <TextField
-                id="crit-en"
-                label={t("stages.labelEn")}
-                value={labelEn}
-                onChange={(e) => setLabelEn(e.target.value)}
-                required
-              />
+              <details className="sm:col-span-3">
+                <summary className="cursor-pointer text-sm text-muted-foreground">
+                  {t("stages.moreDetails")}
+                </summary>
+                <div className="mt-3">
+                  <TextField
+                    id="crit-en"
+                    label={t("stages.labelEn")}
+                    hint={t("stages.labelEnHint")}
+                    value={labelEn}
+                    onChange={(e) => setLabelEn(e.target.value)}
+                    required
+                  />
+                </div>
+              </details>
               <button
                 type="submit"
                 className="min-h-11 rounded-md border border-border px-4 text-sm sm:col-span-3"
@@ -312,18 +365,25 @@ function StagesPage() {
               isError={timelineQuery.isError}
               loadingFallback={<CardsSkeleton cards={1} />}
             >
-              <ol className="grid gap-2 text-sm">
-                {(timelineQuery.data ?? []).map((row) => (
-                  <li key={row.id} className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">{row.object_type}</span>
-                    <span>{row.action}</span>
-                    <time dateTime={row.created_at} className="text-xs text-muted-foreground">
-                      {formatDateTime(row.created_at)}
-                    </time>
-                  </li>
-                ))}
-              </ol>
+              {(timelineQuery.data ?? []).length === 0 ? (
+                <SoftEmpty icon={History} message={t("stages.timelineEmpty")} />
+              ) : (
+                <ol className="grid gap-2 text-sm">
+                  {(timelineQuery.data ?? []).map((row) => (
+                    <li key={row.id} className="flex flex-wrap justify-between gap-3">
+                      <span className="text-muted-foreground">
+                        {auditObjectLabelAr(row.object_type)}
+                      </span>
+                      <span>{auditActionLabelAr(row.action, row.object_type)}</span>
+                      <time dateTime={row.created_at} className="text-xs text-muted-foreground">
+                        {formatDateTime(row.created_at)}
+                      </time>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </AsyncBoundary>
+
           </SectionCard>
         </div>
       </div>
