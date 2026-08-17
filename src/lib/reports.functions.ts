@@ -208,8 +208,9 @@ export const requestEngineeringReport = createServerFn({ method: "POST" })
       _project_id: data.projectId,
       _to_entity_id: data.toEntityId,
       _subject: data.subject,
-      _body: data.body ?? null,
+      ...(data.body ? { _body: data.body } : {}),
     });
+
     if (error) throw new Error(error.message);
     return { requestId: id as string };
   });
