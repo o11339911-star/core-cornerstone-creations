@@ -102,6 +102,50 @@ function DealsPage() {
       notes: "",
     });
 
+  // ——— بحث تلقائي عن الطرف الثاني بعد اكتمال رقم صحيح ———
+  const lookupParty = useServerFn(lookupDealCounterpartyFn);
+  const [lookup, setLookup] = React.useState<
+    { state: "idle" | "checking" | "registered" | "unregistered" | "throttled"; name?: string | null }
+  >({ state: "idle" });
+
+  const digits = form.identifier.replace(/[^0-9]/g, "");
+  const identifierValid =
+    form.partyKind === "person" ? isValidSaudiId(digits) : /^[0-9]{10}$/.test(digits);
+
+  React.useEffect(() => {
+    // أي تغيير في الرقم يمسح نتيجة المطابقة السابقة فورًا.
+    setLookup({ state: "idle" });
+    if (!identifierValid) return;
+
+    let cancelled = false;
+    setLookup({ state: "checking" });
+    const timer = window.setTimeout(() => {
+      void lookupParty({ data: { partyKind: form.partyKind, identifier: digits } })
+        .then((res) => {
+          if (cancelled) return;
+          if (res.status === "registered") {
+            setLookup({ state: "registered", name: res.displayName });
+            // الاسم النظامي المسموح عرضه فقط؛ الربط يُعاد التحقق منه خادميًا.
+            if (res.displayName) {
+              setForm((f) => (f.counterpartyName.trim() ? f : { ...f, counterpartyName: res.displayName! }));
+            }
+          } else if (res.status === "throttled") {
+            setLookup({ state: "throttled" });
+          } else {
+            setLookup({ state: "unregistered" });
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setLookup({ state: "idle" });
+        });
+    }, 600);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [digits, form.partyKind, identifierValid, lookupParty]);
+
   const list = useQuery({
     queryKey: ["deals", entityId, filter, scope],
     queryFn: () => fetchDeals({ data: { entityId, status: filter, includeArchived: false, scope } }),
