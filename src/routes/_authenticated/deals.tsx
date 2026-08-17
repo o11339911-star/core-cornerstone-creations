@@ -361,7 +361,7 @@ function DealsPage() {
                     </p>
                   ) : null}
                 </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
                   <HeroBadge tone={statusTone(deal.status)}>
                     {STATUS_AR[deal.status] ?? deal.status}
                   </HeroBadge>
@@ -417,7 +417,7 @@ function DealsPage() {
                             status: e.target.value as (typeof DEAL_STATUSES)[number],
                           })
                         }
-                        className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                        className="min-h-11 max-w-full rounded-md border border-input bg-background px-3 text-sm"
                       >
                         {DEAL_STATUSES.map((s) => (
                           <option key={s} value={s}>
