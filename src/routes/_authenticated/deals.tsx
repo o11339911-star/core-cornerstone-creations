@@ -201,8 +201,8 @@ function DealsPage() {
     onSuccess: (res) => {
       toast.success(
         res.matched
-          ? "تم إنشاء المعاملة وربطها بحساب الطرف الثاني — بانتظار قبوله"
-          : "تم إنشاء المعاملة — الطرف الثاني غير مسجل في ركيز وسيُربط تلقائيًا عند انضمامه",
+          ? "تم إنشاء المعاملة وربطها بحساب مستقبل الطلب — بانتظار قبوله"
+          : "تم إنشاء المعاملة — مستقبل الطلب غير مسجل في ركيز وسيُربط تلقائيًا عند انضمامه",
       );
       setOpen(false);
       resetForm();
@@ -212,7 +212,7 @@ function DealsPage() {
       const map: Record<string, string> = {
         SECOND_PARTY_ID_INVALID: "رقم الهوية غير صحيح — تحقق من الأرقام العشرة",
         SECOND_PARTY_CR_INVALID: "رقم السجل التجاري يجب أن يكون عشرة أرقام",
-        SECOND_PARTY_IS_SELF: "لا يمكن أن يكون الطرف الثاني هو نفسه الطرف الأول",
+        SECOND_PARTY_IS_SELF: "لا يمكن أن يكون مستقبل الطلب هو نفسه طالب الخدمة",
         NOT_ENTITY_MEMBER: "لست عضوًا فعّالًا في هذا الحساب",
       };
       const message = map[e.message] ?? "تعذّر إنشاء المعاملة";
@@ -240,7 +240,7 @@ function DealsPage() {
     onError: (e: Error) =>
       toast.error(
         e.message === "SECOND_PARTY_NOT_ACCEPTED"
-          ? "لا يمكن الانتقال إلى اتفاق أو توقيع قبل قبول الطرف الثاني"
+          ? "لا يمكن الانتقال إلى اتفاق أو توقيع قبل قبول مستقبل الطلب"
           : "تعذّر تحديث الحالة",
       ),
   });
@@ -427,10 +427,10 @@ function DealsPage() {
                     }
                   >
                     {deal.second_party_status === "accepted"
-                      ? "الطرف الثاني قَبِل"
+                      ? "مستقبل الطلب قَبِل"
                       : deal.second_party_status === "declined"
-                        ? "الطرف الثاني رفض"
-                        : "بانتظار الطرف الثاني"}
+                        ? "مستقبل الطلب رفض"
+                        : "بانتظار مستقبل الطلب"}
                   </HeroBadge>
                   <Button
                     type="button"
@@ -530,7 +530,7 @@ function DealsPage() {
               if (!identifierValid) {
                 setError(
                   form.partyKind === "person"
-                    ? "رقم هوية الطرف الثاني يجب أن يكون عشرة أرقام"
+                    ? "رقم هوية مستقبل الطلب يجب أن يكون عشرة أرقام"
                     : "رقم السجل التجاري يجب أن يكون عشرة أرقام",
                 );
                 return;
@@ -558,7 +558,7 @@ function DealsPage() {
           </div>
           <fieldset className="space-y-3 rounded-xl border border-border p-3">
             <legend className="px-1 text-sm font-semibold text-foreground">
-              الطرف الثاني — المعرّف إلزامي
+              مستقبل الطلب — المعرّف إلزامي
             </legend>
             <div className="flex gap-2">
               {PARTY_KINDS.map((kind) => (
@@ -587,7 +587,7 @@ function DealsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="d-identifier">
-                {form.partyKind === "person" ? "رقم هوية الطرف الثاني" : "رقم السجل التجاري"}
+                {form.partyKind === "person" ? "رقم هوية مستقبل الطلب" : "رقم السجل التجاري"}
               </Label>
               <Input
                 id="d-identifier"
@@ -628,7 +628,7 @@ function DealsPage() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="d-party">اسم الطرف الثاني (اختياري)</Label>
+              <Label htmlFor="d-party">اسم مستقبل الطلب (اختياري)</Label>
               <Input
                 id="d-party"
                 value={form.counterpartyName}
@@ -765,7 +765,7 @@ function DealsPage() {
               : []),
             { label: "الحالة", value: STATUS_AR[deal.status] ?? deal.status },
             {
-              label: "حالة الطرف الثاني",
+              label: "حالة مستقبل الطلب",
               value:
                 deal.second_party_status === "accepted"
                   ? "قَبِل"
@@ -774,7 +774,7 @@ function DealsPage() {
                     : "بانتظار الرد",
             },
             {
-              label: "الطرف الثاني",
+              label: "مستقبل الطلب",
               value: second?.display_name ?? "بدون اسم",
             },
             {
