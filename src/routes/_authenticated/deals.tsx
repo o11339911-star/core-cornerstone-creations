@@ -20,6 +20,7 @@ import {
   createDeal,
   DEAL_CONTEXTS,
   DEAL_STATUSES,
+  getDealRequester,
   listDeals,
   PARTY_KINDS,
   respondToDeal,
@@ -84,6 +85,7 @@ function DealsPage() {
   const setStatus = useServerFn(updateDealStatus);
   const archive = useServerFn(setDealArchived);
   const respond = useServerFn(respondToDeal);
+  const fetchRequester = useServerFn(getDealRequester);
 
   const [scope, setScope] = React.useState<"mine" | "incoming">("mine");
   const [filter, setFilter] = React.useState<(typeof DEAL_STATUSES)[number] | null>(null);
@@ -167,6 +169,16 @@ function DealsPage() {
     queryFn: () =>
       fetchDeals({ data: { entityId, status: filter, includeArchived: false, scope } }),
     enabled: !loading,
+  });
+
+  // بيانات طالب الخدمة الكاملة تُجلب عند فتح معاملة محددة فقط ولا تبقى في الكاش بعد الإغلاق.
+  const requesterQuery = useQuery({
+    queryKey: ["deal-requester", viewDealId],
+    queryFn: () => fetchRequester({ data: { dealId: viewDealId! } }),
+    enabled: viewDealId !== null,
+    gcTime: 0,
+    staleTime: 0,
+    retry: false,
   });
 
   const createMutation = useMutation({
@@ -327,7 +339,30 @@ function DealsPage() {
             <li key={deal.id} className="rounded-xl border border-border bg-card p-4 shadow-card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                    <bdi dir="ltr">{deal.reference_no}</bdi>
+                  </p>
                   <p className="truncate font-semibold text-foreground">{deal.title}</p>
+                  {(() => {
+                    const first = deal.parties.find((p) => p.party_role === "first");
+                    return (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        طالب الخدمة: {first?.display_name ?? "غير متوفر"}
+                        {first?.party_kind === "person" && first.identifier_last4 ? (
+                          <>
+                            {" · هوية تنتهي بـ "}
+                            <bdi dir="ltr">{first.identifier_last4}</bdi>
+                          </>
+                        ) : null}
+                        {first?.party_kind === "entity" && first.cr_number ? (
+                          <>
+                            {" · السجل/الرقم الموحّد: "}
+                            <bdi dir="ltr">{first.cr_number}</bdi>
+                          </>
+                        ) : null}
+                      </p>
+                    );
+                  })()}
                   <p className="mt-1 text-xs text-muted-foreground">
                     {CONTEXT_AR[deal.context_type] ?? deal.context_type}
                     {deal.context_title ? ` · ${deal.context_title}` : ""}
@@ -661,8 +696,57 @@ function DealsPage() {
             return <p className="text-sm text-muted-foreground">لم تعد هذه المعاملة متاحة.</p>;
           }
           const second = deal.parties.find((p) => p.party_role === "second");
+          const requester = requesterQuery.data;
           const rows: { label: string; value: React.ReactNode }[] = [
+            { label: "الرقم المرجعي", value: <bdi dir="ltr">{deal.reference_no}</bdi> },
             { label: "العنوان", value: deal.title },
+            {
+              label: "طالب الخدمة",
+              value: requesterQuery.isPending ? (
+                <Skeleton className="h-4 w-32" />
+              ) : requesterQuery.isError ? (
+                <button
+                  type="button"
+                  className="text-sm font-medium underline"
+                  onClick={() => void requesterQuery.refetch()}
+                >
+                  تعذّر عرض بيانات طالب الخدمة — إعادة المحاولة
+                </button>
+              ) : (
+                (requester?.name ?? "غير متوفر")
+              ),
+            },
+            {
+              label: "نوع طالب الخدمة",
+              value:
+                requester?.kind === "person"
+                  ? "شخص"
+                  : requester?.kind === "entity"
+                    ? "منشأة"
+                    : "غير متوفر",
+            },
+            {
+              label:
+                requester?.kind === "entity"
+                  ? requester.crNumber
+                    ? "السجل التجاري"
+                    : "الرقم الوطني الموحّد"
+                  : "هوية طالب الخدمة",
+              value:
+                requester?.kind === "entity" ? (
+                  (requester.crNumber ?? requester.unifiedNationalNumber) ? (
+                    <bdi dir="ltr">{requester.crNumber ?? requester.unifiedNationalNumber}</bdi>
+                  ) : (
+                    "غير متوفر"
+                  )
+                ) : requester?.nationalId ? (
+                  <bdi dir="ltr">{requester.nationalId}</bdi>
+                ) : requester?.last4 ? (
+                  <bdi dir="ltr">{`•••• ${requester.last4}`}</bdi>
+                ) : (
+                  "غير متوفر"
+                ),
+            },
             { label: "السياق", value: CONTEXT_AR[deal.context_type] ?? deal.context_type },
             ...(deal.context_title
               ? [{ label: "اسم الطلب", value: deal.context_title as React.ReactNode }]
