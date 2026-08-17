@@ -51,13 +51,7 @@ const VISIBILITY_ICON: Record<VisibilityLevel, typeof Eye> = {
   project_wide: Eye,
 };
 
-function AddAssignmentModal({
-  projectId,
-  onClose,
-}: {
-  projectId: string;
-  onClose: () => void;
-}) {
+function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose: () => void }) {
   const t = useT();
   const queryClient = useQueryClient();
   const membersFn = useServerFn(listAssignableMembers);
@@ -234,9 +228,7 @@ function AddAssignmentModal({
                 {lookupState.status === "searching" ? t("projectTeam.lookupSearching") : null}
                 {lookupState.status === "invalid" ? t("projectTeam.lookupInvalid") : null}
                 {lookupState.status === "throttled" ? t("projectTeam.lookupThrottled") : null}
-                {lookupState.status === "unregistered"
-                  ? t("projectTeam.lookupUnregistered")
-                  : null}
+                {lookupState.status === "unregistered" ? t("projectTeam.lookupUnregistered") : null}
                 {lookupState.status === "registered"
                   ? lookupState.displayName
                     ? t("projectTeam.lookupRegistered", { name: lookupState.displayName })
@@ -253,10 +245,7 @@ function AddAssignmentModal({
           </>
         ) : null}
 
-        <label
-          className="flex flex-col gap-1 text-sm"
-          hidden={memberKind === "external"}
-        >
+        <label className="flex flex-col gap-1 text-sm" hidden={memberKind === "external"}>
           <span className="font-medium text-foreground">{t("projectTeam.member")}</span>
           <select
             className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
@@ -606,7 +595,10 @@ function ProjectTeamPage() {
                     ? a.job_title_ar
                     : (a.display_name ?? a.external_display_name ?? a.job_title_ar);
                 return (
-                  <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                  <li
+                    key={a.id}
+                    className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm"
+                  >
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">{label}</p>
                       <p className="truncate text-xs text-muted-foreground">
@@ -614,7 +606,10 @@ function ProjectTeamPage() {
                         {a.identifier_last4 ? (
                           <>
                             {" · "}
-                            <bdi dir="ltr" className="font-mono">{`\u2022\u2022\u2022\u2022${a.identifier_last4}`}</bdi>
+                            <bdi
+                              dir="ltr"
+                              className="font-mono"
+                            >{`\u2022\u2022\u2022\u2022${a.identifier_last4}`}</bdi>
                           </>
                         ) : null}
                         {a.starts_on ? ` · ${formatDate(a.starts_on)}` : ""}
@@ -658,7 +653,9 @@ function ProjectTeamPage() {
         </SectionCard>
       )}
 
-      {showAdd ? <AddAssignmentModal projectId={projectId} onClose={() => setShowAdd(false)} /> : null}
+      {showAdd ? (
+        <AddAssignmentModal projectId={projectId} onClose={() => setShowAdd(false)} />
+      ) : null}
       {editTarget ? (
         <EditAssignmentModal
           projectId={projectId}

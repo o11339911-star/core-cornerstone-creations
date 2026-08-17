@@ -102,9 +102,7 @@ export const createInvitation = createServerFn({ method: "POST" })
 
 export const revokeInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ invitationId: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ invitationId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { error } = await context.supabase
       .from("entity_invitations")
@@ -197,8 +195,15 @@ export const createAssignment = createServerFn({ method: "POST" })
         entityId: z.string().uuid(),
         jobTitleAr: z.string().trim().min(2).max(120),
         jobTitleEn: z.string().trim().min(2).max(120),
-        startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        startsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        endsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).default("internal"),
       })
       .parse(input),
@@ -238,8 +243,15 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
         jobTitleEn: z.string().trim().min(2).max(120).optional(),
         stageId: z.string().uuid().nullable().optional(),
         clearStage: z.boolean().default(false),
-        startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        startsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        endsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).optional(),
         endNow: z.boolean().default(false),
       })
@@ -268,9 +280,7 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
 /** Ends an assignment as of the server date, via `update_project_assignment`. */
 export const endProjectAssignment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ assignmentId: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ assignmentId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { error } = await context.supabase.rpc(
       "update_project_assignment",
@@ -314,7 +324,6 @@ export const offboardMember = createServerFn({ method: "POST" })
     if (data.reason) args._reason = data.reason;
 
     const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
-
 
     if (error) throw new Error(error.message);
     return { transferred: (moved as number) ?? 0 };
@@ -405,7 +414,8 @@ export const changeMemberRole = createServerFn({ method: "POST" })
       .eq("entity_id", data.entityId);
 
     if (error) {
-      if (error.message.includes("LAST_OWNER_PROTECTED")) throw new Error("team.lastOwnerProtected");
+      if (error.message.includes("LAST_OWNER_PROTECTED"))
+        throw new Error("team.lastOwnerProtected");
       throw new Error(error.message);
     }
     return { ok: true };
@@ -500,7 +510,8 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
 
       const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
       if (error) {
-        if (error.message.includes("LAST_OWNER_PROTECTED")) throw new Error("team.lastOwnerProtected");
+        if (error.message.includes("LAST_OWNER_PROTECTED"))
+          throw new Error("team.lastOwnerProtected");
         throw new Error(error.message);
       }
       return { transferred: (moved as number) ?? 0 };
@@ -528,10 +539,9 @@ export const listAssignableMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<AssignableMember[]> => {
-    const { data: rows, error } = await context.supabase.rpc(
-      "list_project_assignable_members",
-      { _project_id: data.projectId },
-    );
+    const { data: rows, error } = await context.supabase.rpc("list_project_assignable_members", {
+      _project_id: data.projectId,
+    });
 
     if (error) throw new Error(error.message);
 
@@ -622,7 +632,6 @@ async function callerCanUpdateProject(
 
   return allowed.has("projects.update");
 }
-
 
 /* --------------------------- external members ---------------------------- */
 

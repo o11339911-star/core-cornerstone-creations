@@ -150,8 +150,15 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
         partyRole: z.enum(PARTY_ROLES),
         scopeTextAr: z.string().trim().max(1000).nullable().optional(),
         scopeTextEn: z.string().trim().max(1000).nullable().optional(),
-        startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        startsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        endsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
         stageIds: z.array(z.string().uuid()).default([]),
         permissions: z
           .array(z.object({ module: z.enum(PARTY_MODULES), action: z.enum(PARTY_ACTIONS) }))
@@ -183,7 +190,6 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
     if (data.endsOn) args._ends_on = data.endsOn;
 
     const { data: id, error } = await context.supabase.rpc("invite_project_party", args);
-
 
     if (error) throw new Error(error.message);
     return { id: id as string };
@@ -224,7 +230,6 @@ export const endProjectParty = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { endedAssignments: (moved as number) ?? 0 };
   });
-
 
 /* ------------------- identifier-based party invitations ------------------ */
 

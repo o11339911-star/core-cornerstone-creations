@@ -371,9 +371,7 @@ function PartiesPage() {
                     </bdi>
                   ) : null}
                   <span>{t(`parties.roles.${p.party_role}`)}</span>
-                  <span className="text-muted-foreground">
-                    {t(`parties.statuses.${p.status}`)}
-                  </span>
+                  <span className="text-muted-foreground">{t(`parties.statuses.${p.status}`)}</span>
                   <span className="truncate text-muted-foreground">{p.scope_text_ar ?? ""}</span>
                   {p.status === "invited" || p.status === "accepted" ? (
                     <button
