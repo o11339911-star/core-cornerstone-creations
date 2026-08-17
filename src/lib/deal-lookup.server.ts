@@ -34,6 +34,22 @@ export type CounterpartyLookup =
   | { status: "registered"; displayName: string | null }
   | { status: "unregistered" };
 
+export type EntityMatchRow = {
+  entity_id: string;
+  legal_name_ar: string | null;
+  legal_name_en: string | null;
+};
+
+/**
+ * يعيد الصف الوحيد فقط. أي تطابق متعدد (حتى لو من صفوف مختلفة لنفس الرقم)
+ * يُعامل كغير محسوم ولا يُختار منه شيء، منعًا لربط أو كشف خاطئ.
+ */
+export function pickUniqueEntityMatch(rows: EntityMatchRow[]): EntityMatchRow | null {
+  const ids = new Set(rows.map((r) => r.entity_id));
+  if (ids.size !== 1) return null;
+  return rows[0] ?? null;
+}
+
 export async function lookupDealCounterparty(input: {
   partyKind: "person" | "entity";
   digits: string;
