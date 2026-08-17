@@ -89,6 +89,8 @@ export function TextField({
   inputMode,
   maxLength,
   dir,
+  min,
+  max,
   ...shell
 }: BaseFieldProps & {
   type?: React.HTMLInputTypeAttribute | undefined;
@@ -96,6 +98,8 @@ export function TextField({
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"] | undefined;
   maxLength?: number | undefined;
   dir?: "ltr" | "rtl" | undefined;
+  min?: string | number | undefined;
+  max?: string | number | undefined;
 }) {
   return (
     <FieldShell {...shell}>
@@ -113,6 +117,8 @@ export function TextField({
           {...(inputMode ? { inputMode } : {})}
           {...(maxLength !== undefined ? { maxLength } : {})}
           {...(dir ? { dir } : {})}
+          {...(min !== undefined ? { min } : {})}
+          {...(max !== undefined ? { max } : {})}
         />
       )}
     </FieldShell>

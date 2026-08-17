@@ -12,8 +12,18 @@ import {
   PageHero,
   SectionCard,
   CardsSkeleton,
+  ResponsiveModal,
+  Num,
 } from "@/components/rakeez";
 import { UserPlus, Users } from "lucide-react";
+import { formatDate } from "@/lib/format";
+import {
+  containsNonAsciiDigits,
+  isRealCalendarDate,
+  riyadhToday,
+  riyadhTomorrow,
+  NON_ASCII_DIGITS_MESSAGE,
+} from "@/lib/identity-format";
 import {
   PARTY_ACTIONS,
   PARTY_MODULES,
@@ -123,6 +133,23 @@ function PartiesPage() {
     };
   }, [digits, identifierComplete, partyKind, projectId, lookup]);
 
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const minEndsOn = React.useMemo(() => riyadhTomorrow(), []);
+
+  /** أخطاء التحقق العميلية — نفس القواعد المفروضة خادميًا. */
+  const validationError = React.useMemo((): string | null => {
+    if (containsNonAsciiDigits(identifier) || containsNonAsciiDigits(endsOn)) {
+      return `${NON_ASCII_DIGITS_MESSAGE}.`;
+    }
+    if (!identifierComplete) return t("parties.errIdentifier");
+    if (!endsOn) return t("parties.errEndsRequired");
+    if (!isRealCalendarDate(endsOn)) return t("parties.errEndsInvalid");
+    if (endsOn <= riyadhToday()) return t("parties.errEndsFuture");
+    if (stageIds.length === 0) return t("parties.errStages");
+    if (perms.length === 0) return t("parties.errPerms");
+    return null;
+  }, [identifier, identifierComplete, endsOn, stageIds, perms, t]);
+
   const inviteMutation = useMutation({
     mutationFn: () =>
       invite({
@@ -133,7 +160,7 @@ function PartiesPage() {
           displayName: displayName.trim() || null,
           partyRole: role,
           scopeTextAr: scopeAr.trim() || null,
-          endsOn: endsOn || null,
+          endsOn,
           stageIds,
           permissions: perms.map((p) => {
             const [module, action] = p.split(":");
@@ -146,16 +173,22 @@ function PartiesPage() {
       }),
     onSuccess: (result) => {
       setError(null);
+      setConfirmOpen(false);
       setNotice(result.pending ? t("parties.invitedPending") : t("parties.invitedMatched"));
       setIdentifier("");
       setDisplayName("");
       setLookupState({ status: "idle" });
       setScopeAr("");
+      setEndsOn("");
       setStageIds([]);
       void queryClient.invalidateQueries({ queryKey: ["project-parties", projectId] });
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => {
+      setConfirmOpen(false);
+      setError(e.message);
+    },
   });
+
 
   const endMutation = useMutation({
     mutationFn: (partyId: string) => endParty({ data: { partyId } }),
@@ -177,9 +210,17 @@ function PartiesPage() {
           className="grid gap-4"
           onSubmit={(e) => {
             e.preventDefault();
-            inviteMutation.mutate();
+            if (inviteMutation.isPending || confirmOpen) return;
+            if (validationError) {
+              setNotice(null);
+              setError(validationError);
+              return;
+            }
+            setError(null);
+            setConfirmOpen(true);
           }}
         >
+
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium text-foreground">{t("parties.partyKind")}</span>
@@ -239,8 +280,12 @@ function PartiesPage() {
               label={t("parties.endsOn")}
               type="date"
               value={endsOn}
+              min={minEndsOn}
+              required
+              hint={t("parties.endsOnHint")}
               onChange={(e) => setEndsOn(e.target.value)}
             />
+
           </div>
 
           <TextField
@@ -274,7 +319,7 @@ function PartiesPage() {
 
           <fieldset className="rounded-md border border-border p-3">
             <legend className="px-1 text-sm font-medium text-foreground">
-              {t("parties.stages")}
+              {t("parties.stages")} <span className="text-destructive">*</span>
             </legend>
             <p className="mb-2 text-xs text-muted-foreground">{t("parties.stagesHint")}</p>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -297,7 +342,7 @@ function PartiesPage() {
 
           <fieldset className="rounded-md border border-border p-3">
             <legend className="px-1 text-sm font-medium text-foreground">
-              {t("parties.permissions")}
+              {t("parties.permissions")} <span className="text-destructive">*</span>
             </legend>
             <p className="mb-2 text-xs text-muted-foreground">{t("parties.permissionsHint")}</p>
             <div className="overflow-x-auto">
@@ -338,12 +383,101 @@ function PartiesPage() {
 
           <button
             type="submit"
-            disabled={inviteMutation.isPending || !identifierComplete}
+            disabled={inviteMutation.isPending || confirmOpen || validationError !== null}
             className="inline-flex min-h-11 w-fit items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
           >
             {t("parties.send")}
           </button>
         </form>
+
+        <ResponsiveModal
+          open={confirmOpen}
+          onOpenChange={(next) => {
+            if (!inviteMutation.isPending) setConfirmOpen(next);
+          }}
+          title={t("parties.confirmTitle")}
+          description={t("parties.confirmQuestion")}
+        >
+          <dl className="grid gap-3 text-sm">
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("parties.confirmParty")}</dt>
+              <dd className="font-medium text-foreground">
+                {(lookupState.status === "registered" && lookupState.displayName) ||
+                  displayName.trim() ||
+                  t("parties.unnamedParty")}{" "}
+                <span className="text-muted-foreground">
+                  ({partyKind === "person" ? t("parties.kindPerson") : t("parties.kindEntity")})
+                </span>
+              </dd>
+              <dd className="font-mono text-xs text-muted-foreground" dir="ltr">
+                <bdi>
+                  {"\u2022\u2022\u2022\u2022"}
+                  <Num>{digits.slice(-4)}</Num>
+                </bdi>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("parties.role")}</dt>
+              <dd>{t(`parties.roles.${role}`)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("parties.endsOn")}</dt>
+              <dd>{endsOn ? formatDate(endsOn) : "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("parties.stages")}</dt>
+              <dd>
+                {(stagesQuery.data ?? [])
+                  .filter((s) => stageIds.includes(s.id))
+                  .map((s) => s.name_ar)
+                  .join("، ")}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("parties.permissions")}</dt>
+              <dd className="space-y-1">
+                {PARTY_MODULES.filter((m) => perms.some((k) => k.startsWith(`${m}:`))).map((m) => (
+                  <div key={m}>
+                    <span className="font-medium text-foreground">{t(`parties.modules.${m}`)}:</span>{" "}
+                    <span className="text-muted-foreground">
+                      {perms
+                        .filter((k) => k.startsWith(`${m}:`))
+                        .map((k) => t(`parties.actions.${k.split(":")[1]}`))
+                        .join("، ")}
+                    </span>
+                  </div>
+                ))}
+              </dd>
+            </div>
+            {scopeAr.trim() ? (
+              <div>
+                <dt className="text-xs text-muted-foreground">{t("parties.scope")}</dt>
+                <dd className="text-muted-foreground">{scopeAr.trim()}</dd>
+              </div>
+            ) : null}
+          </dl>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={inviteMutation.isPending}
+              onClick={() => {
+                if (inviteMutation.isPending) return;
+                inviteMutation.mutate();
+              }}
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            >
+              {inviteMutation.isPending ? t("parties.confirmSending") : t("parties.confirmSend")}
+            </button>
+            <button
+              type="button"
+              disabled={inviteMutation.isPending}
+              onClick={() => setConfirmOpen(false)}
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-md border border-input px-4 text-sm disabled:opacity-60"
+            >
+              {t("parties.confirmBack")}
+            </button>
+          </div>
+        </ResponsiveModal>
 
         {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
         {notice ? <p className="mt-4 text-sm text-muted-foreground">{notice}</p> : null}
@@ -365,6 +499,11 @@ function PartiesPage() {
                   <span className="font-medium text-foreground">
                     {p.party_display_name ?? t("parties.unnamedParty")}
                   </span>
+                  {p.party_reference ? (
+                    <bdi dir="ltr" className="font-mono text-xs text-muted-foreground">
+                      {p.party_reference}
+                    </bdi>
+                  ) : null}
                   {p.identifier_last4 || p.cr_number ? (
                     <bdi dir="ltr" className="font-mono text-xs text-muted-foreground">
                       {p.cr_number ?? `\u2022\u2022\u2022\u2022${p.identifier_last4}`}

@@ -7433,7 +7433,9 @@ export type Database = {
           party_display_name: string | null
           party_entity_id: string | null
           party_kind: string
+          party_reference: string | null
           party_role: Database["public"]["Enums"]["project_party_role"]
+          permissions_snapshot: Json
           project_id: string
           responded_at: string | null
           responded_by: string | null
@@ -7458,7 +7460,9 @@ export type Database = {
           party_display_name?: string | null
           party_entity_id?: string | null
           party_kind?: string
+          party_reference?: string | null
           party_role: Database["public"]["Enums"]["project_party_role"]
+          permissions_snapshot?: Json
           project_id: string
           responded_at?: string | null
           responded_by?: string | null
@@ -7483,7 +7487,9 @@ export type Database = {
           party_display_name?: string | null
           party_entity_id?: string | null
           party_kind?: string
+          party_reference?: string | null
           party_role?: Database["public"]["Enums"]["project_party_role"]
+          permissions_snapshot?: Json
           project_id?: string
           responded_at?: string | null
           responded_by?: string | null
@@ -11273,7 +11279,7 @@ export type Database = {
         Args: {
           _cr_number: string
           _display_name: string
-          _ends_on?: string
+          _ends_on: string
           _identifier_fingerprint: string
           _identifier_kind: string
           _identifier_last4: string
@@ -11281,10 +11287,10 @@ export type Database = {
           _matched_user_id: string
           _party_kind: string
           _party_role: Database["public"]["Enums"]["project_party_role"]
-          _permissions?: Json
+          _permissions: Json
           _project_id: string
-          _scope_text_ar?: string
-          _stage_ids?: string[]
+          _scope_text_ar: string
+          _stage_ids: string[]
         }
         Returns: string
       }

@@ -52,11 +52,12 @@ const partySchema = z.object({
   ended_at: z.string().nullable(),
   end_reason: z.string().nullable(),
   created_at: z.string(),
+  party_reference: z.string().nullable().default(null),
 });
 export type ProjectParty = z.infer<typeof partySchema>;
 
 const PARTY_COLUMNS =
-  "id, project_id, party_entity_id, party_kind, identifier_kind, identifier_last4, cr_number, party_display_name, party_role, scope_text_ar, scope_text_en, starts_on, ends_on, status, responded_at, ended_at, end_reason, created_at";
+  "id, project_id, party_entity_id, party_kind, identifier_kind, identifier_last4, cr_number, party_display_name, party_role, scope_text_ar, scope_text_en, starts_on, ends_on, status, responded_at, ended_at, end_reason, created_at, party_reference";
 
 export const listProjectParties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -269,10 +270,16 @@ export const lookupProjectPartyIdentifier = createServerFn({ method: "POST" })
 const IDENTIFIED_INVITE_ERRORS: Record<string, string> = {
   AUTH_REQUIRED: "يلزم تسجيل الدخول.",
   FORBIDDEN: "لا تملك صلاحية دعوة أطراف في هذا المشروع.",
+  PERMISSION_NOT_DELEGATABLE: "لا يمكنك منح صلاحية لا تملكها في هذا المشروع.",
   NOT_FOUND: "المشروع غير موجود.",
   DUPLICATE_PARTY: "هذا الطرف مدعو مسبقًا في هذا المشروع.",
   OWNER_ENTITY_NOT_PARTY: "لا يمكن دعوة الجهة المالكة للمشروع كطرف خارجي.",
   STAGE_NOT_IN_PROJECT: "إحدى المراحل المحددة لا تتبع هذا المشروع.",
+  STAGES_REQUIRED: "اختر مرحلة واحدة على الأقل ضمن نطاق المشروع.",
+  PERMISSIONS_REQUIRED: "اختر صلاحية واحدة على الأقل للطرف المدعو.",
+  END_DATE_REQUIRED: "تاريخ النهاية إلزامي.",
+  END_DATE_MUST_BE_FUTURE: "تاريخ النهاية يجب أن يكون بعد تاريخ اليوم.",
+  NON_ASCII_DIGITS: "استخدم الأرقام الإنجليزية 0-9 فقط.",
   IDENTIFIER_REQUIRED: "أدخل معرّفًا صحيحًا.",
 };
 
@@ -285,7 +292,8 @@ function mapInviteError(message: string): Error {
 
 /**
  * دعوة طرف بالمعرّف (هوية شخص أو سجل/رقم موحّد لمنشأة). المطابقة تُحسم خادميًا
- * فقط؛ العميل لا يرسل أي UUID للطرف. بلا مطابقة = دعوة معلّقة بلا صلاحيات.
+ * فقط؛ العميل لا يرسل أي UUID للطرف. الدعوة لا تمنح أي صلاحية قبل قبول الطرف:
+ * الصلاحيات تُحفظ كلقطة وتُطبّق عند القبول فقط.
  */
 export const inviteProjectPartyByIdentifier = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -298,20 +306,36 @@ export const inviteProjectPartyByIdentifier = createServerFn({ method: "POST" })
         partyRole: z.enum(PARTY_ROLES),
         displayName: z.string().trim().max(200).nullable().optional(),
         scopeTextAr: z.string().trim().max(1000).nullable().optional(),
-        endsOn: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .nullable()
-          .optional(),
-        stageIds: z.array(z.string().uuid()).default([]),
+        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ النهاية إلزامي وبصيغة صحيحة."),
+        stageIds: z.array(z.string().uuid()).min(1, "اختر مرحلة واحدة على الأقل ضمن نطاق المشروع."),
         permissions: z
           .array(z.object({ module: z.enum(PARTY_MODULES), action: z.enum(PARTY_ACTIONS) }))
-          .default([]),
+          .min(1, "اختر صلاحية واحدة على الأقل للطرف المدعو."),
       })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string; pending: boolean }> => {
-    const { normalizeNationalId } = await import("@/lib/identity-format");
+    const {
+      normalizeNationalId,
+      containsNonAsciiDigits,
+      isRealCalendarDate,
+      riyadhToday,
+      NON_ASCII_DIGITS_MESSAGE,
+    } = await import("@/lib/identity-format");
+
+    if (
+      containsNonAsciiDigits(data.identifier) ||
+      containsNonAsciiDigits(data.displayName ?? "") ||
+      containsNonAsciiDigits(data.scopeTextAr ?? "") ||
+      containsNonAsciiDigits(data.endsOn)
+    ) {
+      throw new Error(`${NON_ASCII_DIGITS_MESSAGE}.`);
+    }
+    if (!isRealCalendarDate(data.endsOn)) throw new Error("تاريخ النهاية غير صحيح.");
+    if (data.endsOn <= riyadhToday()) {
+      throw new Error("تاريخ النهاية يجب أن يكون بعد تاريخ اليوم.");
+    }
+
     const { resolvePartyIdentifier } = await import("@/lib/party-lookup.server");
     const digits = normalizeNationalId(data.identifier);
     const resolved = await resolvePartyIdentifier({
@@ -330,6 +354,7 @@ export const inviteProjectPartyByIdentifier = createServerFn({ method: "POST" })
           : "السجل التجاري / الرقم الموحّد يجب أن يكون عشرة أرقام.",
       );
     }
+
 
     const { data: id, error } = await context.supabase.rpc("invite_project_party_identified", {
       _project_id: data.projectId,
