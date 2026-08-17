@@ -330,6 +330,13 @@ function DealsPage() {
                   <p className="truncate font-semibold text-foreground">{deal.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {CONTEXT_AR[deal.context_type] ?? deal.context_type}
+                    {deal.context_title ? ` · ${deal.context_title}` : ""}
+                    {deal.context_no ? (
+                      <>
+                        {" · "}
+                        <bdi dir="ltr">{deal.context_no}</bdi>
+                      </>
+                    ) : null}
                     {deal.counterparty_name ? ` · ${deal.counterparty_name}` : ""}
                     {" · "}
                     <bdi dir="ltr">{formatDateTime(deal.created_at)}</bdi>
@@ -657,6 +664,12 @@ function DealsPage() {
           const rows: { label: string; value: React.ReactNode }[] = [
             { label: "العنوان", value: deal.title },
             { label: "السياق", value: CONTEXT_AR[deal.context_type] ?? deal.context_type },
+            ...(deal.context_title
+              ? [{ label: "اسم الطلب", value: deal.context_title as React.ReactNode }]
+              : []),
+            ...(deal.context_no
+              ? [{ label: "رقم الطلب", value: <bdi dir="ltr">{deal.context_no}</bdi> }]
+              : []),
             { label: "الحالة", value: STATUS_AR[deal.status] ?? deal.status },
             {
               label: "حالة الطرف الثاني",

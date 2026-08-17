@@ -49,6 +49,10 @@ export type Deal = {
   owner_user_id: string | null;
   entity_id: string | null;
   parties: DealParty[];
+  /** اسم الطلب المرتبط (عند ربط المعاملة بطلب) — يظهر فقط لمن يملك صلاحية قراءته. */
+  context_title: string | null;
+  /** رقم الطلب المرتبط. */
+  context_no: string | null;
   /** هل المستخدم الحالي هو الطرف الثاني (فيمكنه القبول أو الرفض)؟ */
   can_respond: boolean;
   /** هل المستخدم الحالي هو الطرف الأول (منشئ المعاملة)؟ */
@@ -103,6 +107,28 @@ export const listDeals = createServerFn({ method: "GET" })
       .eq("status", "active");
     for (const m of memberships ?? []) myEntities.add(m.entity_id as string);
 
+    // أسماء الطلبات المرتبطة — قراءة محكومة بـ RLS، فما لا يملكه المستخدم لا يعود.
+    const requestIds = Array.from(
+      new Set(
+        (rows ?? [])
+          .filter((r) => r.context_type === "request" && r.context_id)
+          .map((r) => r.context_id as string),
+      ),
+    );
+    const requestMap = new Map<string, { no: string; subject: string }>();
+    if (requestIds.length > 0) {
+      const { data: reqRows } = await context.supabase
+        .from("requests")
+        .select("id, request_no, subject")
+        .in("id", requestIds);
+      for (const r of reqRows ?? []) {
+        requestMap.set(r.id as string, {
+          no: (r.request_no as string) ?? "",
+          subject: (r.subject as string) ?? "",
+        });
+      }
+    }
+
     const mapped = (rows ?? []).map((row) => {
       const parties = ((row as { deal_parties?: DealParty[] }).deal_parties ?? []) as DealParty[];
       const second = parties.find((p) => p.party_role === "second") ?? null;
@@ -117,9 +143,15 @@ export const listDeals = createServerFn({ method: "GET" })
       const { deal_parties: _drop, ...rest } = row as Record<string, unknown> & {
         deal_parties?: unknown;
       };
+      const req = row.context_id ? requestMap.get(row.context_id as string) : undefined;
       return {
-        ...(rest as Omit<Deal, "parties" | "can_respond" | "is_owner">),
+        ...(rest as Omit<
+          Deal,
+          "parties" | "can_respond" | "is_owner" | "context_title" | "context_no"
+        >),
         parties,
+        context_title: req?.subject || null,
+        context_no: req?.no || null,
         can_respond: isSecond && second?.acceptance_status === "pending",
         is_owner: isOwner,
       } satisfies Deal;
