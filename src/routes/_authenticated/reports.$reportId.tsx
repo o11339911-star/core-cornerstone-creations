@@ -155,7 +155,7 @@ function ReportDetailPage() {
             <PageHero
               title={report.title}
               subtitle={`${report.report_number} · إصدار ${current.version_no}${report.is_certified ? " · موثّق" : ""}`}
-              badge={<HeroBadge tone="neutral">{VERSION_STATUS[current.status] ?? current.status}</HeroBadge>}
+              badge={<HeroBadge tone="neutral">{VERSION_STATUS[current.status] ?? "غير محدد"}</HeroBadge>}
             />
             <div className="flex flex-wrap justify-end gap-3">
               <div className="flex flex-wrap gap-2">
@@ -215,7 +215,7 @@ function ReportDetailPage() {
 
             {licenseQuery.data && !licenseQuery.data.is_valid ? (
               <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-                رخصة الكيان غير سارية ({licenseQuery.data.reason}) — سيصدر التقرير غير موثّق ولا يمكن ختمه.
+                رخصة الجهة غير سارية. حدّث الرخصة أو اختر جهة إصدار مؤهلة.
               </p>
             ) : null}
             {message ? <p className="text-sm text-primary">{message}</p> : null}
@@ -236,7 +236,7 @@ function ReportDetailPage() {
                   <li key={version.id} className="flex items-center justify-between rounded-md border border-border p-3">
                     <span>إصدار {version.version_no}</span>
                     <span className="text-xs text-muted-foreground">
-                      {VERSION_STATUS[version.status] ?? version.status}
+                      {VERSION_STATUS[version.status] ?? "غير محدد"}
                       {version.approved_at
                         ? ` · ${formatDate(version.approved_at)}`
                         : ""}
