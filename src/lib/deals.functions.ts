@@ -108,8 +108,8 @@ export const listDeals = createServerFn({ method: "GET" })
       const second = parties.find((p) => p.party_role === "second") ?? null;
       const isSecond = Boolean(
         second &&
-          (second.matched_user_id === context.userId ||
-            (second.matched_entity_id && myEntities.has(second.matched_entity_id))),
+        (second.matched_user_id === context.userId ||
+          (second.matched_entity_id && myEntities.has(second.matched_entity_id))),
       );
       const isOwner =
         row.owner_user_id === context.userId ||
@@ -190,7 +190,8 @@ export const createDeal = createServerFn({ method: "POST" })
     if (error) {
       if (error.message.includes("SECOND_PARTY_IS_SELF")) throw new Error("SECOND_PARTY_IS_SELF");
       if (error.message.includes("NOT_ENTITY_MEMBER")) throw new Error("NOT_ENTITY_MEMBER");
-      if (error.message.includes("SECOND_PARTY_CR_INVALID")) throw new Error("SECOND_PARTY_CR_INVALID");
+      if (error.message.includes("SECOND_PARTY_CR_INVALID"))
+        throw new Error("SECOND_PARTY_CR_INVALID");
       throw new Error("DEAL_CREATE_FAILED");
     }
 
@@ -206,9 +207,7 @@ export const createDeal = createServerFn({ method: "POST" })
 
 export const respondToDeal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ dealId: uuid, accept: z.boolean() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ dealId: uuid, accept: z.boolean() }).parse(input))
   .handler(async ({ data, context }): Promise<{ status: string }> => {
     const { data: status, error } = await context.supabase.rpc("respond_contracting_deal", {
       _deal_id: data.dealId,
