@@ -205,6 +205,7 @@ export const createAssignment = createServerFn({ method: "POST" })
           .nullable()
           .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).default("internal"),
+        audiencePartyIds: z.array(z.string().uuid()).max(50).optional(),
       })
       .parse(input),
   )
@@ -225,8 +226,10 @@ export const createAssignment = createServerFn({ method: "POST" })
     );
 
     if (error) throw mapAssignmentError(error);
+    await applyPartyAudience(context.supabase, id as string, data.visibility, data.audiencePartyIds);
     return { id: id as string };
   });
+
 
 /**
  * Updates an existing assignment's job titles, stage, dates and visibility,
