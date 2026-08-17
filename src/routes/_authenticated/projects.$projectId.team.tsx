@@ -24,6 +24,8 @@ import {
   endProjectAssignment,
   getProjectTeamCapabilities,
   listAssignableMembers,
+  listAssignableProjectParties,
+  listAssignmentAudience,
   listProjectAssignments,
   updateProjectAssignment,
   VISIBILITY_LEVELS,
@@ -50,6 +52,81 @@ const VISIBILITY_ICON: Record<VisibilityLevel, typeof Eye> = {
   limited: Eye,
   project_wide: Eye,
 };
+
+
+const PARTY_ROLE_KEY: Record<string, string> = {
+  design_office: "projectParties.roles.design_office",
+  supervision: "projectParties.roles.supervision",
+  contractor: "projectParties.roles.contractor",
+  inspector: "projectParties.roles.inspector",
+  insurance: "projectParties.roles.insurance",
+  accounting: "projectParties.roles.accounting",
+  legal: "projectParties.roles.legal",
+  supplier: "projectParties.roles.supplier",
+};
+
+/** multi-select لأطراف المشروع المقبولة فقط (الاسم والدور والنوع، بلا بيانات هوية). */
+function PartyAudienceField({
+  projectId,
+  value,
+  onChange,
+}: {
+  projectId: string;
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const t = useT();
+  const partiesFn = useServerFn(listAssignableProjectParties);
+  const partiesQuery = useQuery({
+    queryKey: ["assignable-parties", projectId],
+    queryFn: () => partiesFn({ data: { projectId } }),
+  });
+  const parties = partiesQuery.data ?? [];
+
+  return (
+    <div className="space-y-2 rounded-md border border-input p-3">
+      <p className="text-sm font-medium text-foreground">{t("projectTeam.audienceTitle")}</p>
+      <p className="text-xs text-muted-foreground">{t("projectTeam.audienceHint")}</p>
+      {partiesQuery.isPending ? (
+        <p className="text-xs text-muted-foreground">{t("projectTeam.audienceLoading")}</p>
+      ) : parties.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("projectTeam.audienceEmpty")}</p>
+      ) : (
+        <ul className="space-y-1">
+          {parties.map((party) => {
+            const checked = value.includes(party.id);
+            return (
+              <li key={party.id}>
+                <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-primary"
+                    checked={checked}
+                    onChange={(e) =>
+                      onChange(
+                        e.target.checked
+                          ? [...value, party.id]
+                          : value.filter((id) => id !== party.id),
+                      )
+                    }
+                  />
+                  <span className="text-foreground">{party.display_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {party.party_kind === "person"
+                      ? t("projectParties.kindPerson")
+                      : t("projectParties.kindEntity")}
+                    {" · "}
+                    {t(PARTY_ROLE_KEY[party.party_role] ?? party.party_role)}
+                  </span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose: () => void }) {
   const t = useT();
@@ -325,7 +402,14 @@ function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose
               </option>
             ))}
           </select>
+          <span className="text-xs text-muted-foreground">
+            {t(`projectTeam.visibilityHints.${visibility}`)}
+          </span>
         </label>
+
+        {visibility === "limited" ? (
+          <PartyAudienceField projectId={projectId} value={audience} onChange={setAudience} />
+        ) : null}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
       </div>
@@ -467,7 +551,14 @@ function EditAssignmentModal({
               </option>
             ))}
           </select>
+          <span className="text-xs text-muted-foreground">
+            {t(`projectTeam.visibilityHints.${visibility}`)}
+          </span>
         </label>
+
+        {visibility === "limited" ? (
+          <PartyAudienceField projectId={projectId} value={audience} onChange={setAudience} />
+        ) : null}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
       </div>
