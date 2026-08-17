@@ -1255,6 +1255,44 @@ export type Database = {
           },
         ]
       }
+      contracting_deal_events: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          deal_id: string
+          event_type: string
+          id: string
+          metadata: Json
+          reason: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          deal_id: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          deal_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_deal_events_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracting_deals: {
         Row: {
           amount: number | null
@@ -1269,7 +1307,13 @@ export type Database = {
           id: string
           notes: string | null
           owner_user_id: string
+          project_id: string | null
+          recipient_responded_at: string | null
+          recipient_responded_by: string | null
+          recipient_response_reason: string | null
+          recipient_status: string
           reference_no: string
+          resubmitted_from_id: string | null
           second_party_status: string
           status: string
           title: string
@@ -1288,7 +1332,13 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_user_id: string
+          project_id?: string | null
+          recipient_responded_at?: string | null
+          recipient_responded_by?: string | null
+          recipient_response_reason?: string | null
+          recipient_status?: string
           reference_no?: string
+          resubmitted_from_id?: string | null
           second_party_status?: string
           status?: string
           title: string
@@ -1307,7 +1357,13 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_user_id?: string
+          project_id?: string | null
+          recipient_responded_at?: string | null
+          recipient_responded_by?: string | null
+          recipient_response_reason?: string | null
+          recipient_status?: string
           reference_no?: string
+          resubmitted_from_id?: string | null
           second_party_status?: string
           status?: string
           title?: string
@@ -1319,6 +1375,20 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_deals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_deals_resubmitted_from_id_fkey"
+            columns: ["resubmitted_from_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_deals"
             referencedColumns: ["id"]
           },
         ]
@@ -1723,6 +1793,99 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      deal_message_attachments: {
+        Row: {
+          created_at: string
+          deal_id: string
+          file_name: string
+          id: string
+          message_id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          file_name: string
+          id?: string
+          message_id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          file_name?: string
+          id?: string
+          message_id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_message_attachments_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "deal_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_messages: {
+        Row: {
+          author_entity_id: string | null
+          author_user_id: string
+          body: string | null
+          created_at: string
+          deal_id: string
+          id: string
+          kind: string
+        }
+        Insert: {
+          author_entity_id?: string | null
+          author_user_id: string
+          body?: string | null
+          created_at?: string
+          deal_id: string
+          id?: string
+          kind: string
+        }
+        Update: {
+          author_entity_id?: string | null
+          author_user_id?: string
+          body?: string | null
+          created_at?: string
+          deal_id?: string
+          id?: string
+          kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_messages_author_entity_id_fkey"
+            columns: ["author_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_messages_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       deal_parties: {
         Row: {
@@ -10521,6 +10684,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      attach_deal_message_file: {
+        Args: {
+          _file_name: string
+          _message_id: string
+          _mime_type: string
+          _size_bytes: number
+          _storage_path: string
+        }
+        Returns: string
+      }
       attach_payment_receipt: {
         Args: { _order_id: string; _receipt_path: string }
         Returns: undefined
@@ -11129,6 +11302,14 @@ export type Database = {
         }
         Returns: Json
       }
+      link_deal_project: {
+        Args: { _deal_id: string; _project_id: string }
+        Returns: undefined
+      }
+      link_deal_resubmission: {
+        Args: { _new_deal_id: string; _source_deal_id: string }
+        Returns: undefined
+      }
       link_document: {
         Args: {
           _context_id: string
@@ -11573,6 +11754,10 @@ export type Database = {
         Returns: string
       }
       platform_me: { Args: never; Returns: Json }
+      post_deal_message: {
+        Args: { _body: string; _deal_id: string; _kind: string }
+        Returns: string
+      }
       post_request_message: {
         Args: {
           _body: string
@@ -11826,7 +12011,7 @@ export type Database = {
         Returns: undefined
       }
       respond_contracting_deal: {
-        Args: { _accept: boolean; _deal_id: string }
+        Args: { _accept: boolean; _deal_id: string; _reason?: string }
         Returns: string
       }
       respond_to_project_party: {

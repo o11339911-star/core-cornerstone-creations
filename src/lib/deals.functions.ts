@@ -43,6 +43,14 @@ export type Deal = {
   context_id: string | null;
   status: string;
   second_party_status: "pending" | "accepted" | "declined";
+  /** حالة مستقبل الطلب المعتمدة: بانتظار / قبول / رفض. */
+  recipient_status: "pending" | "accepted" | "rejected";
+  recipient_response_reason: string | null;
+  recipient_responded_at: string | null;
+  /** المعاملة الملغاة التي أُعيد إرسال هذا الطلب منها. */
+  resubmitted_from_id: string | null;
+  project_id: string | null;
+  project_name: string | null;
   amount: number | string | null;
   currency: string;
   notes: string | null;
@@ -90,7 +98,7 @@ export const listDeals = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("contracting_deals")
       .select(
-        "id, reference_no, title, counterparty_name, context_type, context_id, status, second_party_status, amount, currency, notes, archived_at, created_at, owner_user_id, entity_id, deal_parties(party_role, party_kind, identifier_kind, identifier_last4, cr_number, display_name, is_registered, acceptance_status, responded_at, matched_user_id, matched_entity_id)",
+        "id, reference_no, title, counterparty_name, context_type, context_id, status, second_party_status, recipient_status, recipient_response_reason, recipient_responded_at, resubmitted_from_id, project_id, amount, currency, notes, archived_at, created_at, owner_user_id, entity_id, deal_parties(party_role, party_kind, identifier_kind, identifier_last4, cr_number, display_name, is_registered, acceptance_status, responded_at, matched_user_id, matched_entity_id)",
       );
     if (data.scope === "mine") {
       q = data.entityId ? q.eq("entity_id", data.entityId) : q.is("entity_id", null);
@@ -131,6 +139,19 @@ export const listDeals = createServerFn({ method: "GET" })
       }
     }
 
+    // أسماء المشاريع المرتبطة — القراءة محكومة بـ RLS، فلا يظهر اسم مشروع لا يملكه المستخدم.
+    const projectIds = Array.from(
+      new Set((rows ?? []).map((r) => r.project_id as string | null).filter(Boolean) as string[]),
+    );
+    const projectMap = new Map<string, string>();
+    if (projectIds.length > 0) {
+      const { data: projRows } = await context.supabase
+        .from("projects")
+        .select("id, name")
+        .in("id", projectIds);
+      for (const p of projRows ?? []) projectMap.set(p.id as string, (p.name as string) ?? "");
+    }
+
     const mapped = (rows ?? []).map((row) => {
       const parties = ((row as { deal_parties?: DealParty[] }).deal_parties ?? []) as DealParty[];
       const second = parties.find((p) => p.party_role === "second") ?? null;
@@ -149,9 +170,10 @@ export const listDeals = createServerFn({ method: "GET" })
       return {
         ...(rest as Omit<
           Deal,
-          "parties" | "can_respond" | "is_owner" | "context_title" | "context_no"
+          "parties" | "can_respond" | "is_owner" | "context_title" | "context_no" | "project_name"
         >),
         parties,
+        project_name: row.project_id ? (projectMap.get(row.project_id as string) ?? null) : null,
         context_title: req?.subject || null,
         context_no: req?.no || null,
         can_respond: isSecond && second?.acceptance_status === "pending",
@@ -184,6 +206,10 @@ export const createDeal = createServerFn({ method: "POST" })
           .regex(/^[A-Z]{3}$/)
           .default("SAR"),
         notes: z.string().max(4000).nullable().default(null),
+        /** ربط اختياري بمشروع من مشاريع الحساب النشط — لا يمنح أي وصول للطرف الآخر. */
+        projectId: uuid.nullable().default(null),
+        /** المعاملة الملغاة التي أُعيد الطلب منها. */
+        resubmittedFromId: uuid.nullable().default(null),
       })
       .parse(input),
   )
@@ -229,6 +255,20 @@ export const createDeal = createServerFn({ method: "POST" })
       throw new Error("DEAL_CREATE_FAILED");
     }
 
+    if (data.projectId) {
+      const { error: linkError } = await context.supabase.rpc("link_deal_project", {
+        _deal_id: id as string,
+        _project_id: data.projectId,
+      });
+      if (linkError) throw new Error("PROJECT_LINK_FORBIDDEN");
+    }
+    if (data.resubmittedFromId) {
+      await context.supabase.rpc("link_deal_resubmission", {
+        _new_deal_id: id as string,
+        _source_deal_id: data.resubmittedFromId,
+      });
+    }
+
     const { data: party } = await context.supabase
       .from("deal_parties")
       .select("is_registered")
@@ -241,12 +281,21 @@ export const createDeal = createServerFn({ method: "POST" })
 
 export const respondToDeal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ dealId: uuid, accept: z.boolean() }).parse(input))
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        dealId: uuid,
+        accept: z.boolean(),
+        reason: z.string().trim().max(2000).nullable().default(null),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }): Promise<{ status: string }> => {
     const { data: status, error } = await context.supabase.rpc("respond_contracting_deal", {
       _deal_id: data.dealId,
       _accept: data.accept,
-    });
+      _reason: data.accept ? null : (data.reason ?? null),
+    } as never);
     if (error) {
       if (error.message.includes("NOT_SECOND_PARTY")) throw new Error("NOT_SECOND_PARTY");
       throw new Error("DEAL_RESPOND_FAILED");
@@ -359,4 +408,126 @@ export const getDealRequester = createServerFn({ method: "POST" })
       crNumber: (r["cr_number"] as string | null) ?? null,
       unifiedNationalNumber: (r["unified_national_number"] as string | null) ?? null,
     };
+  });
+
+/** مشاريع الحساب النشط المتاحة للربط — القراءة محكومة بـ RLS ولا تعود مشاريع لا يملكها المستخدم. */
+export const listLinkableProjects = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ entityId }).parse(input ?? {}))
+  .handler(async ({ data, context }): Promise<{ id: string; name: string }[]> => {
+    let q = context.supabase.from("projects").select("id, name").order("created_at", {
+      ascending: false,
+    });
+    q = data.entityId ? q.eq("entity_id", data.entityId) : q.is("entity_id", null);
+    const { data: rows, error } = await q.limit(200);
+    if (error) throw new Error("PROJECTS_LOAD_FAILED");
+    return (rows ?? []).map((r) => ({ id: r.id as string, name: (r.name as string) ?? "" }));
+  });
+
+export const DEAL_MESSAGE_KINDS = ["reply", "info_request", "document_request"] as const;
+
+export type DealAttachment = {
+  id: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+  storage_path: string;
+};
+
+export type DealMessage = {
+  id: string;
+  kind: (typeof DEAL_MESSAGE_KINDS)[number];
+  body: string | null;
+  created_at: string;
+  author_user_id: string;
+  is_mine: boolean;
+  attachments: DealAttachment[];
+};
+
+/** مسار الردود داخل المعاملة — لا يراه إلا طرفا المعاملة (RLS). */
+export const listDealMessages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ dealId: uuid }).parse(input))
+  .handler(async ({ data, context }): Promise<DealMessage[]> => {
+    const { data: rows, error } = await context.supabase
+      .from("deal_messages")
+      .select(
+        "id, kind, body, created_at, author_user_id, deal_message_attachments(id, file_name, mime_type, size_bytes, storage_path)",
+      )
+      .eq("deal_id", data.dealId)
+      .order("created_at", { ascending: true })
+      .limit(200);
+    if (error) throw new Error("DEAL_MESSAGES_FAILED");
+    return (rows ?? []).map((r) => ({
+      id: r.id as string,
+      kind: r.kind as (typeof DEAL_MESSAGE_KINDS)[number],
+      body: (r.body as string | null) ?? null,
+      created_at: r.created_at as string,
+      author_user_id: r.author_user_id as string,
+      is_mine: r.author_user_id === context.userId,
+      attachments: ((r as { deal_message_attachments?: DealAttachment[] })
+        .deal_message_attachments ?? []) as DealAttachment[],
+    }));
+  });
+
+export const postDealMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        dealId: uuid,
+        kind: z.enum(DEAL_MESSAGE_KINDS),
+        body: z.string().trim().max(4000).nullable().default(null),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ id: string }> => {
+    const { data: id, error } = await context.supabase.rpc("post_deal_message", {
+      _deal_id: data.dealId,
+      _kind: data.kind,
+      _body: data.body ?? "",
+    });
+    if (error) throw new Error("DEAL_MESSAGE_FAILED");
+    return { id: id as string };
+  });
+
+/** أنواع الملفات المسموح بها فعليًا — مطابقة تمامًا لما تفرضه القاعدة. */
+export const DEAL_ALLOWED_MIME: Record<string, string[]> = {
+  "application/pdf": [".pdf"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+  "image/webp": [".webp"],
+  "text/plain": [".txt"],
+  "text/csv": [".csv"],
+  "application/msword": [".doc"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "application/vnd.ms-excel": [".xls"],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+};
+export const DEAL_MAX_FILE_BYTES = 25 * 1024 * 1024;
+
+export const registerDealAttachment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        messageId: uuid,
+        storagePath: z.string().min(3).max(300),
+        fileName: z.string().trim().min(1).max(240),
+        mimeType: z.string().min(3).max(160),
+        sizeBytes: z.number().int().positive().max(DEAL_MAX_FILE_BYTES),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ id: string }> => {
+    if (!(data.mimeType in DEAL_ALLOWED_MIME)) throw new Error("MIME_NOT_ALLOWED");
+    const { data: id, error } = await context.supabase.rpc("attach_deal_message_file", {
+      _message_id: data.messageId,
+      _storage_path: data.storagePath,
+      _file_name: data.fileName,
+      _mime_type: data.mimeType,
+      _size_bytes: data.sizeBytes,
+    });
+    if (error) throw new Error("ATTACHMENT_FAILED");
+    return { id: id as string };
   });
