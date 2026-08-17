@@ -49,6 +49,8 @@ export const HEADING_LEVEL_LABEL: Record<1 | 2 | 3, string> = {
 export const REPORT_KIND_LABEL: Record<string, string> = {
   engineering: "تقرير هندسي",
   administrative: "تقرير إداري",
+  inspection: "تقرير فحص",
+  technical_test: "تقرير اختبار فني",
 };
 
 export const REPORT_STATUS_LABEL: Record<string, string> = {
@@ -62,12 +64,23 @@ export const REPORT_STATUS_LABEL: Record<string, string> = {
 
 const BLOCK_REASON_AR: Record<string, string> = {
   ENTITY_NOT_ENGINEERING:
-    "هذه الجهة ليست مكتبًا هندسيًا، ولا يمكنها إصدار تقرير هندسي. أرسل «طلب تقرير هندسي» إلى مكتب هندسي مرتبط بالمشروع.",
+    "إصدار التقرير الهندسي خاص بالمكاتب الهندسية (مكتب تصميم، أو مكتب إشراف هندسي مسجّل بنشاط هندسي). أرسل «طلب تقرير هندسي» إلى مكتب هندسي مرتبط بالمشروع.",
+  ENTITY_NOT_INSPECTION:
+    "هذه الجهة ليست جهة فحص أو مختبرًا فنيًا، فلا يمكنها إصدار تقرير فحص أو اختبار فني.",
   ENTITY_NOT_LINKED_TO_PROJECT:
     "الجهة غير مرتبطة بهذا المشروع كطرف مقبول، فلا يمكنها إصدار تقرير هندسي عليه.",
   NOT_ENTITY_MEMBER: "لست عضوًا في هذه الجهة، فلا يمكنك الإصدار باسمها.",
   UNAUTHENTICATED: "انتهت الجلسة. سجّل الدخول من جديد ثم أعد المحاولة.",
 };
+
+/** Arabic reason for blocking an inspection / technical-test report, or null when allowed. */
+export function inspectionBlockMessage(reason: string | null | undefined): string | null {
+  if (!reason) return null;
+  return (
+    BLOCK_REASON_AR[reason] ??
+    "لا تملك صلاحية إصدار تقرير فحص أو اختبار فني بهذه الجهة على هذا المشروع."
+  );
+}
 
 /** Arabic reason for the block, or null when issuing is allowed. */
 export function engineeringBlockMessage(reason: string | null | undefined): string | null {
@@ -84,6 +97,16 @@ export function engineeringBlockMessage(reason: string | null | undefined): stri
  */
 export function reportErrorMessage(error: unknown): { message: string; code: string | null } {
   const raw = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+
+  const inspectionForbidden = /INSPECTION_REPORT_FORBIDDEN\s*\(([A-Z_]+)\)/.exec(raw);
+  if (inspectionForbidden) {
+    return {
+      message:
+        inspectionBlockMessage(inspectionForbidden[1] ?? null) ??
+        "لا تملك صلاحية إصدار تقرير فحص أو اختبار فني.",
+      code: inspectionForbidden[0],
+    };
+  }
 
   const forbidden = /ENGINEERING_REPORT_FORBIDDEN\s*\(([A-Z_]+)\)/.exec(raw);
   if (forbidden) {
