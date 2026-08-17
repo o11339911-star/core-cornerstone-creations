@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { compactArgs } from "@/lib/rpc-args";
 
 /**
@@ -181,7 +184,7 @@ function mapAssignmentError(error: { message: string }): Error {
 
 /** حفظ ذرّي لجمهور "أطراف محددة"؛ أي مستوى آخر ينظّف الروابط المحفوظة. */
 async function applyPartyAudience(
-  supabase: { rpc: (fn: string, args: unknown) => Promise<{ error: { message: string } | null }> },
+  supabase: SupabaseClient<Database>,
   assignmentId: string,
   visibility: VisibilityLevel,
   partyIds: string[] | undefined,
