@@ -105,8 +105,7 @@ function PartyRows({
   items: NonNullable<UnifiedIdentity["groups"]["contracted_parties"]>;
   withRole?: boolean;
 }) {
-  if (items.length === 0)
-    return <p className="py-2 text-xs text-muted-foreground">{MISSING}</p>;
+  if (items.length === 0) return <p className="py-2 text-xs text-muted-foreground">{MISSING}</p>;
   return (
     <ul className="divide-y divide-border/60">
       {items.map((p, i) => (
@@ -158,7 +157,6 @@ function VisibilityManager({ projectId, onClose }: { projectId: string; onClose:
     for (const group of IDENTITY_GROUPS) initial[group] = { level: "internal", partyIds: [] };
     return initial;
   });
-
 
   React.useEffect(() => {
     const rows = settingsQuery.data?.settings;
@@ -294,8 +292,7 @@ function VisibilityManager({ projectId, onClose }: { projectId: string; onClose:
 
 export function UnifiedIdentitySection(
   props:
-    | { projectId: string; propertyId?: undefined }
-    | { propertyId: string; projectId?: undefined },
+    { projectId: string; propertyId?: undefined } | { propertyId: string; projectId?: undefined },
 ) {
   const projectId = props.projectId ?? null;
   const propertyId = props.propertyId ?? null;
@@ -320,7 +317,9 @@ export function UnifiedIdentitySection(
   });
 
   if (query.isPending) {
-    return <div className="h-16 w-full animate-pulse rounded-xl border border-border bg-muted/40" />;
+    return (
+      <div className="h-16 w-full animate-pulse rounded-xl border border-border bg-muted/40" />
+    );
   }
   if (query.isError || !query.data) {
     return (
@@ -423,8 +422,9 @@ export function UnifiedIdentitySection(
                           {o.name ?? MISSING}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {[KIND_AR[o.kind ?? ""] ?? o.kind, o.legal_form].filter(Boolean).join(" · ") ||
-                            MISSING}
+                          {[KIND_AR[o.kind ?? ""] ?? o.kind, o.legal_form]
+                            .filter(Boolean)
+                            .join(" · ") || MISSING}
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
