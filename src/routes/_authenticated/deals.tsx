@@ -51,7 +51,7 @@ export const Route = createFileRoute("/_authenticated/deals")({
 });
 
 const STATUS_AR: Record<string, string> = {
-  draft: "مسودة",
+  new: "طلب جديد",
   negotiating: "تفاوض",
   agreed: "اتفاق مبدئي",
   signed: "موقّع",
