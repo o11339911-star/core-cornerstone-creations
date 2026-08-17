@@ -34,6 +34,22 @@ export type CounterpartyLookup =
   | { status: "registered"; displayName: string | null }
   | { status: "unregistered" };
 
+export type EntityMatchRow = {
+  entity_id: string;
+  legal_name_ar: string | null;
+  legal_name_en: string | null;
+};
+
+/**
+ * يعيد الصف الوحيد فقط. أي تطابق متعدد (حتى لو من صفوف مختلفة لنفس الرقم)
+ * يُعامل كغير محسوم ولا يُختار منه شيء، منعًا لربط أو كشف خاطئ.
+ */
+export function pickUniqueEntityMatch(rows: EntityMatchRow[]): EntityMatchRow | null {
+  const ids = new Set(rows.map((r) => r.entity_id));
+  if (ids.size !== 1) return null;
+  return rows[0] ?? null;
+}
+
 export async function lookupDealCounterparty(input: {
   partyKind: "person" | "entity";
   digits: string;
@@ -81,15 +97,23 @@ export async function lookupDealCounterparty(input: {
     return { status: "registered", displayName: profile?.full_name ?? null };
   }
 
-  const { data: row } = await client
+  // مطابقة تامة على السجل التجاري أو الرقم الوطني الموحد، كما في create_contracting_deal.
+  const { data: rows } = await client
     .from("entity_profiles")
     .select("entity_id, legal_name_ar, legal_name_en")
-    .eq("cr_number", digits)
-    .maybeSingle();
+    .or(`cr_number.eq.${digits},unified_national_number.eq.${digits}`)
+    .limit(2);
 
-  if (!row) {
+  const matches = rows ?? [];
+  if (matches.length === 0) {
     await audit(hash, "unregistered");
     return { status: "unregistered" };
+  }
+  const row = pickUniqueEntityMatch(matches);
+  if (!row) {
+    // تطابق متعدد غير متوقع: لا نختار عشوائيًا ولا نكشف أي كيان.
+    await audit(hash, "ambiguous");
+    return { status: "invalid" };
   }
 
   let name = row.legal_name_ar ?? row.legal_name_en ?? null;
