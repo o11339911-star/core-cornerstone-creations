@@ -330,6 +330,13 @@ function DealsPage() {
                   <p className="truncate font-semibold text-foreground">{deal.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {CONTEXT_AR[deal.context_type] ?? deal.context_type}
+                    {deal.context_title ? ` · ${deal.context_title}` : ""}
+                    {deal.context_no ? (
+                      <>
+                        {" · "}
+                        <bdi dir="ltr">{deal.context_no}</bdi>
+                      </>
+                    ) : null}
                     {deal.counterparty_name ? ` · ${deal.counterparty_name}` : ""}
                     {" · "}
                     <bdi dir="ltr">{formatDateTime(deal.created_at)}</bdi>
