@@ -361,7 +361,7 @@ function DealsPage() {
                     </p>
                   ) : null}
                 </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
                   <HeroBadge tone={statusTone(deal.status)}>
                     {STATUS_AR[deal.status] ?? deal.status}
                   </HeroBadge>
