@@ -10,6 +10,7 @@ import { ResponsiveModal, TextField, TextAreaField } from "@/components/rakeez";
 import { Num } from "@/components/rakeez/numeric";
 import {
   getProjectLocation,
+  getPropertyLocation,
   savePropertyLocation,
   saveProjectLocation,
   suggestProjectLocation,
@@ -34,9 +35,14 @@ const clampText = (value: string) => value.slice(0, 400);
  * It always edits the one stored record for the project (or its linked
  * property) — nothing is duplicated between the project and the property.
  */
-export function PreciseLocationSection({ projectId }: { projectId: string }) {
+export function PreciseLocationSection(
+  props: { projectId: string; propertyId?: undefined } | { propertyId: string; projectId?: undefined },
+) {
+  const projectId = props.projectId ?? null;
+  const directPropertyId = props.propertyId ?? null;
   const queryClient = useQueryClient();
   const fetchLocation = useServerFn(getProjectLocation);
+  const fetchPropertyLocation = useServerFn(getPropertyLocation);
   const fetchSuggestions = useServerFn(suggestProjectLocation);
   const saveForProject = useServerFn(saveProjectLocation);
   const saveForProperty = useServerFn(savePropertyLocation);
@@ -50,13 +56,16 @@ export function PreciseLocationSection({ projectId }: { projectId: string }) {
   const [formError, setFormError] = React.useState<string | null>(null);
 
   const locationQuery = useQuery({
-    queryKey: ["project-location", projectId],
-    queryFn: () => fetchLocation({ data: { projectId } }),
+    queryKey: ["precise-location", projectId ?? `property:${directPropertyId}`],
+    queryFn: () =>
+      projectId
+        ? fetchLocation({ data: { projectId } })
+        : fetchPropertyLocation({ data: { propertyId: directPropertyId as string } }),
   });
   const suggestionsQuery = useQuery({
     queryKey: ["project-location-suggestions", projectId],
-    queryFn: () => fetchSuggestions({ data: { projectId } }),
-    enabled: open,
+    queryFn: () => fetchSuggestions({ data: { projectId: projectId as string } }),
+    enabled: open && Boolean(projectId),
   });
 
   const loc = locationQuery.data;
@@ -81,17 +90,19 @@ export function PreciseLocationSection({ projectId }: { projectId: string }) {
         lng: lng as number,
         boundary,
       };
-      if (loc?.property_id) {
-        await saveForProperty({ data: { propertyId: loc.property_id, ...payload } });
+      const propertyId = directPropertyId ?? loc?.property_id ?? null;
+      if (propertyId) {
+        await saveForProperty({ data: { propertyId, ...payload } });
       } else {
-        await saveForProject({ data: { projectId, ...payload } });
+        await saveForProject({ data: { projectId: projectId as string, ...payload } });
       }
     },
     onSuccess: () => {
       toast.success("تم حفظ الموقع الدقيق");
       setOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ["project-location", projectId] });
-      void queryClient.invalidateQueries({ queryKey: ["project-overview", projectId] });
+      void queryClient.invalidateQueries({ queryKey: ["precise-location"] });
+      void queryClient.invalidateQueries({ queryKey: ["project-overview"] });
+      void queryClient.invalidateQueries({ queryKey: ["property"] });
     },
     onError: () => toast.error("تعذّر حفظ الموقع. تأكد من العنوان والنقطة وحاول مرة أخرى."),
   });
