@@ -1641,7 +1641,6 @@ export const ar = {
     memberKind: "نوع العضو",
     kindRegistered: "عضو مسجل",
     kindExternal: "عضو خارجي",
-    selectMember: "اختر عضوًا",
     nationalId: "رقم الهوية",
     nationalIdHint: "عشرة أرقام تبدأ بـ 1 أو 2.",
     nameOptional: "الاسم (اختياري)",

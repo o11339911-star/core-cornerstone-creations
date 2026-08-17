@@ -1654,7 +1654,6 @@ export const en: Translations = {
     memberKind: "Member type",
     kindRegistered: "Registered member",
     kindExternal: "External member",
-    selectMember: "Select a member",
     nationalId: "National ID",
     nationalIdHint: "Ten digits starting with 1 or 2.",
     nameOptional: "Name (optional)",
