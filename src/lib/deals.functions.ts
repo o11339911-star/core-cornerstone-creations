@@ -107,6 +107,28 @@ export const listDeals = createServerFn({ method: "GET" })
       .eq("status", "active");
     for (const m of memberships ?? []) myEntities.add(m.entity_id as string);
 
+    // أسماء الطلبات المرتبطة — قراءة محكومة بـ RLS، فما لا يملكه المستخدم لا يعود.
+    const requestIds = Array.from(
+      new Set(
+        (rows ?? [])
+          .filter((r) => r.context_type === "request" && r.context_id)
+          .map((r) => r.context_id as string),
+      ),
+    );
+    const requestMap = new Map<string, { no: string; subject: string }>();
+    if (requestIds.length > 0) {
+      const { data: reqRows } = await context.supabase
+        .from("requests")
+        .select("id, request_no, subject")
+        .in("id", requestIds);
+      for (const r of reqRows ?? []) {
+        requestMap.set(r.id as string, {
+          no: (r.request_no as string) ?? "",
+          subject: (r.subject as string) ?? "",
+        });
+      }
+    }
+
     const mapped = (rows ?? []).map((row) => {
       const parties = ((row as { deal_parties?: DealParty[] }).deal_parties ?? []) as DealParty[];
       const second = parties.find((p) => p.party_role === "second") ?? null;
