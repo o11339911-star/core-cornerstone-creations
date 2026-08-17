@@ -44,15 +44,18 @@ export async function lookupDealCounterparty(input: {
   const valid = partyKind === "person" ? isValidSaudiId(digits) : /^[0-9]{10}$/.test(digits);
   if (!valid) return { status: "invalid" };
 
-  // Per-actor budget stops bulk enumeration regardless of the number tried.
-  const allowed = await allowAttempt(`deal-lookup:${actorUserId}`, 30, 600);
   let hash: string;
+  let actorKey: string;
   try {
     hash = subjectHmac(`${partyKind}:${digits}`);
+    // لا يُخزَّن user_id خام في حدود المحاولات — بصمة HMAC مختصرة فقط.
+    actorKey = subjectHmac(`actor|${actorUserId}`).slice(0, 24);
   } catch {
     // Missing server key: fail internally with a neutral answer.
     return { status: "invalid" };
   }
+  // Per-actor budget stops bulk enumeration regardless of the number tried.
+  const allowed = await allowAttempt(`deal-lookup:${actorKey}`, 30, 600);
   if (!allowed) {
     await audit(hash, "throttled");
     return { status: "throttled" };
