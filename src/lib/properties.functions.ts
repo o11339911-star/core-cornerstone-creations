@@ -514,29 +514,31 @@ export const updatePropertyBasics = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Exact location lives in its own table; writing needs the exact-location right. */
+/**
+ * Exact location lives in its own table. All writes go through the audited
+ * database function so validation, permission check and the change log stay
+ * in one place.
+ */
 export const setExactLocation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         propertyId: z.string().uuid(),
-        exactLat: z.number().min(-90).max(90).nullable(),
-        exactLng: z.number().min(-180).max(180).nullable(),
-        exactAddress: z.string().trim().max(400).nullable(),
+        exactLat: z.number().min(-90).max(90),
+        exactLng: z.number().min(-180).max(180),
+        exactAddress: z.string().trim().min(3).max(400),
       })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase.from("property_exact_locations").upsert(
-      {
-        property_id: data.propertyId,
-        exact_lat: data.exactLat,
-        exact_lng: data.exactLng,
-        exact_address: data.exactAddress,
-      },
-      { onConflict: "property_id" },
-    );
+    const { error } = await context.supabase.rpc("set_property_precise_location", {
+      _property_id: data.propertyId,
+      _address: data.exactAddress,
+      _lat: data.exactLat,
+      _lng: data.exactLng,
+      _boundary: null,
+    });
     if (error) throw error;
     return { ok: true };
   });
