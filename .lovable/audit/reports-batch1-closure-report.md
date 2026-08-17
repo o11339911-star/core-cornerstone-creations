@@ -70,3 +70,29 @@
 فتظهر له لوحة الطلب مع حالة فارغة عربية توجّهه لإضافة مكتب هندسي ضمن أطراف المشروع.
 
 لم يتم أي Publish/Deploy، ولم يُنشأ أو يُحذف أي حساب أو بيانات.
+
+---
+
+## الدفعة 2 — الأرشيف: المرجع الموحد، سجل النسخ، والتحقق العام
+
+**الحالة: PASS** — بدون نشر وبدون حذف بيانات وبدون تعديل حسابات.
+
+### قاعدة البيانات
+- `archive_items`: `archive_reference` (UNIQUE، عشوائي `RKZ-XXXX-XXXX-XXXX`، بلا تسلسل أو طابع زمني)، `archived_at`، `original_file_number`، `archived_from`، `source_type`، `copied_from_id`. Backfill آمن بلا تغيير محتوى.
+- `archive_item_versions`: سجل تعديلات داخلي بـRLS مرتبط بنطاق البطاقة الأم.
+- `archive_stamps`: checksum SHA-256 + issued_at + issuer + status (valid/revoked).
+- `public.issue_archive_stamp` (مسجّل فقط) و`public.verify_archive_file` (عام، مخرجات عامة فقط).
+- تشديد الصلاحيات: سحب المنح الافتراضية عن `anon/authenticated` من الجدولين الجديدين، ومنح EXECUTE صريحًا لأداة التحقق فقط.
+
+### الشيفرة
+- `src/lib/office-files.ts`: تذييل موحد + `sha256Hex` + DOCX/XLSX حقيقيان (ZIP)، حذف `versionedName`.
+- `src/lib/archive.functions.ts`: `saveArchiveFileVersion` (يحدّث نفس البطاقة)، `copyArchiveFile`، `listArchiveVersions`، `issueArchiveStamp`.
+- `src/lib/archive-verify.functions.ts` + `src/routes/verify-file.tsx`: تحقق عام برقم الملف والتاريخ YYYY/MM/DD.
+- `src/components/archive/office-editor.tsx`: «اسم الملف» أعلى المحرر، الحفظ يحدّث نفس الملف، تلميح «اكتب محتواك داخل المربع».
+- `src/components/archive/download-dialog.tsx`: «تنزيل عام» أو «تنزيل موثق ببصمة ركيز».
+- روابط «تحقق من ملف» في صفحة الهبوط وصفحة الدخول.
+
+### التحقق
+- `bunx tsgo` نظيف، `vitest` 10/10، `bun run build` ناجح.
+- المراجع: 6 عناصر، 6 مراجع فريدة، 0 مخالف للنمط.
+- صفحة التحقق على عرض 390px: بلا overflow، بلا أخطاء console، ولا تسريب لأي بيانات عند عدم وجود مطابقة.
