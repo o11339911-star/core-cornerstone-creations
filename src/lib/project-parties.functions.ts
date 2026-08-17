@@ -155,15 +155,11 @@ export const inviteProjectParty = createServerFn({ method: "POST" })
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional(),
-        endsOn: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .nullable()
-          .optional(),
-        stageIds: z.array(z.string().uuid()).default([]),
+        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ الانتهاء إلزامي"),
+        stageIds: z.array(z.string().uuid()).min(1, "اختر مرحلة واحدة على الأقل"),
         permissions: z
           .array(z.object({ module: z.enum(PARTY_MODULES), action: z.enum(PARTY_ACTIONS) }))
-          .default([]),
+          .min(1, "اختر صلاحية واحدة على الأقل"),
       })
       .parse(input),
   )
