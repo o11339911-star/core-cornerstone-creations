@@ -380,6 +380,15 @@ function DealsPage() {
                         ? "الطرف الثاني رفض"
                         : "بانتظار الطرف الثاني"}
                   </HeroBadge>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="min-h-11"
+                    onClick={() => setViewDealId(deal.id)}
+                  >
+                    فتح
+                  </Button>
                   {deal.can_respond ? (
                     <>
                       <Button
