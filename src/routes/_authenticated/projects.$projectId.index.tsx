@@ -37,6 +37,7 @@ import {
   StatGrid,
 } from "@/components/rakeez";
 import { getProjectOverview, type ProjectOverview } from "@/lib/project-overview.functions";
+import { PreciseLocationSection } from "@/components/location/precise-location";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/")({
   component: ProjectOverviewPage,
