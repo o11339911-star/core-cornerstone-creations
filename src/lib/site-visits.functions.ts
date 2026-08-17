@@ -58,14 +58,12 @@ export const createVisit = createServerFn({ method: "POST" })
         projectId: z.string().uuid(),
         stageId: z.string().uuid().nullable().optional(),
         summary: z.string().trim().max(4000).nullable().optional(),
-        locationConsent: z.boolean().default(false),
-        locationReason: z.enum(VISIT_REASONS).nullable().optional(),
-        lat: z.number().min(-90).max(90).nullable().optional(),
-        lng: z.number().min(-180).max(180).nullable().optional(),
       })
       .parse(input),
   )
-  .handler(async ({ data, context }): Promise<{ id: string; locationStored: boolean }> => {
+  // A visit never records a new location: the project's saved precise location
+  // is the single source, so no coordinate or consent is collected here.
+  .handler(async ({ data, context }): Promise<{ id: string }> => {
     const { data: visit, error } = await context.supabase
       .from("site_visits")
       .insert({
@@ -73,23 +71,13 @@ export const createVisit = createServerFn({ method: "POST" })
         stage_id: data.stageId ?? null,
         visited_by: context.userId,
         summary: data.summary ?? null,
-        location_consent: data.locationConsent,
-        location_reason: data.locationConsent ? (data.locationReason ?? "inspection") : null,
+        location_consent: false,
+        location_reason: null,
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-
-    // No consent → no coordinate is ever sent to the database.
-    let locationStored = false;
-    if (data.locationConsent && data.lat != null && data.lng != null) {
-      const { error: locError } = await context.supabase
-        .from("site_visit_locations")
-        .insert({ visit_id: visit.id, lat: data.lat, lng: data.lng });
-      if (locError) throw new Error(locError.message);
-      locationStored = true;
-    }
-    return { id: visit.id, locationStored };
+    return { id: visit.id };
   });
 
 /** Returns null when the caller may not see exact coordinates. */
