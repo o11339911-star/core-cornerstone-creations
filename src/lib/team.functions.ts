@@ -731,6 +731,7 @@ export const createExternalAssignment = createServerFn({ method: "POST" })
           .nullable()
           .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).default("internal"),
+        audiencePartyIds: z.array(z.string().uuid()).max(50).optional(),
       })
       .parse(input),
   )
@@ -773,5 +774,47 @@ export const createExternalAssignment = createServerFn({ method: "POST" })
       }
       throw new Error("تعذّر حفظ الإسناد. حاول مرة أخرى.");
     }
+    await applyPartyAudience(
+      context.supabase,
+      id as string,
+      data.visibility,
+      data.audiencePartyIds,
+    );
     return { id: id as string, pending: resolved.matchedUserId === null };
+  });
+
+/* ------------------ visibility audience (project parties) ----------------- */
+
+export const assignablePartySchema = z.object({
+  id: z.string().uuid(),
+  display_name: z.string(),
+  party_role: z.string(),
+  party_kind: z.string(),
+});
+export type AssignableParty = z.infer<typeof assignablePartySchema>;
+
+/** أطراف المشروع المقبولة النشطة فقط — الاسم والدور والنوع، بلا أي بيانات هوية. */
+export const listAssignableProjectParties = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<AssignableParty[]> => {
+    const { data: rows, error } = await context.supabase.rpc("list_assignable_project_parties", {
+      _project_id: data.projectId,
+    });
+    if (error) throw new Error("تعذّر جلب أطراف المشروع.");
+    return assignablePartySchema.array().parse(rows ?? []);
+  });
+
+/** الاختيارات المحفوظة لإسناد معيّن (RLS تحصر الرؤية على المخوّلين). */
+export const listAssignmentAudience = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ assignmentId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<string[]> => {
+    const { data: rows, error } = await context.supabase
+      .from("assignment_visibility_audience")
+      .select("project_party_id")
+      .eq("assignment_id", data.assignmentId)
+      .not("project_party_id", "is", null);
+    if (error) throw new Error("تعذّر جلب جمهور الظهور.");
+    return (rows ?? []).map((r) => r.project_party_id as string);
   });
