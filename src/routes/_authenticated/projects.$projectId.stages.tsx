@@ -60,11 +60,13 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/stages
 function StagesPage() {
   const t = useT();
   const { projectId } = Route.useParams();
+  const search = Route.useSearch();
   const queryClient = useQueryClient();
 
   const fetchStages = useServerFn(listStages);
   const fetchCriteria = useServerFn(listStageCriteria);
   const fetchTimeline = useServerFn(listStageTimeline);
+  const fetchCapabilities = useServerFn(getStageCapabilities);
   const start = useServerFn(startStage);
   const submit = useServerFn(submitStage);
   const approve = useServerFn(approveStage);
@@ -72,12 +74,16 @@ function StagesPage() {
   const setResult = useServerFn(setCriterionResult);
   const reportProgress = useServerFn(reportStageProgress);
 
-  const [selected, setSelected] = React.useState<string | null>(null);
+  const [selected, setSelected] = React.useState<string | null>(search.stage ?? null);
   const [error, setError] = React.useState<string | null>(null);
   const [code, setCode] = React.useState("");
   const [labelAr, setLabelAr] = React.useState("");
   const [labelEn, setLabelEn] = React.useState("");
   const [percent, setPercent] = React.useState("");
+
+  React.useEffect(() => {
+    if (search.stage) setSelected(search.stage);
+  }, [search.stage]);
 
   const stagesQuery = useQuery({
     queryKey: ["stages", projectId],
@@ -85,6 +91,7 @@ function StagesPage() {
   });
 
   const stageId = selected ?? stagesQuery.data?.[0]?.id ?? null;
+  const highlighted = !!search.stage && search.stage === stageId;
 
   const criteriaQuery = useQuery({
     queryKey: ["stage-criteria", stageId],
@@ -96,6 +103,13 @@ function StagesPage() {
     queryFn: () => fetchTimeline({ data: { projectId, stageId: stageId as string } }),
     enabled: !!stageId,
   });
+  const capabilitiesQuery = useQuery({
+    queryKey: ["stage-capabilities", stageId],
+    queryFn: () => fetchCapabilities({ data: { stageId: stageId as string } }),
+    enabled: !!stageId,
+  });
+  const caps = capabilitiesQuery.data ?? { canStart: false, canSubmit: false, canApprove: false };
+
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["stages", projectId] });
