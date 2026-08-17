@@ -8362,6 +8362,7 @@ export type Database = {
           name_en: string
           owner_scope: string
           page_setup: Json
+          report_kind: string
           reviewed_at: string | null
           reviewed_by: string | null
           source: string
@@ -8381,6 +8382,7 @@ export type Database = {
           name_en: string
           owner_scope: string
           page_setup?: Json
+          report_kind?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           source?: string
@@ -8400,6 +8402,7 @@ export type Database = {
           name_en?: string
           owner_scope?: string
           page_setup?: Json
+          report_kind?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           source?: string
@@ -8511,7 +8514,9 @@ export type Database = {
           language: string
           project_id: string
           property_id: string | null
+          report_kind: string
           report_number: string
+          request_id: string | null
           stage_id: string | null
           status: Database["public"]["Enums"]["report_status"]
           template_id: string | null
@@ -8530,7 +8535,9 @@ export type Database = {
           language?: string
           project_id: string
           property_id?: string | null
+          report_kind?: string
           report_number: string
+          request_id?: string | null
           stage_id?: string | null
           status?: Database["public"]["Enums"]["report_status"]
           template_id?: string | null
@@ -8549,7 +8556,9 @@ export type Database = {
           language?: string
           project_id?: string
           property_id?: string | null
+          report_kind?: string
           report_number?: string
+          request_id?: string | null
           stage_id?: string | null
           status?: Database["public"]["Enums"]["report_status"]
           template_id?: string | null
@@ -8591,6 +8600,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
             referencedColumns: ["id"]
           },
           {
@@ -10419,6 +10435,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_issue_engineering_report: {
+        Args: { _entity_id: string; _project_id: string }
+        Returns: string
+      }
       can_manage_project_parties: {
         Args: { _project_id: string }
         Returns: boolean
@@ -10737,6 +10757,8 @@ export type Database = {
           _language?: string
           _project_id: string
           _property_id?: string
+          _report_kind?: string
+          _request_id?: string
           _stage_id?: string
           _template_id?: string
           _title: string
@@ -11339,6 +11361,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_project_engineering_offices: {
+        Args: { _project_id: string }
+        Returns: {
+          entity_id: string
+          entity_type: string
+          name: string
+          party_role: string
+        }[]
+      }
       list_queue_items: {
         Args: { _mine?: boolean; _status?: string }
         Returns: {
@@ -11611,6 +11642,17 @@ export type Database = {
       }
       request_completion: {
         Args: { _note?: string; _subject_id: string; _subject_kind: string }
+        Returns: string
+      }
+      request_engineering_report: {
+        Args: {
+          _body?: string
+          _project_id: string
+          _property_id?: string
+          _stage_id?: string
+          _subject: string
+          _to_entity_id: string
+        }
         Returns: string
       }
       request_entity_relationship: {
