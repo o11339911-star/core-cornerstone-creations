@@ -32,7 +32,8 @@ export const signUpWithIdentityFn = createServerFn({ method: "POST" })
     const { signUpWithIdentity } = await import("@/lib/auth-identity.server");
     const { PRODUCTION_ORIGIN } = await import("@/lib/auth-origin");
     // Only same-app origins may be used as the confirmation destination.
-    const allowed = /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|[a-z0-9-]+\.lovable\.app)(\/|$)/i;
+    const allowed =
+      /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|[a-z0-9-]+\.lovable\.app)(\/|$)/i;
     const redirectTo = allowed.test(data.redirectTo)
       ? data.redirectTo
       : `${PRODUCTION_ORIGIN}/auth/callback`;
@@ -58,7 +59,8 @@ export const requestPasswordResetFn = createServerFn({ method: "POST" })
     const { getRequestIP, getRequestHeader } = await import("@tanstack/react-start/server");
     const { createHash } = await import("crypto");
 
-    const allowed = /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|[a-z0-9-]+\.lovable\.app)(\/|$)/i;
+    const allowed =
+      /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|[a-z0-9-]+\.lovable\.app)(\/|$)/i;
     const redirectTo = allowed.test(data.redirectTo)
       ? data.redirectTo
       : `${PRODUCTION_ORIGIN}/auth/reset-password`;

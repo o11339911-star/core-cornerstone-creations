@@ -122,7 +122,9 @@ function SecuritySettingsPage() {
             />
           </div>
 
-          {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+          )}
           {success && (
             <div className="rounded-md bg-success-soft p-3 text-sm text-success">
               {t("auth.passwordUpdated")}

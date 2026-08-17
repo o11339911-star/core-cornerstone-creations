@@ -78,7 +78,9 @@ function ForgotPasswordPage() {
       <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-card">
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("auth.forgotTitle")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {t("auth.forgotTitle")}
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               أدخل البريد الإلكتروني أو رقم الهوية المرتبط بحسابك.
             </p>
@@ -115,7 +117,10 @@ function ForgotPasswordPage() {
               </div>
 
               {notice ? (
-                <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                <div
+                  role="alert"
+                  className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+                >
                   {notice}
                 </div>
               ) : null}
@@ -134,7 +139,10 @@ function ForgotPasswordPage() {
           )}
 
           <div className="text-center text-sm">
-            <Link to="/auth" className="inline-flex min-h-11 items-center py-2 text-primary hover:underline">
+            <Link
+              to="/auth"
+              className="inline-flex min-h-11 items-center py-2 text-primary hover:underline"
+            >
               {t("auth.backToSignIn")}
             </Link>
           </div>

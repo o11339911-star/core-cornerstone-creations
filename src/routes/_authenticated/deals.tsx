@@ -66,7 +66,13 @@ const CONTEXT_AR: Record<string, string> = {
 };
 
 const statusTone = (s: string): "success" | "warning" | "danger" | "neutral" =>
-  s === "signed" ? "success" : s === "cancelled" ? "danger" : s === "agreed" ? "warning" : "neutral";
+  s === "signed"
+    ? "success"
+    : s === "cancelled"
+      ? "danger"
+      : s === "agreed"
+        ? "warning"
+        : "neutral";
 
 function DealsPage() {
   const qc = useQueryClient();
@@ -106,9 +112,10 @@ function DealsPage() {
 
   // ——— بحث تلقائي عن الطرف الثاني بعد اكتمال رقم صحيح ———
   const lookupParty = useServerFn(lookupDealCounterpartyFn);
-  const [lookup, setLookup] = React.useState<
-    { state: "idle" | "checking" | "registered" | "unregistered" | "throttled"; name?: string | null }
-  >({ state: "idle" });
+  const [lookup, setLookup] = React.useState<{
+    state: "idle" | "checking" | "registered" | "unregistered" | "throttled";
+    name?: string | null;
+  }>({ state: "idle" });
 
   const digits = form.identifier.replace(/[^0-9]/g, "");
   const identifierValid =
@@ -129,7 +136,9 @@ function DealsPage() {
             setLookup({ state: "registered", name: res.displayName });
             // الاسم النظامي المسموح عرضه فقط؛ الربط يُعاد التحقق منه خادميًا.
             if (res.displayName) {
-              setForm((f) => (f.counterpartyName.trim() ? f : { ...f, counterpartyName: res.displayName! }));
+              setForm((f) =>
+                f.counterpartyName.trim() ? f : { ...f, counterpartyName: res.displayName! },
+              );
             }
           } else if (res.status === "throttled") {
             setLookup({ state: "throttled" });
@@ -150,7 +159,8 @@ function DealsPage() {
 
   const list = useQuery({
     queryKey: ["deals", entityId, filter, scope],
-    queryFn: () => fetchDeals({ data: { entityId, status: filter, includeArchived: false, scope } }),
+    queryFn: () =>
+      fetchDeals({ data: { entityId, status: filter, includeArchived: false, scope } }),
     enabled: !loading,
   });
 
@@ -265,7 +275,9 @@ function DealsPage() {
           type="button"
           onClick={() => setFilter(null)}
           className={`min-h-11 rounded-xl border px-4 text-sm font-medium ${
-            filter === null ? "border-primary bg-secondary text-primary" : "border-border text-muted-foreground"
+            filter === null
+              ? "border-primary bg-secondary text-primary"
+              : "border-border text-muted-foreground"
           }`}
         >
           الكل
@@ -276,7 +288,9 @@ function DealsPage() {
             type="button"
             onClick={() => setFilter(s)}
             className={`min-h-11 rounded-xl border px-4 text-sm font-medium ${
-              filter === s ? "border-primary bg-secondary text-primary" : "border-border text-muted-foreground"
+              filter === s
+                ? "border-primary bg-secondary text-primary"
+                : "border-border text-muted-foreground"
             }`}
           >
             {STATUS_AR[s]}
@@ -386,45 +400,45 @@ function DealsPage() {
                     </>
                   ) : null}
                   {deal.is_owner ? (
-                  <>
-                  <label className="sr-only" htmlFor={`status-${deal.id}`}>
-                    تغيير حالة {deal.title}
-                  </label>
-                  <select
-                    id={`status-${deal.id}`}
-                    value={deal.status}
-                    onChange={(e) =>
-                      statusMutation.mutate({
-                        id: deal.id,
-                        status: e.target.value as (typeof DEAL_STATUSES)[number],
-                      })
-                    }
-                    className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    {DEAL_STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {STATUS_AR[s]}
-                      </option>
-                    ))}
-                  </select>
-                  <ArchiveButton
-                    compact
-                    title={deal.title}
-                    kind="deal"
-                    sourceTable="contracting_deals"
-                    sourceId={deal.id}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-11"
-                    onClick={() => archiveMutation.mutate(deal.id)}
-                    disabled={archiveMutation.isPending}
-                  >
-                    إخفاء
-                  </Button>
-                  </>
+                    <>
+                      <label className="sr-only" htmlFor={`status-${deal.id}`}>
+                        تغيير حالة {deal.title}
+                      </label>
+                      <select
+                        id={`status-${deal.id}`}
+                        value={deal.status}
+                        onChange={(e) =>
+                          statusMutation.mutate({
+                            id: deal.id,
+                            status: e.target.value as (typeof DEAL_STATUSES)[number],
+                          })
+                        }
+                        className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        {DEAL_STATUSES.map((s) => (
+                          <option key={s} value={s}>
+                            {STATUS_AR[s]}
+                          </option>
+                        ))}
+                      </select>
+                      <ArchiveButton
+                        compact
+                        title={deal.title}
+                        kind="deal"
+                        sourceTable="contracting_deals"
+                        sourceId={deal.id}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="min-h-11"
+                        onClick={() => archiveMutation.mutate(deal.id)}
+                        disabled={archiveMutation.isPending}
+                      >
+                        إخفاء
+                      </Button>
+                    </>
                   ) : null}
                 </div>
               </div>
@@ -527,9 +541,13 @@ function DealsPage() {
                 ) : lookup.state === "registered" ? (
                   <span className="text-primary">طرف مسجل في ركيز — سيرسل له طلب قبول</span>
                 ) : lookup.state === "unregistered" ? (
-                  <span className="text-muted-foreground">غير مسجل — ستبقى المعاملة بانتظار انضمامه</span>
+                  <span className="text-muted-foreground">
+                    غير مسجل — ستبقى المعاملة بانتظار انضمامه
+                  </span>
                 ) : lookup.state === "throttled" ? (
-                  <span className="text-destructive">محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.</span>
+                  <span className="text-destructive">
+                    محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.
+                  </span>
                 ) : null}
               </p>
             </div>
