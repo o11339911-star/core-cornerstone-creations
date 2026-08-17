@@ -84,6 +84,7 @@ function DealsPage() {
   const setStatus = useServerFn(updateDealStatus);
   const archive = useServerFn(setDealArchived);
   const respond = useServerFn(respondToDeal);
+  const fetchRequester = useServerFn(getDealRequester);
 
   const [scope, setScope] = React.useState<"mine" | "incoming">("mine");
   const [filter, setFilter] = React.useState<(typeof DEAL_STATUSES)[number] | null>(null);
@@ -684,8 +685,52 @@ function DealsPage() {
             return <p className="text-sm text-muted-foreground">لم تعد هذه المعاملة متاحة.</p>;
           }
           const second = deal.parties.find((p) => p.party_role === "second");
+          const requester = requesterQuery.data;
           const rows: { label: string; value: React.ReactNode }[] = [
+            { label: "الرقم المرجعي", value: <bdi dir="ltr">{deal.reference_no}</bdi> },
             { label: "العنوان", value: deal.title },
+            {
+              label: "طالب الخدمة",
+              value: requesterQuery.isPending ? (
+                <Skeleton className="h-4 w-32" />
+              ) : requesterQuery.isError ? (
+                <button
+                  type="button"
+                  className="text-sm font-medium underline"
+                  onClick={() => void requesterQuery.refetch()}
+                >
+                  تعذّر عرض بيانات طالب الخدمة — إعادة المحاولة
+                </button>
+              ) : (
+                (requester?.name ?? "غير متوفر")
+              ),
+            },
+            {
+              label: "نوع طالب الخدمة",
+              value: requester?.kind === "person" ? "شخص" : requester?.kind === "entity" ? "منشأة" : "غير متوفر",
+            },
+            {
+              label:
+                requester?.kind === "entity"
+                  ? requester.crNumber
+                    ? "السجل التجاري"
+                    : "الرقم الوطني الموحّد"
+                  : "هوية طالب الخدمة",
+              value:
+                requester?.kind === "entity" ? (
+                  requester.crNumber ?? requester.unifiedNationalNumber ? (
+                    <bdi dir="ltr">{requester.crNumber ?? requester.unifiedNationalNumber}</bdi>
+                  ) : (
+                    "غير متوفر"
+                  )
+                ) : requester?.nationalId ? (
+                  <bdi dir="ltr">{requester.nationalId}</bdi>
+                ) : requester?.last4 ? (
+                  <bdi dir="ltr">{`•••• ${requester.last4}`}</bdi>
+                ) : (
+                  "غير متوفر"
+                ),
+            },
             { label: "السياق", value: CONTEXT_AR[deal.context_type] ?? deal.context_type },
             ...(deal.context_title
               ? [{ label: "اسم الطلب", value: deal.context_title as React.ReactNode }]
