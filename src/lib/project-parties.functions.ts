@@ -341,7 +341,7 @@ export const inviteProjectPartyByIdentifier = createServerFn({ method: "POST" })
       _ends_on: data.endsOn ?? null,
       _stage_ids: data.stageIds,
       _permissions: data.permissions,
-    });
+    } as never);
 
     if (error) throw mapInviteError(error.message);
     return { id: id as string, pending: resolved.matchedEntityId === null };

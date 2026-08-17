@@ -709,7 +709,7 @@ export const createExternalAssignment = createServerFn({ method: "POST" })
       _starts_on: data.startsOn ?? null,
       _ends_on: data.endsOn ?? null,
       _visibility: data.visibility,
-    });
+    } as never);
 
     if (error) {
       if (error.message.includes("FORBIDDEN")) {
