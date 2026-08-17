@@ -246,13 +246,39 @@ export const startStage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ stageId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
-    const { error } = await context.supabase
-      .from("project_stages")
-      .update({ status: "in_progress", actual_start: new Date().toISOString().slice(0, 10) })
-      .eq("id", data.stageId);
+    const { error } = await context.supabase.rpc("start_stage", { _stage_id: data.stageId });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** What the signed-in user may actually do on this stage (server is the source of truth). */
+export const getStageCapabilities = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ stageId: z.string().uuid() }).parse(input))
+  .handler(
+    async ({
+      data,
+      context,
+    }): Promise<{ canStart: boolean; canSubmit: boolean; canApprove: boolean }> => {
+      const { data: caps, error } = await context.supabase.rpc("stage_capabilities", {
+        _stage_id: data.stageId,
+      });
+      if (error) throw new Error(error.message);
+      const parsed = z
+        .object({
+          can_start: z.boolean().default(false),
+          can_submit: z.boolean().default(false),
+          can_approve: z.boolean().default(false),
+        })
+        .parse(caps ?? {});
+      return {
+        canStart: parsed.can_start,
+        canSubmit: parsed.can_submit,
+        canApprove: parsed.can_approve,
+      };
+    },
+  );
+
 
 export const submitStage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
