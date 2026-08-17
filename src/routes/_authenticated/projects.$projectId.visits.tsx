@@ -16,6 +16,7 @@ import {
   CardsSkeleton,
 } from "@/components/rakeez";
 import { MapPin, AlertTriangle, ClipboardList } from "lucide-react";
+import { PreciseLocationSection } from "@/components/location/precise-location";
 import { listStages } from "@/lib/stages.functions";
 import { formatDateTime } from "@/lib/format";
 import {
@@ -71,10 +72,6 @@ function VisitsPage() {
 
   const [error, setError] = React.useState<string | null>(null);
   const [summary, setSummary] = React.useState("");
-  const [consent, setConsent] = React.useState(false);
-  const [reason, setReason] = React.useState<Reason>("inspection");
-  const [lat, setLat] = React.useState("");
-  const [lng, setLng] = React.useState("");
   const [obsStage, setObsStage] = React.useState("");
   const [obsKind, setObsKind] = React.useState<Kind>("nonconformity");
   const [obsSeverity, setObsSeverity] = React.useState<Severity>("medium");
@@ -111,16 +108,9 @@ function VisitsPage() {
           data: {
             projectId,
             summary: summary.trim() || null,
-            locationConsent: consent,
-            locationReason: consent ? reason : null,
-            lat: consent && lat ? Number(lat) : null,
-            lng: consent && lng ? Number(lng) : null,
           },
         });
         setSummary("");
-        setLat("");
-        setLng("");
-        setConsent(false);
       }),
   });
 
@@ -153,7 +143,12 @@ function VisitsPage() {
       ) : null}
 
       <SectionCard icon={MapPin} title={t("visits.newVisit")}>
-        <p className="mb-4 text-xs text-muted-foreground">{t("visits.locationHint")}</p>
+        <p className="mb-4 text-xs text-muted-foreground">
+          لا تسجّل الزيارة موقعًا جديدًا؛ يُعتمد الموقع الدقيق المحفوظ للمشروع.
+        </p>
+        <div className="mb-4">
+          <PreciseLocationSection projectId={projectId} />
+        </div>
         <form
           className="grid gap-4"
           onSubmit={(e) => {
@@ -167,44 +162,6 @@ function VisitsPage() {
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
           />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-            />
-            <span>{t("visits.locationConsent")}</span>
-          </label>
-          {consent ? (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-foreground">{t("visits.locationReason")}</span>
-                <select
-                  className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value as Reason)}
-                >
-                  {VISIT_REASONS.map((r) => (
-                    <option key={r} value={r}>
-                      {t(`visits.reasons.${r}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <TextField
-                id="visit-lat"
-                label="Lat"
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-              />
-              <TextField
-                id="visit-lng"
-                label="Lng"
-                value={lng}
-                onChange={(e) => setLng(e.target.value)}
-              />
-            </div>
-          ) : null}
           <button
             type="submit"
             className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-foreground"
