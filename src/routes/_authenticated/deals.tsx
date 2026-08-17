@@ -417,7 +417,7 @@ function DealsPage() {
                             status: e.target.value as (typeof DEAL_STATUSES)[number],
                           })
                         }
-                        className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                        className="min-h-11 max-w-full rounded-md border border-input bg-background px-3 text-sm"
                       >
                         {DEAL_STATUSES.map((s) => (
                           <option key={s} value={s}>
