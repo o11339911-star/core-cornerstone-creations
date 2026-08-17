@@ -14,6 +14,8 @@ import { ArchiveButton } from "@/components/archive/archive-button";
 import { ErrorState, HeroBadge, PageHero, ResponsiveModal, SoftEmpty } from "@/components/rakeez";
 import { useAccountUi } from "@/lib/account-ui";
 import { formatDateTime, formatMoney } from "@/lib/format";
+import { isValidSaudiId } from "@/lib/identity-format";
+import { lookupDealCounterpartyFn } from "@/lib/deal-lookup.functions";
 import {
   createDeal,
   DEAL_CONTEXTS,
@@ -121,7 +123,7 @@ function DealsPage() {
     setLookup({ state: "checking" });
     const timer = window.setTimeout(() => {
       void lookupParty({ data: { partyKind: form.partyKind, identifier: digits } })
-        .then((res) => {
+        .then((res: Awaited<ReturnType<typeof lookupParty>>) => {
           if (cancelled) return;
           if (res.status === "registered") {
             setLookup({ state: "registered", name: res.displayName });
@@ -439,7 +441,7 @@ function DealsPage() {
           <Button
             type="button"
             className="min-h-11 w-full"
-            disabled={createMutation.isPending}
+            disabled={createMutation.isPending || lookup.state === "checking"}
             onClick={() => {
               setError(null);
               if (form.title.trim().length < 2) {
@@ -450,7 +452,7 @@ function DealsPage() {
                 setError("اكتب اسم الطرف الثاني");
                 return;
               }
-              if (!/^[0-9]{10}$/.test(form.identifier.trim())) {
+              if (!identifierValid) {
                 setError(
                   form.partyKind === "person"
                     ? "رقم هوية الطرف الثاني يجب أن يكون عشرة أرقام"
@@ -518,6 +520,17 @@ function DealsPage() {
               <p className="text-xs text-muted-foreground">
                 يُطابَق الرقم داخليًا فقط؛ إن كان الطرف مسجلًا في ركيز يُربط بحسابه مباشرة، وإلا
                 تبقى المعاملة بانتظار انضمامه.
+              </p>
+              <p aria-live="polite" className="text-xs font-medium">
+                {lookup.state === "checking" ? (
+                  <span className="text-muted-foreground">جارٍ التحقق…</span>
+                ) : lookup.state === "registered" ? (
+                  <span className="text-primary">طرف مسجل في ركيز — سيرسل له طلب قبول</span>
+                ) : lookup.state === "unregistered" ? (
+                  <span className="text-muted-foreground">غير مسجل — ستبقى المعاملة بانتظار انضمامه</span>
+                ) : lookup.state === "throttled" ? (
+                  <span className="text-destructive">محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.</span>
+                ) : null}
               </p>
             </div>
             <div className="space-y-2">
