@@ -18,6 +18,7 @@ import { formatDateTime } from "@/lib/format";
 import {
   addStageCriterion,
   approveStage,
+  getStageCapabilities,
   listStageCriteria,
   listStageTimeline,
   listStages,
@@ -27,10 +28,15 @@ import {
   submitStage,
   type Stage,
 } from "@/lib/stages.functions";
+import { auditActionLabelAr, auditObjectLabelAr } from "@/lib/audit-labels";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/stages")({
   component: StagesPage,
   errorComponent: ErrorState,
+  validateSearch: (search: Record<string, unknown>): { stage?: string } => {
+    const stage = typeof search["stage"] === "string" ? (search["stage"] as string) : undefined;
+    return stage ? { stage } : {};
+  },
   head: () => ({
     meta: [
       { title: "مراحل المشروع والتنفيذ — ركيز" },
@@ -49,6 +55,7 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId/stages
     ],
   }),
 });
+
 
 function StagesPage() {
   const t = useT();
