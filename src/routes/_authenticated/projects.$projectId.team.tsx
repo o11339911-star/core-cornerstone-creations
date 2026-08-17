@@ -601,16 +601,31 @@ function ProjectTeamPage() {
             <ul className="divide-y divide-border rounded-xl border border-border">
               {rows.map((a) => {
                 const VisIcon = VISIBILITY_ICON[a.visibility];
-                const label = a.is_identified === false ? a.job_title_ar : a.display_name ?? a.job_title_ar;
+                const label =
+                  a.is_identified === false
+                    ? a.job_title_ar
+                    : (a.display_name ?? a.external_display_name ?? a.job_title_ar);
                 return (
                   <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">{label}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {a.job_title_ar}
+                        {a.identifier_last4 ? (
+                          <>
+                            {" · "}
+                            <bdi dir="ltr" className="font-mono">{`\u2022\u2022\u2022\u2022${a.identifier_last4}`}</bdi>
+                          </>
+                        ) : null}
                         {a.starts_on ? ` · ${formatDate(a.starts_on)}` : ""}
                       </p>
                     </div>
+                    {a.is_external ? (
+                      <Badge variant="outline">{t("projectTeam.externalBadge")}</Badge>
+                    ) : null}
+                    {a.is_external && !a.user_id ? (
+                      <Badge variant="outline">{t("projectTeam.pendingBadge")}</Badge>
+                    ) : null}
                     <Badge variant="secondary">{t(`team.status.${a.status}`)}</Badge>
                     <VisIcon className="size-4 text-muted-foreground" aria-hidden="true" />
                     {canManage ? (
