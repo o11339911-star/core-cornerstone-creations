@@ -350,7 +350,6 @@ export const getDealRequester = createServerFn({ method: "POST" })
       }
     }
 
-
     return {
       found: true,
       kind: r["kind"] === "person" ? "person" : "entity",
