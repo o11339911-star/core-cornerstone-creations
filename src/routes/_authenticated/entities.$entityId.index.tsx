@@ -275,6 +275,15 @@ function EntityHomePage() {
                 value={data.tax_number ? <Num>{data.tax_number}</Num> : dash}
               />
               <Field
+                label={t("entities.fields.contactEmail")}
+                value={value(data.contact_email, dash)}
+              />
+              <Field
+                label={t("entities.fields.contactPhone")}
+                value={data.contact_phone ? <Num>{data.contact_phone}</Num> : dash}
+              />
+
+              <Field
                 label={t("entities.unnStatus.label")}
                 value={
                   !data.unified_national_number

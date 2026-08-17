@@ -95,23 +95,37 @@ export function EntityClassificationCard({ entityId, canManage }: Props) {
     enabled: debounced.length >= 2,
   });
 
+  const SAVE_ERRORS: Record<string, string> = {
+    FORBIDDEN: "لا تملك صلاحية تعديل تصنيف هذا الكيان.",
+    INVALID_LEGAL_FORM: "الشكل النظامي المختار غير معتمد.",
+    INVALID_ACTIVITY_CODE: "أحد رموز النشاط غير موجود في القاموس المعتمد.",
+    TARGET_NOT_FOUND: "الكيان غير موجود.",
+  };
+
   const save = useMutation({
     mutationFn: () =>
       saveFn({
         data: {
           entityId,
           legalFormCode: legalForm || null,
+          // لا نكتب فوق القيم المحفوظة قبل اكتمال تحميل الحالة الحالية
+          setLegalForm: currentForm.isSuccess,
+          applyActivities: current.isSuccess,
           primaryCode: primary?.code ?? null,
           secondaryCodes: secondary.map((s) => s.code),
         },
       }),
-    onSuccess: () => {
-      toast.success("تم حفظ التصنيف");
+    onSuccess: async () => {
       setDirty(false);
-      void qc.invalidateQueries({ queryKey: ["entity-activities", entityId] });
-      void qc.invalidateQueries({ queryKey: ["entity-legal-form", entityId] });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["entity-activities", entityId] }),
+        qc.invalidateQueries({ queryKey: ["entity-legal-form", entityId] }),
+        qc.invalidateQueries({ queryKey: ["entity-official", entityId] }),
+      ]);
+      toast.success("تم حفظ التصنيف");
     },
-    onError: () => toast.error("تعذّر حفظ التصنيف"),
+    onError: (error: Error) =>
+      toast.error(SAVE_ERRORS[error.message] ?? "تعذّر حفظ التصنيف. حاول مرة أخرى."),
   });
 
   const addPrimary = (a: ActivitySuggestion) => {

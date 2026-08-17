@@ -12134,6 +12134,18 @@ export type Database = {
         Args: { _drawing_id: string; _note?: string; _to_status: string }
         Returns: undefined
       }
+      set_entity_classification: {
+        Args: {
+          _apply_activities?: boolean
+          _entity_id: string
+          _legal_form_code?: string
+          _primary_code?: string
+          _secondary_codes?: string[]
+          _set_legal_form?: boolean
+          _version?: string
+        }
+        Returns: Json
+      }
       set_entity_public_publish: {
         Args: {
           _entity_id: string
