@@ -59,6 +59,21 @@ const TYPE_LABEL_AR: Record<string, string> = {
   "contract.updated": "تحديث على عقد",
 };
 
+/** Arabic one-liner describing a stage notification: project, stage, actor. */
+function notificationDetails(
+  payload: Record<string, string | number | boolean | null> | null,
+): string | null {
+  if (!payload) return null;
+  const parts: string[] = [];
+  const project = payload["project_name"];
+  const stage = payload["stage_name"];
+  const actor = payload["actor_name"];
+  if (typeof project === "string" && project) parts.push(`المشروع: ${project}`);
+  if (typeof stage === "string" && stage) parts.push(`المرحلة: ${stage}`);
+  if (typeof actor === "string" && actor) parts.push(`بواسطة: ${actor}`);
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
 function NotificationsPage() {
   const t = useT();
   const queryClient = useQueryClient();
