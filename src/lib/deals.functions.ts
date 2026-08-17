@@ -25,7 +25,7 @@ export type DealParty = {
   identifier_kind: "national_id" | "cr_number" | null;
   identifier_last4: string | null;
   cr_number: string | null;
-  display_name: string;
+  display_name: string | null;
   is_registered: boolean;
   acceptance_status: "pending" | "accepted" | "declined";
   responded_at: string | null;
@@ -108,8 +108,8 @@ export const listDeals = createServerFn({ method: "GET" })
       const second = parties.find((p) => p.party_role === "second") ?? null;
       const isSecond = Boolean(
         second &&
-          (second.matched_user_id === context.userId ||
-            (second.matched_entity_id && myEntities.has(second.matched_entity_id))),
+        (second.matched_user_id === context.userId ||
+          (second.matched_entity_id && myEntities.has(second.matched_entity_id))),
       );
       const isOwner =
         row.owner_user_id === context.userId ||
@@ -140,7 +140,8 @@ export const createDeal = createServerFn({ method: "POST" })
         nationalId: z.string().trim().max(40).nullable().default(null),
         /** رقم السجل التجاري (10 أرقام) عندما يكون الطرف الثاني منشأة. */
         crNumber: z.string().trim().max(40).nullable().default(null),
-        counterpartyName: z.string().trim().min(2, "اسم الطرف الثاني مطلوب").max(160),
+        /** اسم الطرف الثاني اختياري تمامًا؛ الخادم يعيد اشتقاقه عند وجود مطابقة. */
+        counterpartyName: z.string().trim().max(160).nullable().default(null),
         contextType: z.enum(DEAL_CONTEXTS).default("other"),
         contextId: uuid.nullable().default(null),
         amount: z.number().min(0).nullable().default(null),
@@ -177,7 +178,7 @@ export const createDeal = createServerFn({ method: "POST" })
       _identifier_fingerprint: fingerprint,
       _identifier_last4: last4,
       _cr_number: cr,
-      _display_name: data.counterpartyName,
+      _display_name: data.counterpartyName?.trim() ? data.counterpartyName.trim() : null,
       _context_type: data.contextType,
       _context_id: data.contextId,
       _amount: data.amount,
@@ -189,7 +190,8 @@ export const createDeal = createServerFn({ method: "POST" })
     if (error) {
       if (error.message.includes("SECOND_PARTY_IS_SELF")) throw new Error("SECOND_PARTY_IS_SELF");
       if (error.message.includes("NOT_ENTITY_MEMBER")) throw new Error("NOT_ENTITY_MEMBER");
-      if (error.message.includes("SECOND_PARTY_CR_INVALID")) throw new Error("SECOND_PARTY_CR_INVALID");
+      if (error.message.includes("SECOND_PARTY_CR_INVALID"))
+        throw new Error("SECOND_PARTY_CR_INVALID");
       throw new Error("DEAL_CREATE_FAILED");
     }
 
@@ -205,9 +207,7 @@ export const createDeal = createServerFn({ method: "POST" })
 
 export const respondToDeal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ dealId: uuid, accept: z.boolean() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ dealId: uuid, accept: z.boolean() }).parse(input))
   .handler(async ({ data, context }): Promise<{ status: string }> => {
     const { data: status, error } = await context.supabase.rpc("respond_contracting_deal", {
       _deal_id: data.dealId,

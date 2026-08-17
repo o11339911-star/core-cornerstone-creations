@@ -1594,7 +1594,7 @@ export type Database = {
           cr_number: string | null
           created_at: string
           deal_id: string
-          display_name: string
+          display_name: string | null
           id: string
           identifier_fingerprint: string | null
           identifier_kind: string | null
@@ -1613,7 +1613,7 @@ export type Database = {
           cr_number?: string | null
           created_at?: string
           deal_id: string
-          display_name: string
+          display_name?: string | null
           id?: string
           identifier_fingerprint?: string | null
           identifier_kind?: string | null
@@ -1632,7 +1632,7 @@ export type Database = {
           cr_number?: string | null
           created_at?: string
           deal_id?: string
-          display_name?: string
+          display_name?: string | null
           id?: string
           identifier_fingerprint?: string | null
           identifier_kind?: string | null
