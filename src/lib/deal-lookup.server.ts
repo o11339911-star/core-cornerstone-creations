@@ -81,15 +81,23 @@ export async function lookupDealCounterparty(input: {
     return { status: "registered", displayName: profile?.full_name ?? null };
   }
 
-  const { data: row } = await client
+  // مطابقة تامة على السجل التجاري أو الرقم الوطني الموحد، كما في create_contracting_deal.
+  const { data: rows } = await client
     .from("entity_profiles")
     .select("entity_id, legal_name_ar, legal_name_en")
-    .eq("cr_number", digits)
-    .maybeSingle();
+    .or(`cr_number.eq.${digits},unified_national_number.eq.${digits}`)
+    .limit(2);
 
-  if (!row) {
+  const matches = rows ?? [];
+  if (matches.length === 0) {
     await audit(hash, "unregistered");
     return { status: "unregistered" };
+  }
+  const row = pickUniqueEntityMatch(matches);
+  if (!row) {
+    // تطابق متعدد غير متوقع: لا نختار عشوائيًا ولا نكشف أي كيان.
+    await audit(hash, "ambiguous");
+    return { status: "invalid" };
   }
 
   let name = row.legal_name_ar ?? row.legal_name_en ?? null;
