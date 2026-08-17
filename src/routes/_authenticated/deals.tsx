@@ -341,6 +341,8 @@ function DealsPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
                     <bdi dir="ltr">{deal.reference_no}</bdi>
+                    {" · "}
+                    <bdi dir="ltr">{formatDateTime(deal.created_at)}</bdi>
                   </p>
                   <p className="truncate font-semibold text-foreground">{deal.title}</p>
                   {(() => {
@@ -348,16 +350,26 @@ function DealsPage() {
                     return (
                       <p className="mt-1 text-xs text-muted-foreground">
                         طالب الخدمة: {first?.display_name ?? "غير متوفر"}
-                        {first?.party_kind === "person" && first.identifier_last4 ? (
+                        {first?.party_kind === "person" ? (
                           <>
-                            {" · هوية تنتهي بـ "}
-                            <bdi dir="ltr">{first.identifier_last4}</bdi>
+                            {" · شخص"}
+                            {first.identifier_last4 ? (
+                              <>
+                                {" · هوية تنتهي بـ "}
+                                <bdi dir="ltr">{first.identifier_last4}</bdi>
+                              </>
+                            ) : null}
                           </>
                         ) : null}
-                        {first?.party_kind === "entity" && first.cr_number ? (
+                        {first?.party_kind === "entity" ? (
                           <>
-                            {" · السجل/الرقم الموحّد: "}
-                            <bdi dir="ltr">{first.cr_number}</bdi>
+                            {" · منشأة"}
+                            {first.cr_number ? (
+                              <>
+                                {" · السجل/الرقم الموحّد: "}
+                                <bdi dir="ltr">{first.cr_number}</bdi>
+                              </>
+                            ) : null}
                           </>
                         ) : null}
                       </p>
@@ -372,16 +384,13 @@ function DealsPage() {
                         <bdi dir="ltr">{deal.context_no}</bdi>
                       </>
                     ) : null}
-                    {deal.counterparty_name ? ` · ${deal.counterparty_name}` : ""}
-                    {" · "}
-                    <bdi dir="ltr">{formatDateTime(deal.created_at)}</bdi>
                   </p>
                   {(() => {
                     const second = deal.parties.find((p) => p.party_role === "second");
                     if (!second) return null;
                     return (
                       <p className="mt-1 text-xs text-muted-foreground">
-                        الطرف الثاني: {second.display_name ?? "بدون اسم"}
+                        مستقبل الطلب: {second.display_name ?? "بدون اسم"}
                         {second.identifier_kind === "national_id" && second.identifier_last4 ? (
                           <>
                             {" · هوية تنتهي بـ "}
