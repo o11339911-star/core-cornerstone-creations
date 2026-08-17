@@ -153,11 +153,12 @@ function VisibilityManager({ projectId, onClose }: { projectId: string; onClose:
 
   const [draft, setDraft] = React.useState<
     Record<IdentityGroup, { level: IdentityLevel; partyIds: string[] }>
-  >(() =>
-    Object.fromEntries(
-      IDENTITY_GROUPS.map((g) => [g, { level: "internal" as IdentityLevel, partyIds: [] }]),
-    ) as Record<IdentityGroup, { level: IdentityLevel; partyIds: string[] }>,
-  );
+  >(() => {
+    const initial = {} as Record<IdentityGroup, { level: IdentityLevel; partyIds: string[] }>;
+    for (const group of IDENTITY_GROUPS) initial[group] = { level: "internal", partyIds: [] };
+    return initial;
+  });
+
 
   React.useEffect(() => {
     const rows = settingsQuery.data?.settings;
