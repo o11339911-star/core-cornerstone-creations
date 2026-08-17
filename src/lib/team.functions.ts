@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { compactArgs } from "@/lib/rpc-args";
 
 /**
@@ -179,6 +182,34 @@ function mapAssignmentError(error: { message: string }): Error {
   return new Error(error.message);
 }
 
+/** حفظ ذرّي لجمهور "أطراف محددة"؛ أي مستوى آخر ينظّف الروابط المحفوظة. */
+async function applyPartyAudience(
+  supabase: SupabaseClient<Database>,
+  assignmentId: string,
+  visibility: VisibilityLevel,
+  partyIds: string[] | undefined,
+): Promise<void> {
+  const ids = visibility === "limited" ? (partyIds ?? []) : [];
+  if (visibility === "limited" && ids.length === 0) {
+    throw new Error("اختر طرفًا واحدًا على الأقل من أطراف المشروع.");
+  }
+  const { error } = await supabase.rpc("set_assignment_party_audience", {
+    _assignment_id: assignmentId,
+    _party_ids: ids,
+  });
+  if (!error) return;
+  if (error.message.includes("NOT_AUTHORIZED")) {
+    throw new Error("لا تملك صلاحية تحديد جمهور الظهور في هذا المشروع.");
+  }
+  if (error.message.includes("PARTY_NOT_ELIGIBLE")) {
+    throw new Error("أحد الأطراف المختارة غير مؤهل (غير مقبول أو منتهي).");
+  }
+  if (error.message.includes("AUDIENCE_REQUIRED")) {
+    throw new Error("اختر طرفًا واحدًا على الأقل من أطراف المشروع.");
+  }
+  throw new Error("تعذّر حفظ جمهور الظهور. حاول مرة أخرى.");
+}
+
 /**
  * Creates a project assignment through the SECURITY DEFINER RPC only: the
  * database re-validates that `userId` is an active member of `entityId` and
@@ -205,6 +236,7 @@ export const createAssignment = createServerFn({ method: "POST" })
           .nullable()
           .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).default("internal"),
+        audiencePartyIds: z.array(z.string().uuid()).max(50).optional(),
       })
       .parse(input),
   )
@@ -225,6 +257,12 @@ export const createAssignment = createServerFn({ method: "POST" })
     );
 
     if (error) throw mapAssignmentError(error);
+    await applyPartyAudience(
+      context.supabase,
+      id as string,
+      data.visibility,
+      data.audiencePartyIds,
+    );
     return { id: id as string };
   });
 
@@ -253,6 +291,7 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
           .nullable()
           .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).optional(),
+        audiencePartyIds: z.array(z.string().uuid()).max(50).optional(),
         endNow: z.boolean().default(false),
       })
       .parse(input),
@@ -274,6 +313,14 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
     );
 
     if (error) throw mapAssignmentError(error);
+    if (data.visibility) {
+      await applyPartyAudience(
+        context.supabase,
+        data.assignmentId,
+        data.visibility,
+        data.audiencePartyIds,
+      );
+    }
     return { ok: true };
   });
 
@@ -687,6 +734,7 @@ export const createExternalAssignment = createServerFn({ method: "POST" })
           .nullable()
           .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).default("internal"),
+        audiencePartyIds: z.array(z.string().uuid()).max(50).optional(),
       })
       .parse(input),
   )
@@ -729,5 +777,47 @@ export const createExternalAssignment = createServerFn({ method: "POST" })
       }
       throw new Error("تعذّر حفظ الإسناد. حاول مرة أخرى.");
     }
+    await applyPartyAudience(
+      context.supabase,
+      id as string,
+      data.visibility,
+      data.audiencePartyIds,
+    );
     return { id: id as string, pending: resolved.matchedUserId === null };
+  });
+
+/* ------------------ visibility audience (project parties) ----------------- */
+
+export const assignablePartySchema = z.object({
+  id: z.string().uuid(),
+  display_name: z.string(),
+  party_role: z.string(),
+  party_kind: z.string(),
+});
+export type AssignableParty = z.infer<typeof assignablePartySchema>;
+
+/** أطراف المشروع المقبولة النشطة فقط — الاسم والدور والنوع، بلا أي بيانات هوية. */
+export const listAssignableProjectParties = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<AssignableParty[]> => {
+    const { data: rows, error } = await context.supabase.rpc("list_assignable_project_parties", {
+      _project_id: data.projectId,
+    });
+    if (error) throw new Error("تعذّر جلب أطراف المشروع.");
+    return assignablePartySchema.array().parse(rows ?? []);
+  });
+
+/** الاختيارات المحفوظة لإسناد معيّن (RLS تحصر الرؤية على المخوّلين). */
+export const listAssignmentAudience = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ assignmentId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<string[]> => {
+    const { data: rows, error } = await context.supabase
+      .from("assignment_visibility_audience")
+      .select("project_party_id")
+      .eq("assignment_id", data.assignmentId)
+      .not("project_party_id", "is", null);
+    if (error) throw new Error("تعذّر جلب جمهور الظهور.");
+    return (rows ?? []).map((r) => r.project_party_id as string);
   });

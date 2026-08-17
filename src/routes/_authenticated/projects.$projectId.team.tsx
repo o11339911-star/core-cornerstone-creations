@@ -24,6 +24,8 @@ import {
   endProjectAssignment,
   getProjectTeamCapabilities,
   listAssignableMembers,
+  listAssignableProjectParties,
+  listAssignmentAudience,
   listProjectAssignments,
   updateProjectAssignment,
   VISIBILITY_LEVELS,
@@ -50,6 +52,80 @@ const VISIBILITY_ICON: Record<VisibilityLevel, typeof Eye> = {
   limited: Eye,
   project_wide: Eye,
 };
+
+const PARTY_ROLE_KEY: Record<string, string> = {
+  design_office: "parties.roles.design_office",
+  supervision: "parties.roles.supervision",
+  contractor: "parties.roles.contractor",
+  inspector: "parties.roles.inspector",
+  insurance: "parties.roles.insurance",
+  accounting: "parties.roles.accounting",
+  legal: "parties.roles.legal",
+  supplier: "parties.roles.supplier",
+};
+
+/** multi-select لأطراف المشروع المقبولة فقط (الاسم والدور والنوع، بلا بيانات هوية). */
+function PartyAudienceField({
+  projectId,
+  value,
+  onChange,
+}: {
+  projectId: string;
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const t = useT();
+  const partiesFn = useServerFn(listAssignableProjectParties);
+  const partiesQuery = useQuery({
+    queryKey: ["assignable-parties", projectId],
+    queryFn: () => partiesFn({ data: { projectId } }),
+  });
+  const parties = partiesQuery.data ?? [];
+
+  return (
+    <div className="space-y-2 rounded-md border border-input p-3">
+      <p className="text-sm font-medium text-foreground">{t("projectTeam.audienceTitle")}</p>
+      <p className="text-xs text-muted-foreground">{t("projectTeam.audienceHint")}</p>
+      {partiesQuery.isPending ? (
+        <p className="text-xs text-muted-foreground">{t("projectTeam.audienceLoading")}</p>
+      ) : parties.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("projectTeam.audienceEmpty")}</p>
+      ) : (
+        <ul className="space-y-1">
+          {parties.map((party) => {
+            const checked = value.includes(party.id);
+            return (
+              <li key={party.id}>
+                <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-primary"
+                    checked={checked}
+                    onChange={(e) =>
+                      onChange(
+                        e.target.checked
+                          ? [...value, party.id]
+                          : value.filter((id) => id !== party.id),
+                      )
+                    }
+                  />
+                  <span className="text-foreground">{party.display_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {party.party_kind === "person"
+                      ? t("parties.kindPerson")
+                      : t("parties.kindEntity")}
+                    {" · "}
+                    {t(PARTY_ROLE_KEY[party.party_role] ?? party.party_role)}
+                  </span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose: () => void }) {
   const t = useT();
@@ -79,6 +155,7 @@ function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose
   const [startsOn, setStartsOn] = React.useState("");
   const [endsOn, setEndsOn] = React.useState("");
   const [visibility, setVisibility] = React.useState<VisibilityLevel>("internal");
+  const [audience, setAudience] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   const members = membersQuery.data ?? [];
@@ -143,6 +220,7 @@ function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose
             startsOn: startsOn || null,
             endsOn: endsOn || null,
             visibility,
+            audiencePartyIds: visibility === "limited" ? audience : undefined,
           },
         }).then(() => undefined);
       }
@@ -158,17 +236,21 @@ function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose
           startsOn: startsOn || undefined,
           endsOn: endsOn || null,
           visibility,
+          audiencePartyIds: visibility === "limited" ? audience : undefined,
         },
       }).then(() => undefined);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
+      void queryClient.invalidateQueries({ queryKey: ["assignment-audience"] });
       onClose();
     },
     onError: (e: Error) => setError(t(e.message)),
   });
 
-  const canSubmit = memberKind === "external" ? identifierComplete : Boolean(userId);
+  const audienceOk = visibility !== "limited" || audience.length > 0;
+  const canSubmit =
+    (memberKind === "external" ? identifierComplete : Boolean(userId)) && audienceOk;
 
   return (
     <ResponsiveModal
@@ -325,7 +407,14 @@ function AddAssignmentModal({ projectId, onClose }: { projectId: string; onClose
               </option>
             ))}
           </select>
+          <span className="text-xs text-muted-foreground">
+            {t(`projectTeam.visibilityHints.${visibility}`)}
+          </span>
         </label>
+
+        {visibility === "limited" ? (
+          <PartyAudienceField projectId={projectId} value={audience} onChange={setAudience} />
+        ) : null}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
       </div>
@@ -358,7 +447,17 @@ function EditAssignmentModal({
   const [startsOn, setStartsOn] = React.useState(assignment.starts_on ?? "");
   const [endsOn, setEndsOn] = React.useState(assignment.ends_on ?? "");
   const [visibility, setVisibility] = React.useState<VisibilityLevel>(assignment.visibility);
+  const [audience, setAudience] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
+
+  const audienceFn = useServerFn(listAssignmentAudience);
+  const savedAudienceQuery = useQuery({
+    queryKey: ["assignment-audience", assignment.id],
+    queryFn: () => audienceFn({ data: { assignmentId: assignment.id } }),
+  });
+  React.useEffect(() => {
+    if (savedAudienceQuery.data) setAudience(savedAudienceQuery.data);
+  }, [savedAudienceQuery.data]);
 
   const stages = stagesQuery.data ?? [];
 
@@ -374,16 +473,21 @@ function EditAssignmentModal({
           startsOn: startsOn || undefined,
           endsOn: endsOn || null,
           visibility,
+          audiencePartyIds: visibility === "limited" ? audience : undefined,
         },
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
+      void queryClient.invalidateQueries({ queryKey: ["assignment-audience"] });
       onClose();
     },
     onError: (e: Error) => setError(t(e.message)),
   });
 
-  const canSubmit = jobTitleAr.trim().length >= 2 && jobTitleEn.trim().length >= 2;
+  const canSubmit =
+    jobTitleAr.trim().length >= 2 &&
+    jobTitleEn.trim().length >= 2 &&
+    (visibility !== "limited" || audience.length > 0);
 
   return (
     <ResponsiveModal
@@ -467,7 +571,14 @@ function EditAssignmentModal({
               </option>
             ))}
           </select>
+          <span className="text-xs text-muted-foreground">
+            {t(`projectTeam.visibilityHints.${visibility}`)}
+          </span>
         </label>
+
+        {visibility === "limited" ? (
+          <PartyAudienceField projectId={projectId} value={audience} onChange={setAudience} />
+        ) : null}
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
       </div>
@@ -493,6 +604,7 @@ function EndAssignmentModal({
     mutationFn: () => endFn({ data: { assignmentId: assignment.id } }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["project-assignments", projectId] });
+      void queryClient.invalidateQueries({ queryKey: ["assignment-audience"] });
       onClose();
     },
     onError: (e: Error) => setError(t(e.message)),
