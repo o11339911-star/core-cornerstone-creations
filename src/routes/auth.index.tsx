@@ -25,11 +25,11 @@ const signInSchema = z.object({
     .trim()
     .min(3)
     .max(160)
-    // Single field: a valid e-mail OR a valid Saudi national ID / iqama.
+    // حقل واحد: بريد صحيح أو هوية سعودية من 10 أرقام لاتينية (0-9) فقط.
     .refine((v) =>
       v.includes("@")
         ? z.string().email().safeParse(v).success
-        : isValidSaudiId(normalizeNationalId(v)),
+        : /^[0-9]{10}$/.test(v) && isValidSaudiId(v),
     ),
   password: z.string().min(8),
 });
@@ -152,7 +152,11 @@ function SignInForm() {
     if (!result.ok) {
       setSubmitting(false);
       setError(
-        result.reason === "throttled" ? t("auth.tooManyAttempts") : t("auth.invalidCredentials"),
+        result.reason === "throttled"
+          ? t("auth.tooManyAttempts")
+          : result.reason === "unavailable"
+            ? t("auth.serviceUnavailable")
+            : t("auth.invalidCredentials"),
       );
       return;
     }

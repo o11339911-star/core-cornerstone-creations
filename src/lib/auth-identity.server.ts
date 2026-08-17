@@ -56,7 +56,31 @@ export type SessionPayload = { access_token: string; refresh_token: string };
 
 export type SignInResult =
   | { ok: true; session: SessionPayload }
-  | { ok: false; reason: "invalid" | "throttled" | "unconfirmed" };
+  | { ok: false; reason: "invalid" | "throttled" | "unconfirmed" | "unavailable" };
+
+/**
+ * يحلّ رقم الهوية إلى معرّف حساب Auth داخل الخادم فقط.
+ * لا يعيد البريد إطلاقًا، ويميّز بين "غير موجود" و"الخدمة غير متاحة"
+ * حتى لا يظهر عطل بيئي (مثل مفتاح خدمة غير مضبوط) كبيانات دخول خاطئة.
+ */
+async function resolveUserIdByNationalId(
+  digits: string,
+): Promise<{ status: "found"; userId: string } | { status: "not_found" } | { status: "unavailable" }> {
+  try {
+    let userId: string | null = await findUserByNationalId(digits);
+    if (!userId) {
+      const client = await admin();
+      const { data: legacy } = await client.rpc("svc_resolve_identity_login", {
+        _national_id: digits,
+      });
+      userId = (legacy as string | null) ?? null;
+    }
+    return userId ? { status: "found", userId } : { status: "not_found" };
+  } catch {
+    // مفتاح خدمة/تشفير غير مضبوط أو تعذّر الوصول: لا نخلطه ببيانات خاطئة.
+    return { status: "unavailable" };
+  }
+}
 
 /** Resolves e-mail OR national ID to an account and signs in — server-side only. */
 export async function signInWithIdentifier(
@@ -64,8 +88,12 @@ export async function signInWithIdentifier(
   password: string,
 ): Promise<SignInResult> {
   const identifier = rawIdentifier.trim();
-  if (!(await allowAttempt(throttleKey("login", identifier), 8, 600)))
-    return { ok: false, reason: "throttled" };
+  try {
+    if (!(await allowAttempt(throttleKey("login", identifier), 8, 600)))
+      return { ok: false, reason: "throttled" };
+  } catch {
+    // عدّاد المحاولات غير متاح: لا نمنع المستخدم بسببه.
+  }
 
   let email: string | null = null;
 
@@ -73,21 +101,25 @@ export async function signInWithIdentifier(
     email = identifier;
   } else {
     const digits = normalizeNationalId(identifier);
-    if (!isValidSaudiId(digits)) return { ok: false, reason: "invalid" };
-    const client = await admin();
-    // Exact match on the deterministic HMAC fingerprint; legacy rows fall back
-    // to the older resolver until the backfill has covered them.
-    let userId: string | null = await findUserByNationalId(digits);
-    if (!userId) {
-      const { data: legacy } = await client.rpc("svc_resolve_identity_login", {
-        _national_id: digits,
-      });
-      userId = (legacy as string | null) ?? null;
+    // 10 أرقام ASCII فقط، وأي رقم غير لاتيني يكون قد أُزيل هنا فيسقط الطول.
+    if (!/^[0-9]{10}$/.test(identifier) || !isValidSaudiId(digits))
+      return { ok: false, reason: "invalid" };
+
+    const resolved = await resolveUserIdByNationalId(digits);
+    if (resolved.status === "unavailable") return { ok: false, reason: "unavailable" };
+    if (resolved.status === "not_found") return { ok: false, reason: "invalid" };
+
+    try {
+      const client = await admin();
+      const { data: found, error: adminError } = await client.auth.admin.getUserById(
+        resolved.userId,
+      );
+      if (adminError) return { ok: false, reason: "unavailable" };
+      if (!found.user?.email) return { ok: false, reason: "invalid" };
+      email = found.user.email;
+    } catch {
+      return { ok: false, reason: "unavailable" };
     }
-    if (!userId) return { ok: false, reason: "invalid" };
-    const { data: found, error: adminError } = await client.auth.admin.getUserById(userId);
-    if (adminError || !found.user?.email) return { ok: false, reason: "invalid" };
-    email = found.user.email;
   }
 
   const { data, error } = await publishableClient().auth.signInWithPassword({ email, password });

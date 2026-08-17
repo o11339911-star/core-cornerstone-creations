@@ -3415,6 +3415,9 @@ export type Database = {
           id: string
           owner_user_id: string
           project_id: string | null
+          recipient_entity_id: string | null
+          recipient_label: string | null
+          recipient_user_id: string | null
           request_id: string | null
           status: string
           subject: string
@@ -3433,6 +3436,9 @@ export type Database = {
           id?: string
           owner_user_id: string
           project_id?: string | null
+          recipient_entity_id?: string | null
+          recipient_label?: string | null
+          recipient_user_id?: string | null
           request_id?: string | null
           status?: string
           subject: string
@@ -3451,6 +3457,9 @@ export type Database = {
           id?: string
           owner_user_id?: string
           project_id?: string | null
+          recipient_entity_id?: string | null
+          recipient_label?: string | null
+          recipient_user_id?: string | null
           request_id?: string | null
           status?: string
           subject?: string
@@ -3469,6 +3478,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_correspondence_recipient_entity_id_fkey"
+            columns: ["recipient_entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
             referencedColumns: ["id"]
           },
           {
@@ -6995,30 +7011,51 @@ export type Database = {
       }
       profiles: {
         Row: {
+          additional_no: string | null
           avatar_url: string | null
+          building_no: string | null
+          city: string | null
           created_at: string
+          district: string | null
           full_name: string | null
           id: string
           locale: string
           phone: string | null
+          postal_code: string | null
+          street: string | null
+          unit_no: string | null
           updated_at: string
         }
         Insert: {
+          additional_no?: string | null
           avatar_url?: string | null
+          building_no?: string | null
+          city?: string | null
           created_at?: string
+          district?: string | null
           full_name?: string | null
           id: string
           locale?: string
           phone?: string | null
+          postal_code?: string | null
+          street?: string | null
+          unit_no?: string | null
           updated_at?: string
         }
         Update: {
+          additional_no?: string | null
           avatar_url?: string | null
+          building_no?: string | null
+          city?: string | null
           created_at?: string
+          district?: string | null
           full_name?: string | null
           id?: string
           locale?: string
           phone?: string | null
+          postal_code?: string | null
+          street?: string | null
+          unit_no?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -12191,6 +12228,18 @@ export type Database = {
       }
       set_marketing_profile_status: {
         Args: { _profile_id: string; _status: string }
+        Returns: undefined
+      }
+      set_person_address: {
+        Args: {
+          _additional_no?: string
+          _building_no?: string
+          _city?: string
+          _district?: string
+          _postal_code?: string
+          _street?: string
+          _unit_no?: string
+        }
         Returns: undefined
       }
       set_platform_staff_state: {
