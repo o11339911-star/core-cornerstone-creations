@@ -299,7 +299,6 @@ function SignUpFormView() {
           fullName: values.fullName,
           phone: phone || null,
           nationalId: normalizeNationalId(values.nationalId),
-          redirectTo: authCallbackUrl(),
         },
       });
     } catch {
