@@ -10735,6 +10735,10 @@ export type Database = {
         Args: { _entity_id: string; _project_id: string }
         Returns: string
       }
+      can_issue_inspection_report: {
+        Args: { _entity_id: string; _project_id: string }
+        Returns: string
+      }
       can_manage_project_parties: {
         Args: { _project_id: string }
         Returns: boolean
