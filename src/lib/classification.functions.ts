@@ -106,7 +106,7 @@ export const getEntityActivities = createServerFn({ method: "GET" })
     }));
   });
 
-/** يستبدل تصنيف الكيان بالكامل — الصلاحية والتدقيق مفروضان في القاعدة. */
+/** حفظ ذري للتصنيف عبر دالة قاعدة بيانات واحدة (شكل نظامي + أنشطة) — إما الكل أو لا شيء. */
 export const setEntityClassification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -114,49 +114,30 @@ export const setEntityClassification = createServerFn({ method: "POST" })
       .object({
         entityId: z.string().uuid(),
         legalFormCode: z.string().max(60).nullable().default(null),
+        setLegalForm: z.boolean().default(true),
+        applyActivities: z.boolean().default(true),
         primaryCode: z.string().max(20).nullable().default(null),
         secondaryCodes: z.array(z.string().max(20)).max(10).default([]),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    if (data.legalFormCode !== null) {
-      const { error } = await context.supabase
-        .from("entity_profiles")
-        .update({ legal_form_code: data.legalFormCode })
-        .eq("entity_id", data.entityId);
-      if (error) throw new Error(error.message);
+    const { error } = await context.supabase.rpc("set_entity_classification", {
+      _entity_id: data.entityId,
+      _legal_form_code: data.legalFormCode ?? undefined,
+      _set_legal_form: data.setLegalForm,
+      _apply_activities: data.applyActivities,
+      _primary_code: data.primaryCode ?? undefined,
+      _secondary_codes: data.secondaryCodes.filter((c) => c !== data.primaryCode),
+      _version: ACTIVITY_VERSION,
+    });
+    if (error) {
+      const m = error.message;
+      if (m.includes("FORBIDDEN") || m.includes("AUTH_REQUIRED")) throw new Error("FORBIDDEN");
+      if (m.includes("INVALID_LEGAL_FORM")) throw new Error("INVALID_LEGAL_FORM");
+      if (m.includes("INVALID_ACTIVITY_CODE")) throw new Error("INVALID_ACTIVITY_CODE");
+      if (m.includes("TARGET_NOT_FOUND")) throw new Error("TARGET_NOT_FOUND");
+      throw new Error("UNKNOWN");
     }
-
-    const { error: delError } = await context.supabase
-      .from("entity_activities")
-      .delete()
-      .eq("entity_id", data.entityId);
-    if (delError) throw new Error(delError.message);
-
-    const rows = [
-      ...(data.primaryCode
-        ? [
-            {
-              entity_id: data.entityId,
-              activity_version: ACTIVITY_VERSION,
-              activity_code: data.primaryCode,
-              is_primary: true,
-            },
-          ]
-        : []),
-      ...data.secondaryCodes
-        .filter((c) => c !== data.primaryCode)
-        .map((c) => ({
-          entity_id: data.entityId,
-          activity_version: ACTIVITY_VERSION,
-          activity_code: c,
-          is_primary: false,
-        })),
-    ];
-    if (rows.length) {
-      const { error } = await context.supabase.from("entity_activities").insert(rows);
-      if (error) throw new Error(error.message);
-    }
-    return { ok: true };
+    return { ok: true } as const;
   });
