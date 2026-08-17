@@ -492,11 +492,10 @@ export function buildXlsxBlob(sheets: XlsxSheet[], footer?: ArchiveFooter | null
             cells: [
               ...s.cells,
               Array.from({ length: s.cells[0]?.length ?? 8 }, () => ({ v: "", f: null })),
-              ...lines.map((line, li) =>
+              ...lines.map((line) =>
                 Array.from({ length: s.cells[0]?.length ?? 8 }, (_, ci) => ({
                   v: ci === 0 ? line : "",
                   f: null as string | null,
-                  ...(li < 0 ? {} : {}),
                 })),
               ),
             ],
