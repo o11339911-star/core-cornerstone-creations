@@ -7,6 +7,7 @@ import { Loader2, MailCheck, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -190,12 +191,9 @@ function SignInForm() {
 
         <div className="space-y-2">
           <Label htmlFor="password">{t("auth.password")}</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
-            dir="ltr"
-            className="h-11"
             aria-invalid={Boolean(form.formState.errors.password)}
             {...form.register("password")}
           />
@@ -409,11 +407,8 @@ function SignUpFormView() {
 
       <div className="space-y-2">
         <Label htmlFor="signup-password">{t("auth.password")}</Label>
-        <Input
+        <PasswordInput
           id="signup-password"
-          type="password"
-          dir="ltr"
-          className="h-11"
           autoComplete="new-password"
           aria-invalid={Boolean(form.formState.errors.password)}
           {...form.register("password")}
@@ -427,11 +422,8 @@ function SignUpFormView() {
 
       <div className="space-y-2">
         <Label htmlFor="confirm-password">{t("auth.confirmPassword")}</Label>
-        <Input
+        <PasswordInput
           id="confirm-password"
-          type="password"
-          dir="ltr"
-          className="h-11"
           autoComplete="new-password"
           aria-invalid={Boolean(form.formState.errors.confirmPassword)}
           {...form.register("confirmPassword")}

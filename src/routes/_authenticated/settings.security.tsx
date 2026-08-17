@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { ErrorState, HeroBadge, PageHero, SectionCard } from "@/components/rakeez";
 import { useT } from "@/i18n";
@@ -94,11 +94,9 @@ function SecuritySettingsPage() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="currentPassword">{t("auth.currentPassword")}</Label>
-            <Input
+            <PasswordInput
               id="currentPassword"
-              type="password"
               autoComplete="current-password"
-              dir="ltr"
               className="min-h-11"
               {...form.register("currentPassword")}
             />
@@ -106,11 +104,9 @@ function SecuritySettingsPage() {
 
           <div className="space-y-2">
             <Label htmlFor="password">{t("auth.newPassword")}</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="new-password"
-              dir="ltr"
               className="min-h-11"
               {...form.register("password")}
             />
@@ -118,11 +114,9 @@ function SecuritySettingsPage() {
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">{t("auth.confirmPassword")}</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               autoComplete="new-password"
-              dir="ltr"
               className="min-h-11"
               {...form.register("confirmPassword")}
             />

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,12 +77,9 @@ function ResetPasswordPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
               <div className="space-y-2">
                 <Label htmlFor="password">{t("auth.newPassword")}</Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   autoComplete="new-password"
-                  dir="ltr"
-                  className="h-11"
                   aria-invalid={Boolean(passwordError)}
                   {...form.register("password")}
                 />
@@ -95,12 +92,9 @@ function ResetPasswordPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">{t("auth.confirmPassword")}</Label>
-                <Input
+                <PasswordInput
                   id="confirmPassword"
-                  type="password"
                   autoComplete="new-password"
-                  dir="ltr"
-                  className="h-11"
                   aria-invalid={Boolean(confirmError)}
                   {...form.register("confirmPassword")}
                 />
