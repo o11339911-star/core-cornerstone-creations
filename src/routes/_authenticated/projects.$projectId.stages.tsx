@@ -335,13 +335,21 @@ function StagesPage() {
                 onChange={(e) => setLabelAr(e.target.value)}
                 required
               />
-              <TextField
-                id="crit-en"
-                label={t("stages.labelEn")}
-                value={labelEn}
-                onChange={(e) => setLabelEn(e.target.value)}
-                required
-              />
+              <details className="sm:col-span-3">
+                <summary className="cursor-pointer text-sm text-muted-foreground">
+                  {t("stages.moreDetails")}
+                </summary>
+                <div className="mt-3">
+                  <TextField
+                    id="crit-en"
+                    label={t("stages.labelEn")}
+                    hint={t("stages.labelEnHint")}
+                    value={labelEn}
+                    onChange={(e) => setLabelEn(e.target.value)}
+                    required
+                  />
+                </div>
+              </details>
               <button
                 type="submit"
                 className="min-h-11 rounded-md border border-border px-4 text-sm sm:col-span-3"
@@ -357,18 +365,25 @@ function StagesPage() {
               isError={timelineQuery.isError}
               loadingFallback={<CardsSkeleton cards={1} />}
             >
-              <ol className="grid gap-2 text-sm">
-                {(timelineQuery.data ?? []).map((row) => (
-                  <li key={row.id} className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">{row.object_type}</span>
-                    <span>{row.action}</span>
-                    <time dateTime={row.created_at} className="text-xs text-muted-foreground">
-                      {formatDateTime(row.created_at)}
-                    </time>
-                  </li>
-                ))}
-              </ol>
+              {(timelineQuery.data ?? []).length === 0 ? (
+                <SoftEmpty icon={History} message={t("stages.timelineEmpty")} />
+              ) : (
+                <ol className="grid gap-2 text-sm">
+                  {(timelineQuery.data ?? []).map((row) => (
+                    <li key={row.id} className="flex flex-wrap justify-between gap-3">
+                      <span className="text-muted-foreground">
+                        {auditObjectLabelAr(row.object_type)}
+                      </span>
+                      <span>{auditActionLabelAr(row.action, row.object_type)}</span>
+                      <time dateTime={row.created_at} className="text-xs text-muted-foreground">
+                        {formatDateTime(row.created_at)}
+                      </time>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </AsyncBoundary>
+
           </SectionCard>
         </div>
       </div>
