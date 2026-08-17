@@ -164,7 +164,7 @@ function NotificationsPage() {
               <li key={n.id} className="rounded-lg border border-border bg-card p-4 shadow-card">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-foreground">
-                    {TYPE_LABEL_AR[n.type_code] ?? n.type_code}
+                    {TYPE_LABEL_AR[n.type_code] ?? "تنبيه من ركيز"}
                   </span>
                   {!n.read_at && <Badge variant="destructive">{t("notifications.unread")}</Badge>}
                   {n.severity === "critical" && <Badge variant="destructive">{t("notifications.security")}</Badge>}
@@ -172,6 +172,10 @@ function NotificationsPage() {
                     {formatRiyadh(n.created_at)} · {t("notifications.riyadhTime")}
                   </span>
                 </div>
+                {notificationDetails(n.payload) ? (
+                  <p className="mt-2 text-sm text-muted-foreground">{notificationDetails(n.payload)}</p>
+                ) : null}
+
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Link
                     to="/n/$notificationId"
