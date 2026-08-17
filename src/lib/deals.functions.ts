@@ -286,3 +286,60 @@ export const setDealArchived = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return true;
   });
+
+/** بيانات طالب الخدمة (الطرف الأول) — تُجلب فقط عند فتح معاملة محددة. */
+export type DealRequester = {
+  found: boolean;
+  kind: "person" | "entity" | null;
+  name: string | null;
+  /** رقم الهوية/الإقامة الكامل للشخص، أو null عند تعذّر الاشتقاق. */
+  nationalId: string | null;
+  last4: string | null;
+  crNumber: string | null;
+  unifiedNationalNumber: string | null;
+};
+
+export const getDealRequester = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ dealId: uuid }).parse(input))
+  .handler(async ({ data, context }): Promise<DealRequester> => {
+    // الصلاحية مفروضة داخل الدالة (auth.uid + private.deal_visible) وليس بالدور وحده.
+    const { data: row, error } = await context.supabase.rpc("deal_requester_details", {
+      _deal_id: data.dealId,
+    });
+    if (error) throw new Error("DEAL_REQUESTER_FORBIDDEN");
+
+    const r = (row ?? {}) as Record<string, unknown>;
+    if (!r["found"]) {
+      return {
+        found: false,
+        kind: null,
+        name: null,
+        nationalId: null,
+        last4: null,
+        crNumber: null,
+        unifiedNationalNumber: null,
+      };
+    }
+
+    let nationalId: string | null = null;
+    const cipher = typeof r["id_cipher"] === "string" ? (r["id_cipher"] as string) : null;
+    if (cipher) {
+      try {
+        const { decryptIdentity } = await import("@/lib/identity-crypto.server");
+        nationalId = decryptIdentity(cipher);
+      } catch {
+        nationalId = null;
+      }
+    }
+
+    return {
+      found: true,
+      kind: r["kind"] === "person" ? "person" : "entity",
+      name: (r["name"] as string | null) ?? null,
+      nationalId,
+      last4: (r["last4"] as string | null) ?? null,
+      crNumber: (r["cr_number"] as string | null) ?? null,
+      unifiedNationalNumber: (r["unified_national_number"] as string | null) ?? null,
+    };
+  });
