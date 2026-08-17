@@ -6967,6 +6967,99 @@ export type Database = {
           },
         ]
       }
+      project_location_audit: {
+        Row: {
+          actor_id: string
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          project_id: string | null
+          property_id: string | null
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          project_id?: string | null
+          property_id?: string | null
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          project_id?: string | null
+          property_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_location_audit_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_location_audit_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_location_audit_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_locations: {
+        Row: {
+          boundary_geojson: Json | null
+          created_at: string
+          latitude: number | null
+          longitude: number | null
+          precise_address: string | null
+          project_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          boundary_geojson?: Json | null
+          created_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          precise_address?: string | null
+          project_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          boundary_geojson?: Json | null
+          created_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          precise_address?: string | null
+          project_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_locations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_parties: {
         Row: {
           cr_number: string | null
@@ -7529,28 +7622,34 @@ export type Database = {
       }
       property_exact_locations: {
         Row: {
+          boundary_geojson: Json | null
           created_at: string
           exact_address: string | null
           exact_lat: number | null
           exact_lng: number | null
           property_id: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
+          boundary_geojson?: Json | null
           created_at?: string
           exact_address?: string | null
           exact_lat?: number | null
           exact_lng?: number | null
           property_id: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
+          boundary_geojson?: Json | null
           created_at?: string
           exact_address?: string | null
           exact_lat?: number | null
           exact_lng?: number | null
           property_id?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -11255,6 +11354,7 @@ export type Database = {
         Returns: string
       }
       project_completion: { Args: { _project_id: string }; Returns: Json }
+      project_precise_location: { Args: { _project_id: string }; Returns: Json }
       property_completion: { Args: { _property_id: string }; Returns: number }
       propose_appointment: {
         Args: {
@@ -11647,6 +11747,26 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      set_project_precise_location: {
+        Args: {
+          _address: string
+          _boundary?: Json
+          _lat: number
+          _lng: number
+          _project_id: string
+        }
+        Returns: Json
+      }
+      set_property_precise_location: {
+        Args: {
+          _address: string
+          _boundary?: Json
+          _lat: number
+          _lng: number
+          _property_id: string
+        }
+        Returns: Json
       }
       set_property_primary_owner: {
         Args: { _entity_id: string; _property_id: string; _reason: string }
