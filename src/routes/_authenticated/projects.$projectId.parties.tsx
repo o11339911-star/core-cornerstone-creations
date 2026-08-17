@@ -210,9 +210,17 @@ function PartiesPage() {
           className="grid gap-4"
           onSubmit={(e) => {
             e.preventDefault();
-            inviteMutation.mutate();
+            if (inviteMutation.isPending || confirmOpen) return;
+            if (validationError) {
+              setNotice(null);
+              setError(validationError);
+              return;
+            }
+            setError(null);
+            setConfirmOpen(true);
           }}
         >
+
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium text-foreground">{t("parties.partyKind")}</span>
