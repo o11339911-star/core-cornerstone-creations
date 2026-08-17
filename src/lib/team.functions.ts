@@ -256,6 +256,7 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
           .nullable()
           .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).optional(),
+        audiencePartyIds: z.array(z.string().uuid()).max(50).optional(),
         endNow: z.boolean().default(false),
       })
       .parse(input),
@@ -277,8 +278,17 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
     );
 
     if (error) throw mapAssignmentError(error);
+    if (data.visibility) {
+      await applyPartyAudience(
+        context.supabase,
+        data.assignmentId,
+        data.visibility,
+        data.audiencePartyIds,
+      );
+    }
     return { ok: true };
   });
+
 
 /** Ends an assignment as of the server date, via `update_project_assignment`. */
 export const endProjectAssignment = createServerFn({ method: "POST" })
