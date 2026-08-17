@@ -49,6 +49,10 @@ export type Deal = {
   owner_user_id: string | null;
   entity_id: string | null;
   parties: DealParty[];
+  /** اسم الطلب المرتبط (عند ربط المعاملة بطلب) — يظهر فقط لمن يملك صلاحية قراءته. */
+  context_title: string | null;
+  /** رقم الطلب المرتبط. */
+  context_no: string | null;
   /** هل المستخدم الحالي هو الطرف الثاني (فيمكنه القبول أو الرفض)؟ */
   can_respond: boolean;
   /** هل المستخدم الحالي هو الطرف الأول (منشئ المعاملة)؟ */
