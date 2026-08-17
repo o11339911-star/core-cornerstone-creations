@@ -7,6 +7,7 @@ import { Loader2, MailCheck, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,11 @@ const signInSchema = z.object({
     .min(3)
     .max(160)
     // Single field: a valid e-mail OR a valid Saudi national ID / iqama.
-    .refine((v) => (v.includes("@") ? z.string().email().safeParse(v).success : isValidSaudiId(normalizeNationalId(v)))),
+    .refine((v) =>
+      v.includes("@")
+        ? z.string().email().safeParse(v).success
+        : isValidSaudiId(normalizeNationalId(v)),
+    ),
   password: z.string().min(8),
 });
 
@@ -92,7 +97,9 @@ function AuthPage() {
                 aria-selected={mode === m}
                 onClick={() => setMode(m)}
                 className={`min-h-11 rounded-lg px-3 text-sm font-medium transition-colors ${
-                  mode === m ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-primary"
+                  mode === m
+                    ? "bg-card text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-primary"
                 }`}
               >
                 {m === "signin" ? t("auth.signIn") : t("auth.signUp")}
@@ -145,7 +152,9 @@ function SignInForm() {
 
     if (!result.ok) {
       setSubmitting(false);
-      setError(result.reason === "throttled" ? t("auth.tooManyAttempts") : t("auth.invalidCredentials"));
+      setError(
+        result.reason === "throttled" ? t("auth.tooManyAttempts") : t("auth.invalidCredentials"),
+      );
       return;
     }
 
@@ -190,12 +199,9 @@ function SignInForm() {
 
         <div className="space-y-2">
           <Label htmlFor="password">{t("auth.password")}</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
-            dir="ltr"
-            className="h-11"
             aria-invalid={Boolean(form.formState.errors.password)}
             {...form.register("password")}
           />
@@ -246,7 +252,10 @@ function SignInForm() {
       <NafathButton />
 
       <div className="text-sm">
-        <Link to="/auth/forgot-password" className="inline-block min-h-11 py-2 text-primary hover:underline">
+        <Link
+          to="/auth/forgot-password"
+          className="inline-block min-h-11 py-2 text-primary hover:underline"
+        >
           {t("auth.forgotPassword")}
         </Link>
       </div>
@@ -409,11 +418,8 @@ function SignUpFormView() {
 
       <div className="space-y-2">
         <Label htmlFor="signup-password">{t("auth.password")}</Label>
-        <Input
+        <PasswordInput
           id="signup-password"
-          type="password"
-          dir="ltr"
-          className="h-11"
           autoComplete="new-password"
           aria-invalid={Boolean(form.formState.errors.password)}
           {...form.register("password")}
@@ -427,11 +433,8 @@ function SignUpFormView() {
 
       <div className="space-y-2">
         <Label htmlFor="confirm-password">{t("auth.confirmPassword")}</Label>
-        <Input
+        <PasswordInput
           id="confirm-password"
-          type="password"
-          dir="ltr"
-          className="h-11"
           autoComplete="new-password"
           aria-invalid={Boolean(form.formState.errors.confirmPassword)}
           {...form.register("confirmPassword")}

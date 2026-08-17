@@ -394,6 +394,30 @@ export type Database = {
           },
         ]
       }
+      auth_security_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          outcome: string
+          subject_hash: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          outcome: string
+          subject_hash: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          outcome?: string
+          subject_hash?: string
+        }
+        Relationships: []
+      }
       building_licenses: {
         Row: {
           authority: string | null
