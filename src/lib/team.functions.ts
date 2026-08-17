@@ -102,9 +102,7 @@ export const createInvitation = createServerFn({ method: "POST" })
 
 export const revokeInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ invitationId: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ invitationId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { error } = await context.supabase
       .from("entity_invitations")
@@ -139,6 +137,9 @@ export const assignmentSchema = z.object({
   user_id: z.string().uuid().nullable(),
   display_name: z.string().nullable(),
   is_identified: z.boolean().nullable(),
+  is_external: z.boolean().nullable(),
+  external_display_name: z.string().nullable(),
+  identifier_last4: z.string().nullable(),
   job_title_ar: z.string(),
   job_title_en: z.string(),
   starts_on: z.string(),
@@ -159,7 +160,7 @@ export const listProjectAssignments = createServerFn({ method: "GET" })
     const { data: rows, error } = await context.supabase
       .from("project_assignments_public")
       .select(
-        "id, project_id, stage_id, entity_id, user_id, display_name, is_identified, job_title_ar, job_title_en, starts_on, ends_on, status, visibility",
+        "id, project_id, stage_id, entity_id, user_id, display_name, is_identified, is_external, external_display_name, identifier_last4, job_title_ar, job_title_en, starts_on, ends_on, status, visibility",
       )
       .eq("project_id", data.projectId)
       .order("starts_on", { ascending: true });
@@ -194,8 +195,15 @@ export const createAssignment = createServerFn({ method: "POST" })
         entityId: z.string().uuid(),
         jobTitleAr: z.string().trim().min(2).max(120),
         jobTitleEn: z.string().trim().min(2).max(120),
-        startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        startsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        endsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).default("internal"),
       })
       .parse(input),
@@ -235,8 +243,15 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
         jobTitleEn: z.string().trim().min(2).max(120).optional(),
         stageId: z.string().uuid().nullable().optional(),
         clearStage: z.boolean().default(false),
-        startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+        startsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        endsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
         visibility: z.enum(VISIBILITY_LEVELS).optional(),
         endNow: z.boolean().default(false),
       })
@@ -265,9 +280,7 @@ export const updateProjectAssignment = createServerFn({ method: "POST" })
 /** Ends an assignment as of the server date, via `update_project_assignment`. */
 export const endProjectAssignment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ assignmentId: z.string().uuid() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ assignmentId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     const { error } = await context.supabase.rpc(
       "update_project_assignment",
@@ -311,7 +324,6 @@ export const offboardMember = createServerFn({ method: "POST" })
     if (data.reason) args._reason = data.reason;
 
     const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
-
 
     if (error) throw new Error(error.message);
     return { transferred: (moved as number) ?? 0 };
@@ -402,7 +414,8 @@ export const changeMemberRole = createServerFn({ method: "POST" })
       .eq("entity_id", data.entityId);
 
     if (error) {
-      if (error.message.includes("LAST_OWNER_PROTECTED")) throw new Error("team.lastOwnerProtected");
+      if (error.message.includes("LAST_OWNER_PROTECTED"))
+        throw new Error("team.lastOwnerProtected");
       throw new Error(error.message);
     }
     return { ok: true };
@@ -497,7 +510,8 @@ export const offboardMemberSafely = createServerFn({ method: "POST" })
 
       const { data: moved, error } = await context.supabase.rpc("offboard_member", args);
       if (error) {
-        if (error.message.includes("LAST_OWNER_PROTECTED")) throw new Error("team.lastOwnerProtected");
+        if (error.message.includes("LAST_OWNER_PROTECTED"))
+          throw new Error("team.lastOwnerProtected");
         throw new Error(error.message);
       }
       return { transferred: (moved as number) ?? 0 };
@@ -525,10 +539,9 @@ export const listAssignableMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ projectId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }): Promise<AssignableMember[]> => {
-    const { data: rows, error } = await context.supabase.rpc(
-      "list_project_assignable_members",
-      { _project_id: data.projectId },
-    );
+    const { data: rows, error } = await context.supabase.rpc("list_project_assignable_members", {
+      _project_id: data.projectId,
+    });
 
     if (error) throw new Error(error.message);
 
@@ -619,3 +632,102 @@ async function callerCanUpdateProject(
 
   return allowed.has("projects.update");
 }
+
+/* --------------------------- external members ---------------------------- */
+
+/**
+ * بحث خادمي بمعرّف الشخص قبل إسناده كعضو خارجي. لا يُعاد أي معرّف داخلي.
+ */
+export const lookupExternalMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ projectId: z.string().uuid(), identifier: z.string().trim().min(1).max(20) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: allowed } = await context.supabase.rpc("can_manage_project_parties", {
+      _project_id: data.projectId,
+    });
+    if (allowed !== true) return { status: "invalid" as const };
+
+    const { normalizeNationalId } = await import("@/lib/identity-format");
+    const { resolvePartyIdentifier } = await import("@/lib/party-lookup.server");
+    const resolved = await resolvePartyIdentifier({
+      partyKind: "person",
+      digits: normalizeNationalId(data.identifier),
+      actorUserId: context.userId,
+    });
+    return resolved.result;
+  });
+
+/**
+ * إسناد عضو خارجي بالمعرّف: إن كان مسجلًا يُربط الإسناد بحسابه، وإلا يُحفظ
+ * إسناد معلّق بلا صلاحيات نشطة. الاسم اختياري دائمًا.
+ */
+export const createExternalAssignment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        projectId: z.string().uuid(),
+        identifier: z.string().trim().min(1).max(20),
+        displayName: z.string().trim().max(200).nullable().optional(),
+        jobTitleAr: z.string().trim().max(200).optional(),
+        jobTitleEn: z.string().trim().max(200).optional(),
+        stageId: z.string().uuid().nullable().optional(),
+        startsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
+        endsOn: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullable()
+          .optional(),
+        visibility: z.enum(VISIBILITY_LEVELS).default("internal"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ id: string; pending: boolean }> => {
+    const { normalizeNationalId } = await import("@/lib/identity-format");
+    const { resolvePartyIdentifier } = await import("@/lib/party-lookup.server");
+    const resolved = await resolvePartyIdentifier({
+      partyKind: "person",
+      digits: normalizeNationalId(data.identifier),
+      actorUserId: context.userId,
+    });
+
+    if (resolved.result.status === "throttled") {
+      throw new Error("محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.");
+    }
+    if (!resolved.fingerprint) {
+      throw new Error("رقم الهوية يجب أن يكون عشرة أرقام ويبدأ بـ 1 أو 2.");
+    }
+
+    const { data: id, error } = await context.supabase.rpc("create_external_project_assignment", {
+      _project_id: data.projectId,
+      _identifier_fingerprint: resolved.fingerprint,
+      _identifier_last4: resolved.last4,
+      _display_name: resolved.displayName ?? data.displayName ?? null,
+      _job_title_ar: data.jobTitleAr ?? "",
+      _job_title_en: data.jobTitleEn ?? "",
+      _matched_user_id: resolved.matchedUserId,
+      _stage_id: data.stageId ?? null,
+      _starts_on: data.startsOn ?? null,
+      _ends_on: data.endsOn ?? null,
+      _visibility: data.visibility,
+    } as never);
+
+    if (error) {
+      if (error.message.includes("FORBIDDEN")) {
+        throw new Error("لا تملك صلاحية إسناد أعضاء في هذا المشروع.");
+      }
+      if (error.message.includes("DUPLICATE")) {
+        throw new Error("هذا الشخص مُسند مسبقًا في هذا المشروع.");
+      }
+      throw new Error("تعذّر حفظ الإسناد. حاول مرة أخرى.");
+    }
+    return { id: id as string, pending: resolved.matchedUserId === null };
+  });

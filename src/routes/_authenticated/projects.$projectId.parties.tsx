@@ -19,7 +19,8 @@ import {
   PARTY_MODULES,
   PARTY_ROLES,
   endProjectParty,
-  inviteProjectParty,
+  inviteProjectPartyByIdentifier,
+  lookupProjectPartyIdentifier,
   listProjectParties,
   listProjectStages,
   type PartyRole,
@@ -56,7 +57,8 @@ function PartiesPage() {
 
   const parties = useServerFn(listProjectParties);
   const stages = useServerFn(listProjectStages);
-  const invite = useServerFn(inviteProjectParty);
+  const invite = useServerFn(inviteProjectPartyByIdentifier);
+  const lookup = useServerFn(lookupProjectPartyIdentifier);
   const endParty = useServerFn(endProjectParty);
 
   const partiesQuery = useQuery({
@@ -68,7 +70,9 @@ function PartiesPage() {
     queryFn: () => stages({ data: { projectId } }),
   });
 
-  const [entityId, setEntityId] = React.useState("");
+  const [partyKind, setPartyKind] = React.useState<"person" | "entity">("entity");
+  const [identifier, setIdentifier] = React.useState("");
+  const [displayName, setDisplayName] = React.useState("");
   const [role, setRole] = React.useState<PartyRole>("contractor");
   const [scopeAr, setScopeAr] = React.useState("");
   const [endsOn, setEndsOn] = React.useState("");
@@ -80,12 +84,53 @@ function PartiesPage() {
   const togglePerm = (key: PermKey) =>
     setPerms((prev) => (prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]));
 
+  type LookupState =
+    | { status: "idle" }
+    | { status: "searching" }
+    | { status: "invalid" }
+    | { status: "throttled" }
+    | { status: "registered"; displayName: string | null; last4: string }
+    | { status: "unregistered"; last4: string };
+
+  const [lookupState, setLookupState] = React.useState<LookupState>({ status: "idle" });
+
+  const digits = identifier.replace(/[^0-9]/g, "").slice(0, 10);
+  const identifierComplete =
+    digits.length === 10 && (partyKind === "entity" || /^[12]/.test(digits));
+
+  React.useEffect(() => {
+    setLookupState({ status: "idle" });
+    setDisplayName("");
+    if (!identifierComplete) return;
+    let cancelled = false;
+    setLookupState({ status: "searching" });
+    const timer = window.setTimeout(() => {
+      void lookup({ data: { projectId, partyKind, identifier: digits } })
+        .then((result) => {
+          if (cancelled) return;
+          setLookupState(result as LookupState);
+          if (result.status === "registered" && result.displayName) {
+            setDisplayName(result.displayName);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setLookupState({ status: "invalid" });
+        });
+    }, 400);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [digits, identifierComplete, partyKind, projectId, lookup]);
+
   const inviteMutation = useMutation({
     mutationFn: () =>
       invite({
         data: {
           projectId,
-          partyEntityId: entityId.trim(),
+          partyKind,
+          identifier: digits,
+          displayName: displayName.trim() || null,
           partyRole: role,
           scopeTextAr: scopeAr.trim() || null,
           endsOn: endsOn || null,
@@ -99,9 +144,12 @@ function PartiesPage() {
           }),
         },
       }),
-    onSuccess: () => {
+    onSuccess: (result) => {
       setError(null);
-      setEntityId("");
+      setNotice(result.pending ? t("parties.invitedPending") : t("parties.invitedMatched"));
+      setIdentifier("");
+      setDisplayName("");
+      setLookupState({ status: "idle" });
       setScopeAr("");
       setStageIds([]);
       void queryClient.invalidateQueries({ queryKey: ["project-parties", projectId] });
@@ -133,12 +181,38 @@ function PartiesPage() {
           }}
         >
           <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium text-foreground">{t("parties.partyKind")}</span>
+              <select
+                className="min-h-11 rounded-md border border-input bg-background px-3 text-sm"
+                value={partyKind}
+                onChange={(e) => {
+                  setPartyKind(e.target.value as "person" | "entity");
+                  setIdentifier("");
+                }}
+              >
+                <option value="entity">{t("parties.kindEntity")}</option>
+                <option value="person">{t("parties.kindPerson")}</option>
+              </select>
+            </label>
             <TextField
-              id="party-entity"
-              label={t("parties.entityId")}
-              value={entityId}
-              onChange={(e) => setEntityId(e.target.value)}
+              id="party-identifier"
+              label={
+                partyKind === "person"
+                  ? t("parties.identifierPerson")
+                  : t("parties.identifierEntity")
+              }
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+              inputMode="numeric"
+              maxLength={10}
+              dir="ltr"
               required
+              hint={
+                partyKind === "person"
+                  ? t("parties.identifierHintPerson")
+                  : t("parties.identifierHintEntity")
+              }
             />
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium text-foreground">{t("parties.role")}</span>
@@ -168,6 +242,35 @@ function PartiesPage() {
               onChange={(e) => setEndsOn(e.target.value)}
             />
           </div>
+
+          <TextField
+            id="party-name"
+            label={t("parties.nameOptional")}
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            hint={t("parties.nameOptionalHint")}
+          />
+
+          {lookupState.status !== "idle" ? (
+            <p
+              aria-live="polite"
+              className={
+                lookupState.status === "invalid" || lookupState.status === "throttled"
+                  ? "text-sm text-destructive"
+                  : "text-sm text-muted-foreground"
+              }
+            >
+              {lookupState.status === "searching" ? t("parties.lookupSearching") : null}
+              {lookupState.status === "invalid" ? t("parties.lookupInvalid") : null}
+              {lookupState.status === "throttled" ? t("parties.lookupThrottled") : null}
+              {lookupState.status === "unregistered" ? t("parties.lookupUnregistered") : null}
+              {lookupState.status === "registered"
+                ? lookupState.displayName
+                  ? t("parties.lookupRegistered", { name: lookupState.displayName })
+                  : t("parties.lookupRegisteredNoName")
+                : null}
+            </p>
+          ) : null}
 
           <fieldset className="rounded-md border border-border p-3">
             <legend className="px-1 text-sm font-medium text-foreground">
@@ -235,7 +338,7 @@ function PartiesPage() {
 
           <button
             type="submit"
-            disabled={inviteMutation.isPending}
+            disabled={inviteMutation.isPending || !identifierComplete}
             className="inline-flex min-h-11 w-fit items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
           >
             {t("parties.send")}
@@ -259,11 +362,16 @@ function PartiesPage() {
             <ul className="divide-y divide-border rounded-md border border-border">
               {(partiesQuery.data ?? []).map((p) => (
                 <li key={p.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
-                  <span className="font-mono text-xs">{p.party_entity_id.slice(0, 8)}</span>
-                  <span>{t(`parties.roles.${p.party_role}`)}</span>
-                  <span className="text-muted-foreground">
-                    {t(`parties.statuses.${p.status}`)}
+                  <span className="font-medium text-foreground">
+                    {p.party_display_name ?? t("parties.unnamedParty")}
                   </span>
+                  {p.identifier_last4 || p.cr_number ? (
+                    <bdi dir="ltr" className="font-mono text-xs text-muted-foreground">
+                      {p.cr_number ?? `\u2022\u2022\u2022\u2022${p.identifier_last4}`}
+                    </bdi>
+                  ) : null}
+                  <span>{t(`parties.roles.${p.party_role}`)}</span>
+                  <span className="text-muted-foreground">{t(`parties.statuses.${p.status}`)}</span>
                   <span className="truncate text-muted-foreground">{p.scope_text_ar ?? ""}</span>
                   {p.status === "invited" || p.status === "accepted" ? (
                     <button

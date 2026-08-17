@@ -68,7 +68,8 @@ export const en: Translations = {
     loadingAccount: "Loading account…",
     accountError: "Could not load your account details.",
     noAccess: "Not available for your account",
-    noAccessBody: "The property registry is available to real-estate developer entities only. Switch to a developer account to access it.",
+    noAccessBody:
+      "The property registry is available to real-estate developer entities only. Switch to a developer account to access it.",
     quickActions: "Quick actions",
     entityTypes: {
       developer: "Real-estate developer",
@@ -93,7 +94,8 @@ export const en: Translations = {
     entityType: "Entity type",
     role: "Role in entity",
     personalAccount: "Personal account",
-    personalAccountHint: "You are currently working in your personal account with no entity permissions.",
+    personalAccountHint:
+      "You are currently working in your personal account with no entity permissions.",
     loadError: "Could not load your profile.",
     identity: {
       title: "Personal identity",
@@ -123,7 +125,8 @@ export const en: Translations = {
   },
   identitySearch: {
     adminTitle: "Identity search",
-    adminHint: "Search by name or by full identity number. Every search is written to the audit log.",
+    adminHint:
+      "Search by name or by full identity number. Every search is written to the audit log.",
     adminField: "Name or identity number",
     contractTitle: "Find a contracting party by identity number",
     contractHint: "Enter the full ten-digit identity number. Name browsing is not available here.",
@@ -231,7 +234,8 @@ export const en: Translations = {
     empty: "No records to display",
   },
   auth: {
-    completionNote: "After signing in you must link your personal identity, then register your commercial entity with its unified national number.",
+    completionNote:
+      "After signing in you must link your personal identity, then register your commercial entity with its unified national number.",
     signInTitle: "Sign in",
     signInSubtitle: "Enter your email and password to access your account.",
     email: "Email",
@@ -260,10 +264,12 @@ export const en: Translations = {
     nationalId: "National ID / Iqama",
     nationalIdHint: "10 digits starting with 1 or 2. Stored encrypted and never shown.",
     nationalIdInvalid: "Invalid national ID. Please check the 10 digits.",
-    identityUnavailable: "Registration could not be completed with this number. Contact support if this seems wrong.",
+    identityUnavailable:
+      "Registration could not be completed with this number. Contact support if this seems wrong.",
     nafath: "Sign in with Nafath",
     nafathSoon: "Coming soon",
-    nafathSoonBody: "Nafath sign-in is pending the official integration. Use email or national ID for now.",
+    nafathSoonBody:
+      "Nafath sign-in is pending the official integration. Use email or national ID for now.",
     signUpTitle: "Create account",
     signUpSubtitle: "Create your account, then link your identity and register your entity.",
     signUp: "Create account",
@@ -276,7 +282,8 @@ export const en: Translations = {
     emailTaken: "This email is already registered. Try signing in.",
     signUpFailed: "Could not create the account. Please try again.",
     checkEmailTitle: "Check your email",
-    checkEmailBody: "We sent a confirmation link. After confirming, sign in to complete identity and unified number.",
+    checkEmailBody:
+      "We sent a confirmation link. After confirming, sign in to complete identity and unified number.",
     backToSignIn: "Back to sign in",
     verifyingTitle: "Verifying your email…",
     verifyingBody: "We are validating the official confirmation link. Please wait.",
@@ -292,7 +299,8 @@ export const en: Translations = {
     resendFailed: "Could not send the email. Try again later.",
     resendTooMany: "Too many attempts. Please wait and try again.",
     emailNotVerifiedTitle: "Confirm your email first",
-    emailNotVerifiedBody: "Identity and entity registration cannot be completed before your email is confirmed.",
+    emailNotVerifiedBody:
+      "Identity and entity registration cannot be completed before your email is confirmed.",
   },
   account: {
     selectTitle: "Choose an account",
@@ -301,7 +309,8 @@ export const en: Translations = {
     personalDescription: "Your own data only, with no entity permissions.",
     entities: "Entities",
     noEntities: "No active memberships",
-    noEntitiesDescription: "You have not been added to an active entity yet. Ask an entity admin for an invitation.",
+    noEntitiesDescription:
+      "You have not been added to an active entity yet. Ask an entity admin for an invitation.",
     switch: "Switch account",
     active: "Active account",
     continue: "Continue",
@@ -323,7 +332,8 @@ export const en: Translations = {
     propertyRequired: "Select a property or switch to a project without one.",
     propertyModeLinked: "Linked to a property",
     propertyModeNone: "Without a property",
-    propertyModeNoneHint: "The project will be created without a property link; you can enter city, district and area manually.",
+    propertyModeNoneHint:
+      "The project will be created without a property link; you can enter city, district and area manually.",
     propertyName: "Property",
     propertyReference: "Reference",
     propertyCode: "Property no.",
@@ -333,7 +343,8 @@ export const en: Translations = {
     propertySearchEmpty: "No matching properties in your active account.",
     propertySearchFailed: "Could not load properties.",
     propertyClear: "Clear property selection",
-    propertyDerivedHint: "Property details are derived from the registry and cannot be entered manually.",
+    propertyDerivedHint:
+      "Property details are derived from the registry and cannot be entered manually.",
     linkPropertyHint: "Optional: link this project to an existing registered property.",
     linkPropertyPlaceholder: "Select a property",
     linkPropertyFailed: "Failed to link the property to the project.",
@@ -364,7 +375,8 @@ export const en: Translations = {
     nameRequired: "Project name is required (at least 2 characters).",
     typeRequired: "Project type is required.",
     licenseGated: "This type requires a license and is not enabled yet.",
-    linkPropertyNeedsDeveloper: "Linking a property requires a verified developer entity. Switch to a developer account to link a deed or license.",
+    linkPropertyNeedsDeveloper:
+      "Linking a property requires a verified developer entity. Switch to a developer account to link a deed or license.",
     createdLinkFailedTitle: "The project was created, but linking the property failed.",
     retryLink: "Retry linking",
     linkRetrySuccess: "The property was linked to the project successfully.",
@@ -385,7 +397,8 @@ export const en: Translations = {
     replacement: "Replacement member",
     selectReplacement: "Select a replacement",
     title: "Entity team",
-    subtitle: "Invite members, set their roles, assignments and visibility, and offboard them when needed.",
+    subtitle:
+      "Invite members, set their roles, assignments and visibility, and offboard them when needed.",
     inviteTitle: "Invite a new member",
     inviteHint: "No email delivery yet — copy the invitation link and send it yourself.",
     email: "Email",
@@ -484,7 +497,8 @@ export const en: Translations = {
     approxLocation: "Approximate location",
     exactLocation: "Exact location",
     exactHidden: "Exact location is hidden from you",
-    exactHiddenHint: "Only authorized people see the exact location; the approximate one stays visible.",
+    exactHiddenHint:
+      "Only authorized people see the exact location; the approximate one stays visible.",
     latitude: "Latitude",
     longitude: "Longitude",
     address: "Address",
@@ -508,7 +522,8 @@ export const en: Translations = {
       exceeds: "Total ownership shares cannot exceed 100%.",
       added: "Owner added",
       edit: "Edit owner",
-      editHint: "Pick the owning account from your active accounts and state the correction reason.",
+      editHint:
+        "Pick the owning account from your active accounts and state the correction reason.",
       newOwner: "New owner",
       reason: "Correction reason",
       reasonRequired: "State the correction reason (at least 5 characters).",
@@ -517,7 +532,8 @@ export const en: Translations = {
       forbidden: "You are not allowed to change this property's owner.",
       needsFix: "Owner correction required",
       history: "Previous ownership",
-      derivedHint: "The owner is derived automatically from the active account and is never typed manually.",
+      derivedHint:
+        "The owner is derived automatically from the active account and is never typed manually.",
       sourcePersonal: "Personal account",
       sourceEntity: "Entity",
       unifiedNumber: "Unified number",
@@ -585,7 +601,8 @@ export const en: Translations = {
       sourceOwn: "My entity",
       sourceContract: "Available via contract",
       counterparty: "Contracting party",
-      noResults: "No projects available to link in your active account or via an effective contract",
+      noResults:
+        "No projects available to link in your active account or via an effective contract",
       noResultsSearch: "No results match your search",
       prev: "Previous",
       next: "Next",
@@ -612,8 +629,27 @@ export const en: Translations = {
     },
   },
   parties: {
+    partyKind: "Party type",
+    kindPerson: "Person",
+    kindEntity: "Organization",
+    identifierPerson: "National ID",
+    identifierEntity: "CR / unified number",
+    identifierHintPerson: "Ten digits starting with 1 or 2.",
+    identifierHintEntity: "Ten digits only.",
+    nameOptional: "Name (optional)",
+    nameOptionalHint: "Filled automatically when the party is registered.",
+    lookupSearching: "Checking the identifier…",
+    lookupRegistered: "Registered party: {name}",
+    lookupRegisteredNoName: "Registered on the platform.",
+    lookupUnregistered: "Not registered yet — a pending invitation will be created.",
+    lookupInvalid: "Invalid identifier.",
+    lookupThrottled: "Too many attempts. Please wait and try again.",
+    invitedPending: "Pending invitation saved. Permissions stay off until the party accepts.",
+    invitedMatched: "Invitation sent to the registered party.",
+    unnamedParty: "Unnamed party",
     title: "Project parties",
-    subtitle: "Invite external entities to this project within a defined scope, stages and permissions.",
+    subtitle:
+      "Invite external entities to this project within a defined scope, stages and permissions.",
     inviteTitle: "Invite an external party",
     inviteHint: "Permissions take effect only after the entity accepts the invitation.",
     entityId: "Invited entity ID",
@@ -691,7 +727,8 @@ export const en: Translations = {
     approve: "Internal approval",
     approved: "Approved",
     extensions: "Extension requests",
-    extensionsHint: "Requesting and deciding are separate; a requester cannot decide their own request.",
+    extensionsHint:
+      "Requesting and deciding are separate; a requester cannot decide their own request.",
     newEndsOn: "Requested end date",
     reason: "Reason",
     request: "Submit request",
@@ -876,9 +913,11 @@ export const en: Translations = {
   },
   calls: {
     title: "Internal calling",
-    subtitle: "In-platform voice calls between the parties of a confirmed appointment. No phone numbers, no recording.",
+    subtitle:
+      "In-platform voice calls between the parties of a confirmed appointment. No phone numbers, no recording.",
     availableCalls: "Available contacts",
-    availableHint: "Calling is available only within a confirmed appointment between your active account and the other party.",
+    availableHint:
+      "Calling is available only within a confirmed appointment between your active account and the other party.",
     noAvailable: "No confirmed appointments to call",
     noAvailableHint: "Confirm an appointment with the other party to enable calling.",
     call: "Call",
@@ -954,7 +993,6 @@ export const en: Translations = {
     },
   },
   correspondence: {
-
     title: "Correspondence",
     hint: "Internal notes are never visible to external parties.",
     subject: "Subject",
@@ -1140,10 +1178,10 @@ export const en: Translations = {
     },
   },
 
-
   notifications: {
     title: "Notifications",
-    subtitle: "Follow what actually concerns you. Links are checked at click time, not at creation time.",
+    subtitle:
+      "Follow what actually concerns you. Links are checked at click time, not at creation time.",
     empty: "No notifications",
     unread: "Unread",
     unreadOnly: "Unread only",
@@ -1164,7 +1202,8 @@ export const en: Translations = {
     saveFailed: "Could not save",
     linkChecking: "Checking access…",
     linkDenied: "Not found or not permitted",
-    linkDeniedHint: "The resource may be gone or your access may have ended. No further details are disclosed.",
+    linkDeniedHint:
+      "The resource may be gone or your access may have ended. No further details are disclosed.",
     riyadhTime: "Riyadh time",
     digest: {
       immediate: "Immediate",
@@ -1174,10 +1213,10 @@ export const en: Translations = {
     },
   },
 
-
   marketing: {
     title: "Real-estate marketing",
-    subtitle: "Marketing profile, marketer contracts, approved listings, marketing packages and leads.",
+    subtitle:
+      "Marketing profile, marketer contracts, approved listings, marketing packages and leads.",
     readiness: "Marketing readiness",
     noProfile: "This project has no marketing profile yet",
     createProfile: "Create marketing profile",
@@ -1210,7 +1249,8 @@ export const en: Translations = {
     verifyLink: "Verification link",
     copied: "Verification link copied",
     myContracts: "My active contracts",
-    marketerSubtitle: "Your active contracts, approved read-only content, and lead capture and pipeline.",
+    marketerSubtitle:
+      "Your active contracts, approved read-only content, and lead capture and pipeline.",
     readOnlyContent: "Approved content (read only)",
     noContracts: "No active marketing contracts",
     noVersions: "No listing versions yet",
@@ -1228,7 +1268,8 @@ export const en: Translations = {
   },
   media: {
     title: "360° photography",
-    subtitle: "Shoot requests, visual assets, acknowledged manual blurring, then review and approval before any publication.",
+    subtitle:
+      "Shoot requests, visual assets, acknowledged manual blurring, then review and approval before any publication.",
     shoots: "Shoot requests",
     newShoot: "Request a shoot",
     scheduledAt: "Scheduled at",
@@ -1240,7 +1281,8 @@ export const en: Translations = {
     uploading: "Uploading…",
     blurred: "Blurred copy",
     blurAck: "Blur acknowledgement",
-    blurAckPlaceholder: "I confirm I manually blurred every face, plate and personal detail visible in this capture.",
+    blurAckPlaceholder:
+      "I confirm I manually blurred every face, plate and personal detail visible in this capture.",
     attachBlur: "Attach blurred copy",
     submit: "Submit for review",
     review: "Review",
@@ -1278,7 +1320,8 @@ export const en: Translations = {
     ifcRendering: "Building the scene…",
     viewerCancelled: "Preview cancelled",
     viewerCapacity: "Drawing exceeds in-browser preview capacity",
-    viewerCapacityBody: "The file went past the local entity or point cap; you can download the original exactly as uploaded.",
+    viewerCapacityBody:
+      "The file went past the local entity or point cap; you can download the original exactly as uploaded.",
     dwgNoPreview: "In-browser DWG preview is not available",
     dxfCanvasLabel: "2D DXF drawing preview",
     dxfDrawn: "Entities drawn",
@@ -1290,7 +1333,8 @@ export const en: Translations = {
     ifcInitializing: "Initializing the viewer engine…",
     ifcMeshes: "Meshes rendered",
     ifcParseError: "Could not read the IFC file",
-    ifcPilotNote: "Pilot preview inside your browser only — no measurement or quantity take-off, and nothing is sent to any external service.",
+    ifcPilotNote:
+      "Pilot preview inside your browser only — no measurement or quantity take-off, and nothing is sent to any external service.",
     ifcStoreys: "Storeys",
     ifcStoreysNote: "Storey names exactly as stored in the file — display only, no filtering.",
     layers: "Layers",
@@ -1339,7 +1383,8 @@ export const en: Translations = {
     uploading: "Uploading…",
     uploaded: "Revision uploaded",
     sizeNote: "Maximum 200 MB. The original file is stored as-is and is never deleted.",
-    formatsNote: "Accepted formats: PDF, DWG, DXF, IFC. Compressed archives are not accepted for now.",
+    formatsNote:
+      "Accepted formats: PDF, DWG, DXF, IFC. Compressed archives are not accepted for now.",
     pickFile: "Choose the drawing file first",
     needRevision: "Enter a revision label",
     sheetLabel: "Sheet",
@@ -1357,7 +1402,8 @@ export const en: Translations = {
     currentStatus: "Current status",
     lastUpdate: "Last update",
     note: "Note (required when returning for rework)",
-    sodNote: "The uploader of the current revision cannot approve or return it — review is by someone else only.",
+    sodNote:
+      "The uploader of the current revision cannot approve or return it — review is by someone else only.",
     statusChanged: "Drawing status updated",
     toUnderReview: "Send for review",
     toApprovedInternal: "Approve internally",
@@ -1412,7 +1458,8 @@ export const en: Translations = {
     providerAps: "Autodesk APS",
     providerApsDisabled:
       "The CAD viewer provider is disabled — no in-browser view is available; download works.",
-    providerApsPending: "The provider is enabled in settings but external submission is not switched on yet.",
+    providerApsPending:
+      "The provider is enabled in settings but external submission is not switched on yet.",
     apsEnvDisabled: "Integration disabled by the server environment (APS_ENABLED).",
     apsSettingDisabled: "Integration disabled in the module settings.",
     apsSecretsMissing: "Provider credentials are not configured on the server.",
@@ -1473,20 +1520,23 @@ export const en: Translations = {
     identityTitle: "Link your personal identity",
     identityHint: "Enter your 10-digit national ID or iqama number to complete your account.",
     identityField: "National ID / Iqama",
-    identityPrivacy: "The number is stored encrypted and visible only to you and the system administrator. Format check only.",
+    identityPrivacy:
+      "The number is stored encrypted and visible only to you and the system administrator. Format check only.",
     identityInvalid: "Invalid identity number. Check the ten digits.",
     identityAlreadyLinked: "This number is already linked to another account.",
     identityRequired: "Link your personal identity first.",
     identitySaved: "Identity linked successfully.",
     entityTitle: "Commercial entity details",
-    entityHint: "Register your commercial entity and its unified national number to activate your account.",
+    entityHint:
+      "Register your commercial entity and its unified national number to activate your account.",
     entityName: "Entity name",
     entityType: "Classification",
     legalForm: "Legal form",
     unn: "Unified national number",
     unnInvalid: "The unified national number must be 10 digits starting with 7.",
     entityNameInvalid: "Entity name is too short.",
-    entityDuplicate: "This number belongs to an existing entity. Joining it requires owner approval or support review.",
+    entityDuplicate:
+      "This number belongs to an existing entity. Joining it requires owner approval or support review.",
     entityFailed: "Could not create the entity right now. Please try again.",
     entitySaved: "Entity created and account activated.",
     continue: "Continue",
@@ -1575,7 +1625,8 @@ export const en: Translations = {
     new: {
       cta: "Add entity",
       title: "Add a new entity",
-      subtitle: "Three steps and a final review: identity, official numbers, national address & contact person, then review.",
+      subtitle:
+        "Three steps and a final review: identity, official numbers, national address & contact person, then review.",
       steps: "Registration steps",
       step1: "Entity identity",
       step2: "Official numbers",
@@ -1633,6 +1684,23 @@ export const en: Translations = {
     },
   },
   projectTeam: {
+    memberKind: "Member type",
+    kindRegistered: "Registered member",
+    kindExternal: "External member",
+    nationalId: "National ID",
+    nationalIdHint: "Ten digits starting with 1 or 2.",
+    nameOptional: "Name (optional)",
+    jobTitleOptional: "Job title (optional)",
+    lookupSearching: "Checking the national ID…",
+    lookupRegistered: "Registered person: {name}",
+    lookupRegisteredNoName: "Registered on the platform.",
+    lookupUnregistered: "Not registered yet — a pending assignment will be saved.",
+    lookupInvalid: "Invalid national ID.",
+    lookupThrottled: "Too many attempts. Please wait and try again.",
+    externalPending: "Pending assignment saved. Permissions activate after the account links.",
+    externalMatched: "Member assigned successfully.",
+    externalBadge: "External",
+    pendingBadge: "Pending",
     edit: "Edit",
     editTitle: "Edit assignment",
     endAssignment: "End assignment",
@@ -1663,7 +1731,8 @@ export const en: Translations = {
   },
   analysis: {
     title: "Upload & analyze",
-    subtitle: "Upload a deed or building-licence file and let Rakeez suggest the fields from its text before you approve them.",
+    subtitle:
+      "Upload a deed or building-licence file and let Rakeez suggest the fields from its text before you approve them.",
     pickEntity: "Entity",
     pickProperty: "Property",
     pickCategory: "Document category",
@@ -1679,7 +1748,7 @@ export const en: Translations = {
     analyzing: "Analyzing locally…",
     ocrUnavailable: "Local OCR is unavailable; please enter the data manually.",
     reviewTitle: "Review extracted data",
-    reviewHint: "Nothing is applied to the property until you press \"Confirm data\".",
+    reviewHint: 'Nothing is applied to the property until you press "Confirm data".',
     confidence: "Confidence",
     conflict: "Conflicting values detected",
     fieldNumber: "Number",
@@ -1719,12 +1788,11 @@ export const en: Translations = {
     stateFailed: "Analysis failed",
     retry: "Re-run analysis",
     confirmAndContinue: "Approve analysis and continue",
-    lockedHint: "You cannot move to the next step before the analysis completes and is explicitly approved.",
-    failedHint: "The uploaded file is kept; retry the analysis or correct the data manually after it succeeds.",
+    lockedHint:
+      "You cannot move to the next step before the analysis completes and is explicitly approved.",
+    failedHint:
+      "The uploaded file is kept; retry the analysis or correct the data manually after it succeeds.",
     attempt: "Attempt",
     uploadedFile: "Uploaded file",
   },
-
 };
-
-
