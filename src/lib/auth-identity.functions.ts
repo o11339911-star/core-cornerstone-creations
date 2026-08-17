@@ -49,31 +49,24 @@ export const requestPasswordResetFn = createServerFn({ method: "POST" })
     z
       .object({
         identifier: z.string().trim().min(3).max(160),
-        redirectTo: z.string().url().max(300),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const { requestPasswordReset } = await import("@/lib/password-reset.server");
-    const { PRODUCTION_ORIGIN } = await import("@/lib/auth-origin");
+    const { subjectHmac } = await import("@/lib/subject-hash.server");
     const { getRequestIP, getRequestHeader } = await import("@tanstack/react-start/server");
-    const { createHash } = await import("crypto");
 
-    const allowed =
-      /^https?:\/\/(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|[a-z0-9-]+\.lovable\.app)(\/|$)/i;
-    const redirectTo = allowed.test(data.redirectTo)
-      ? data.redirectTo
-      : `${PRODUCTION_ORIGIN}/auth/reset-password`;
-
-    // بصمة عميل خشنة ومجزّأة فقط — لا يُخزَّن IP ولا user-agent.
-    let clientKey = "unknown";
+    // بصمة عميل خشنة بـHMAC خادمي فقط — لا يُخزَّن IP ولا user-agent ولا SHA خام.
+    let clientKey = "";
     try {
       const ip = getRequestIP({ xForwardedFor: true }) ?? "unknown";
       const ua = getRequestHeader("user-agent") ?? "";
-      clientKey = createHash("sha256").update(`${ip}|${ua}`).digest("hex");
+      clientKey = subjectHmac(`client|${ip}|${ua}`);
     } catch {
-      /* بيئات بلا سياق طلب */
+      /* بيئات بلا سياق طلب أو بلا مفتاح خادمي */
     }
 
-    return requestPasswordReset(data.identifier, redirectTo, clientKey);
+    // الوجهة تُشتق داخل الخادم من PRODUCTION_ORIGIN فقط.
+    return requestPasswordReset(data.identifier, clientKey);
   });
