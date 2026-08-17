@@ -50,7 +50,10 @@ function NotificationTargetPage() {
 
     const { target_kind: kind, target_id: targetId, project_id: projectId } = data.target;
 
-    if (kind === "request" && targetId) {
+    if (kind === "deal" && targetId) {
+      // يفتح تبويب التعاقد على نفس المعاملة مباشرة.
+      void navigate({ to: "/deals", search: { deal: targetId }, replace: true });
+    } else if (kind === "request" && targetId) {
       void navigate({ to: "/requests/$requestId", params: { requestId: targetId }, replace: true });
     } else if (kind === "stage" && projectId) {
       void navigate({ to: "/projects/$projectId/stages", params: { projectId }, replace: true });

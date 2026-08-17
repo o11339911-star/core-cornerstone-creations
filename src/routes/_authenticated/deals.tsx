@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Handshake, Plus } from "lucide-react";
+import { Handshake, Plus, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,10 @@ import { useAccountUi } from "@/lib/account-ui";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { isValidSaudiId } from "@/lib/identity-format";
 import { lookupDealCounterpartyFn } from "@/lib/deal-lookup.functions";
+import { DealThread } from "@/components/deals/deal-thread";
 import {
   createDeal,
+  listLinkableProjects,
   DEAL_CONTEXTS,
   DEAL_STATUSES,
   getDealRequester,
@@ -30,6 +32,10 @@ import {
 
 export const Route = createFileRoute("/_authenticated/deals")({
   component: DealsPage,
+  validateSearch: (search: Record<string, unknown>): { deal?: string } => {
+    const deal = typeof search['deal'] === "string" ? (search['deal'] as string) : undefined;
+    return deal ? { deal } : {};
+  },
   errorComponent: ErrorState,
   head: () => ({
     meta: [
@@ -90,7 +96,10 @@ function DealsPage() {
   const [scope, setScope] = React.useState<"mine" | "incoming">("mine");
   const [filter, setFilter] = React.useState<(typeof DEAL_STATUSES)[number] | null>(null);
   const [open, setOpen] = React.useState(false);
-  const [viewDealId, setViewDealId] = React.useState<string | null>(null);
+  const search = Route.useSearch();
+  const [viewDealId, setViewDealId] = React.useState<string | null>(search.deal ?? null);
+  /** المعاملة المراد رفضها مع سبب. */
+  const [rejecting, setRejecting] = React.useState<{ id: string; reason: string } | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
     title: "",
@@ -102,6 +111,9 @@ function DealsPage() {
     contextType: "other" as (typeof DEAL_CONTEXTS)[number],
     amount: "",
     notes: "",
+    projectId: "",
+    /** المعاملة الملغاة التي أُعيد الطلب منها. */
+    resubmittedFromId: "" as string,
   });
 
   const resetForm = () =>
@@ -114,6 +126,8 @@ function DealsPage() {
       contextType: "other",
       amount: "",
       notes: "",
+      projectId: "",
+      resubmittedFromId: "",
     });
 
   // ——— بحث تلقائي عن الطرف الثاني بعد اكتمال رقم صحيح ———
@@ -164,6 +178,18 @@ function DealsPage() {
     };
   }, [digits, form.partyKind, identifierValid, lookupParty, retryToken]);
 
+  React.useEffect(() => {
+    if (search.deal) setViewDealId(search.deal);
+  }, [search.deal]);
+
+  const fetchProjects = useServerFn(listLinkableProjects);
+  const projects = useQuery({
+    queryKey: ["deal-linkable-projects", entityId],
+    queryFn: () => fetchProjects({ data: { entityId } }),
+    enabled: !loading && open,
+    retry: false,
+  });
+
   const list = useQuery({
     queryKey: ["deals", entityId, filter, scope],
     queryFn: () =>
@@ -196,6 +222,8 @@ function DealsPage() {
           amount: form.amount.trim() ? Number(form.amount) : null,
           currency: "SAR",
           notes: form.notes.trim() || null,
+          projectId: form.projectId || null,
+          resubmittedFromId: form.resubmittedFromId || null,
         },
       }),
     onSuccess: (res) => {
@@ -222,9 +250,13 @@ function DealsPage() {
   });
 
   const respondMutation = useMutation({
-    mutationFn: (v: { dealId: string; accept: boolean }) => respond({ data: v }),
+    mutationFn: (v: { dealId: string; accept: boolean; reason?: string | null }) =>
+      respond({ data: { dealId: v.dealId, accept: v.accept, reason: v.reason ?? null } }),
     onSuccess: (res) => {
-      toast.success(res.status === "accepted" ? "تم قبول المعاملة" : "تم رفض المعاملة");
+      toast.success(
+        res.status === "accepted" ? "تم قبول المعاملة" : "تم رفض الطلب وتحوّل إلى ملغي",
+      );
+      setRejecting(null);
       void qc.invalidateQueries({ queryKey: ["deals"] });
     },
     onError: () => toast.error("تعذّر تسجيل ردّك على المعاملة"),
@@ -419,17 +451,17 @@ function DealsPage() {
                   </HeroBadge>
                   <HeroBadge
                     tone={
-                      deal.second_party_status === "accepted"
+                      deal.recipient_status === "accepted"
                         ? "success"
-                        : deal.second_party_status === "declined"
+                        : deal.recipient_status === "rejected"
                           ? "danger"
                           : "warning"
                     }
                   >
-                    {deal.second_party_status === "accepted"
+                    {deal.recipient_status === "accepted"
                       ? "مستقبل الطلب قَبِل"
-                      : deal.second_party_status === "declined"
-                        ? "مستقبل الطلب رفض"
+                      : deal.recipient_status === "rejected"
+                        ? "مرفوض من مستقبل الطلب"
                         : "بانتظار مستقبل الطلب"}
                   </HeroBadge>
                   <Button
@@ -458,11 +490,37 @@ function DealsPage() {
                         variant="outline"
                         className="min-h-11"
                         disabled={respondMutation.isPending}
-                        onClick={() => respondMutation.mutate({ dealId: deal.id, accept: false })}
+                        onClick={() => setRejecting({ id: deal.id, reason: "" })}
                       >
                         رفض
                       </Button>
                     </>
+                  ) : null}
+                  {deal.is_owner && deal.status === "cancelled" ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="min-h-11 gap-1"
+                      onClick={() => {
+                        const second = deal.parties.find((p) => p.party_role === "second");
+                        setForm({
+                          title: deal.title,
+                          partyKind: (second?.party_kind ?? "person") as (typeof PARTY_KINDS)[number],
+                          identifier: "",
+                          counterpartyName: second?.display_name ?? "",
+                          autoName: false,
+                          contextType: deal.context_type as (typeof DEAL_CONTEXTS)[number],
+                          amount: deal.amount !== null && deal.amount !== undefined ? String(deal.amount) : "",
+                          notes: deal.notes ?? "",
+                          projectId: deal.project_id ?? "",
+                          resubmittedFromId: deal.id,
+                        });
+                        setError(null);
+                        setOpen(true);
+                      }}
+                    >
+                      <RotateCcw className="size-4" aria-hidden="true" /> إعادة الطلب
+                    </Button>
                   ) : null}
                   {deal.is_owner ? (
                     <>
@@ -515,7 +573,7 @@ function DealsPage() {
       <ResponsiveModal
         open={open}
         onOpenChange={setOpen}
-        title="معاملة تعاقد جديدة"
+        title={form.resubmittedFromId ? "إعادة إرسال الطلب" : "معاملة تعاقد جديدة"}
         footer={
           <Button
             type="button"
@@ -667,6 +725,27 @@ function DealsPage() {
             </select>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="d-project">ربط بمشروع (اختياري)</Label>
+            <select
+              id="d-project"
+              value={form.projectId}
+              onChange={(e) => setForm((f) => ({ ...f, projectId: e.target.value }))}
+              className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="">بدون ربط</option>
+              {(projects.data ?? []).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              {projects.isError
+                ? "تعذّر تحميل المشاريع الآن — يمكنك المتابعة بدون ربط."
+                : "الربط لا يمنح مستقبل الطلب أي وصول لبيانات المشروع قبل القبول والصلاحية."}
+            </p>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="d-amount">المبلغ بالريال (اختياري)</Label>
             <Input
               id="d-amount"
@@ -767,9 +846,9 @@ function DealsPage() {
             {
               label: "حالة مستقبل الطلب",
               value:
-                deal.second_party_status === "accepted"
+                deal.recipient_status === "accepted"
                   ? "قَبِل"
-                  : deal.second_party_status === "declined"
+                  : deal.recipient_status === "rejected"
                     ? "رفض"
                     : "بانتظار الرد",
             },
@@ -801,6 +880,9 @@ function DealsPage() {
                   "—"
                 ),
             },
+            ...(deal.project_name
+              ? [{ label: "المشروع", value: deal.project_name as React.ReactNode }]
+              : []),
             {
               label: "تاريخ الإنشاء",
               value: <bdi dir="ltr">{formatDateTime(deal.created_at)}</bdi>,
@@ -818,15 +900,63 @@ function DealsPage() {
                   </div>
                 ))}
               </dl>
+              {deal.recipient_status === "rejected" && deal.recipient_response_reason ? (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm">
+                  <p className="mb-1 text-xs text-muted-foreground">سبب الرفض</p>
+                  <p className="whitespace-pre-wrap break-words text-foreground">
+                    {deal.recipient_response_reason}
+                  </p>
+                </div>
+              ) : null}
               {deal.notes ? (
                 <div className="rounded-lg bg-muted/50 p-3 text-sm">
                   <p className="mb-1 text-xs text-muted-foreground">ملاحظات</p>
                   <p className="whitespace-pre-wrap break-words text-foreground">{deal.notes}</p>
                 </div>
               ) : null}
+              <DealThread dealId={deal.id} />
             </div>
           );
         })()}
+      </ResponsiveModal>
+
+      <ResponsiveModal
+        open={rejecting !== null}
+        onOpenChange={(o) => !o && setRejecting(null)}
+        title="رفض الطلب"
+        footer={
+          <Button
+            type="button"
+            variant="destructive"
+            className="min-h-11 w-full"
+            disabled={respondMutation.isPending}
+            onClick={() =>
+              rejecting &&
+              respondMutation.mutate({
+                dealId: rejecting.id,
+                accept: false,
+                reason: rejecting.reason.trim() || null,
+              })
+            }
+          >
+            {respondMutation.isPending ? "جارٍ التسجيل…" : "تأكيد الرفض"}
+          </Button>
+        }
+      >
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            الرفض يحوّل حالة الطلب إلى «ملغي» ويُسجَّل في سجل التدقيق مع وقته ومن نفّذه.
+          </p>
+          <Label htmlFor="reject-reason">سبب الرفض (اختياري)</Label>
+          <Textarea
+            id="reject-reason"
+            rows={3}
+            value={rejecting?.reason ?? ""}
+            onChange={(e) =>
+              setRejecting((r) => (r ? { ...r, reason: e.target.value } : r))
+            }
+          />
+        </div>
       </ResponsiveModal>
     </div>
   );
