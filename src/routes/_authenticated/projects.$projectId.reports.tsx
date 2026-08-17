@@ -23,6 +23,7 @@ import {
 } from "@/lib/reports/labels";
 import {
   checkEngineeringReportEligibility,
+  checkInspectionReportEligibility,
   createReport,
   listMyReportEntities,
   listProjectEngineeringOffices,
@@ -30,6 +31,8 @@ import {
   listReports,
   requestEngineeringReport,
 } from "@/lib/reports.functions";
+
+type ReportKind = "engineering" | "administrative" | "inspection" | "technical_test";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId/reports")({
   component: ReportsPage,
@@ -60,6 +63,7 @@ function ReportsPage() {
   const fetchEntities = useServerFn(listMyReportEntities);
   const fetchTemplates = useServerFn(listReportTemplates);
   const checkEligibility = useServerFn(checkEngineeringReportEligibility);
+  const checkInspection = useServerFn(checkInspectionReportEligibility);
   const fetchOffices = useServerFn(listProjectEngineeringOffices);
   const newReport = useServerFn(createReport);
   const askForReport = useServerFn(requestEngineeringReport);
@@ -67,7 +71,7 @@ function ReportsPage() {
   const [title, setTitle] = React.useState("");
   const [entityId, setEntityId] = React.useState("");
   const [templateId, setTemplateId] = React.useState("");
-  const [reportKind, setReportKind] = React.useState<"engineering" | "administrative">("engineering");
+  const [reportKind, setReportKind] = React.useState<ReportKind>("engineering");
   const [error, setError] = React.useState<string | null>(null);
 
   const [officeId, setOfficeId] = React.useState("");
@@ -97,9 +101,20 @@ function ReportsPage() {
   const blockMessage = engineeringBlockMessage(blockReason);
   const canIssueEngineering = Boolean(entityId) && !eligibilityQuery.isLoading && blockReason === null;
 
+  const inspectionQuery = useQuery({
+    queryKey: ["report-eligibility-inspection", projectId, entityId],
+    queryFn: () => checkInspection({ data: { projectId, entityId } }),
+    enabled: Boolean(entityId),
+  });
+  const canIssueInspection =
+    Boolean(entityId) && !inspectionQuery.isLoading && (inspectionQuery.data?.reason ?? null) === null;
+
   React.useEffect(() => {
-    if (!canIssueEngineering) setReportKind("administrative");
-  }, [canIssueEngineering]);
+    if (reportKind === "engineering" && !canIssueEngineering) setReportKind("administrative");
+    if ((reportKind === "inspection" || reportKind === "technical_test") && !canIssueInspection) {
+      setReportKind("administrative");
+    }
+  }, [canIssueEngineering, canIssueInspection, reportKind]);
 
   const officesQuery = useQuery({
     queryKey: ["project-engineering-offices", projectId],
@@ -183,13 +198,19 @@ function ReportsPage() {
             نوع التقرير
             <select
               value={reportKind}
-              onChange={(e) => setReportKind(e.target.value as "engineering" | "administrative")}
+              onChange={(e) => setReportKind(e.target.value as ReportKind)}
               className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
               {canIssueEngineering ? (
                 <option value="engineering">{REPORT_KIND_LABEL["engineering"]}</option>
               ) : null}
               <option value="administrative">{REPORT_KIND_LABEL["administrative"]}</option>
+              {canIssueInspection ? (
+                <>
+                  <option value="inspection">{REPORT_KIND_LABEL["inspection"]}</option>
+                  <option value="technical_test">{REPORT_KIND_LABEL["technical_test"]}</option>
+                </>
+              ) : null}
             </select>
           </label>
           <label className="text-xs text-muted-foreground">

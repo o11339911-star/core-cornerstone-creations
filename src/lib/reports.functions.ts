@@ -132,7 +132,9 @@ export const createReport = createServerFn({ method: "POST" })
         stageId: z.string().uuid().nullable().optional(),
         visitId: z.string().uuid().nullable().optional(),
         propertyId: z.string().uuid().nullable().optional(),
-        reportKind: z.enum(["engineering", "administrative"]).default("engineering"),
+        reportKind: z
+          .enum(["engineering", "administrative", "inspection", "technical_test"])
+          .default("engineering"),
         requestId: z.string().uuid().nullable().optional(),
       })
       .parse(input),
@@ -167,6 +169,21 @@ export const checkEngineeringReportEligibility = createServerFn({ method: "GET" 
   )
   .handler(async ({ data, context }) => {
     const { data: reason, error } = await context.supabase.rpc("can_issue_engineering_report", {
+      _entity_id: data.entityId,
+      _project_id: data.projectId,
+    });
+    if (error) throw new Error(error.message);
+    return { reason: (reason as string | null) ?? null };
+  });
+
+/** Server-side probe for inspection / technical-test reports (inspection bodies & labs only). */
+export const checkInspectionReportEligibility = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ entityId: z.string().uuid(), projectId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: reason, error } = await context.supabase.rpc("can_issue_inspection_report", {
       _entity_id: data.entityId,
       _project_id: data.projectId,
     });
