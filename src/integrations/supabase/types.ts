@@ -355,6 +355,7 @@ export type Database = {
           audience_user_id: string | null
           created_at: string
           id: string
+          project_party_id: string | null
         }
         Insert: {
           assignment_id: string
@@ -362,6 +363,7 @@ export type Database = {
           audience_user_id?: string | null
           created_at?: string
           id?: string
+          project_party_id?: string | null
         }
         Update: {
           assignment_id?: string
@@ -369,6 +371,7 @@ export type Database = {
           audience_user_id?: string | null
           created_at?: string
           id?: string
+          project_party_id?: string | null
         }
         Relationships: [
           {
@@ -390,6 +393,13 @@ export type Database = {
             columns: ["audience_entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_visibility_audience_project_party_id_fkey"
+            columns: ["project_party_id"]
+            isOneToOne: false
+            referencedRelation: "project_parties"
             referencedColumns: ["id"]
           },
         ]
@@ -10822,6 +10832,15 @@ export type Database = {
         Args: { _project_id: string; _property_id: string; _relation?: string }
         Returns: Json
       }
+      list_assignable_project_parties: {
+        Args: { _project_id: string }
+        Returns: {
+          display_name: string
+          id: string
+          party_kind: string
+          party_role: Database["public"]["Enums"]["project_party_role"]
+        }[]
+      }
       list_breakglass_requests: {
         Args: never
         Returns: {
@@ -11553,6 +11572,10 @@ export type Database = {
           project_id: string
           status: string
         }[]
+      }
+      set_assignment_party_audience: {
+        Args: { _assignment_id: string; _party_ids: string[] }
+        Returns: number
       }
       set_closure_item_status: {
         Args: {
