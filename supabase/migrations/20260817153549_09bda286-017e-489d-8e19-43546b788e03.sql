@@ -1,0 +1,1 @@
+alter view public.project_assignments_public set (security_invoker = on);
