@@ -562,7 +562,9 @@ function AppointmentsPage() {
                     </div>
                   </div>
                 ) : null}
+              </div>
             ))}
+
           </div>
         )}
       </SectionCard>
