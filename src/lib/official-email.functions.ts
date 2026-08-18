@@ -139,7 +139,6 @@ export const setOfficialEmail = createServerFn({ method: "POST" })
         .select("id")
         .single();
       if (error) {
-        if (isMissingObject(error)) return { available: false, status: "pending", delivered: false };
         throw new Error(error.message);
       }
 
