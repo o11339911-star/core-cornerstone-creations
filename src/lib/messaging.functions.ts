@@ -114,6 +114,7 @@ export const listCorrespondence = createServerFn({ method: "GET" })
       .object({
         entityId,
         channel: z.enum(CORRESPONDENCE_CHANNELS).nullable().default(null),
+        direction: z.enum(["incoming", "outgoing"]).nullable().default(null),
         includeArchived: z.boolean().default(false),
       })
       .parse(input ?? {}),
@@ -126,6 +127,7 @@ export const listCorrespondence = createServerFn({ method: "GET" })
       );
     q = data.entityId ? q.eq("entity_id", data.entityId) : q.is("entity_id", null);
     if (data.channel) q = q.eq("channel", data.channel);
+    if (data.direction) q = q.eq("direction", data.direction);
     if (!data.includeArchived) q = q.is("archived_at", null);
     const { data: rows, error } = await q.order("created_at", { ascending: false }).limit(200);
     if (error) throw new Error(error.message);
