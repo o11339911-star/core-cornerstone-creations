@@ -50,6 +50,7 @@ import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedPlatformAuditRouteImport } from './routes/_authenticated/platform.audit'
 import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './routes/_authenticated/platform.breach-playbook'
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
+import { Route as AuthenticatedPlatformContentRouteImport } from './routes/_authenticated/platform.content'
 import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenticated/platform.dsr'
 import { Route as AuthenticatedPlatformEntitiesRouteImport } from './routes/_authenticated/platform.entities'
 import { Route as AuthenticatedPlatformEscalationsRouteImport } from './routes/_authenticated/platform.escalations'
@@ -320,6 +321,12 @@ const AuthenticatedPlatformBreakglassRoute =
   AuthenticatedPlatformBreakglassRouteImport.update({
     id: '/breakglass',
     path: '/breakglass',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformContentRoute =
+  AuthenticatedPlatformContentRouteImport.update({
+    id: '/content',
+    path: '/content',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedPlatformDsrRoute =
@@ -679,6 +686,7 @@ export interface FileRoutesByFullPath {
   '/platform/audit': typeof AuthenticatedPlatformAuditRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/content': typeof AuthenticatedPlatformContentRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/platform/escalations': typeof AuthenticatedPlatformEscalationsRoute
@@ -772,6 +780,7 @@ export interface FileRoutesByTo {
   '/platform/audit': typeof AuthenticatedPlatformAuditRoute
   '/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/platform/content': typeof AuthenticatedPlatformContentRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/platform/escalations': typeof AuthenticatedPlatformEscalationsRoute
@@ -869,6 +878,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/audit': typeof AuthenticatedPlatformAuditRoute
   '/_authenticated/platform/breach-playbook': typeof AuthenticatedPlatformBreachPlaybookRoute
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
+  '/_authenticated/platform/content': typeof AuthenticatedPlatformContentRoute
   '/_authenticated/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/_authenticated/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
   '/_authenticated/platform/escalations': typeof AuthenticatedPlatformEscalationsRoute
@@ -966,6 +976,7 @@ export interface FileRouteTypes {
     | '/platform/audit'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
+    | '/platform/content'
     | '/platform/dsr'
     | '/platform/entities'
     | '/platform/escalations'
@@ -1059,6 +1070,7 @@ export interface FileRouteTypes {
     | '/platform/audit'
     | '/platform/breach-playbook'
     | '/platform/breakglass'
+    | '/platform/content'
     | '/platform/dsr'
     | '/platform/entities'
     | '/platform/escalations'
@@ -1155,6 +1167,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/audit'
     | '/_authenticated/platform/breach-playbook'
     | '/_authenticated/platform/breakglass'
+    | '/_authenticated/platform/content'
     | '/_authenticated/platform/dsr'
     | '/_authenticated/platform/entities'
     | '/_authenticated/platform/escalations'
@@ -1519,6 +1532,13 @@ declare module '@tanstack/react-router' {
       path: '/breakglass'
       fullPath: '/platform/breakglass'
       preLoaderRoute: typeof AuthenticatedPlatformBreakglassRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/content': {
+      id: '/_authenticated/platform/content'
+      path: '/content'
+      fullPath: '/platform/content'
+      preLoaderRoute: typeof AuthenticatedPlatformContentRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
     '/_authenticated/platform/dsr': {
@@ -1899,6 +1919,7 @@ interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformAuditRoute: typeof AuthenticatedPlatformAuditRoute
   AuthenticatedPlatformBreachPlaybookRoute: typeof AuthenticatedPlatformBreachPlaybookRoute
   AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
+  AuthenticatedPlatformContentRoute: typeof AuthenticatedPlatformContentRoute
   AuthenticatedPlatformDsrRoute: typeof AuthenticatedPlatformDsrRoute
   AuthenticatedPlatformEntitiesRoute: typeof AuthenticatedPlatformEntitiesRoute
   AuthenticatedPlatformEscalationsRoute: typeof AuthenticatedPlatformEscalationsRoute
@@ -1924,6 +1945,7 @@ const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
   AuthenticatedPlatformBreachPlaybookRoute:
     AuthenticatedPlatformBreachPlaybookRoute,
   AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
+  AuthenticatedPlatformContentRoute: AuthenticatedPlatformContentRoute,
   AuthenticatedPlatformDsrRoute: AuthenticatedPlatformDsrRoute,
   AuthenticatedPlatformEntitiesRoute: AuthenticatedPlatformEntitiesRoute,
   AuthenticatedPlatformEscalationsRoute: AuthenticatedPlatformEscalationsRoute,

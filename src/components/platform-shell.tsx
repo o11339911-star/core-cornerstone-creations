@@ -9,6 +9,7 @@ import {
   Building2,
   ExternalLink,
   FileText,
+  FolderKanban,
   Flag,
   Gauge,
   Inbox,
@@ -69,8 +70,10 @@ export const PLATFORM_GROUPS: { title: string; links: PlatformLink[] }[] = [
       { to: "/platform/entities", label: "الكيانات", icon: Building2 },
       { to: "/platform/users", label: "المستخدمون", icon: UserSearch },
       { to: "/platform/staff", label: "فريق المنصة", icon: Users },
+      { to: "/platform/content", label: "المشاريع والمحتوى", icon: FolderKanban },
     ],
   },
+
   {
     title: "الامتثال",
     links: [
