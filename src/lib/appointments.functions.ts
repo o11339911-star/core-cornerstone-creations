@@ -149,15 +149,15 @@ export const bookAppointment = createServerFn({ method: "POST" })
         providerNumber: z
           .string()
           .trim()
-          .refine(latinOnly, { message: "NON_LATIN_DIGITS" })
-          .regex(/^[0-9]{10}$/),
+          .regex(/^[0-9]{10}$/)
+          .refine(latinOnly, { message: "NON_LATIN_DIGITS" }),
         kind: z.string().min(2),
         title: z.string().trim().min(3).max(160),
         // "YYYY-MM-DDTHH:mm" بتوقيت الرياض
         startsAtLocal: z
           .string()
-          .refine(latinOnly, { message: "NON_LATIN_DIGITS" })
-          .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$/),
+          .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$/)
+          .refine(latinOnly, { message: "NON_LATIN_DIGITS" }),
         cancelHours: z.number().int().min(0).max(168).nullable().default(null),
         notes: z.string().max(2000).nullable().default(null),
       })
