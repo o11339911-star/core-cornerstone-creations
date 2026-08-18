@@ -102,7 +102,7 @@ function PlatformContentPage() {
         </div>
 
         {query.isPending ? (
-          <CardsSkeleton count={3} />
+          <CardsSkeleton cards={3} />
         ) : query.isError ? (
           <ErrorState
             description="تعذّر جلب المشاريع. حاول مرة أخرى."
