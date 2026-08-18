@@ -3,7 +3,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarCheck2, CalendarClock, CalendarPlus, Loader2, Phone } from "lucide-react";
+import {
+  CalendarCheck2,
+  CalendarClock,
+  CalendarPlus,
+  Loader2,
+  Phone,
+  QrCode as QrIcon,
+} from "lucide-react";
 
 import { toLatinDigits } from "@/lib/format";
 import { useAccountUi } from "@/lib/account-ui";
@@ -11,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AppointmentCard,
   CardsSkeleton,
   ErrorState,
   Field,
@@ -114,6 +122,8 @@ function AppointmentsPage() {
   const confirm = useServerFn(confirmAppointment);
   const cancel = useServerFn(cancelAppointment);
   const reschedule = useServerFn(rescheduleAppointment);
+
+  const [openCard, setOpenCard] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     providerNumber: "",
