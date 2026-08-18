@@ -17,7 +17,9 @@ import {
   StatGrid,
 } from "@/components/rakeez";
 import { listQueueItems, type QueueItem } from "@/lib/platform-admin.functions";
+import { queueSourceLink } from "@/lib/platform-queue-links";
 import { formatDateTime } from "@/lib/format";
+
 
 export const Route = createFileRoute("/_authenticated/platform/requests")({
   component: PlatformRequestsPage,
@@ -61,17 +63,11 @@ const FILTERS = [
 ] as const;
 
 /**
- * الطلب الأصلي هو المصدر: لا نعيد إنشاء سجل موازٍ، بل نفتح الكيان أو
- * المشروع الذي وُلد منه عنصر الطابور بنفس `source_id`.
+ * الطلب الأصلي هو المصدر: لا نعيد إنشاء سجل موازٍ، بل نفتح الصف الأصلي
+ * بنفس `source_id` من جدوله (`requests` مثلًا)، ولا نكتفي بـ `entity_id`
+ * إلا حين لا يوجد مسار للأصل نفسه. المنطق والاختبارات في `platform-queue-links`.
  */
-function sourceLink(
-  item: QueueItem,
-): { to: "/entities/$entityId"; params: { entityId: string } } | null {
-  if (item.entity_id) {
-    return { to: "/entities/$entityId", params: { entityId: item.entity_id } };
-  }
-  return null;
-}
+
 
 function PlatformRequestsPage() {
   const fetchItems = useServerFn(listQueueItems);
@@ -124,7 +120,7 @@ function PlatformRequestsPage() {
         ) : (
           <ul className="space-y-2">
             {rows.map((r) => {
-              const source = sourceLink(r);
+              const source = queueSourceLink(r);
               return (
                 <li
                   key={r.id}
@@ -148,12 +144,13 @@ function PlatformRequestsPage() {
                   <div className="flex items-center gap-2">
                     {source ? (
                       <Button asChild variant="outline" size="sm" className="min-h-11 gap-2">
-                        <Link to={source.to} params={source.params}>
+                        <Link to={source.to} params={source.params as never}>
                           <ExternalLink className="size-4" aria-hidden="true" />
-                          فتح الأصل
+                          {source.label}
                         </Link>
                       </Button>
                     ) : null}
+
                     <Badge variant="secondary">{STATUS_AR[r.status] ?? r.status}</Badge>
                   </div>
                 </li>
