@@ -476,6 +476,24 @@ function AppointmentsPage() {
                     />
                   </FieldGrid>
                 </div>
+
+                <div className="mt-3">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setOpenCard(openCard === a.id ? null : a.id)}
+                    aria-expanded={openCard === a.id}
+                  >
+                    <QrIcon className="size-4" aria-hidden="true" />
+                    {openCard === a.id ? "إخفاء بطاقة الموعد" : "بطاقة الموعد ورمز التحقق"}
+                  </Button>
+                </div>
+                {openCard === a.id ? (
+                  <div className="mt-3">
+                    <AppointmentCard appointmentId={a.id} />
+                  </div>
+                ) : null}
+
                 {a.can_cancel || a.can_reschedule || a.can_confirm ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {a.can_confirm ? (
