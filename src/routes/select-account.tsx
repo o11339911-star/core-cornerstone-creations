@@ -1,6 +1,7 @@
 import * as React from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
 import { PolicyAcceptanceGate } from "@/components/legal/policy-acceptance-gate";
@@ -9,6 +10,8 @@ import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveAccount } from "@/lib/active-account";
 import { getMyMemberships, getMyProfile, type MembershipRow } from "@/lib/auth.functions";
+import { getPlatformMe } from "@/lib/platform-admin.functions";
+import { hasPlatformAccess, PLATFORM_HOME } from "@/lib/platform-access";
 import { queryClient } from "@/router";
 
 export const Route = createFileRoute("/select-account")({
@@ -50,9 +53,37 @@ function SelectAccountRoute() {
 
   return (
     <PolicyAcceptanceGate>
-      <SelectAccountPage />
+      <PlatformAccountGate />
     </PolicyAcceptanceGate>
   );
+}
+
+function PlatformAccountGate() {
+  const navigate = useNavigate();
+  const fetchPlatformMe = useServerFn(getPlatformMe);
+  const platform = useQuery({
+    queryKey: ["platform-me"],
+    queryFn: () => fetchPlatformMe(),
+    retry: false,
+  });
+
+  React.useEffect(() => {
+    if (hasPlatformAccess(platform.data)) {
+      void navigate({ to: PLATFORM_HOME, replace: true });
+    }
+  }, [navigate, platform.data]);
+
+  if (platform.isPending || hasPlatformAccess(platform.data)) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-12 sm:px-6 lg:px-8">
+        <CardsSkeleton cards={2} />
+      </div>
+    );
+  }
+
+  // A failed check is fail-closed for administration and preserves the normal
+  // account-selection flow for ordinary users.
+  return <SelectAccountPage />;
 }
 
 function SelectAccountPage() {

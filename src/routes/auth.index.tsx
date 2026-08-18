@@ -18,6 +18,8 @@ import { isValidSaudiId, normalizeNationalId } from "@/lib/identity-format";
 import { signInWithIdentifierFn, signUpWithIdentityFn } from "@/lib/auth-identity.functions";
 import { setSessionPersist } from "@/integrations/supabase/session-storage";
 import { NafathButton } from "@/components/auth/nafath-button";
+import { getPlatformMe } from "@/lib/platform-admin.functions";
+import { hasPlatformAccess, PLATFORM_HOME } from "@/lib/platform-access";
 
 const signInSchema = z.object({
   identifier: z
@@ -169,6 +171,20 @@ function SignInForm() {
       setSubmitting(false);
       setError(t("auth.invalidCredentials"));
       return;
+    }
+
+    // Resolve platform access from the authenticated server context. Never
+    // infer it from entity memberships, profile data, or browser storage.
+    if (redirect === "/select-account") {
+      try {
+        const platform = await getPlatformMe();
+        if (hasPlatformAccess(platform)) {
+          navigate({ to: PLATFORM_HOME, replace: true });
+          return;
+        }
+      } catch {
+        // Fail closed: an unavailable/failed platform check grants no access.
+      }
     }
 
     navigate({ to: redirect, replace: true });
