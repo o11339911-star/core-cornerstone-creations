@@ -55,6 +55,7 @@ export const ar = {
     notifications: "الإشعارات",
     marketplace: "سوق الخدمات",
     appointments: "المواعيد",
+    network: "شبكة التواصل",
     properties: "العقارات",
     home: "الرئيسية",
     switchAccount: "تبديل الحساب",
