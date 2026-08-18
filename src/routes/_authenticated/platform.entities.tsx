@@ -7,7 +7,15 @@ import { Building2, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CardsSkeleton, ErrorState, Num, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
+import {
+  CardsSkeleton,
+  ErrorState,
+  Num,
+  PageHero,
+  RefreshAction,
+  SectionCard,
+  SoftEmpty,
+} from "@/components/rakeez";
 import { adminListEntities } from "@/lib/platform-admin.functions";
 import { formatDate } from "@/lib/format";
 
@@ -72,7 +80,11 @@ function PlatformEntitiesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHero title="الكيانات" subtitle="دليل الكيانات المسجّلة في المنصة وحالة توثيقها." />
+      <PageHero
+        title="الكيانات"
+        subtitle="دليل الكيانات المسجّلة في المنصة وحالة توثيقها."
+        aside={<RefreshAction onRefresh={() => void query.refetch()} busy={query.isFetching} />}
+      />
 
       <SectionCard icon={Building2} title="بحث وقائمة" count={total}>
         <form

@@ -8,7 +8,15 @@ import { AlertTriangle, PlugZap, PlayCircle, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorState, PageHero, SectionCard, SoftEmpty, StatCard, StatGrid } from "@/components/rakeez";
+import {
+  ErrorState,
+  PageHero,
+  RefreshAction,
+  SectionCard,
+  SoftEmpty,
+  StatCard,
+  StatGrid,
+} from "@/components/rakeez";
 import {
   listIntegrationRequests,
   listIntegrations,
@@ -149,7 +157,10 @@ function PlatformIntegrationsPage() {
       <PageHero
         title="التكاملات الرسمية والخارجية"
         badge="المرحلة 25"
-        subtitle="سجل معلن لكل جهة يمكن الربط معها مستقبلًا: الغرض، السند النظامي، الحقول المتبادلة، وأسماء متغيرات الأسرار فقط. كل النداءات هنا تجريبية موسومة ولا تتصل بأي جهة فعليًا."
+        subtitle="سجل معلن للجهات القابلة للربط — كل النداءات هنا تجريبية موسومة ولا تتصل بأي جهة."
+        aside={
+          <RefreshAction onRefresh={() => void integrations.refetch()} busy={integrations.isFetching} />
+        }
       />
 
       <StatGrid>

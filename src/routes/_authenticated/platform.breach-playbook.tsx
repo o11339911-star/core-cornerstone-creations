@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldAlert } from "lucide-react";
 
 import { MarkdownView } from "@/components/legal/markdown-view";
 import { ErrorState } from "@/components/rakeez";
 import { PageHero, SectionCard } from "@/components/rakeez/dashboard-kit";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/platform/breach-playbook")({
   component: BreachPlaybookPage,
@@ -51,7 +52,15 @@ function BreachPlaybookPage() {
     <div className="space-y-6">
       <PageHero
         title="خطة الاستجابة لحوادث البيانات"
-        subtitle="إجراء داخلي ملزم لفريق تشغيل المنصة عند أي اشتباه في تسرب أو فقدان بيانات."
+        subtitle="إجراء داخلي ملزم عند أي اشتباه في تسرب أو فقدان بيانات."
+        aside={
+          <Button asChild className="min-h-11 gap-2">
+            <Link to="/platform/incidents">
+              <ShieldAlert className="size-4" aria-hidden="true" />
+              سجل الحوادث
+            </Link>
+          </Button>
+        }
       />
       <SectionCard icon={ShieldAlert} title="الإجراء المعتمد">
         <MarkdownView source={PLAYBOOK} />

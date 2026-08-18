@@ -14,6 +14,7 @@ import {
   SectionCard,
   SoftEmpty,
   StatCard,
+  RefreshAction,
   StatGrid,
 } from "@/components/rakeez";
 import { listQueueItems, type QueueItem } from "@/lib/platform-admin.functions";
@@ -85,7 +86,8 @@ function PlatformRequestsPage() {
     <div className="space-y-6">
       <PageHero
         title="الطلبات"
-        subtitle="الطلبات والبلاغات والتذاكر الواردة للمنصة — نفس مصدر طابور المراجعة دون نظام موازٍ."
+        subtitle="الطلبات والبلاغات والتذاكر الواردة للمنصة — نفس مصدر طابور المراجعة."
+        aside={<RefreshAction onRefresh={() => void query.refetch()} busy={query.isFetching} />}
       />
 
       <StatGrid>
