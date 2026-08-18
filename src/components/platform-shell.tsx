@@ -37,7 +37,9 @@ export const PLATFORM_LINKS = [
   { to: "/platform/studio", label: "الاستديو", icon: LayoutGrid },
   { to: "/platform/staff", label: "فريق المنصة", icon: Users },
   { to: "/platform/breakglass", label: "الوصول الطارئ", icon: ShieldAlert },
+  { to: "/platform/audit", label: "سجل التدقيق", icon: ScrollText },
   { to: "/platform/integrations", label: "التكاملات", icon: PlugZap },
+
   { to: "/platform/dsr", label: "طلبات الخصوصية", icon: ShieldCheck },
   { to: "/platform/breach-playbook", label: "خطة الحوادث", icon: BookLock },
 ] as const;
