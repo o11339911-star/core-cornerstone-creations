@@ -132,6 +132,9 @@ export const listCorrespondence = createServerFn({ method: "GET" })
     return (rows ?? []) as CorrespondenceRow[];
   });
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PHONE_RE = /^\+?[0-9]{9,15}$/;
+
 export const createCorrespondence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -139,7 +142,8 @@ export const createCorrespondence = createServerFn({ method: "POST" })
       .object({
         entityId,
         channel: z.enum(CORRESPONDENCE_CHANNELS),
-        direction: z.enum(["incoming", "outgoing"]).default("outgoing"),
+        // الاتجاه لا يُدخل يدويًا: يُشتق خادميًا من مكان الإنشاء (وارد/صادر).
+        origin: z.enum(["inbox", "outbox"]).default("outbox"),
         subject: z.string().trim().min(1).max(200),
         body: z.string().max(20000).default(""),
         counterpartyName: z.string().trim().max(160).nullable().default(null),
@@ -150,17 +154,28 @@ export const createCorrespondence = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<{ id: string }> => {
+    const direction = data.origin === "inbox" ? "incoming" : "outgoing";
+    const address = (data.counterpartyAddress ?? "").trim();
+
+    // المستلم إلزامي في الصادر، ويُتحقق منه بحسب القناة.
+    if (direction === "outgoing") {
+      if (!address) throw new Error("RECIPIENT_REQUIRED");
+      if (data.channel === "email" && !EMAIL_RE.test(address)) throw new Error("RECIPIENT_INVALID");
+      if (data.channel === "whatsapp" && !PHONE_RE.test(address.replace(/[\s-]/g, "")))
+        throw new Error("RECIPIENT_INVALID");
+    }
+
     const { data: row, error } = await context.supabase
       .from("entity_correspondence")
       .insert({
         entity_id: data.entityId,
         owner_user_id: context.userId,
         channel: data.channel,
-        direction: data.direction,
+        direction,
         subject: data.subject,
         body: data.body,
         counterparty_name: data.counterpartyName,
-        counterparty_address: data.counterpartyAddress,
+        counterparty_address: address || null,
         project_id: data.projectId,
         request_id: data.requestId,
         status: "logged",
@@ -171,6 +186,7 @@ export const createCorrespondence = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { id: row.id as string };
   });
+
 
 export const setCorrespondenceArchived = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
