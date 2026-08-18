@@ -65,10 +65,10 @@ function CorrespondencePage() {
   const setArchived = useServerFn(setCorrespondenceArchived);
 
   const [filter, setFilter] = React.useState<ChannelValue | null>(null);
+  const [box, setBox] = React.useState<"outgoing" | "incoming">("outgoing");
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({
     channel: "email" as ChannelValue,
-    direction: "outgoing" as "incoming" | "outgoing",
     subject: "",
     body: "",
     counterpartyName: "",
@@ -77,8 +77,9 @@ function CorrespondencePage() {
   const [error, setError] = React.useState<string | null>(null);
 
   const list = useQuery({
-    queryKey: ["correspondence", entityId, filter],
-    queryFn: () => fetchList({ data: { entityId, channel: filter, includeArchived: false } }),
+    queryKey: ["correspondence", entityId, filter, box],
+    queryFn: () =>
+      fetchList({ data: { entityId, channel: filter, direction: box, includeArchived: false } }),
     enabled: !loading,
   });
 
@@ -94,7 +95,8 @@ function CorrespondencePage() {
         data: {
           entityId,
           channel: form.channel,
-          direction: form.direction,
+          // الاتجاه يُشتق خادميًا من التبويب الذي أُنشئت منه المراسلة.
+          origin: box === "incoming" ? ("inbox" as const) : ("outbox" as const),
           subject: form.subject.trim(),
           body: form.body,
           counterpartyName: form.counterpartyName.trim() || null,
@@ -109,7 +111,14 @@ function CorrespondencePage() {
       setForm((f) => ({ ...f, subject: "", body: "", counterpartyName: "", counterpartyAddress: "" }));
       void qc.invalidateQueries({ queryKey: ["correspondence"] });
     },
-    onError: () => toast.error("تعذّر حفظ المراسلة"),
+    onError: (e: Error) =>
+      toast.error(
+        e.message === "RECIPIENT_REQUIRED"
+          ? "حدد مستلمًا صالحًا قبل تسجيل مراسلة صادرة"
+          : e.message === "RECIPIENT_INVALID"
+            ? "بيانات المستلم غير صحيحة لهذه القناة"
+            : "تعذّر حفظ المراسلة",
+      ),
   });
 
   const archiveMutation = useMutation({
@@ -151,6 +160,30 @@ function CorrespondencePage() {
           </p>
         ) : null}
       </PageHero>
+
+      <div
+        role="tablist"
+        aria-label="اتجاه المراسلات"
+        className="flex w-full gap-2 rounded-xl border border-border bg-card p-1"
+      >
+        {([
+          { value: "incoming", label: "وارد" },
+          { value: "outgoing", label: "صادر" },
+        ] as const).map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={box === t.value}
+            onClick={() => setBox(t.value)}
+            className={`min-h-11 flex-1 rounded-lg px-3 text-sm font-medium ${
+              box === t.value ? "bg-secondary text-primary" : "text-muted-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -250,7 +283,7 @@ function CorrespondencePage() {
       <ResponsiveModal
         open={open}
         onOpenChange={setOpen}
-        title="مراسلة جديدة"
+        title={box === "incoming" ? "تسجيل مراسلة واردة" : "مراسلة صادرة جديدة"}
         description="تُسجَّل المراسلة في سجل الكيان. لا يتم أي إرسال خارجي ما لم تكن القناة مرتبطة فعليًا."
         footer={
           <Button
@@ -262,6 +295,24 @@ function CorrespondencePage() {
               if (form.subject.trim().length < 1) {
                 setError("اكتب موضوع المراسلة");
                 return;
+              }
+              if (box === "outgoing") {
+                const addr = form.counterpartyAddress.trim();
+                if (!addr) {
+                  setError("حدد مستلمًا صالحًا: بريد إلكتروني أو رقم جوال بحسب القناة");
+                  return;
+                }
+                if (form.channel === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addr)) {
+                  setError("أدخل بريدًا إلكترونيًا صحيحًا للمستلم");
+                  return;
+                }
+                if (
+                  form.channel === "whatsapp" &&
+                  !/^\+?[0-9]{9,15}$/.test(addr.replace(/[\s-]/g, ""))
+                ) {
+                  setError("أدخل رقم جوال صحيحًا بالأرقام 0-9 فقط");
+                  return;
+                }
               }
               mutation.mutate();
             }}
@@ -287,20 +338,6 @@ function CorrespondencePage() {
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="c-direction">الاتجاه</Label>
-            <select
-              id="c-direction"
-              value={form.direction}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, direction: e.target.value as "incoming" | "outgoing" }))
-              }
-              className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="outgoing">صادرة</option>
-              <option value="incoming">واردة</option>
-            </select>
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="c-subject">الموضوع</Label>
             <Input
               id="c-subject"
@@ -310,7 +347,7 @@ function CorrespondencePage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="c-name">الطرف الآخر (اختياري)</Label>
+            <Label htmlFor="c-name">{box === "incoming" ? "المرسِل" : "المستلم"}</Label>
             <Input
               id="c-name"
               value={form.counterpartyName}
@@ -319,7 +356,15 @@ function CorrespondencePage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="c-address">البريد أو رقم الجوال (اختياري)</Label>
+            <Label htmlFor="c-address">
+              {box === "incoming"
+                ? "بريد أو جوال المرسِل (اختياري)"
+                : form.channel === "email"
+                  ? "بريد المستلم (إلزامي)"
+                  : form.channel === "whatsapp"
+                    ? "جوال المستلم (إلزامي)"
+                    : "عنوان المستلم (إلزامي)"}
+            </Label>
             <Input
               id="c-address"
               value={form.counterpartyAddress}

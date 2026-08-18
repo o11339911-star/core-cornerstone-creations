@@ -7,6 +7,7 @@ import {
   Building2,
   IdCard,
   Copy,
+  MapPin,
   Loader2,
   PlusCircle,
   Repeat,
@@ -21,6 +22,7 @@ import { entityTypeLabel } from "@/components/app-shell";
 import { useT } from "@/i18n";
 import { useAccountUi } from "@/lib/account-ui";
 import { getMyProfile } from "@/lib/auth.functions";
+import { getMyAddress, setMyAddress } from "@/lib/person-address.functions";
 import { toLatinDigits } from "@/lib/format";
 import { getMyIdentityStatus, isValidSaudiId, linkPersonalIdentity } from "@/lib/identity.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -165,7 +167,159 @@ function ProfilePage() {
       )}
 
       <IdentityCard />
+      <PersonAddressCard />
     </div>
+  );
+}
+
+/** العنوان الوطني للفرد: تعديل وحفظ حقيقي ثم عرض القيم المحفوظة من القاعدة. */
+function PersonAddressCard() {
+  const queryClient = useQueryClient();
+  const fetchAddress = useServerFn(getMyAddress);
+  const saveAddress = useServerFn(setMyAddress);
+  const [editing, setEditing] = React.useState(false);
+  const [form, setForm] = React.useState({
+    buildingNo: "",
+    street: "",
+    district: "",
+    city: "",
+    postalCode: "",
+    additionalNo: "",
+    unitNo: "",
+  });
+
+  const query = useQuery({ queryKey: ["my-address"], queryFn: () => fetchAddress() });
+
+  const mutation = useMutation({
+    mutationFn: () => saveAddress({ data: form }),
+    onSuccess: (row) => {
+      toast.success("تم حفظ العنوان الوطني");
+      setEditing(false);
+      queryClient.setQueryData(["my-address"], row);
+      void queryClient.invalidateQueries({ queryKey: ["my-address"] });
+    },
+    onError: () => toast.error("تعذّر حفظ العنوان الوطني، حاول مرة أخرى"),
+  });
+
+  const openEdit = () => {
+    const d = query.data;
+    setForm({
+      buildingNo: d?.building_no ?? "",
+      street: d?.street ?? "",
+      district: d?.district ?? "",
+      city: d?.city ?? "",
+      postalCode: d?.postal_code ?? "",
+      additionalNo: d?.additional_no ?? "",
+      unitNo: d?.unit_no ?? "",
+    });
+    setEditing(true);
+  };
+
+  const digits = (v: string, max: number) =>
+    toLatinDigits(v).replace(/[^0-9]/g, "").slice(0, max);
+
+  const d = query.data;
+  const dash = "—";
+
+  return (
+    <SectionCard title="العنوان الوطني" icon={MapPin}>
+      {query.isPending ? (
+        <CardsSkeleton cards={1} />
+      ) : query.isError ? (
+        <ErrorState
+          description="تعذّر تحميل العنوان الوطني"
+          onRetry={() => void query.refetch()}
+        />
+      ) : editing ? (
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              id="addr-building"
+              label="رقم المبنى"
+              value={form.buildingNo}
+              onChange={(e) => setForm((f) => ({ ...f, buildingNo: digits(e.target.value, 4) }))}
+            />
+            <TextField
+              id="addr-street"
+              label="الشارع"
+              value={form.street}
+              onChange={(e) => setForm((f) => ({ ...f, street: e.target.value }))}
+            />
+            <TextField
+              id="addr-district"
+              label="الحي"
+              value={form.district}
+              onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))}
+            />
+            <TextField
+              id="addr-city"
+              label="المدينة"
+              value={form.city}
+              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+            />
+            <TextField
+              id="addr-postal"
+              label="الرمز البريدي"
+              value={form.postalCode}
+              onChange={(e) => setForm((f) => ({ ...f, postalCode: digits(e.target.value, 5) }))}
+            />
+            <TextField
+              id="addr-additional"
+              label="الرقم الإضافي"
+              value={form.additionalNo}
+              onChange={(e) => setForm((f) => ({ ...f, additionalNo: digits(e.target.value, 4) }))}
+            />
+            <TextField
+              id="addr-unit"
+              label="رقم الوحدة"
+              value={form.unitNo}
+              onChange={(e) => setForm((f) => ({ ...f, unitNo: e.target.value.slice(0, 10) }))}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              className="min-h-11"
+              disabled={mutation.isPending}
+              onClick={() => mutation.mutate()}
+            >
+              {mutation.isPending ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              حفظ العنوان
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              disabled={mutation.isPending}
+              onClick={() => setEditing(false)}
+            >
+              إلغاء
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <dl>
+            <Row label="رقم المبنى" value={d?.building_no ? toLatinDigits(d.building_no) : dash} />
+            <Row label="الشارع" value={d?.street || dash} />
+            <Row label="الحي" value={d?.district || dash} />
+            <Row label="المدينة" value={d?.city || dash} />
+            <Row
+              label="الرمز البريدي"
+              value={d?.postal_code ? toLatinDigits(d.postal_code) : dash}
+            />
+            <Row
+              label="الرقم الإضافي"
+              value={d?.additional_no ? toLatinDigits(d.additional_no) : dash}
+            />
+            <Row label="رقم الوحدة" value={d?.unit_no || dash} />
+          </dl>
+          <Button className="min-h-11" onClick={openEdit}>
+            تعديل العنوان الوطني
+          </Button>
+        </div>
+      )}
+    </SectionCard>
   );
 }
 

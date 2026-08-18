@@ -111,3 +111,70 @@ export const cancelAppointment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return true;
   });
+
+/**
+ * بحث آمن عن كيان مقدّم الخدمة برقم من 10 أرقام لاتينية.
+ * لا يُرجع معرّف الكيان إلى المتصفح — الاسم المعروض فقط.
+ */
+export const lookupProviderEntity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ number: z.string().trim().max(10) }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ status: string; name?: string }> => {
+    const { resolveProviderEntity } = await import("@/lib/appointment-provider.server");
+    const res = await resolveProviderEntity({
+      digits: data.number,
+      actorUserId: context.userId,
+    });
+    return res.status === "found"
+      ? { status: "found", name: res.displayName }
+      : { status: res.status };
+  });
+
+/**
+ * حجز موعد: الطالب هو الحساب/الكيان النشط، ومقدّم الخدمة يُحل خادميًا من رقمه.
+ * التوقيت المرجعي UTC، والإدخال والعرض بتوقيت الرياض (UTC+03، بلا توقيت صيفي).
+ */
+export const bookAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        requesterEntityId: uuid,
+        providerNumber: z.string().trim().regex(/^[0-9]{10}$/),
+        kind: z.string().min(2),
+        title: z.string().trim().min(3).max(160),
+        // "YYYY-MM-DDTHH:mm" بتوقيت الرياض
+        startsAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+        cancelHours: z.number().int().min(0).max(168).nullable().default(null),
+        notes: z.string().max(2000).nullable().default(null),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ id: string; startsAt: string }> => {
+    const { resolveProviderEntity } = await import("@/lib/appointment-provider.server");
+    const provider = await resolveProviderEntity({
+      digits: data.providerNumber,
+      actorUserId: context.userId,
+    });
+    if (provider.status !== "found") throw new Error(`PROVIDER_${provider.status.toUpperCase()}`);
+
+    const startsAt = new Date(`${data.startsAtLocal}:00+03:00`).toISOString();
+    if (Number.isNaN(Date.parse(startsAt))) throw new Error("INVALID_DATETIME");
+
+    const { data: id, error } = await context.supabase.rpc("propose_appointment", {
+      _requester_entity_id: data.requesterEntityId,
+      _provider_entity_id: provider.entityId,
+      _kind: data.kind,
+      _title: data.title,
+      _starts_at: startsAt,
+      _requester_timezone: "Asia/Riyadh",
+      _provider_timezone: "Asia/Riyadh",
+      _cancel_hours: data.cancelHours ?? 0,
+      ...(data.notes ? { _notes: data.notes } : {}),
+    });
+    if (error) throw new Error(error.message);
+    return { id: id as string, startsAt };
+  });
+

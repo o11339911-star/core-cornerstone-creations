@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarClock, CalendarPlus, Phone } from "lucide-react";
+import { CalendarCheck2, CalendarClock, CalendarPlus, Loader2, Phone } from "lucide-react";
 
 import { toLatinDigits } from "@/lib/format";
+import { useAccountUi } from "@/lib/account-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,12 +20,12 @@ import {
   SectionCard,
   SoftEmpty,
 } from "@/components/rakeez";
-import { getMyMemberships } from "@/lib/auth.functions";
 import {
+  bookAppointment,
   cancelAppointment,
   confirmAppointment,
   listAppointments,
-  proposeAppointment,
+  lookupProviderEntity,
 } from "@/lib/appointments.functions";
 
 export const Route = createFileRoute("/_authenticated/appointments")({
@@ -36,27 +37,18 @@ export const Route = createFileRoute("/_authenticated/appointments")({
       {
         name: "description",
         content:
-          "حجز الزيارات والاستشارات والاجتماعات بمنطقة زمنية لكل طرف، مع تذكير قبل الموعد وإلغاء بمهلة معلنة.",
+          "حجز الزيارات والاستشارات والاجتماعات بتوقيت الرياض، مع تذكير قبل الموعد وسياسة إلغاء اختيارية.",
       },
       { property: "og:title", content: "المواعيد | ركيز" },
       {
         property: "og:description",
-        content: "التوقيت المرجعي UTC يُعرض بتوقيت كل طرف، والإلغاء مرفوض بعد انقضاء المهلة.",
+        content: "احجز موعدًا مع مقدّم خدمة برقمه المكوّن من عشرة أرقام، والتوقيت المرجعي محفوظ بدقة.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
 });
-
-const TZ = [
-  "Asia/Riyadh",
-  "Asia/Dubai",
-  "Africa/Cairo",
-  "Europe/London",
-  "Europe/Istanbul",
-  "America/New_York",
-];
 
 const KINDS: Array<{ value: string; label: string }> = [
   { value: "visit", label: "زيارة موقع" },
@@ -65,47 +57,97 @@ const KINDS: Array<{ value: string; label: string }> = [
 ];
 
 const STATUS_LABEL: Record<string, string> = {
-  proposed: "مقترح",
+  proposed: "بانتظار التأكيد",
   confirmed: "مؤكد",
-  cancelled: "ملغى",
-  completed: "منتهٍ",
+  cancelled: "ملغي",
+  postponed: "مؤجل",
+  completed: "منتهي",
 };
 
-const fmt = (iso: string, tz: string) =>
+const STATUS_FILTERS = [
+  { value: "all", label: "الكل" },
+  { value: "proposed", label: "بانتظار التأكيد" },
+  { value: "confirmed", label: "مؤكد" },
+  { value: "cancelled", label: "ملغي" },
+  { value: "completed", label: "منتهي" },
+] as const;
+
+const RIYADH = "Asia/Riyadh";
+
+const fmt = (iso: string) =>
   toLatinDigits(
     new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
       calendar: "gregory",
       numberingSystem: "latn",
       hourCycle: "h23",
-      timeZone: tz,
+      timeZone: RIYADH,
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(iso)),
   );
 
+const digitsOnly = (v: string) => toLatinDigits(v).replace(/[^0-9]/g, "");
+
 function AppointmentsPage() {
   const qc = useQueryClient();
+  const { activeEntity, loading: accountLoading } = useAccountUi();
   const fetchList = useServerFn(listAppointments);
-  const fetchMemberships = useServerFn(getMyMemberships);
-  const propose = useServerFn(proposeAppointment);
+  const book = useServerFn(bookAppointment);
+  const lookup = useServerFn(lookupProviderEntity);
   const confirm = useServerFn(confirmAppointment);
   const cancel = useServerFn(cancelAppointment);
 
   const [form, setForm] = useState({
-    requesterEntityId: "",
-    providerEntityId: "",
+    providerNumber: "",
     kind: "consultation",
     title: "",
     startsAt: "",
-    requesterTimezone: "Asia/Riyadh",
-    providerTimezone: "Europe/London",
-    durationMinutes: "60",
-    cancelHours: "24",
+    cancelHours: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [providerName, setProviderName] = useState<string | null>(null);
+  const [providerState, setProviderState] = useState<"idle" | "loading" | "none" | "found">("idle");
+  const [created, setCreated] = useState<{
+    title: string;
+    startsAt: string;
+    provider: string;
+    createdAt: string;
+  } | null>(null);
 
-  const memberships = useQuery({ queryKey: ["my-memberships"], queryFn: () => fetchMemberships() });
   const list = useQuery({ queryKey: ["appointments"], queryFn: () => fetchList() });
+
+  // بحث تلقائي عند اكتمال عشرة أرقام، دون كشف معرّف الكيان في المتصفح.
+  useEffect(() => {
+    const n = form.providerNumber;
+    if (n.length !== 10) {
+      setProviderName(null);
+      setProviderState(n.length === 0 ? "idle" : "loading");
+      return;
+    }
+    let cancelled = false;
+    setProviderState("loading");
+    const t = setTimeout(() => {
+      void lookup({ data: { number: n } })
+        .then((res) => {
+          if (cancelled) return;
+          if (res.status === "found" && res.name) {
+            setProviderName(res.name);
+            setProviderState("found");
+          } else {
+            setProviderName(null);
+            setProviderState("none");
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setProviderState("none");
+        });
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [form.providerNumber, lookup]);
 
   const invalidate = () => void qc.invalidateQueries({ queryKey: ["appointments"] });
   const failure = (e: Error) =>
@@ -115,29 +157,35 @@ function AppointmentsPage() {
         : e.message === "ENTITY_READ_ONLY"
           ? "حساب الكيان في وضع القراءة فقط بعد انتهاء الاشتراك"
           : e.message === "NOT_A_MEMBER_OF_ENTITY"
-            ? "لا تنتمي إلى الكيان الطالب"
-            : "تعذّر تنفيذ الإجراء، حاول مرة أخرى",
+            ? "لا تملك صلاحية الحجز باسم الحساب النشط"
+            : e.message === "PROVIDER_UNREGISTERED"
+              ? "لا يوجد كيان مسجّل بهذا الرقم"
+              : e.message === "PROVIDER_THROTTLED"
+                ? "تجاوزت عدد محاولات البحث المسموح بها، حاول لاحقًا"
+                : "تعذّر تنفيذ الإجراء، حاول مرة أخرى",
     );
 
   const create = useMutation({
     mutationFn: () =>
-      propose({
+      book({
         data: {
-          requesterEntityId: form.requesterEntityId,
-          providerEntityId: form.providerEntityId.trim(),
+          requesterEntityId: activeEntity?.id as string,
+          providerNumber: form.providerNumber,
           kind: form.kind,
           title: form.title.trim(),
-          startsAt: new Date(form.startsAt).toISOString(),
-          requesterTimezone: form.requesterTimezone,
-          providerTimezone: form.providerTimezone,
-          durationMinutes: Number(form.durationMinutes),
-          listingId: null,
-          cancelHours: Number(form.cancelHours),
+          startsAtLocal: form.startsAt,
+          cancelHours: form.cancelHours ? Number(form.cancelHours) : null,
           notes: null,
         },
       }),
-    onSuccess: () => {
-      toast.success("أُرسل اقتراح الموعد وجُدول التذكير");
+    onSuccess: (res) => {
+      toast.success("تم حجز الموعد وجُدول التذكير");
+      setCreated({
+        title: form.title.trim(),
+        startsAt: res.startsAt,
+        provider: providerName ?? "",
+        createdAt: new Date().toISOString(),
+      });
       setForm((f) => ({ ...f, title: "", startsAt: "" }));
       invalidate();
     },
@@ -162,67 +210,80 @@ function AppointmentsPage() {
     onError: failure,
   });
 
-  const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-
   const validate = () => {
     const next: Record<string, string> = {};
-    if (!form.requesterEntityId) next['requesterEntityId'] = "اختر كيانك الطالب";
-    if (!form.providerEntityId) next['providerEntityId'] = "أدخل معرّف كيان مقدّم الخدمة";
-    else if (!UUID_RE.test(form.providerEntityId.trim()))
-      next['providerEntityId'] = "معرّف الكيان غير صحيح. الصق المعرّف الكامل كما يظهر في صفحة الكيان";
+    if (!activeEntity?.id) next['account'] = "بدّل إلى حساب منشأة لحجز موعد باسمها";
+    if (form.providerNumber.length !== 10)
+      next['providerNumber'] = "أدخل عشرة أرقام بالضبط (0-9) لسجل مقدّم الخدمة";
+    else if (providerState !== "found") next['providerNumber'] = "لا يوجد كيان مسجّل بهذا الرقم";
     if (form.title.trim().length < 3) next['title'] = "أدخل عنوانًا واضحًا للموعد";
-    if (!form.startsAt) next['startsAt'] = "حدد تاريخ ووقت البداية";
+    if (!form.startsAt) next['startsAt'] = "حدد تاريخ ووقت الموعد";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-
-  const rows = list.data ?? [];
+  const rows = (list.data ?? []).filter((a) =>
+    statusFilter === "all" ? true : a.status === statusFilter,
+  );
 
   return (
     <div className="space-y-6">
       <PageHero
         title="المواعيد"
-        subtitle="UTC هو المرجع الوحيد للوقت، ويُعرض لكل طرف بمنطقته الزمنية. التذكير مجدول تلقائيًا، والإلغاء يحترم المهلة المعلنة."
-        badge={<HeroBadge>المرحلة 24</HeroBadge>}
+        subtitle="الحجز والعرض بتوقيت الرياض، والتخزين بتوقيت عالمي مرجعي. التذكير مجدول تلقائيًا، وسياسة الإلغاء اختيارية."
+        badge={<HeroBadge>{activeEntity?.name ?? "حساب شخصي"}</HeroBadge>}
       >
         <p className="mt-3 text-sm text-muted-foreground">
           بعد تأكيد الموعد يصبح الاتصال الصوتي الداخلي متاحًا من صفحة الاتصال، بلا كشف أرقام الجوال.
         </p>
       </PageHero>
 
-      <SectionCard icon={CalendarPlus} title="اقتراح موعد">
+      {created ? (
+        <SectionCard icon={CalendarCheck2} title="تم حجز الموعد">
+          <FieldGrid>
+            <Field label="الموعد" value={created.title} />
+            <Field label="مقدّم الخدمة" value={created.provider || "—"} />
+            <Field label="الموعد بتوقيت الرياض" value={<span dir="ltr">{fmt(created.startsAt)}</span>} />
+            <Field label="تاريخ الحجز" value={<span dir="ltr">{fmt(created.createdAt)}</span>} />
+            <Field label="الحالة" value="بانتظار التأكيد" />
+          </FieldGrid>
+          <p className="mt-3 text-xs text-muted-foreground">
+            الرقم المرجعي الموحّد ورمز التحقق (QR) للمواعيد غير مفعّلين بعد لأن تعديل قاعدة البيانات
+            المطلوب لهما غير متاح حاليًا.
+          </p>
+        </SectionCard>
+      ) : null}
+
+      <SectionCard icon={CalendarPlus} title="حجز موعد">
+        {!accountLoading && !activeEntity?.id ? (
+          <p className="mb-4 rounded-lg bg-secondary p-3 text-sm text-primary">
+            الحجز يتم باسم منشأة. بدّل إلى حساب المنشأة من مبدّل الحسابات ثم أعد المحاولة.
+          </p>
+        ) : null}
         <FieldGrid>
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium">كياني (الطالب)</span>
-            <select
-              className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={form.requesterEntityId}
-              onChange={(e) => setForm({ ...form, requesterEntityId: e.target.value })}
-            >
-              <option value="">اختر الكيان…</option>
-              {(memberships.data ?? []).map((m) => (
-                <option key={m.entity.id} value={m.entity.id}>
-                  {m.entity.name}
-                </option>
-              ))}
-            </select>
-            {errors['requesterEntityId'] ? (
-              <span className="text-xs text-destructive">{errors['requesterEntityId']}</span>
-            ) : null}
-          </label>
-
-          <label className="space-y-1.5 text-sm">
-            <span className="font-medium">كيان مقدّم الخدمة</span>
+            <span className="font-medium">رقم كيان مقدّم الخدمة (10 أرقام)</span>
             <Input
               dir="ltr"
               className="text-start"
-              value={form.providerEntityId}
-              onChange={(e) => setForm({ ...form, providerEntityId: e.target.value })}
-              placeholder="معرّف الكيان"
+              inputMode="numeric"
+              maxLength={10}
+              value={form.providerNumber}
+              onChange={(e) =>
+                setForm({ ...form, providerNumber: digitsOnly(e.target.value).slice(0, 10) })
+              }
+              placeholder="7000000001"
             />
-            {errors['providerEntityId'] ? (
-              <span className="text-xs text-destructive">{errors['providerEntityId']}</span>
+            {form.providerNumber.length === 10 && providerState === "loading" ? (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Loader2 className="size-3 animate-spin" aria-hidden="true" /> جارٍ البحث…
+              </span>
+            ) : null}
+            {providerState === "found" && providerName ? (
+              <span className="text-xs font-medium text-primary">{providerName}</span>
+            ) : null}
+            {errors['providerNumber'] ? (
+              <span className="text-xs text-destructive">{errors['providerNumber']}</span>
             ) : null}
           </label>
 
@@ -254,7 +315,7 @@ function AppointmentsPage() {
           </label>
 
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium">البداية (بتوقيت جهازك)</span>
+            <span className="font-medium">الموعد (بتوقيت الرياض)</span>
             <Input
               type="datetime-local"
               dir="ltr"
@@ -268,57 +329,22 @@ function AppointmentsPage() {
           </label>
 
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium">المدة (دقيقة)</span>
+            <span className="font-medium">مهلة الإلغاء بالساعات (اختياري)</span>
             <Input
               dir="ltr"
               className="text-start"
               inputMode="numeric"
-              value={form.durationMinutes}
-              onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })}
-            />
-          </label>
-
-          <label className="space-y-1.5 text-sm">
-            <span className="font-medium">منطقتي الزمنية</span>
-            <select
-              className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={form.requesterTimezone}
-              onChange={(e) => setForm({ ...form, requesterTimezone: e.target.value })}
-            >
-              {TZ.map((z) => (
-                <option key={z} value={z}>
-                  {z}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-1.5 text-sm">
-            <span className="font-medium">منطقة الطرف الآخر</span>
-            <select
-              className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={form.providerTimezone}
-              onChange={(e) => setForm({ ...form, providerTimezone: e.target.value })}
-            >
-              {TZ.map((z) => (
-                <option key={z} value={z}>
-                  {z}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-1.5 text-sm">
-            <span className="font-medium">مهلة الإلغاء (ساعة)</span>
-            <Input
-              dir="ltr"
-              className="text-start"
-              inputMode="numeric"
+              maxLength={3}
               value={form.cancelHours}
-              onChange={(e) => setForm({ ...form, cancelHours: e.target.value })}
+              onChange={(e) => setForm({ ...form, cancelHours: digitsOnly(e.target.value).slice(0, 3) })}
+              placeholder="بدون سياسة إلغاء"
             />
           </label>
         </FieldGrid>
+
+        {errors['account'] ? (
+          <p className="mt-3 text-xs text-destructive">{errors['account']}</p>
+        ) : null}
 
         <div className="mt-4">
           <Button
@@ -327,12 +353,29 @@ function AppointmentsPage() {
             }}
             disabled={create.isPending}
           >
-            {create.isPending ? "جارٍ الإرسال…" : "اقتراح الموعد"}
+            {create.isPending ? "جارٍ الحجز…" : "حجز الموعد"}
           </Button>
         </div>
       </SectionCard>
 
       <SectionCard icon={CalendarClock} title="مواعيدي" count={rows.length}>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setStatusFilter(f.value)}
+              className={`min-h-11 rounded-xl border px-4 text-sm font-medium ${
+                statusFilter === f.value
+                  ? "border-primary bg-secondary text-primary"
+                  : "border-border text-muted-foreground"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         {list.isLoading ? (
           <CardsSkeleton cards={3} />
         ) : list.isError ? (
@@ -345,7 +388,7 @@ function AppointmentsPage() {
         ) : rows.length === 0 ? (
           <SoftEmpty
             icon={CalendarClock}
-            message="لا مواعيد بعد — اقترح موعدًا مع مقدّم خدمة ليظهر هنا."
+            message="لا مواعيد في هذا التصنيف — احجز موعدًا مع مقدّم خدمة ليظهر هنا."
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
@@ -353,29 +396,24 @@ function AppointmentsPage() {
               <div key={a.id} className="rounded-xl border border-border/60 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">{a.title}</h3>
-                  <Badge variant="secondary">{STATUS_LABEL[a.status] ?? a.status}</Badge>
+                  <Badge variant="secondary">{STATUS_LABEL[a.status] ?? "بانتظار التأكيد"}</Badge>
                 </div>
                 <div className="mt-3">
                   <FieldGrid>
                     <Field
-                      label={`توقيت الطالب (${a.requester_timezone})`}
-                      value={<span dir="ltr">{fmt(a.starts_at, a.requester_timezone)}</span>}
-                    />
-                    <Field
-                      label={`توقيت المزوّد (${a.provider_timezone})`}
-                      value={<span dir="ltr">{fmt(a.starts_at, a.provider_timezone)}</span>}
+                      label="الموعد بتوقيت الرياض"
+                      value={<span dir="ltr">{fmt(a.starts_at)}</span>}
                     />
                     <Field
                       label="مهلة الإلغاء تنتهي"
                       value={
                         a.cancel_deadline_at ? (
-                          <span dir="ltr">{fmt(a.cancel_deadline_at, a.requester_timezone)}</span>
+                          <span dir="ltr">{fmt(a.cancel_deadline_at)}</span>
                         ) : (
-                          "غير محددة"
+                          "بدون سياسة إلغاء"
                         )
                       }
                     />
-                    <Field label="المدة" value={`${a.duration_minutes} دقيقة`} />
                   </FieldGrid>
                 </div>
                 {a.status === "proposed" || a.status === "confirmed" ? (
@@ -406,7 +444,6 @@ function AppointmentsPage() {
                       إلغاء
                     </Button>
                   </div>
-
                 ) : null}
               </div>
             ))}
