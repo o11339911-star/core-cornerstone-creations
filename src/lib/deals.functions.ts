@@ -353,23 +353,25 @@ export const getDealRequester = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ dealId: uuid }).parse(input))
   .handler(async ({ data, context }): Promise<DealRequester> => {
     // الصلاحية مفروضة داخل الدالة (auth.uid + private.deal_visible) وليس بالدور وحده.
+    const empty: DealRequester = {
+      found: false,
+      kind: null,
+      name: null,
+      nationalId: null,
+      last4: null,
+      crNumber: null,
+      unifiedNationalNumber: null,
+    };
+
     const { data: row, error } = await context.supabase.rpc("deal_requester_details", {
       _deal_id: data.dealId,
     });
-    if (error) throw new Error("DEAL_REQUESTER_FORBIDDEN");
+    // تعذّر جلب بيانات الطالب (صلاحية/دالة غير متاحة) لا يجب أن يُعطّل فتح المعاملة.
+    if (error) return empty;
 
     const r = (row ?? {}) as Record<string, unknown>;
-    if (!r["found"]) {
-      return {
-        found: false,
-        kind: null,
-        name: null,
-        nationalId: null,
-        last4: null,
-        crNumber: null,
-        unifiedNationalNumber: null,
-      };
-    }
+    if (!r["found"]) return empty;
+
 
     let nationalId: string | null = null;
     if (r["kind"] === "person") {
