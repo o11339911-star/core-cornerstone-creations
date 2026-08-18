@@ -1230,6 +1230,11 @@ export const en: Translations = {
     linkDeniedHint:
       "The resource may be gone or your access may have ended. No further details are disclosed.",
     riyadhTime: "Riyadh time",
+    previous: "Previous",
+    from: "From",
+    officialSource: "Official platform source",
+    readAt: "Read at",
+    unreadCount: "Unread",
     digest: {
       immediate: "Immediate",
       daily: "Daily",
