@@ -26,8 +26,9 @@ import {
   bookAppointment,
   cancelAppointment,
   confirmAppointment,
-  listAppointments,
+  listMyAppointments,
   lookupProviderEntity,
+  rescheduleAppointment,
 } from "@/lib/appointments.functions";
 
 export const Route = createFileRoute("/_authenticated/appointments")({
@@ -59,16 +60,16 @@ const KINDS: Array<{ value: string; label: string }> = [
 ];
 
 const STATUS_LABEL: Record<string, string> = {
-  proposed: "بانتظار التأكيد",
+  proposed: "بانتظار الموافقة",
   confirmed: "مؤكد",
   cancelled: "ملغي",
-  postponed: "مؤجل",
+  postponed: "بانتظار الموافقة على الموعد الجديد",
   completed: "منتهي",
 };
 
 const STATUS_FILTERS = [
   { value: "all", label: "الكل" },
-  { value: "proposed", label: "بانتظار التأكيد" },
+  { value: "proposed", label: "بانتظار الموافقة" },
   { value: "confirmed", label: "مؤكد" },
   { value: "cancelled", label: "ملغي" },
   { value: "completed", label: "منتهي" },
@@ -107,11 +108,12 @@ const digitsOnly = (v: string) => toLatinDigits(v).replace(/[^0-9]/g, "");
 function AppointmentsPage() {
   const qc = useQueryClient();
   const { activeEntity, loading: accountLoading } = useAccountUi();
-  const fetchList = useServerFn(listAppointments);
+  const fetchList = useServerFn(listMyAppointments);
   const book = useServerFn(bookAppointment);
   const lookup = useServerFn(lookupProviderEntity);
   const confirm = useServerFn(confirmAppointment);
   const cancel = useServerFn(cancelAppointment);
+  const reschedule = useServerFn(rescheduleAppointment);
 
   const [form, setForm] = useState({
     providerNumber: "",
@@ -122,6 +124,9 @@ function AppointmentsPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [rescheduleFor, setRescheduleFor] = useState<string | null>(null);
+  const [rescheduleAt, setRescheduleAt] = useState("");
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [providerName, setProviderName] = useState<string | null>(null);
   const [providerState, setProviderState] = useState<"idle" | "loading" | "none" | "found">("idle");
   const [created, setCreated] = useState<{
@@ -170,6 +175,12 @@ function AppointmentsPage() {
     toast.error(
       e.message === "APPOINTMENT_CANCEL_WINDOW_PASSED"
         ? "انقضت مهلة الإلغاء المتفق عليها لهذا الموعد"
+        : e.message === "CONFIRM_BY_REQUESTER_FORBIDDEN" || e.message === "CONFIRM_NOT_YOUR_TURN"
+        ? "التأكيد من اختصاص الطرف الآخر، ولا يمكن تأكيد موعد أنت طالبه"
+        : e.message === "FORBIDDEN"
+        ? "لا تملك صلاحية على هذا الموعد"
+        : e.message === "APPOINTMENT_IN_THE_PAST"
+        ? "اختر موعدًا في المستقبل بتوقيت الرياض"
         : e.message === "ENTITY_READ_ONLY"
           ? "حساب الكيان في وضع القراءة فقط بعد انتهاء الاشتراك"
           : e.message === "NOT_A_MEMBER_OF_ENTITY"
@@ -212,6 +223,20 @@ function AppointmentsPage() {
     mutationFn: (id: string) => confirm({ data: { appointmentId: id } }),
     onSuccess: () => {
       toast.success("تم تأكيد الموعد");
+      invalidate();
+    },
+    onError: failure,
+  });
+
+  const doReschedule = useMutation({
+    mutationFn: (v: { id: string; at: string }) =>
+      reschedule({
+        data: { appointmentId: v.id, newStartsAtLocal: v.at, reason: "إعادة جدولة من الواجهة" },
+      }),
+    onSuccess: () => {
+      toast.success("تم اقتراح موعد جديد — بانتظار موافقة الطرف الآخر");
+      setRescheduleFor(null);
+      setRescheduleAt("");
       invalidate();
     },
     onError: failure,
@@ -264,7 +289,7 @@ function AppointmentsPage() {
             <Field label="مقدّم الخدمة" value={created.provider || "—"} />
             <Field label="الموعد بتوقيت الرياض" value={<span dir="ltr">{fmt(created.startsAt)}</span>} />
             <Field label="تاريخ الحجز" value={<span dir="ltr">{fmt(created.createdAt)}</span>} />
-            <Field label="الحالة" value="بانتظار التأكيد" />
+            <Field label="الحالة" value="بانتظار الموافقة" />
           </FieldGrid>
           <p className="mt-3 text-xs text-muted-foreground">
             الرقم المرجعي الموحّد ورمز التحقق (QR) للمواعيد غير مفعّلين بعد لأن تعديل قاعدة البيانات
@@ -415,7 +440,17 @@ function AppointmentsPage() {
               <div key={a.id} className="rounded-xl border border-border/60 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">{a.title}</h3>
-                  <Badge variant="secondary">{STATUS_LABEL[a.status] ?? "بانتظار التأكيد"}</Badge>
+                  <Badge variant="secondary">{STATUS_LABEL[a.status] ?? "بانتظار الموافقة"}</Badge>
+                  <Badge variant="outline">
+                    {a.my_side === "requester" ? "أنا الطالب" : "أنا مقدّم الخدمة"}
+                  </Badge>
+                  {a.pending_party ? (
+                    <Badge variant="outline">
+                      {a.pending_party === a.my_side
+                        ? "بانتظار موافقتك"
+                        : "بانتظار موافقة الطرف الآخر"}
+                    </Badge>
+                  ) : null}
                 </div>
                 <div className="mt-3">
                   <FieldGrid>
@@ -423,6 +458,12 @@ function AppointmentsPage() {
                       label="الموعد بتوقيت الرياض"
                       value={<span dir="ltr">{fmt(a.starts_at)}</span>}
                     />
+                    {a.previous_starts_at ? (
+                      <Field
+                        label="الموعد السابق (سجل)"
+                        value={<span dir="ltr">{fmt(a.previous_starts_at)}</span>}
+                      />
+                    ) : null}
                     <Field
                       label="مهلة الإلغاء تنتهي"
                       value={
@@ -435,9 +476,9 @@ function AppointmentsPage() {
                     />
                   </FieldGrid>
                 </div>
-                {a.status === "proposed" || a.status === "confirmed" ? (
+                {a.can_cancel || a.can_reschedule || a.can_confirm ? (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {a.status === "proposed" ? (
+                    {a.can_confirm ? (
                       <Button
                         size="sm"
                         onClick={() => doConfirm.mutate(a.id)}
@@ -454,17 +495,73 @@ function AppointmentsPage() {
                         </Link>
                       </Button>
                     ) : null}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => doCancel.mutate(a.id)}
-                      disabled={doCancel.isPending}
-                    >
-                      إلغاء
-                    </Button>
+                    {a.can_reschedule ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          setRescheduleError(null);
+                          setRescheduleAt("");
+                          setRescheduleFor(rescheduleFor === a.id ? null : a.id);
+                        }}
+                      >
+                        إعادة جدولة
+                      </Button>
+                    ) : null}
+                    {a.can_cancel ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => doCancel.mutate(a.id)}
+                        disabled={doCancel.isPending}
+                      >
+                        إلغاء
+                      </Button>
+                    ) : null}
                   </div>
                 ) : null}
-              </div>
+
+                {rescheduleFor === a.id ? (
+                  <div className="mt-4 space-y-2 rounded-lg border border-border/60 bg-secondary/40 p-3">
+                    <span className="text-sm font-medium">اقترح موعدًا جديدًا</span>
+                    <LatinDateTimePicker
+                      value={rescheduleAt}
+                      onChange={setRescheduleAt}
+                      min={todayRiyadh()}
+                      invalid={!!rescheduleError}
+                    />
+                    {rescheduleError ? (
+                      <span className="block text-xs text-destructive">{rescheduleError}</span>
+                    ) : null}
+                    <p className="text-xs text-muted-foreground">
+                      إعادة الجدولة لا تُعد تأكيدًا — يعود الموعد «بانتظار الموافقة» من الطرف الآخر،
+                      ويُحفظ الموعد السابق في السجل.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        disabled={doReschedule.isPending}
+                        onClick={() => {
+                          if (!ISO_DATETIME_LOCAL_RE.test(rescheduleAt)) {
+                            setRescheduleError("حدد تاريخ ووقت الموعد الجديد من التقويم");
+                            return;
+                          }
+                          if (rescheduleAt.slice(0, 10) < todayRiyadh()) {
+                            setRescheduleError("اختر تاريخًا في المستقبل بتوقيت الرياض");
+                            return;
+                          }
+                          setRescheduleError(null);
+                          doReschedule.mutate({ id: a.id, at: rescheduleAt });
+                        }}
+                      >
+                        {doReschedule.isPending ? "جارٍ الإرسال…" : "إرسال الموعد الجديد"}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setRescheduleFor(null)}>
+                        تراجع
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
             ))}
           </div>
         )}
