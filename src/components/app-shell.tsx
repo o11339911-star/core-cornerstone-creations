@@ -16,6 +16,8 @@ import {
   ShieldCheck,
   Store,
   User,
+  Users,
+
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -63,7 +65,9 @@ const DESKTOP_NAV: NavItem[] = [
   { to: "/archive", labelKey: "shell.archive", icon: Archive },
   { to: "/marketplace", labelKey: "shell.marketplace", icon: Store },
   { to: "/appointments", labelKey: "shell.appointments", icon: CalendarClock },
+  { to: "/network", labelKey: "shell.network", icon: Users },
 ];
+
 
 export function entityTypeLabel(t: (key: string) => string, type: string | null | undefined) {
   if (!type) return t("shell.personal");

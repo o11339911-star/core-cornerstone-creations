@@ -57,6 +57,7 @@ export const en: Translations = {
     notifications: "Notifications",
     marketplace: "Marketplace",
     appointments: "Appointments",
+    network: "Network",
     properties: "Properties",
     home: "Home",
     switchAccount: "Switch account",
