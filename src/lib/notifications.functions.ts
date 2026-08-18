@@ -35,6 +35,21 @@ const notificationSchema = z.object({
 });
 export type NotificationRow = z.infer<typeof notificationSchema>;
 
+/**
+ * مصدر الإشعار: إما المنصة نفسها («ركيز») أو كيان/فرد حقيقي.
+ * يُشتق خادميًا فقط، ولا يمكن لأي كيان انتحال هوية المنصة:
+ * أي إشعار أمني أو صادر عن محرّك المنصة يُعرض دائمًا باسم «ركيز».
+ */
+export type NotificationSource = { kind: "platform" | "entity" | "person"; name: string };
+export type NotificationWithSource = NotificationRow & { source: NotificationSource };
+
+const PLATFORM_SOURCE: NotificationSource = { kind: "platform", name: "ركيز" };
+
+/** أنواع تصدر عن المنصة حصرًا مهما كان محتوى الحمولة. */
+function isPlatformOnly(typeCode: string, severity: string): boolean {
+  return typeCode.startsWith("security.") || typeCode.startsWith("platform.") || severity === "critical";
+}
+
 const NOTIFICATION_COLUMNS =
   "id, type_code, project_id, entity_id, target_kind, target_id, payload, severity, created_at, read_at, dismissed_at";
 
@@ -43,7 +58,7 @@ export const listNotifications = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
     z.object({ unreadOnly: z.boolean().default(false) }).parse(input ?? {}),
   )
-  .handler(async ({ data, context }): Promise<NotificationRow[]> => {
+  .handler(async ({ data, context }): Promise<NotificationWithSource[]> => {
     let query = context.supabase
       .from("notifications")
       .select(NOTIFICATION_COLUMNS)
@@ -54,8 +69,45 @@ export const listNotifications = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
     if (error) throw error;
-    return notificationSchema.array().parse(rows ?? []);
+    const parsed = notificationSchema.array().parse(rows ?? []);
+
+    // أسماء الكيانات تُقرأ بصلاحية المستخدم نفسه (RLS)، ولا تُكشف أي بيانات أخرى.
+    const entityIds = Array.from(
+      new Set(
+        parsed
+          .filter((n) => !isPlatformOnly(n.type_code, n.severity))
+          .map((n) => n.entity_id)
+          .filter((v): v is string => Boolean(v)),
+      ),
+    );
+    const entityNames = new Map<string, string>();
+    if (entityIds.length > 0) {
+      const { data: ents } = await context.supabase
+        .from("entities")
+        .select("id, name")
+        .in("id", entityIds);
+      for (const e of (ents ?? []) as Array<{ id: string; name: string | null }>) {
+        if (e.name) entityNames.set(e.id, e.name);
+      }
+    }
+
+    return parsed.map((n) => ({ ...n, source: deriveSource(n, entityNames) }));
   });
+
+function deriveSource(
+  n: NotificationRow,
+  entityNames: Map<string, string>,
+): NotificationSource {
+  if (isPlatformOnly(n.type_code, n.severity)) return PLATFORM_SOURCE;
+
+  const entityName = n.entity_id ? entityNames.get(n.entity_id) : undefined;
+  if (entityName) return { kind: "entity", name: entityName };
+
+  const actor = n.payload?.["actor_name"];
+  if (typeof actor === "string" && actor.trim()) return { kind: "person", name: actor.trim() };
+
+  return PLATFORM_SOURCE;
+}
 
 export const getUnreadCount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
