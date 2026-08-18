@@ -22,20 +22,6 @@ const uuid = z.string().uuid();
 type Db = SupabaseClient;
 const db = (client: unknown) => client as Db;
 
-/** غياب الجدول/الدالة ليس خطأ منتج: يُترجم إلى «غير متاحة بعد». */
-function isMissingObject(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false;
-  const code = error.code ?? "";
-  const message = error.message ?? "";
-  return (
-    code === "42P01" ||
-    code === "42883" ||
-    code === "PGRST202" ||
-    code === "PGRST205" ||
-    /does not exist|schema cache/i.test(message)
-  );
-}
-
 export type NetworkContact = {
   id: string;
   full_name: string;
@@ -85,7 +71,6 @@ export const listNetworkContacts = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(300);
     if (error) {
-      if (isMissingObject(error)) return { available: false, contacts: [] };
       throw new Error(error.message);
     }
     return { available: true, contacts: (data ?? []) as NetworkContact[] };
@@ -142,7 +127,6 @@ export const saveNetworkContact = createServerFn({ method: "POST" })
 
     const { data: saved, error } = await query;
     if (error) {
-      if (isMissingObject(error)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true, id: (saved as { id: string }).id };
@@ -157,7 +141,6 @@ export const deleteNetworkContact = createServerFn({ method: "POST" })
       .delete()
       .eq("id", data.id);
     if (error) {
-      if (isMissingObject(error)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true };
@@ -173,7 +156,6 @@ export const searchNetwork = createServerFn({ method: "POST" })
       _q: data.query,
     });
     if (error) {
-      if (isMissingObject(error)) return { available: false, hits: [] };
       throw new Error(error.message);
     }
     return { available: true, hits: (rows ?? []) as NetworkSearchHit[] };
@@ -184,7 +166,6 @@ export const listNetworkLinks = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<{ available: boolean; links: NetworkLink[] }> => {
     const { data, error } = await db(context.supabase).rpc("network_list_links");
     if (error) {
-      if (isMissingObject(error)) return { available: false, links: [] };
       throw new Error(error.message);
     }
     return { available: true, links: (data ?? []) as NetworkLink[] };
@@ -210,7 +191,6 @@ export const requestNetworkLink = createServerFn({ method: "POST" })
       _message: data.message,
     });
     if (error) {
-      if (isMissingObject(error)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true, id: id as string };
@@ -238,7 +218,6 @@ export const respondNetworkLink = createServerFn({ method: "POST" })
       _share_internal_call: data.shareInternalCall,
     });
     if (error) {
-      if (isMissingObject(error)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true };
@@ -252,7 +231,6 @@ export const revokeNetworkLink = createServerFn({ method: "POST" })
       _link_id: data.linkId,
     });
     if (error) {
-      if (isMissingObject(error)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true };
