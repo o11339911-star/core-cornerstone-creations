@@ -102,6 +102,12 @@ function NotificationsPage() {
     queryFn: () => fetchList({ data: { unreadOnly } }),
   });
 
+  const fetchUnread = useServerFn(getUnreadCount);
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () => fetchUnread(),
+  });
+
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
   const readOne = useMutation({
