@@ -55,6 +55,18 @@ function NotificationTargetPage() {
       void navigate({ to: "/deals", search: { deal: targetId }, replace: true });
     } else if (kind === "request" && targetId) {
       void navigate({ to: "/requests/$requestId", params: { requestId: targetId }, replace: true });
+    } else if (kind === "appointment") {
+      void navigate({ to: "/appointments", replace: true });
+    } else if (kind === "correspondence") {
+      void navigate({ to: "/correspondence", replace: true });
+    } else if (kind === "report" && targetId) {
+      void navigate({ to: "/reports/$reportId", params: { reportId: targetId }, replace: true });
+    } else if (kind === "archive" || kind === "file") {
+      void navigate({ to: "/archive", replace: true });
+    } else if (kind === "network") {
+      void navigate({ to: "/network", replace: true });
+    } else if (kind === "project" && projectId) {
+      void navigate({ to: "/projects/$projectId", params: { projectId }, replace: true });
     } else if (kind === "stage" && projectId) {
       // يفتح المشروع على المرحلة المحددة ويُبرز بطاقتها.
       void navigate({
