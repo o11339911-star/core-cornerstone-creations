@@ -14,6 +14,7 @@ import {
   PhoneCall,
   Repeat,
   ShieldCheck,
+  ShieldHalf,
   Store,
   User,
   Users,
@@ -35,6 +36,8 @@ import { LanguageToggle } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountUi } from "@/lib/account-ui";
+import { getPlatformMe } from "@/lib/platform-admin.functions";
+import { hasPlatformAccess, PLATFORM_HOME } from "@/lib/platform-access";
 import { useActiveAccount } from "@/lib/active-account";
 import { getCallCenter, respondToCall } from "@/lib/calls.functions";
 import { queryClient } from "@/router";
@@ -145,6 +148,7 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
           </nav>
 
           <div className="flex shrink-0 items-center gap-1">
+            <PlatformEntryButton />
             <Link
               to="/select-account"
               className="hidden max-w-[12rem] items-center gap-2 truncate rounded-full border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
@@ -215,6 +219,29 @@ export function AuthenticatedAppShell({ children }: { children: React.ReactNode 
         </ul>
       </nav>
     </div>
+  );
+}
+
+/** يظهر لمدير النظام فقط: عودة صريحة من الواجهة العامة إلى لوحة الإدارة. */
+function PlatformEntryButton() {
+  const fetchMe = useServerFn(getPlatformMe);
+  const me = useQuery({
+    queryKey: ["platform-me"],
+    queryFn: () => fetchMe(),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  if (!hasPlatformAccess(me.data)) return null;
+
+  return (
+    <Link
+      to={PLATFORM_HOME}
+      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:opacity-90"
+    >
+      <ShieldHalf className="size-3.5" aria-hidden="true" />
+      الإدارة
+    </Link>
   );
 }
 
