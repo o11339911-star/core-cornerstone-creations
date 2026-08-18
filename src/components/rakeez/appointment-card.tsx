@@ -7,7 +7,7 @@ import { Copy, Link2, QrCode as QrIcon, Send, UserPlus, Video, X } from "lucide-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toLatinDigits } from "@/lib/format";
+import { formatDateTime, toLatinDigits } from "@/lib/format";
 import { QrCode } from "./qr-code";
 import {
   cancelAppointmentInvite,
@@ -19,19 +19,9 @@ import {
   shareAppointmentInternal,
 } from "@/lib/appointment-card.functions";
 
-const RIYADH = "Asia/Riyadh";
+/** `18/08/2026 09:00` بتوقيت الرياض وبأرقام لاتينية دائمًا. */
+const fmt = (iso: string) => formatDateTime(iso);
 
-const fmt = (iso: string) =>
-  toLatinDigits(
-    new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
-      calendar: "gregory",
-      numberingSystem: "latn",
-      hourCycle: "h23",
-      timeZone: RIYADH,
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso)),
-  );
 
 const STATUS_LABEL: Record<string, string> = {
   proposed: "بانتظار الموافقة",
@@ -56,8 +46,61 @@ const KIND_LABEL: Record<string, string> = {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 
+/** عرض هادئ لتفاصيل الموعد ريثما يتوفّر المرجع الموحّد ورمز التحقق. */
+function BasicCard({ basics }: { basics: AppointmentCardBasics }) {
+  return (
+    <div className="space-y-3 rounded-xl border border-border/60 bg-card p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <h4 className="text-base font-semibold">{basics.title}</h4>
+        <Badge variant="secondary">{STATUS_LABEL[basics.status] ?? "بانتظار الموافقة"}</Badge>
+        <Badge variant="outline">{KIND_LABEL[basics.kind] ?? basics.kind}</Badge>
+      </div>
+      <dl className="grid gap-1 text-sm">
+        <div className="flex gap-2">
+          <dt className="text-muted-foreground">التاريخ والوقت (الرياض):</dt>
+          <dd dir="ltr">{fmt(basics.startsAt)}</dd>
+        </div>
+        {basics.createdAt ? (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground">تاريخ الحجز:</dt>
+            <dd dir="ltr">{fmt(basics.createdAt)}</dd>
+          </div>
+        ) : null}
+        <div className="flex gap-2">
+          <dt className="text-muted-foreground">طالب الموعد:</dt>
+          <dd>{basics.requesterLabel ?? "—"}</dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="text-muted-foreground">مستقبل الطلب:</dt>
+          <dd>{basics.providerLabel ?? "—"}</dd>
+        </div>
+      </dl>
+      <p className="text-xs text-muted-foreground">رمز التحقق قيد التفعيل.</p>
+    </div>
+  );
+}
+
+
+
+/** بيانات الموعد الأساسية القادمة من القائمة — تُعرض دائمًا حتى قبل توفّر بطاقة الخادم. */
+export type AppointmentCardBasics = {
+  title: string;
+  kind: string;
+  status: string;
+  startsAt: string;
+  createdAt: string | null;
+  requesterLabel: string | null;
+  providerLabel: string | null;
+};
+
 /** بطاقة موعد دائمة: مرجع «Rakiz»، رمز تحقق، مشاركة، مشاركون، ودخول الاجتماع. */
-export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
+export function AppointmentCard({
+  appointmentId,
+  basics,
+}: {
+  appointmentId: string;
+  basics?: AppointmentCardBasics;
+}) {
   const qc = useQueryClient();
   const fetchCard = useServerFn(getAppointmentCard);
   const fetchInvites = useServerFn(listAppointmentInvites);
@@ -71,22 +114,32 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [shareTarget, setShareTarget] = useState("");
 
+  const q = { retry: false, staleTime: 30_000, refetchOnWindowFocus: false } as const;
   const card = useQuery({
     queryKey: ["appointment-card", appointmentId],
     queryFn: () => fetchCard({ data: { appointmentId } }),
+    ...q,
   });
+  const cardAvailable = card.data?.available === true && !!card.data.card;
   const invites = useQuery({
     queryKey: ["appointment-invites", appointmentId],
     queryFn: () => fetchInvites({ data: { appointmentId } }),
+    enabled: cardAvailable,
+    ...q,
   });
   const meeting = useQuery({
     queryKey: ["appointment-meeting", appointmentId],
     queryFn: () => fetchMeeting({ data: { appointmentId } }),
+    enabled: cardAvailable,
+    ...q,
   });
   const targets = useQuery({
     queryKey: ["appointment-share-targets"],
     queryFn: () => fetchTargets(),
+    enabled: cardAvailable,
+    ...q,
   });
+
 
   const cancelOne = useMutation({
     mutationFn: (inviteId: string) => cancelInvite({ data: { inviteId } }),
@@ -157,8 +210,11 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
   if (card.isLoading) {
     return <div className="h-40 animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
   }
-  if (card.isError) {
-    return (
+  if (card.isError || !card.data?.available || !card.data.card) {
+    // بدون بطاقة الخادم نعرض تفاصيل الموعد المتاحة بهدوء، دون رسائل تقنية.
+    return basics ? (
+      <BasicCard basics={basics} />
+    ) : (
       <div className="space-y-2 rounded-xl border border-border/60 p-4">
         <p className="text-sm text-muted-foreground">تعذّر عرض بطاقة الموعد.</p>
         <Button size="sm" variant="outline" onClick={() => void card.refetch()}>
@@ -167,13 +223,7 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
       </div>
     );
   }
-  if (!card.data?.available || !card.data.card) {
-    return (
-      <p className="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
-        بطاقة الموعد ورمز التحقق غير مفعّلين بعد لأن تحديث قاعدة البيانات المطلوب لم يُطبّق.
-      </p>
-    );
-  }
+
 
   const c = card.data.card;
   const reference = c.reference ? `Rakiz ${toLatinDigits(c.reference)}` : null;

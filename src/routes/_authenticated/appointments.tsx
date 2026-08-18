@@ -12,7 +12,7 @@ import {
   QrCode as QrIcon,
 } from "lucide-react";
 
-import { toLatinDigits } from "@/lib/format";
+import { formatDateTime, toLatinDigits } from "@/lib/format";
 import { useAccountUi } from "@/lib/account-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,17 +89,9 @@ const STATUS_FILTERS = [
 
 const RIYADH = "Asia/Riyadh";
 
-const fmt = (iso: string) =>
-  toLatinDigits(
-    new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
-      calendar: "gregory",
-      numberingSystem: "latn",
-      hourCycle: "h23",
-      timeZone: RIYADH,
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso)),
-  );
+/** `18/08/2026 09:00` — تنسيق موحّد بتوقيت الرياض وبأرقام لاتينية. */
+const fmt = (iso: string) => formatDateTime(iso);
+
 
 /** تاريخ اليوم في الرياض بصيغة YYYY-MM-DD وبأرقام لاتينية مضمونة. */
 function todayRiyadh(): string {
@@ -129,9 +121,14 @@ function AppointmentsPage() {
   const fetchMyInvites = useServerFn(listMyAppointmentInvites);
   const respondInvite = useServerFn(respondAppointmentInvite);
 
+  // كل استعلام معزول بالحساب النشط: تبديل الحساب لا يعرض بيانات حساب سابق.
+  const accountKey = accountLoading ? "…" : (activeEntity?.id ?? "personal");
+  const scoped = { enabled: !accountLoading, retry: 1, staleTime: 30_000, refetchOnWindowFocus: false } as const;
+
   const myInvites = useQuery({
-    queryKey: ["my-appointment-invites"],
+    queryKey: ["my-appointment-invites", accountKey],
     queryFn: () => fetchMyInvites(),
+    ...scoped,
   });
 
   const answerInvite = useMutation({
@@ -165,14 +162,25 @@ function AppointmentsPage() {
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [providerName, setProviderName] = useState<string | null>(null);
   const [providerState, setProviderState] = useState<"idle" | "loading" | "none" | "found">("idle");
-  const [created, setCreated] = useState<{
-    title: string;
-    startsAt: string;
-    provider: string;
-    createdAt: string;
-  } | null>(null);
+  // معرّف آخر موعد حُجز من هذا المتصفح؛ بياناته المعروضة تأتي من القاعدة لا من الحالة.
+  const [bookedId, setBookedId] = useState<string | null>(null);
 
-  const list = useQuery({ queryKey: ["appointments"], queryFn: () => fetchList() });
+  const list = useQuery({
+    queryKey: ["appointments", accountKey],
+    queryFn: () => fetchList(),
+    ...scoped,
+  });
+
+  const bookedStorageKey = `rakeez:last-appointment:${accountKey}`;
+  useEffect(() => {
+    if (accountLoading) return;
+    try {
+      setBookedId(window.sessionStorage.getItem(bookedStorageKey));
+    } catch {
+      setBookedId(null);
+    }
+  }, [bookedStorageKey, accountLoading]);
+
 
   // بحث تلقائي عند اكتمال عشرة أرقام، دون كشف معرّف الكيان في المتصفح.
   useEffect(() => {
@@ -243,15 +251,16 @@ function AppointmentsPage() {
       }),
     onSuccess: (res) => {
       toast.success("تم حجز الموعد وجُدول التذكير");
-      setCreated({
-        title: form.title.trim(),
-        startsAt: res.startsAt,
-        provider: providerName ?? "",
-        createdAt: new Date().toISOString(),
-      });
+      setBookedId(res.id);
+      try {
+        window.sessionStorage.setItem(bookedStorageKey, res.id);
+      } catch {
+        /* التخزين المحلي غير متاح — الكرت يظل يُقرأ من القائمة */
+      }
       setForm((f) => ({ ...f, title: "", startsAt: "" }));
       invalidate();
     },
+
     onError: failure,
   });
 
@@ -306,6 +315,18 @@ function AppointmentsPage() {
     statusFilter === "all" ? true : a.status === statusFilter,
   );
 
+  /** كرت الحجز الأخير: بياناته من القاعدة، فيبقى بعد إعادة تحميل الصفحة. */
+  const bookedRow = bookedId ? (list.data ?? []).find((a) => a.id === bookedId) : undefined;
+  const basicsOf = (a: NonNullable<typeof bookedRow>) => ({
+    title: a.title,
+    kind: a.kind,
+    status: a.status,
+    startsAt: a.starts_at,
+    createdAt: a.created_at,
+    requesterLabel: a.requester_label,
+    providerLabel: a.provider_label,
+  });
+
   return (
     <div className="space-y-6">
       <PageHero
@@ -318,21 +339,33 @@ function AppointmentsPage() {
         </p>
       </PageHero>
 
-      {created ? (
+      {bookedRow ? (
         <SectionCard icon={CalendarCheck2} title="تم حجز الموعد">
           <FieldGrid>
-            <Field label="الموعد" value={created.title} />
-            <Field label="مقدّم الخدمة" value={created.provider || "—"} />
-            <Field label="الموعد بتوقيت الرياض" value={<span dir="ltr">{fmt(created.startsAt)}</span>} />
-            <Field label="تاريخ الحجز" value={<span dir="ltr">{fmt(created.createdAt)}</span>} />
-            <Field label="الحالة" value="بانتظار الموافقة" />
+            <Field label="الموعد" value={bookedRow.title} />
+            <Field label="مقدّم الخدمة" value={bookedRow.provider_label ?? "—"} />
+            <Field
+              label="نوع الموعد"
+              value={KINDS.find((k) => k.value === bookedRow.kind)?.label ?? bookedRow.kind}
+            />
+            <Field
+              label="الموعد بتوقيت الرياض"
+              value={<span dir="ltr">{fmt(bookedRow.starts_at)}</span>}
+            />
+            <Field
+              label="تاريخ الحجز"
+              value={
+                bookedRow.created_at ? <span dir="ltr">{fmt(bookedRow.created_at)}</span> : "—"
+              }
+            />
+            <Field label="الحالة" value={STATUS_LABEL[bookedRow.status] ?? "بانتظار الموافقة"} />
           </FieldGrid>
-          <p className="mt-3 text-xs text-muted-foreground">
-            الرقم المرجعي الموحّد ورمز التحقق (QR) للمواعيد غير مفعّلين بعد لأن تعديل قاعدة البيانات
-            المطلوب لهما غير متاح حاليًا.
-          </p>
+          <div className="mt-4">
+            <AppointmentCard appointmentId={bookedRow.id} basics={basicsOf(bookedRow)} />
+          </div>
         </SectionCard>
       ) : null}
+
 
       {(myInvites.data ?? []).length > 0 ? (
         <SectionCard
@@ -470,6 +503,7 @@ function AppointmentsPage() {
         <div className="mt-4">
           <Button
             onClick={() => {
+              if (create.isPending) return;
               if (validate()) create.mutate();
             }}
             disabled={create.isPending}
@@ -567,7 +601,7 @@ function AppointmentsPage() {
                 </div>
                 {openCard === a.id ? (
                   <div className="mt-3">
-                    <AppointmentCard appointmentId={a.id} />
+                    <AppointmentCard appointmentId={a.id} basics={basicsOf(a)} />
                   </div>
                 ) : null}
 

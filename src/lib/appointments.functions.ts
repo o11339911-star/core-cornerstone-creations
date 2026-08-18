@@ -96,6 +96,10 @@ export const myAppointmentSchema = z.object({
   kind: z.string(),
   status: z.string(),
   starts_at: z.string(),
+  created_at: z.string().nullable().default(null),
+  reference: z.string().nullable().default(null),
+  requester_label: z.string().nullable().default(null),
+  provider_label: z.string().nullable().default(null),
   previous_starts_at: z.string().nullable().default(null),
   cancel_deadline_at: z.string().nullable().default(null),
   confirmed_at: z.string().nullable().default(null),
@@ -106,6 +110,7 @@ export const myAppointmentSchema = z.object({
   can_reschedule: z.boolean(),
 });
 export type MyAppointment = z.infer<typeof myAppointmentSchema>;
+
 
 type SupabaseLike = { rpc: Function; from: Function };
 
@@ -120,7 +125,7 @@ async function deriveRowsServerSide(
   const { data: rows, error } = await supabase
     .from("appointments")
     .select(
-      "id, title, kind, status, starts_at, cancel_deadline_at, created_by, requester_entity_id, provider_entity_id",
+      "id, title, kind, status, starts_at, created_at, cancel_deadline_at, created_by, requester_entity_id, provider_entity_id",
     )
     .order("starts_at", { ascending: true })
     .limit(200);
@@ -134,6 +139,21 @@ async function deriveRowsServerSide(
   const mine = new Set<string>(
     ((memberships ?? []) as Array<{ entity_id: string }>).map((m) => m.entity_id),
   );
+
+  // أسماء الكيانات المعروضة فقط — لا معرّفات ولا بيانات تواصل.
+  const entityIds = Array.from(
+    new Set(
+      ((rows ?? []) as Array<Record<string, string | null>>).flatMap((r) =>
+        [r['requester_entity_id'], r['provider_entity_id']].filter(Boolean),
+      ) as string[],
+    ),
+  );
+  const labels = new Map<string, string>();
+  if (entityIds.length > 0) {
+    const { data: ents } = await supabase.from("entities").select("id, name").in("id", entityIds);
+    for (const e of ((ents ?? []) as Array<{ id: string; name: string | null }>))
+      if (e.name) labels.set(e.id, e.name);
+  }
 
   const out: MyAppointment[] = [];
   for (const r of (rows ?? []) as Array<Record<string, string | null>>) {
@@ -152,6 +172,10 @@ async function deriveRowsServerSide(
       kind: String(r['kind'] ?? ""),
       status,
       starts_at: String(r['starts_at']),
+      created_at: (r['created_at'] as string | null) ?? null,
+      reference: null,
+      requester_label: labels.get(String(r['requester_entity_id'])) ?? null,
+      provider_label: labels.get(String(r['provider_entity_id'])) ?? null,
       previous_starts_at: null,
       cancel_deadline_at: (r['cancel_deadline_at'] as string | null) ?? null,
       confirmed_at: null,
@@ -164,6 +188,7 @@ async function deriveRowsServerSide(
   }
   return out;
 }
+
 
 /** مواعيدي مع الدور والإجراءات — مصدرها الخادم حصرًا. */
 export const listMyAppointments = createServerFn({ method: "GET" })
