@@ -443,24 +443,3 @@ export const adminGetEntity = createServerFn({ method: "GET" })
     if (!detail.data) throw new Error("NOT_FOUND");
     return adminEntityDetailSchema.parse({ ...(detail.data as Record<string, unknown>), source: "full" });
   });
-    if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
-    const match = adminEntityRowSchema
-      .array()
-      .parse(rows ?? [])
-      .find((r) => r.entity_id === data.id);
-    if (!match) throw new Error("NOT_FOUND");
-    return adminEntityDetailSchema.parse({
-      entity_id: match.entity_id,
-      name: match.name,
-      type: match.type,
-      status: match.status,
-      legal_form: match.legal_form,
-      unified_national_number: match.unified_national_number,
-      verification_status: match.verification_status,
-      owner_name: match.owner_name,
-      members_count: match.members_count,
-      created_at: match.created_at,
-      members: [],
-      source: "directory",
-    });
-  });
