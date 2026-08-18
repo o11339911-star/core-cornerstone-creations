@@ -286,11 +286,7 @@ function PlatformUserDetailPage() {
             {user.memberships.length === 0 ? (
               <SoftEmpty
                 icon={Building2}
-                message={
-                  user.source === "directory"
-                    ? "تفاصيل العضويات تُعرض فور تطبيق التحديث الإداري لقاعدة البيانات — يظهر حاليًا العدد فقط."
-                    : "لا توجد عضويات كيانات لهذا المستخدم."
-                }
+                message="لا توجد عضويات كيانات لهذا المستخدم."
               />
             ) : (
               <ul className="space-y-2">

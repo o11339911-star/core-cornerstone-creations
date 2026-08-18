@@ -141,16 +141,11 @@ function PlatformAuditPage() {
             }
             onRetry={() => void result.refetch()}
           />
-        ) : !result.data?.available ? (
-          <SoftEmpty
-            icon={ScrollText}
-            message={result.data?.reason ?? "سجل التدقيق غير مفعّل بعد."}
-          />
-        ) : result.data.rows.length === 0 ? (
+        ) : (result.data?.rows.length ?? 0) === 0 ? (
           <SoftEmpty icon={ScrollText} message="لا توجد سجلات مطابقة لهذا البحث." />
         ) : (
           <ul className="space-y-2">
-            {result.data.rows.map((row) => (
+            {(result.data?.rows ?? []).map((row) => (
               <li
                 key={row.id}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3"
