@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { LucideIcon } from "lucide-react";
+import { RefreshCw, type LucideIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -299,5 +299,33 @@ export function CardsSkeleton({ cards = 4 }: { cards?: number }) {
         ))}
       </div>
     </div>
+  );
+}
+
+/* --------------------------------------------------------- hero actions */
+
+/**
+ * Unified secondary hero action: re-fetch the screen's data.
+ * Presentational only — the caller owns the query.
+ */
+export function RefreshAction({
+  onRefresh,
+  busy = false,
+  label = "تحديث",
+}: {
+  onRefresh: () => void;
+  busy?: boolean;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onRefresh}
+      disabled={busy}
+      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:border-primary/40 hover:text-primary disabled:opacity-60"
+    >
+      <RefreshCw className={cn("size-4", busy && "animate-spin")} aria-hidden="true" />
+      {busy ? "جارٍ التحديث…" : label}
+    </button>
   );
 }
