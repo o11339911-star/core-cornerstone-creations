@@ -174,8 +174,11 @@ export function AppointmentCard({
   if (card.isLoading) {
     return <div className="h-40 animate-pulse rounded-xl bg-muted" aria-hidden="true" />;
   }
-  if (card.isError) {
-    return (
+  if (card.isError || !card.data?.available || !card.data.card) {
+    // بدون بطاقة الخادم نعرض تفاصيل الموعد المتاحة بهدوء، دون رسائل تقنية.
+    return basics ? (
+      <BasicCard basics={basics} />
+    ) : (
       <div className="space-y-2 rounded-xl border border-border/60 p-4">
         <p className="text-sm text-muted-foreground">تعذّر عرض بطاقة الموعد.</p>
         <Button size="sm" variant="outline" onClick={() => void card.refetch()}>
@@ -184,13 +187,7 @@ export function AppointmentCard({
       </div>
     );
   }
-  if (!card.data?.available || !card.data.card) {
-    return (
-      <p className="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
-        بطاقة الموعد ورمز التحقق غير مفعّلين بعد لأن تحديث قاعدة البيانات المطلوب لم يُطبّق.
-      </p>
-    );
-  }
+
 
   const c = card.data.card;
   const reference = c.reference ? `Rakiz ${toLatinDigits(c.reference)}` : null;
