@@ -20,7 +20,9 @@ export type ArchiveVerifyResult =
       fingerprint: string;
     };
 
-const REFERENCE = /^RKZ-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/;
+const LEGACY_REFERENCE = /^RKZ-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/;
+/** الصيغة الرقمية الموحدة الجديدة (Rakiz تجميلية فقط). */
+const NUMERIC_REFERENCE = /^[0-9]{6,}$/;
 const DATE = /^\d{4}\/\d{2}\/\d{2}$/;
 
 export const verifyArchiveFile = createServerFn({ method: "POST" })
@@ -30,14 +32,18 @@ export const verifyArchiveFile = createServerFn({ method: "POST" })
         reference: z
           .string()
           .trim()
-          .max(24)
+          .max(32)
           .transform((v) => v.toUpperCase().replace(/\s+/g, "")),
         date: z.string().trim().max(10),
       })
       .parse(input),
   )
   .handler(async ({ data }): Promise<ArchiveVerifyResult> => {
-    if (!REFERENCE.test(data.reference) || !DATE.test(data.date)) return { found: false };
+    if (
+      (!LEGACY_REFERENCE.test(data.reference) && !NUMERIC_REFERENCE.test(data.reference)) ||
+      !DATE.test(data.date)
+    )
+      return { found: false };
 
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(

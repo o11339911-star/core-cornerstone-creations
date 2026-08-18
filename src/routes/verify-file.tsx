@@ -20,12 +20,12 @@ export const Route = createFileRoute("/verify-file")({
       {
         name: "description",
         content:
-          "تحقق من صحة أي ملف صادر من أرشيف ركيز باستخدام رقم الملف وتاريخ الإصدار، دون كشف أي محتوى أو بيانات خاصة.",
+          "تحقق من صحة أي ملف صادر من أرشيف ركيز باستخدام الرقم المرجعي وتاريخ الإصدار، دون كشف أي محتوى أو بيانات خاصة.",
       },
       { property: "og:title", content: "تحقق من ملف | ركيز" },
       {
         property: "og:description",
-        content: "أدخل رقم الملف وتاريخه لمعرفة ما إذا كانت بصمة ركيز صالحة أو ملغاة.",
+        content: "أدخل الرقم المرجعي وتاريخه لمعرفة ما إذا كانت بصمة ركيز صالحة أو ملغاة.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -33,8 +33,11 @@ export const Route = createFileRoute("/verify-file")({
   }),
 });
 
-const REFERENCE = /^RKZ-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/;
-const DATE = /^\d{4}\/\d{2}\/\d{2}$/;
+/** الصيغة الرقمية الجديدة: أرقام لاتينية فقط، 6 خانات فأكثر (Rakiz تجميلية). */
+const NUMERIC_REFERENCE = /^[0-9]{6,}$/;
+/** الصيغة القديمة تبقى قابلة للتحقق دون كسر. */
+const LEGACY_REFERENCE = /^RKZ-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/;
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function VerifyFilePage() {
   const verify = useServerFn(verifyArchiveFile);
@@ -44,7 +47,8 @@ function VerifyFilePage() {
   const [result, setResult] = React.useState<ArchiveVerifyResult | null>(null);
 
   const mutation = useMutation({
-    mutationFn: () => verify({ data: { reference, date } }),
+    mutationFn: () =>
+      verify({ data: { reference: reference.trim().toUpperCase(), date: date.replace(/-/g, "/") } }),
     onSuccess: (res) => setResult(res),
     onError: () => setResult(null),
   });
@@ -52,9 +56,10 @@ function VerifyFilePage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const next: { reference?: string; date?: string } = {};
-    if (!REFERENCE.test(reference.toUpperCase()))
-      next.reference = "أدخل رقم الملف بالصيغة RKZ-XXXX-XXXX-XXXX.";
-    if (!DATE.test(date)) next.date = "أدخل التاريخ بالصيغة YYYY/MM/DD بالأرقام الغربية.";
+    const ref = reference.trim().toUpperCase();
+    if (!NUMERIC_REFERENCE.test(ref) && !LEGACY_REFERENCE.test(ref))
+      next.reference = "أدخل الرقم المرجعي بالأرقام 0-9 فقط (٦ خانات فأكثر).";
+    if (!DATE.test(date)) next.date = "اختر تاريخ الإصدار من التقويم.";
     setErrors(next);
     if (Object.keys(next).length) return;
     setResult(null);
@@ -79,17 +84,35 @@ function VerifyFilePage() {
         className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-card"
       >
         <div className="space-y-2">
-          <Label htmlFor="verify-reference">رقم الملف</Label>
-          <Input
-            id="verify-reference"
-            value={reference}
-            onChange={(e) => setReference(toAsciiDigits(e.target.value).toUpperCase())}
-            placeholder="RKZ-7M4Q-X9PK-2H6D"
-            dir="ltr"
-            className="min-h-11 text-start"
-            autoComplete="off"
-            aria-invalid={!!errors.reference}
-          />
+          <Label htmlFor="verify-reference">الرقم المرجعي</Label>
+          <div className="flex items-stretch gap-2" dir="ltr">
+            <span
+              aria-hidden="true"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-secondary px-3 text-sm font-semibold text-primary"
+            >
+              Rakiz
+            </span>
+            <Input
+              id="verify-reference"
+              value={reference}
+              onChange={(e) => {
+                const raw = toAsciiDigits(e.target.value).toUpperCase();
+                // نقبل اللصق بالصيغة القديمة، وما عداها أرقام 0-9 فقط.
+                setReference(
+                  raw.startsWith("RKZ") ? raw.replace(/[^0-9A-Z-]/g, "") : raw.replace(/[^0-9]/g, ""),
+                );
+              }}
+              placeholder="482913"
+              dir="ltr"
+              inputMode="numeric"
+              className="min-h-11 flex-1 text-start"
+              autoComplete="off"
+              aria-invalid={!!errors.reference}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            اكتب الجزء الرقمي فقط؛ كلمة Rakiz ثابتة ولا تُكتب.
+          </p>
           {errors.reference ? (
             <p className="text-xs text-destructive">{errors.reference}</p>
           ) : null}
@@ -99,12 +122,11 @@ function VerifyFilePage() {
           <Label htmlFor="verify-date">تاريخ الإصدار</Label>
           <Input
             id="verify-date"
+            type="date"
             value={date}
-            onChange={(e) => setDate(toAsciiDigits(e.target.value))}
-            placeholder="2026/08/17"
+            onChange={(e) => setDate(e.target.value)}
             dir="ltr"
             className="min-h-11 text-start"
-            inputMode="numeric"
             autoComplete="off"
             aria-invalid={!!errors.date}
           />
@@ -153,7 +175,7 @@ function VerifyFilePage() {
                 <dd className="font-medium text-foreground">{result.issuer}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">رقم الملف</dt>
+                <dt className="text-muted-foreground">الرقم المرجعي</dt>
                 <dd className="font-medium text-foreground">
                   <bdi dir="ltr">{result.reference}</bdi>
                 </dd>
@@ -177,7 +199,7 @@ function VerifyFilePage() {
             aria-live="polite"
             className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground"
           >
-            لا يوجد ملف موثق مطابق لرقم الملف والتاريخ المدخلين.
+            لا يوجد ملف موثق مطابق للرقم المرجعي والتاريخ المدخلين.
           </section>
         )
       ) : null}
