@@ -15,7 +15,7 @@ export const Route = createFileRoute("/verify-appointment")({
   component: VerifyAppointmentPage,
   errorComponent: ErrorState,
   validateSearch: (search: Record<string, unknown>): Search => ({
-    n: typeof search['n'] === "string" ? search['ref'] : "",
+    n: typeof search['n'] === "string" ? search['n'] : "",
     d: typeof search['d'] === "string" ? search['d'] : "",
   }),
   head: () => ({
