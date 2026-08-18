@@ -17,6 +17,7 @@ import {
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import {
+  getUnreadCount,
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead,
