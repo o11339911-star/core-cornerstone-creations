@@ -79,8 +79,8 @@ function PlatformRequestsPage() {
       />
 
       <StatGrid>
-        <StatCard label="إجمالي المعروض" value={rows.length} />
-        <StatCard label="مفتوح" value={openCount} />
+        <StatCard icon={ListChecks} label="إجمالي المعروض" value={rows.length} />
+        <StatCard icon={ListChecks} label="مفتوح" value={openCount} tone="warning" />
       </StatGrid>
 
       <SectionCard icon={ListChecks} title="قائمة الطلبات" count={rows.length}>
