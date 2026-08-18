@@ -38,6 +38,10 @@ import {
   lookupProviderEntity,
   rescheduleAppointment,
 } from "@/lib/appointments.functions";
+import {
+  listMyAppointmentInvites,
+  respondAppointmentInvite,
+} from "@/lib/appointment-card.functions";
 
 export const Route = createFileRoute("/_authenticated/appointments")({
   component: AppointmentsPage,
@@ -122,6 +126,28 @@ function AppointmentsPage() {
   const confirm = useServerFn(confirmAppointment);
   const cancel = useServerFn(cancelAppointment);
   const reschedule = useServerFn(rescheduleAppointment);
+  const fetchMyInvites = useServerFn(listMyAppointmentInvites);
+  const respondInvite = useServerFn(respondAppointmentInvite);
+
+  const myInvites = useQuery({
+    queryKey: ["my-appointment-invites"],
+    queryFn: () => fetchMyInvites(),
+  });
+
+  const answerInvite = useMutation({
+    mutationFn: (v: { inviteId: string; accept: boolean }) =>
+      respondInvite({ data: v }),
+    onSuccess: (res, v) => {
+      if (!res.available) {
+        toast.error("دعوات الاجتماعات غير مفعّلة بعد على هذا الحساب.");
+        return;
+      }
+      toast.success(v.accept ? "قبلت الدعوة، وأصبح الاجتماع في مواعيدك." : "رُفضت الدعوة.");
+      void qc.invalidateQueries({ queryKey: ["my-appointment-invites"] });
+      void qc.invalidateQueries({ queryKey: ["appointments"] });
+    },
+    onError: () => toast.error("تعذّر تنفيذ الرد على الدعوة. حاول مرة أخرى."),
+  });
 
   const [openCard, setOpenCard] = useState<string | null>(null);
 
@@ -305,6 +331,47 @@ function AppointmentsPage() {
             الرقم المرجعي الموحّد ورمز التحقق (QR) للمواعيد غير مفعّلين بعد لأن تعديل قاعدة البيانات
             المطلوب لهما غير متاح حاليًا.
           </p>
+        </SectionCard>
+      ) : null}
+
+      {(myInvites.data ?? []).length > 0 ? (
+        <SectionCard
+          icon={CalendarClock}
+          title="دعوات اجتماعات بانتظار ردّك"
+          count={(myInvites.data ?? []).length}
+        >
+          <ul className="space-y-3">
+            {(myInvites.data ?? []).map((inv) => (
+              <li
+                key={inv.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">{inv.title}</p>
+                  <p className="text-xs text-muted-foreground" dir="ltr">
+                    {fmt(inv.starts_at)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    disabled={answerInvite.isPending}
+                    onClick={() => answerInvite.mutate({ inviteId: inv.id, accept: true })}
+                  >
+                    قبول
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={answerInvite.isPending}
+                    onClick={() => answerInvite.mutate({ inviteId: inv.id, accept: false })}
+                  >
+                    رفض
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </SectionCard>
       ) : null}
 
