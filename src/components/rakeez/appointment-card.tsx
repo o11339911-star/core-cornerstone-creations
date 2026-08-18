@@ -46,6 +46,42 @@ const KIND_LABEL: Record<string, string> = {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 
+/** عرض هادئ لتفاصيل الموعد ريثما يتوفّر المرجع الموحّد ورمز التحقق. */
+function BasicCard({ basics }: { basics: AppointmentCardBasics }) {
+  return (
+    <div className="space-y-3 rounded-xl border border-border/60 bg-card p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <h4 className="text-base font-semibold">{basics.title}</h4>
+        <Badge variant="secondary">{STATUS_LABEL[basics.status] ?? "بانتظار الموافقة"}</Badge>
+        <Badge variant="outline">{KIND_LABEL[basics.kind] ?? basics.kind}</Badge>
+      </div>
+      <dl className="grid gap-1 text-sm">
+        <div className="flex gap-2">
+          <dt className="text-muted-foreground">التاريخ والوقت (الرياض):</dt>
+          <dd dir="ltr">{fmt(basics.startsAt)}</dd>
+        </div>
+        {basics.createdAt ? (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground">تاريخ الحجز:</dt>
+            <dd dir="ltr">{fmt(basics.createdAt)}</dd>
+          </div>
+        ) : null}
+        <div className="flex gap-2">
+          <dt className="text-muted-foreground">طالب الموعد:</dt>
+          <dd>{basics.requesterLabel ?? "—"}</dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="text-muted-foreground">مستقبل الطلب:</dt>
+          <dd>{basics.providerLabel ?? "—"}</dd>
+        </div>
+      </dl>
+      <p className="text-xs text-muted-foreground">رمز التحقق قيد التفعيل.</p>
+    </div>
+  );
+}
+
+
+
 /** بيانات الموعد الأساسية القادمة من القائمة — تُعرض دائمًا حتى قبل توفّر بطاقة الخادم. */
 export type AppointmentCardBasics = {
   title: string;
