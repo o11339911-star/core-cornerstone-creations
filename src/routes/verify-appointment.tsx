@@ -9,14 +9,14 @@ import { toLatinDigits } from "@/lib/format";
 import { verifyAppointmentReference } from "@/lib/appointment-card.functions";
 import { CalendarCheck2 } from "lucide-react";
 
-type Search = { ref?: string; d?: string };
+type Search = { ref: string; d: string };
 
 export const Route = createFileRoute("/verify-appointment")({
   component: VerifyAppointmentPage,
   errorComponent: ErrorState,
   validateSearch: (search: Record<string, unknown>): Search => ({
-    ref: typeof search['ref'] === "string" ? search['ref'] : undefined,
-    d: typeof search['d'] === "string" ? search['d'] : undefined,
+    ref: typeof search['ref'] === "string" ? search['ref'] : "",
+    d: typeof search['d'] === "string" ? search['d'] : "",
   }),
   head: () => ({
     meta: [
