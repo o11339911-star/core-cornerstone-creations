@@ -118,7 +118,7 @@ function PlatformRequestsPage() {
         ) : (
           <ul className="space-y-2">
             {rows.map((r) => {
-              const source = sourceLink(r);
+              const source = queueSourceLink(r);
               return (
                 <li
                   key={r.id}
