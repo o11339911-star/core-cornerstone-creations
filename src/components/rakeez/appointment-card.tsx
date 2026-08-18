@@ -133,7 +133,7 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
   const reference = c.reference ? `Rakiz ${toLatinDigits(c.reference)}` : null;
   const verifyUrl =
     typeof window !== "undefined" && c.reference
-      ? `${window.location.origin}/verify-appointment?ref=${encodeURIComponent(c.reference)}&d=${c.verify_date}`
+      ? `${window.location.origin}/verify-appointment?n=${encodeURIComponent(c.reference)}&d=${c.verify_date}`
       : null;
 
   const shareText = [

@@ -9,13 +9,13 @@ import { toLatinDigits } from "@/lib/format";
 import { verifyAppointmentReference } from "@/lib/appointment-card.functions";
 import { CalendarCheck2 } from "lucide-react";
 
-type Search = { ref: string; d: string };
+type Search = { n: string; d: string };
 
 export const Route = createFileRoute("/verify-appointment")({
   component: VerifyAppointmentPage,
   errorComponent: ErrorState,
   validateSearch: (search: Record<string, unknown>): Search => ({
-    ref: typeof search['ref'] === "string" ? search['ref'] : "",
+    n: typeof search['n'] === "string" ? search['ref'] : "",
     d: typeof search['d'] === "string" ? search['d'] : "",
   }),
   head: () => ({
@@ -61,7 +61,7 @@ function VerifyAppointmentPage() {
   const verify = useServerFn(verifyAppointmentReference);
 
   const [reference, setReference] = useState(
-    toLatinDigits(search.ref).replace(/[^0-9]/g, ""),
+    toLatinDigits(search.n).replace(/[^0-9]/g, ""),
   );
   const [date, setDate] = useState(search.d);
   const [error, setError] = useState<string | null>(null);
