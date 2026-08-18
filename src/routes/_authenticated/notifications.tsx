@@ -1,9 +1,21 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BellRing, ShieldCheck } from "lucide-react";
+import {
+  BellRing,
+  Briefcase,
+  CalendarClock,
+  FileText,
+  FolderKanban,
+  Handshake,
+  Mail,
+  ShieldCheck,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,8 +33,9 @@ import {
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  type NotificationWithSource,
 } from "@/lib/notifications.functions";
-import { formatRiyadh } from "@/lib/riyadh-time";
+import { formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   component: NotificationsPage,
@@ -67,6 +80,8 @@ const TYPE_LABEL_AR: Record<string, string> = {
   "network.request": "طلب تواصل جديد",
   "deal.message": "رسالة على معاملة تعاقد",
   "deal.updated": "تحديث على معاملة تعاقد",
+  "report.issued": "صدور تقرير هندسي",
+  "report.requested": "طلب تقرير هندسي",
 };
 
 /** لا نعرض مفاتيح تقنية إنجليزية أبدًا: أي نوع غير معروف يظهر بعبارة عربية عامة. */
@@ -74,7 +89,26 @@ function typeLabel(typeCode: string): string {
   return TYPE_LABEL_AR[typeCode] ?? "تنبيه من ركيز";
 }
 
-/** Arabic one-liner describing a stage notification: project, stage, actor. */
+/** أيقونة النوع تُشتق من بادئة الكود، لا من نص خام يظهر للمستخدم. */
+function typeIcon(typeCode: string): LucideIcon {
+  const family = typeCode.split(".")[0] ?? "";
+  const map: Record<string, LucideIcon> = {
+    request: FileText,
+    stage: FolderKanban,
+    finance: Wallet,
+    security: ShieldCheck,
+    document: FileText,
+    contract: Handshake,
+    appointment: CalendarClock,
+    correspondence: Mail,
+    network: Users,
+    deal: Briefcase,
+    report: FileText,
+  };
+  return map[family] ?? BellRing;
+}
+
+/** سطر عربي مختصر: المشروع، المرحلة، الفاعل — دون أي بيانات حساسة. */
 function notificationDetails(
   payload: Record<string, string | number | boolean | null> | null,
 ): string | null {
@@ -89,31 +123,46 @@ function notificationDetails(
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
+type Tab = "new" | "previous" | "all";
+
 function NotificationsPage() {
   const t = useT();
   const queryClient = useQueryClient();
-  const [unreadOnly, setUnreadOnly] = useState(false);
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>("new");
 
   const fetchList = useServerFn(listNotifications);
   const markRead = useServerFn(markNotificationRead);
   const markAll = useServerFn(markAllNotificationsRead);
+  const fetchUnread = useServerFn(getUnreadCount);
 
   const { data: rows = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["notifications", "list", unreadOnly],
-    queryFn: () => fetchList({ data: { unreadOnly } }),
+    queryKey: ["notifications", "list"],
+    queryFn: () => fetchList({ data: { unreadOnly: false } }),
+    retry: false,
   });
 
-  const fetchUnread = useServerFn(getUnreadCount);
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["notifications", "unread-count"],
     queryFn: () => fetchUnread(),
+    retry: false,
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
+  /** القراءة تنقل الإشعار للسابقة فورًا (تفاؤليًا) ولا تحذفه من السجل أبدًا. */
   const readOne = useMutation({
     mutationFn: (id: string) => markRead({ data: { id } }),
-    onSuccess: invalidate,
+    onMutate: (id: string) => {
+      const now = new Date().toISOString();
+      queryClient.setQueryData<NotificationWithSource[]>(["notifications", "list"], (prev) =>
+        (prev ?? []).map((n) => (n.id === id && !n.read_at ? { ...n, read_at: now } : n)),
+      );
+      queryClient.setQueryData<number>(["notifications", "unread-count"], (c) =>
+        Math.max(0, (c ?? 1) - 1),
+      );
+    },
+    onSettled: invalidate,
   });
 
   const readAll = useMutation({
@@ -122,7 +171,24 @@ function NotificationsPage() {
       invalidate();
       toast.success(t("notifications.saved"));
     },
+    onError: () => toast.error(t("notifications.saveFailed")),
   });
+
+  const unread = useMemo(() => rows.filter((n) => !n.read_at), [rows]);
+  const previous = useMemo(() => rows.filter((n) => n.read_at), [rows]);
+  const visible = tab === "new" ? unread : tab === "previous" ? previous : rows;
+
+  const openNotification = (n: NotificationWithSource) => {
+    if (!n.read_at) readOne.mutate(n.id);
+    void navigate({ to: "/n/$notificationId", params: { notificationId: n.id } });
+  };
+
+  const emptyMessage =
+    tab === "new"
+      ? t("notifications.noNew")
+      : tab === "previous"
+        ? t("notifications.noPrevious")
+        : t("notifications.empty");
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
@@ -148,23 +214,37 @@ function NotificationsPage() {
 
       <SectionCard
         icon={BellRing}
-        title={unreadOnly ? t("notifications.unreadOnly") : t("notifications.all")}
-        count={rows.length}
+        title={
+          tab === "new"
+            ? t("notifications.newSection")
+            : tab === "previous"
+              ? t("notifications.previousSection")
+              : t("notifications.all")
+        }
+        count={visible.length}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              variant={unreadOnly ? "default" : "outline"}
+              variant={tab === "new" ? "default" : "outline"}
               size="sm"
               className="min-h-9"
-              onClick={() => setUnreadOnly(true)}
+              onClick={() => setTab("new")}
             >
-              {`${t("notifications.unreadOnly")} (${unreadCount})`}
+              {`${t("notifications.newSection")} (${unread.length})`}
             </Button>
             <Button
-              variant={unreadOnly ? "outline" : "default"}
+              variant={tab === "previous" ? "default" : "outline"}
               size="sm"
               className="min-h-9"
-              onClick={() => setUnreadOnly(false)}
+              onClick={() => setTab("previous")}
+            >
+              {t("notifications.previousSection")}
+            </Button>
+            <Button
+              variant={tab === "all" ? "default" : "outline"}
+              size="sm"
+              className="min-h-9"
+              onClick={() => setTab("all")}
             >
               {t("notifications.all")}
             </Button>
@@ -181,75 +261,81 @@ function NotificationsPage() {
           <CardsSkeleton cards={2} />
         ) : isError ? (
           <ErrorState onRetry={() => void refetch()} />
-        ) : rows.length === 0 ? (
-          <SoftEmpty icon={BellRing} message={t("notifications.empty")} />
+        ) : visible.length === 0 ? (
+          <SoftEmpty icon={BellRing} message={emptyMessage} />
         ) : (
           <ul className="space-y-3">
-            {rows.map((n) => (
-              <li
-                key={n.id}
-                className={`rounded-lg border p-4 shadow-card ${
-                  n.read_at ? "border-border bg-card" : "border-primary/40 bg-primary/5"
-                }`}
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-foreground">{typeLabel(n.type_code)}</span>
-                  {!n.read_at && <Badge variant="destructive">{t("notifications.unread")}</Badge>}
-                  {n.severity === "critical" && (
-                    <Badge variant="destructive">{t("notifications.security")}</Badge>
-                  )}
-                  <span className="ms-auto text-xs text-muted-foreground" dir="ltr">
-                    {formatRiyadh(n.created_at)}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">{t("notifications.from")}:</span>
-                  <span className="font-medium text-foreground">{n.source.name}</span>
-                  {n.source.kind === "platform" ? (
-                    <Badge className="gap-1">
-                      <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-                      {t("notifications.officialSource")}
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">
-                      {n.source.kind === "entity" ? "كيان" : "فرد"}
-                    </Badge>
-                  )}
-                </div>
-
-                {notificationDetails(n.payload) ? (
-                  <p className="mt-2 text-sm text-muted-foreground">{notificationDetails(n.payload)}</p>
-                ) : null}
-
-                {n.read_at ? (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {t("notifications.readAt")}{" "}
-                    <span dir="ltr">{formatRiyadh(n.read_at)}</span>
-                  </p>
-                ) : null}
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link
-                    to="/n/$notificationId"
-                    params={{ notificationId: n.id }}
-                    className="inline-flex min-h-9 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
+            {visible.map((n) => {
+              const Icon = typeIcon(n.type_code);
+              const details = notificationDetails(n.payload);
+              return (
+                <li key={n.id}>
+                  <button
+                    type="button"
+                    onClick={() => openNotification(n)}
+                    className={`w-full rounded-xl border p-4 text-start shadow-card transition-colors duration-200 hover:border-primary/50 ${
+                      n.read_at ? "border-border bg-card" : "border-primary/40 bg-primary/5"
+                    }`}
                   >
-                    {t("notifications.open")}
-                  </Link>
-                  {!n.read_at && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-h-9"
-                      onClick={() => readOne.mutate(n.id)}
-                    >
-                      {t("notifications.markRead")}
-                    </Button>
-                  )}
-                </div>
-              </li>
-            ))}
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                          n.read_at ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
+                        }`}
+                      >
+                        <Icon className="h-4.5 w-4.5" aria-hidden />
+                      </span>
+
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-foreground">
+                            {typeLabel(n.type_code)}
+                          </span>
+                          {!n.read_at && (
+                            <Badge variant="destructive">{t("notifications.unread")}</Badge>
+                          )}
+                          {n.severity === "critical" && (
+                            <Badge variant="destructive">{t("notifications.security")}</Badge>
+                          )}
+                          <span
+                            className="ms-auto text-xs text-muted-foreground"
+                            dir="ltr"
+                          >
+                            {formatDateTime(n.created_at)}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          <span className="text-muted-foreground">{t("notifications.from")}:</span>
+                          <span className="font-medium text-foreground">{n.source.name}</span>
+                          {n.source.kind === "platform" ? (
+                            <Badge className="gap-1">
+                              <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                              {t("notifications.officialSource")}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">
+                              {n.source.kind === "entity" ? "كيان" : "فرد"}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {details ? (
+                          <p className="text-sm text-muted-foreground">{details}</p>
+                        ) : null}
+
+                        {n.read_at ? (
+                          <p className="text-xs text-muted-foreground">
+                            {t("notifications.readAt")}{" "}
+                            <span dir="ltr">{formatDateTime(n.read_at)}</span>
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </SectionCard>
