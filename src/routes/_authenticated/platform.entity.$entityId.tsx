@@ -276,11 +276,7 @@ function PlatformEntityDetailPage() {
             {entity.members.length === 0 ? (
               <SoftEmpty
                 icon={Users}
-                message={
-                  entity.source === "directory"
-                    ? "قائمة الأعضاء تحتاج تفعيل التحديث الإداري لقاعدة البيانات — يظهر حاليًا العدد فقط."
-                    : "لا يوجد أعضاء مسجّلون في هذا الكيان."
-                }
+                message="لا يوجد أعضاء مسجّلون في هذا الكيان."
               />
             ) : (
               <ul className="space-y-2">

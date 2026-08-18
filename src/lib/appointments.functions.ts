@@ -194,17 +194,13 @@ async function deriveRowsServerSide(
 export const listMyAppointments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MyAppointment[]> => {
-    // الدوال الجديدة غير موجودة في أنواع القاعدة المولّدة قبل تطبيق الهجرة 04.
     const rpc = (context.supabase as unknown as SupabaseLike).rpc as (
       fn: string,
       args?: Record<string, unknown>,
     ) => Promise<{ data: unknown; error: { message: string } | null }>;
     const { data, error } = await rpc("list_my_appointments");
-    if (!error) return z.array(myAppointmentSchema).parse(data ?? []);
-    // الدالة غير موجودة بعد: اشتقاق خادمي مكافئ بلا كشف أي موعد لطرف ثالث.
-    if (/list_my_appointments|does not exist|PGRST202|42883/i.test(error.message))
-      return deriveRowsServerSide(context.supabase as unknown as SupabaseLike, context.userId);
-    throw new Error(error.message);
+    if (error) throw new Error(error.message);
+    return z.array(myAppointmentSchema).parse(data ?? []);
   });
 
 /** حارس خادمي إضافي: يمنع الطالب/المُنشئ من التأكيد حتى قبل تطبيق الهجرة. */

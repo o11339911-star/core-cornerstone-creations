@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
-import { FolderKanban, Megaphone, ShieldAlert } from "lucide-react";
+import { FolderKanban, Megaphone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -107,11 +107,6 @@ function PlatformContentPage() {
           <ErrorState
             description="تعذّر جلب المشاريع. حاول مرة أخرى."
             onRetry={() => void query.refetch()}
-          />
-        ) : query.data && !query.data.deployed ? (
-          <SoftEmpty
-            icon={ShieldAlert}
-            message="إدارة المشاريع تحتاج تفعيل التحديث الإداري لقاعدة البيانات قبل أن تعمل."
           />
         ) : rows.length === 0 ? (
           <SoftEmpty icon={FolderKanban} message="لا توجد مشاريع مطابقة." />

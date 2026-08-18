@@ -66,11 +66,7 @@ export const getMailboxOverview = createServerFn({ method: "GET" })
         ? q.eq("owner_entity_id", data.entityId)
         : q.eq("owner_user_id", context.userId);
       const { data: rows, error } = await q.order("created_at", { ascending: true });
-      if (error) {
-        const { isMissingObject } = await import("@/lib/mail/store.server");
-        if (isMissingObject(error)) return { available: false, providers, connections: [] };
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
       return { available: true, providers, connections: (rows ?? []) as MailboxConnection[] };
     },
   );

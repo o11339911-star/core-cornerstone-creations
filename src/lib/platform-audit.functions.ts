@@ -10,8 +10,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * يتحقق داخليًا من `private.platform_can(auth.uid(),'audit.view')`. الجدول
  * `permission_audit_log` سجلّ لاحق فقط (append-only) ولا يُعدَّل من الواجهة.
  *
- * إذا لم تكن الدالة منشورة بعد (مهاجرة 09 معلّقة) نُرجع حالة صريحة
- * `available: false` بدل قراءة مُخفَّضة قد تُظهر سجلات جزئية وتوهم الاكتمال.
  */
 
 export const auditRowSchema = z.object({
@@ -40,15 +38,6 @@ type LooseRpc = (
   args: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-function isMissingFunction(message: string): boolean {
-  const m = message.toLowerCase();
-  return (
-    m.includes("could not find the function") ||
-    m.includes("does not exist") ||
-    m.includes("schema cache")
-  );
-}
-
 const inputSchema = z.object({
   q: z.string().trim().max(160).optional(),
   objectType: z.string().trim().max(60).optional(),
@@ -73,14 +62,6 @@ export const adminListAuditLog = createServerFn({ method: "GET" })
         available: true,
         rows: auditRowSchema.array().parse(res.data ?? []),
         reason: null,
-      };
-    }
-
-    if (isMissingFunction(res.error.message)) {
-      return {
-        available: false,
-        rows: [],
-        reason: "سجل التدقيق الإداري بانتظار تفعيل تحديث قاعدة البيانات (المهاجرة 09).",
       };
     }
 

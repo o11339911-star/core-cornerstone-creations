@@ -101,8 +101,8 @@ begin
 
   if not (
     a.requester_user_id = auth.uid()
-    or (a.requester_entity_id is not null and private.can(auth.uid(), a.requester_entity_id, 'appointments', 'manage'))
-    or private.can(auth.uid(), a.provider_entity_id, 'appointments', 'manage')
+    or (a.requester_entity_id is not null and private.is_entity_manager(auth.uid(), a.requester_entity_id))
+    or private.is_entity_manager(auth.uid(), a.provider_entity_id)
   ) then
     raise exception 'FORBIDDEN';
   end if;

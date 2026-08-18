@@ -12,8 +12,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const uuid = z.string().uuid();
 type Rpc = (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-const missing = (m: string) => /does not exist|PGRST202|42883|schema cache/i.test(m);
-
 export type AppointmentCard = {
   id: string;
   reference: string | null;
@@ -38,7 +36,6 @@ export const getAppointmentCard = createServerFn({ method: "POST" })
     const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
     const { data: card, error } = await rpc("appointment_card", { _appointment_id: data.appointmentId });
     if (error) {
-      if (missing(error.message)) return { available: false, card: null };
       throw new Error(error.message);
     }
     return { available: true, card: card as AppointmentCard };
@@ -66,7 +63,6 @@ export const listAppointmentInvites = createServerFn({ method: "POST" })
         _appointment_id: data.appointmentId,
       });
       if (error) {
-        if (missing(error.message)) return { available: false, invites: [] };
         throw new Error(error.message);
       }
       return { available: true, invites: (rows ?? []) as AppointmentInvite[] };
@@ -105,11 +101,7 @@ export const inviteAppointmentParticipant = createServerFn({ method: "POST" })
         _email: data.email,
         _user_id: data.userId,
       });
-      if (error) {
-        if (missing(error.message))
-          return { available: false, linkedAccount: false, emailSent: false, mailConfigured: true };
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
       const out = res as { linked_account: boolean };
 
       // البريد الخارجي يمر عبر طبقة بريد المنصة وحدها؛ إن لم تكن معدّة نحفظ الدعوة فقط.
@@ -146,7 +138,6 @@ export const respondAppointmentInvite = createServerFn({ method: "POST" })
       _accept: data.accept,
     });
     if (error) {
-      if (missing(error.message)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true };
@@ -166,7 +157,6 @@ export const listMyAppointmentInvites = createServerFn({ method: "GET" })
     const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
     const { data, error } = await rpc("list_my_appointment_invites");
     if (error) {
-      if (missing(error.message)) return [];
       throw new Error(error.message);
     }
     return (data ?? []) as MyInvite[];
@@ -185,7 +175,6 @@ export const getMeetingAccess = createServerFn({ method: "POST" })
         _appointment_id: data.appointmentId,
       });
       if (error) {
-        if (missing(error.message)) return { available: false, isMeeting: false, canJoin: false };
         throw new Error(error.message);
       }
       const out = res as { is_meeting: boolean; can_join: boolean };
@@ -226,7 +215,6 @@ export const verifyAppointmentReference = createServerFn({ method: "POST" })
         { _reference: data.reference, _date: data.date },
       );
       if (error) {
-        if (missing(error.message)) return { available: false, found: false };
         throw new Error(error.message);
       }
       const out = res as { found: boolean; status?: string; kind?: string; date?: string };
@@ -242,7 +230,6 @@ export const cancelAppointmentInvite = createServerFn({ method: "POST" })
     const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
     const { error } = await rpc("cancel_appointment_invite", { _invite_id: data.inviteId });
     if (error) {
-      if (missing(error.message)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true };
@@ -257,7 +244,6 @@ export const listAppointmentShareTargets = createServerFn({ method: "GET" })
     const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
     const { data, error } = await rpc("appointment_share_targets");
     if (error) {
-      if (missing(error.message)) return { available: false, targets: [] };
       throw new Error(error.message);
     }
     return { available: true, targets: (data ?? []) as ShareTarget[] };
@@ -276,7 +262,6 @@ export const shareAppointmentInternal = createServerFn({ method: "POST" })
       _user_id: data.userId,
     });
     if (error) {
-      if (missing(error.message)) return { available: false };
       throw new Error(error.message);
     }
     return { available: true };

@@ -309,7 +309,7 @@ begin
   end if;
 
   _eval := public.evaluate_erasure_constraints(_user_id);
-  if coalesce((_eval ->> 'can_erase')::boolean, false) is not true then
+  if coalesce((_eval ->> 'can_fully_erase')::boolean, false) is not true then
     raise exception 'ERASURE_BLOCKED';
   end if;
 
@@ -577,10 +577,16 @@ begin
     raise exception 'INVALID_STATUS';
   end if;
 
-  select verification_status into _old from public.entities where id = _entity_id;
+  -- تصحيح التطبيق (2026-08-18): التوثيق يُخزَّن في entity_profiles لا entities.
+  select verification_status into _old from public.entity_profiles where entity_id = _entity_id;
   if not found then raise exception 'NOT_FOUND'; end if;
 
-  update public.entities set verification_status = _status where id = _entity_id;
+  update public.entity_profiles
+     set verification_status = _status,
+         verified_at = case when _status = 'verified' then now() else null end,
+         verified_by = case when _status = 'verified' then _actor else null end,
+         verification_note = _reason
+   where entity_id = _entity_id;
 
   perform private.admin_audit(_actor, 'admin.entity.verification', 'entity', _entity_id::text,
     _reason, null, _entity_id, null,
@@ -621,3 +627,23 @@ end $$;
 grant execute on function private.user_is_suspended(uuid) to authenticated;
 grant execute on function private.account_is_suspended(uuid) to authenticated;
 grant execute on function private.is_platform_admin(uuid) to authenticated;
+
+/* ------------------------------------------------------------------ *
+ * تصحيحات التطبيق (2026-08-18): توسيع القيود المرافقة
+ * ------------------------------------------------------------------ */
+
+alter table public.service_listings drop constraint if exists service_listings_status_check;
+alter table public.service_listings add constraint service_listings_status_check
+  check (status in ('draft','active','paused','archived','removed'));
+
+alter table public.permission_audit_log drop constraint if exists permission_audit_log_action_check;
+alter table public.permission_audit_log add constraint permission_audit_log_action_check
+  check (action ~ '^[a-z_]+(\.[a-z_]+)*$');
+
+alter table public.permission_audit_log drop constraint if exists permission_audit_log_object_type_check;
+alter table public.permission_audit_log add constraint permission_audit_log_object_type_check
+  check (object_type in (
+    'user','profile','identity','entity','entity_membership','project',
+    'service_listing','marketing_asset','entity_public_profile',
+    'membership','invitation','role','permission','queue_item','breakglass'
+  ));
