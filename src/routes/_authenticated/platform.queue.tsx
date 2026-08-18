@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CheckCircle2, Inbox, KeyRound, ShuffleIcon, UserCheck } from "lucide-react";
+import { CheckCircle2, ExternalLink, Inbox, KeyRound, ShuffleIcon, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import {
   type QueueItem,
 } from "@/lib/platform-admin.functions";
 import { AdminIdentitySearch } from "@/components/identity/identity-search";
+import { queueSourceLink } from "@/lib/platform-queue-links";
 
 export const Route = createFileRoute("/_authenticated/platform/queue")({
   component: PlatformQueuePage,
@@ -224,6 +225,7 @@ function QueueRow({
   const [minutes, setMinutes] = useState("60");
 
   const closed = item.status === "resolved" || item.status === "cancelled";
+  const source = queueSourceLink(item);
 
   return (
     <li className="rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:border-primary/30 hover:shadow-card">
@@ -237,6 +239,14 @@ function QueueRow({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {source ? (
+            <Button asChild variant="ghost" size="sm" className="min-h-11 gap-2">
+              <Link to={source.to} params={source.params as never}>
+                <ExternalLink className="size-4" aria-hidden="true" />
+                {source.label}
+              </Link>
+            </Button>
+          ) : null}
           {statusChip(item.status)}
           {!closed ? (
             <Button variant="outline" className="min-h-11" onClick={() => setOpen((v) => !v)}>
