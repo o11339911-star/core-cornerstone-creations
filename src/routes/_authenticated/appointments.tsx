@@ -316,17 +316,17 @@ function AppointmentsPage() {
 
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">الموعد (بتوقيت الرياض)</span>
-            <Input
-              type="datetime-local"
-              dir="ltr"
-              className="text-start"
+            <LatinDateTimePicker
               value={form.startsAt}
-              onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+              onChange={(v) => setForm({ ...form, startsAt: v })}
+              min={todayRiyadh()}
+              invalid={!!errors['startsAt']}
             />
             {errors['startsAt'] ? (
               <span className="text-xs text-destructive">{errors['startsAt']}</span>
             ) : null}
           </label>
+
 
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">مهلة الإلغاء بالساعات (اختياري)</span>
