@@ -12,7 +12,7 @@ import {
   QrCode as QrIcon,
 } from "lucide-react";
 
-import { toLatinDigits } from "@/lib/format";
+import { formatDateTime, toLatinDigits } from "@/lib/format";
 import { useAccountUi } from "@/lib/account-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
