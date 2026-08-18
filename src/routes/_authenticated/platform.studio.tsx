@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileText, LayoutGrid, Megaphone, Store } from "lucide-react";
+import { FileText, LayoutGrid } from "lucide-react";
 
 import { ErrorState, PageHero, SectionCard } from "@/components/rakeez";
 import { Badge } from "@/components/ui/badge";
@@ -30,22 +30,11 @@ const CONNECTED = [
     description: "مراجعة واعتماد قوالب التقارير الهندسية على مستوى المنصة.",
     icon: FileText,
   },
-  {
-    to: "/marketing",
-    label: "المحتوى التسويقي",
-    description: "المواد التسويقية المرتبطة بالمشاريع والكيانات.",
-    icon: Megaphone,
-  },
-  {
-    to: "/marketplace",
-    label: "واجهة السوق",
-    description: "معاينة ما يراه الجمهور في سوق ركيز.",
-    icon: Store,
-  },
 ] as const;
 
 /** أسطح لا يوجد لها backend بعد — تُعرض كبنية غير مفعّلة بلا أزرار كاذبة. */
 const NOT_WIRED = [
+  "المحتوى التسويقي العام للمنصة",
   "مكتبة وسائط مركزية للمنصة",
   "بنوك الصور والهوية البصرية",
   "جدولة نشر المحتوى العام",
