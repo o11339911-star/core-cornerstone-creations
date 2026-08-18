@@ -92,14 +92,15 @@ function PlatformEntityDetailPage() {
       <PageHero
         title={entity?.name ?? "تفاصيل الكيان"}
         subtitle="عرض إداري لبيانات الكيان وأعضائه — دون تجاوز العزل بين الحسابات."
+        aside={
+          <Button asChild variant="outline" className="min-h-11 gap-2">
+            <Link to="/platform/entities">
+              <ArrowRight className="size-4" aria-hidden="true" />
+              رجوع إلى الكيانات
+            </Link>
+          </Button>
+        }
       />
-
-      <Button asChild variant="outline" className="min-h-11 gap-2">
-        <Link to="/platform/entities">
-          <ArrowRight className="size-4" aria-hidden="true" />
-          رجوع إلى الكيانات
-        </Link>
-      </Button>
 
       {query.isPending ? (
         <Skeleton className="h-64 w-full rounded-2xl" />

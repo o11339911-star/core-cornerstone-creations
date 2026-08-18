@@ -51,7 +51,15 @@ function BreachPlaybookPage() {
     <div className="space-y-6">
       <PageHero
         title="خطة الاستجابة لحوادث البيانات"
-        subtitle="إجراء داخلي ملزم لفريق تشغيل المنصة عند أي اشتباه في تسرب أو فقدان بيانات."
+        subtitle="إجراء داخلي ملزم عند أي اشتباه في تسرب أو فقدان بيانات."
+        aside={
+          <Button asChild className="min-h-11 gap-2">
+            <Link to="/platform/incidents">
+              <ShieldAlert className="size-4" aria-hidden="true" />
+              سجل الحوادث
+            </Link>
+          </Button>
+        }
       />
       <SectionCard icon={ShieldAlert} title="الإجراء المعتمد">
         <MarkdownView source={PLAYBOOK} />

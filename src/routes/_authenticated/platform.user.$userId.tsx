@@ -86,15 +86,16 @@ function PlatformUserDetailPage() {
 
       <PageHero
         title={user?.full_name ?? "تفاصيل المستخدم"}
-        subtitle="عرض إداري للبيانات الآمنة فقط — دون كلمات مرور أو رموز أو بيانات حسّاسة."
+        subtitle="عرض إداري للبيانات الآمنة فقط — دون كلمات مرور أو رموز."
+        aside={
+          <Button asChild variant="outline" className="min-h-11 gap-2">
+            <Link to="/platform/users">
+              <ArrowRight className="size-4" aria-hidden="true" />
+              رجوع إلى المستخدمين
+            </Link>
+          </Button>
+        }
       />
-
-      <Button asChild variant="outline" className="min-h-11 gap-2">
-        <Link to="/platform/users">
-          <ArrowRight className="size-4" aria-hidden="true" />
-          رجوع إلى المستخدمين
-        </Link>
-      </Button>
 
       {query.isPending ? (
         <Skeleton className="h-64 w-full rounded-2xl" />

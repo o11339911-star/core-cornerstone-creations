@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { FileText, LayoutGrid } from "lucide-react";
 
 import { ErrorState, PageHero, SectionCard } from "@/components/rakeez";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/platform/studio")({
@@ -45,7 +46,15 @@ function PlatformStudioPage() {
     <div className="space-y-6">
       <PageHero
         title="الاستديو"
-        subtitle="سطح إدارة المحتوى والوسائط — يوصل الأنظمة الموجودة فعلًا ولا ينشئ نظامًا موازيًا."
+        subtitle="سطح إدارة المحتوى والوسائط — يوصل الأنظمة القائمة ولا ينشئ نظامًا موازيًا."
+        aside={
+          <Button asChild className="min-h-11 gap-2">
+            <Link to="/platform/report-templates">
+              <FileText className="size-4" aria-hidden="true" />
+              قوالب التقارير
+            </Link>
+          </Button>
+        }
       />
 
       <SectionCard icon={LayoutGrid} title="أسطح موصولة" count={CONNECTED.length}>
