@@ -52,6 +52,7 @@ import { Route as AuthenticatedPlatformBreachPlaybookRouteImport } from './route
 import { Route as AuthenticatedPlatformBreakglassRouteImport } from './routes/_authenticated/platform.breakglass'
 import { Route as AuthenticatedPlatformDsrRouteImport } from './routes/_authenticated/platform.dsr'
 import { Route as AuthenticatedPlatformEntitiesRouteImport } from './routes/_authenticated/platform.entities'
+import { Route as AuthenticatedPlatformEscalationsRouteImport } from './routes/_authenticated/platform.escalations'
 import { Route as AuthenticatedPlatformFlagsRouteImport } from './routes/_authenticated/platform.flags'
 import { Route as AuthenticatedPlatformIncidentsRouteImport } from './routes/_authenticated/platform.incidents'
 import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/_authenticated/platform.integrations'
@@ -330,6 +331,12 @@ const AuthenticatedPlatformEntitiesRoute =
   AuthenticatedPlatformEntitiesRouteImport.update({
     id: '/entities',
     path: '/entities',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformEscalationsRoute =
+  AuthenticatedPlatformEscalationsRouteImport.update({
+    id: '/escalations',
+    path: '/escalations',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
 const AuthenticatedPlatformFlagsRoute =
@@ -667,6 +674,7 @@ export interface FileRoutesByFullPath {
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
+  '/platform/escalations': typeof AuthenticatedPlatformEscalationsRoute
   '/platform/flags': typeof AuthenticatedPlatformFlagsRoute
   '/platform/incidents': typeof AuthenticatedPlatformIncidentsRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
@@ -758,6 +766,7 @@ export interface FileRoutesByTo {
   '/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
+  '/platform/escalations': typeof AuthenticatedPlatformEscalationsRoute
   '/platform/flags': typeof AuthenticatedPlatformFlagsRoute
   '/platform/incidents': typeof AuthenticatedPlatformIncidentsRoute
   '/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
@@ -853,6 +862,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/breakglass': typeof AuthenticatedPlatformBreakglassRoute
   '/_authenticated/platform/dsr': typeof AuthenticatedPlatformDsrRoute
   '/_authenticated/platform/entities': typeof AuthenticatedPlatformEntitiesRoute
+  '/_authenticated/platform/escalations': typeof AuthenticatedPlatformEscalationsRoute
   '/_authenticated/platform/flags': typeof AuthenticatedPlatformFlagsRoute
   '/_authenticated/platform/incidents': typeof AuthenticatedPlatformIncidentsRoute
   '/_authenticated/platform/integrations': typeof AuthenticatedPlatformIntegrationsRoute
@@ -948,6 +958,7 @@ export interface FileRouteTypes {
     | '/platform/breakglass'
     | '/platform/dsr'
     | '/platform/entities'
+    | '/platform/escalations'
     | '/platform/flags'
     | '/platform/incidents'
     | '/platform/integrations'
@@ -1039,6 +1050,7 @@ export interface FileRouteTypes {
     | '/platform/breakglass'
     | '/platform/dsr'
     | '/platform/entities'
+    | '/platform/escalations'
     | '/platform/flags'
     | '/platform/incidents'
     | '/platform/integrations'
@@ -1133,6 +1145,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/breakglass'
     | '/_authenticated/platform/dsr'
     | '/_authenticated/platform/entities'
+    | '/_authenticated/platform/escalations'
     | '/_authenticated/platform/flags'
     | '/_authenticated/platform/incidents'
     | '/_authenticated/platform/integrations'
@@ -1509,6 +1522,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformEntitiesRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
+    '/_authenticated/platform/escalations': {
+      id: '/_authenticated/platform/escalations'
+      path: '/escalations'
+      fullPath: '/platform/escalations'
+      preLoaderRoute: typeof AuthenticatedPlatformEscalationsRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/platform/flags': {
       id: '/_authenticated/platform/flags'
       path: '/flags'
@@ -1861,6 +1881,7 @@ interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformBreakglassRoute: typeof AuthenticatedPlatformBreakglassRoute
   AuthenticatedPlatformDsrRoute: typeof AuthenticatedPlatformDsrRoute
   AuthenticatedPlatformEntitiesRoute: typeof AuthenticatedPlatformEntitiesRoute
+  AuthenticatedPlatformEscalationsRoute: typeof AuthenticatedPlatformEscalationsRoute
   AuthenticatedPlatformFlagsRoute: typeof AuthenticatedPlatformFlagsRoute
   AuthenticatedPlatformIncidentsRoute: typeof AuthenticatedPlatformIncidentsRoute
   AuthenticatedPlatformIntegrationsRoute: typeof AuthenticatedPlatformIntegrationsRoute
@@ -1884,6 +1905,7 @@ const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
   AuthenticatedPlatformBreakglassRoute: AuthenticatedPlatformBreakglassRoute,
   AuthenticatedPlatformDsrRoute: AuthenticatedPlatformDsrRoute,
   AuthenticatedPlatformEntitiesRoute: AuthenticatedPlatformEntitiesRoute,
+  AuthenticatedPlatformEscalationsRoute: AuthenticatedPlatformEscalationsRoute,
   AuthenticatedPlatformFlagsRoute: AuthenticatedPlatformFlagsRoute,
   AuthenticatedPlatformIncidentsRoute: AuthenticatedPlatformIncidentsRoute,
   AuthenticatedPlatformIntegrationsRoute:
