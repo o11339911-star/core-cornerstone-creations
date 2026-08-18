@@ -46,8 +46,25 @@ const KIND_LABEL: Record<string, string> = {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 
+/** بيانات الموعد الأساسية القادمة من القائمة — تُعرض دائمًا حتى قبل توفّر بطاقة الخادم. */
+export type AppointmentCardBasics = {
+  title: string;
+  kind: string;
+  status: string;
+  startsAt: string;
+  createdAt: string | null;
+  requesterLabel: string | null;
+  providerLabel: string | null;
+};
+
 /** بطاقة موعد دائمة: مرجع «Rakiz»، رمز تحقق، مشاركة، مشاركون، ودخول الاجتماع. */
-export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
+export function AppointmentCard({
+  appointmentId,
+  basics,
+}: {
+  appointmentId: string;
+  basics?: AppointmentCardBasics;
+}) {
   const qc = useQueryClient();
   const fetchCard = useServerFn(getAppointmentCard);
   const fetchInvites = useServerFn(listAppointmentInvites);
@@ -61,22 +78,32 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [shareTarget, setShareTarget] = useState("");
 
+  const q = { retry: false, staleTime: 30_000, refetchOnWindowFocus: false } as const;
   const card = useQuery({
     queryKey: ["appointment-card", appointmentId],
     queryFn: () => fetchCard({ data: { appointmentId } }),
+    ...q,
   });
+  const cardAvailable = card.data?.available === true && !!card.data.card;
   const invites = useQuery({
     queryKey: ["appointment-invites", appointmentId],
     queryFn: () => fetchInvites({ data: { appointmentId } }),
+    enabled: cardAvailable,
+    ...q,
   });
   const meeting = useQuery({
     queryKey: ["appointment-meeting", appointmentId],
     queryFn: () => fetchMeeting({ data: { appointmentId } }),
+    enabled: cardAvailable,
+    ...q,
   });
   const targets = useQuery({
     queryKey: ["appointment-share-targets"],
     queryFn: () => fetchTargets(),
+    enabled: cardAvailable,
+    ...q,
   });
+
 
   const cancelOne = useMutation({
     mutationFn: (inviteId: string) => cancelInvite({ data: { inviteId } }),
