@@ -9,6 +9,8 @@ import {
   ListChecks,
   LogOut,
   PlugZap,
+  ScrollText,
+
   ShieldAlert,
   ShieldCheck,
   UserSearch,
