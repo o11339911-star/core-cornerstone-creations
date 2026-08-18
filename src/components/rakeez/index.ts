@@ -50,3 +50,5 @@ export {
 } from "./dashboard-kit";
 export { QrCode } from "./qr-code";
 export { AppointmentCard } from "./appointment-card";
+export { AdminAction } from "./admin-action";
+export type { AdminActionProps, AdminActionOutcome } from "./admin-action";
