@@ -169,7 +169,12 @@ async function deriveRowsServerSide(
 export const listMyAppointments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MyAppointment[]> => {
-    const { data, error } = await context.supabase.rpc("list_my_appointments");
+    // الدوال الجديدة غير موجودة في أنواع القاعدة المولّدة قبل تطبيق الهجرة 04.
+    const rpc = (context.supabase as unknown as SupabaseLike).rpc as (
+      fn: string,
+      args?: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
+    const { data, error } = await rpc("list_my_appointments");
     if (!error) return z.array(myAppointmentSchema).parse(data ?? []);
     // الدالة غير موجودة بعد: اشتقاق خادمي مكافئ بلا كشف أي موعد لطرف ثالث.
     if (/list_my_appointments|does not exist|PGRST202|42883/i.test(error.message))
@@ -232,7 +237,11 @@ export const rescheduleAppointment = createServerFn({ method: "POST" })
     if (Number.isNaN(Date.parse(startsAt))) throw new Error("INVALID_DATETIME");
     if (new Date(startsAt).getTime() <= Date.now()) throw new Error("APPOINTMENT_IN_THE_PAST");
 
-    const { error } = await context.supabase.rpc("reschedule_appointment", {
+    const rpc = (context.supabase as unknown as SupabaseLike).rpc as (
+      fn: string,
+      args?: Record<string, unknown>,
+    ) => Promise<{ error: { message: string } | null }>;
+    const { error } = await rpc("reschedule_appointment", {
       _appointment_id: data.appointmentId,
       _new_starts_at: startsAt,
       ...(data.reason ? { _reason: data.reason } : {}),
