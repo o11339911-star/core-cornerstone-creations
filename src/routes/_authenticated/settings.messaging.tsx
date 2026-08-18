@@ -1,33 +1,40 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Mail, MessageCircle, ShieldCheck } from "lucide-react";
+import { Inbox, Mail, RefreshCw, ShieldCheck, Unlink } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState, HeroBadge, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
+import { OfficialEmailCard } from "@/components/rakeez/official-email-card";
 import { useAccountUi } from "@/lib/account-ui";
-import { listMessagingChannels, saveMessagingChannel } from "@/lib/messaging.functions";
+import {
+  disconnectMailbox,
+  getMailboxOverview,
+  startMailboxConnect,
+  syncMailbox,
+} from "@/lib/mailbox.functions";
 
 export const Route = createFileRoute("/_authenticated/settings/messaging")({
   component: MessagingSettingsPage,
   errorComponent: ErrorState,
+  validateSearch: (search: Record<string, unknown>) => ({
+    mail: typeof search['mail'] === "string" ? (search['mail'] as string) : undefined,
+  }),
   head: () => ({
     meta: [
-      { title: "ربط البريد والواتساب | ركيز" },
+      { title: "البريد الرسمي وصندوق البريد | ركيز" },
       {
         name: "description",
         content:
-          "إعداد قنوات المراسلة للكيان: مزوّد البريد أو الواتساب وعنوان الإرسال واسم متغير البيئة للمفتاح، دون تخزين أي سر.",
+          "اربط بريدك الرسمي الموثق وصندوق بريد Gmail أو Microsoft داخل ركيز، واقرأ رسائلك وأرسلها دون مغادرة المنصة.",
       },
-      { property: "og:title", content: "ربط البريد والواتساب | ركيز" },
+      { property: "og:title", content: "البريد الرسمي وصندوق البريد | ركيز" },
       {
         property: "og:description",
-        content: "حالة اتصال واضحة لكل قناة، ولا يدّعي التطبيق اتصالًا غير حقيقي.",
+        content: "ربط آمن بموافقتك، وتخزين محمي لبيانات الدخول على الخادم وحده.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -35,172 +42,187 @@ export const Route = createFileRoute("/_authenticated/settings/messaging")({
   }),
 });
 
-const CHANNELS = [
-  { value: "email" as const, label: "البريد الإلكتروني", icon: Mail, hint: "مثال: RESEND_API_KEY" },
+const PROVIDER_CARDS = [
   {
-    value: "whatsapp" as const,
-    label: "واتساب",
-    icon: MessageCircle,
-    hint: "مثال: WHATSAPP_ACCESS_TOKEN",
+    key: "gmail" as const,
+    title: "Gmail",
+    hint: "بريد Google الشخصي أو بريد المؤسسة على Workspace.",
+  },
+  {
+    key: "microsoft" as const,
+    title: "Microsoft / Outlook",
+    hint: "بريد Outlook.com أو بريد المؤسسة على Microsoft 365.",
   },
 ];
 
-const STATUS_LABEL: Record<string, { text: string; tone: "success" | "warning" | "neutral" }> = {
-  connected: { text: "متصل", tone: "success" },
-  awaiting_credentials: { text: "بانتظار بيانات الاعتماد", tone: "warning" },
-  not_configured: { text: "غير مُعد", tone: "neutral" },
+const CALLBACK_MESSAGE: Record<string, { text: string; ok: boolean }> = {
+  connected: { text: "تم ربط صندوق البريد بنجاح", ok: true },
+  expired: { text: "انتهت مهلة الربط — أعد المحاولة", ok: false },
+  unconfigured: { text: "خدمة الربط غير مُفعّلة بعد لدى مدير النظام", ok: false },
+  failed: { text: "تعذّر إكمال الربط مع مزوّد البريد", ok: false },
 };
 
 function MessagingSettingsPage() {
   const qc = useQueryClient();
-  const { activeEntity, loading } = useAccountUi();
+  const { activeEntity } = useAccountUi();
   const entityId = activeEntity?.id ?? null;
+  const search = useSearch({ from: "/_authenticated/settings/messaging" });
 
-  const fetchChannels = useServerFn(listMessagingChannels);
-  const save = useServerFn(saveMessagingChannel);
+  const fetchOverview = useServerFn(getMailboxOverview);
+  const connect = useServerFn(startMailboxConnect);
+  const sync = useServerFn(syncMailbox);
+  const disconnect = useServerFn(disconnectMailbox);
 
-  const channels = useQuery({
-    queryKey: ["messaging-channels", entityId],
-    queryFn: () => fetchChannels({ data: { entityId: entityId as string } }),
-    enabled: Boolean(entityId),
+  const overview = useQuery({
+    queryKey: ["mailbox-overview", entityId],
+    queryFn: () => fetchOverview({ data: { entityId } }),
   });
 
-  const [drafts, setDrafts] = React.useState<
-    Record<string, { provider: string; fromAddress: string; secretEnvName: string }>
-  >({});
+  const notified = React.useRef(false);
+  React.useEffect(() => {
+    if (notified.current || !search.mail) return;
+    notified.current = true;
+    const m = CALLBACK_MESSAGE[search.mail];
+    if (m) (m.ok ? toast.success : toast.error)(m.text);
+    if (m?.ok) void qc.invalidateQueries({ queryKey: ["mailbox-overview"] });
+  }, [search.mail, qc]);
 
-  const draftFor = (channel: string) => {
-    const existing = (channels.data ?? []).find((c) => c.channel === channel);
-    return (
-      drafts[channel] ?? {
-        provider: existing?.provider ?? "",
-        fromAddress: existing?.from_address ?? "",
-        secretEnvName: existing?.secret_env_name ?? "",
-      }
-    );
-  };
-
-  const mutation = useMutation({
-    mutationFn: (channel: "email" | "whatsapp") => {
-      const d = draftFor(channel);
-      return save({
-        data: {
-          entityId: entityId as string,
-          channel,
-          provider: d.provider.trim() || null,
-          fromAddress: d.fromAddress.trim() || null,
-          secretEnvName: d.secretEnvName.trim() || null,
-          note: null,
-        },
-      });
-    },
+  const connectMutation = useMutation({
+    mutationFn: (provider: "gmail" | "microsoft") =>
+      connect({ data: { entityId, provider } }),
     onSuccess: (res) => {
-      toast.success(res.connected ? "تم الحفظ — القناة متصلة" : "تم الحفظ — بانتظار بيانات الاعتماد");
-      void qc.invalidateQueries({ queryKey: ["messaging-channels"] });
+      window.location.href = res.url;
     },
-    onError: () => toast.error("تعذّر حفظ إعداد القناة"),
+    onError: () => toast.error("تعذّر بدء الربط — تأكد من تفعيل الخدمة لدى مدير النظام"),
   });
 
-  if (!loading && !entityId) {
-    return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-6">
-        <SoftEmpty
-          icon={ShieldCheck}
-          message="قنوات المراسلة تُربط بكيان تجاري — بدّل إلى كيان نشط أولًا."
-        />
-      </div>
-    );
-  }
+  const syncMutation = useMutation({
+    mutationFn: (connectionId: string) => sync({ data: { connectionId } }),
+    onSuccess: (res) => {
+      toast.success(`تم تحديث الصندوق: ${res.inbox} واردة و${res.sent} صادرة`);
+      void qc.invalidateQueries({ queryKey: ["mailbox-overview"] });
+    },
+    onError: () => toast.error("تعذّر تحديث الصندوق — قد تحتاج إعادة الربط"),
+  });
+
+  const disconnectMutation = useMutation({
+    mutationFn: (connectionId: string) =>
+      disconnect({ data: { connectionId, keepArchive: true } }),
+    onSuccess: () => {
+      toast.success("تم فصل صندوق البريد");
+      void qc.invalidateQueries({ queryKey: ["mailbox-overview"] });
+    },
+    onError: () => toast.error("تعذّر فصل صندوق البريد"),
+  });
+
+  const connections = overview.data?.connections ?? [];
+  const configuredOf = (p: string) =>
+    Boolean(overview.data?.providers.find((x) => x.provider === p)?.configured);
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <PageHero
-        title="ربط البريد والواتساب"
-        subtitle="لا تُخزَّن أي مفاتيح في التطبيق — نحفظ اسم متغير البيئة فقط، وتُشتق حالة الاتصال خادميًا من وجود القيمة."
-        badge={<HeroBadge tone="neutral">{activeEntity?.name ?? ""}</HeroBadge>}
+        title="البريد الرسمي وصندوق البريد"
+        subtitle="وثّق بريدك الرسمي، واربط صندوق بريدك لقراءة الرسائل وإرسالها من داخل ركيز. الربط بموافقتك وحدك، ويمكنك فصله في أي وقت."
+        badge={<HeroBadge tone="neutral">{activeEntity?.name ?? "حسابي"}</HeroBadge>}
       />
 
-      {channels.isPending ? (
+      <OfficialEmailCard entityId={entityId} />
+
+      {overview.isPending ? (
         <div className="space-y-4" role="status" aria-busy="true">
-          <Skeleton className="h-56 w-full rounded-2xl" />
-          <Skeleton className="h-56 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
         </div>
-      ) : channels.isError ? (
-        <ErrorState description="تعذّر تحميل قنوات المراسلة" onRetry={() => void channels.refetch()} />
+      ) : overview.isError ? (
+        <ErrorState description="تعذّر تحميل صناديق البريد" onRetry={() => void overview.refetch()} />
       ) : (
-        CHANNELS.map((c) => {
-          const row = (channels.data ?? []).find((r) => r.channel === c.value);
-          const status = STATUS_LABEL[row?.status ?? "not_configured"]!;
-          const d = draftFor(c.value);
-          return (
-            <SectionCard
-              key={c.value}
-              icon={c.icon}
-              title={c.label}
-              action={<HeroBadge tone={status.tone}>{status.text}</HeroBadge>}
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor={`${c.value}-provider`}>المزوّد</Label>
-                  <Input
-                    id={`${c.value}-provider`}
-                    value={d.provider}
-                    onChange={(e) =>
-                      setDrafts((prev) => ({ ...prev, [c.value]: { ...d, provider: e.target.value } }))
-                    }
-                    className="min-h-11"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`${c.value}-from`}>
-                    {c.value === "email" ? "عنوان الإرسال" : "رقم الإرسال"}
-                  </Label>
-                  <Input
-                    id={`${c.value}-from`}
-                    dir="ltr"
-                    value={d.fromAddress}
-                    onChange={(e) =>
-                      setDrafts((prev) => ({
-                        ...prev,
-                        [c.value]: { ...d, fromAddress: e.target.value },
-                      }))
-                    }
-                    className="min-h-11"
-                  />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${c.value}-secret`}>اسم متغير البيئة للمفتاح</Label>
-                  <Input
-                    id={`${c.value}-secret`}
-                    dir="ltr"
-                    placeholder={c.hint}
-                    value={d.secretEnvName}
-                    onChange={(e) =>
-                      setDrafts((prev) => ({
-                        ...prev,
-                        [c.value]: { ...d, secretEnvName: e.target.value.toUpperCase() },
-                      }))
-                    }
-                    className="min-h-11"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    أضف قيمة المفتاح في إعدادات المشروع ← الأسرار. لا تكتب القيمة هنا أبدًا.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Button
-                  type="button"
-                  className="min-h-11"
-                  disabled={mutation.isPending}
-                  onClick={() => mutation.mutate(c.value)}
-                >
-                  {mutation.isPending ? "جارٍ الحفظ…" : "حفظ الإعداد"}
-                </Button>
-              </div>
-            </SectionCard>
-          );
-        })
+        <>
+          <SectionCard icon={Inbox} title="صناديق البريد المربوطة">
+            {connections.length === 0 ? (
+              <SoftEmpty
+                icon={Mail}
+                message="لا يوجد صندوق بريد مربوط بعد — اختر مزوّدًا من الأسفل للربط."
+              />
+            ) : (
+              <ul className="space-y-3">
+                {connections.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex flex-col gap-3 rounded-xl border border-border/60 bg-secondary/30 p-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <p className="truncate text-sm font-medium" dir="ltr">
+                        {c.email_address}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <HeroBadge tone={c.status === "connected" ? "success" : "warning"}>
+                          {c.status === "connected" ? "متصل" : "يحتاج إعادة ربط"}
+                        </HeroBadge>
+                        <span className="text-xs text-muted-foreground">
+                          {c.provider === "gmail" ? "Gmail" : "Microsoft"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="min-h-11"
+                        disabled={syncMutation.isPending}
+                        onClick={() => syncMutation.mutate(c.id)}
+                      >
+                        <RefreshCw className="size-4" />
+                        تحديث
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="min-h-11 text-destructive"
+                        disabled={disconnectMutation.isPending}
+                        onClick={() => disconnectMutation.mutate(c.id)}
+                      >
+                        <Unlink className="size-4" />
+                        فصل
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionCard>
+
+          <SectionCard icon={ShieldCheck} title="ربط صندوق بريد جديد">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {PROVIDER_CARDS.map((p) => {
+                const ready = configuredOf(p.key);
+                return (
+                  <div
+                    key={p.key}
+                    className="flex flex-col justify-between gap-3 rounded-xl border border-border/60 p-4"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold">{p.title}</p>
+                      <p className="text-xs text-muted-foreground">{p.hint}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      className="min-h-11 w-full"
+                      disabled={!ready || connectMutation.isPending}
+                      onClick={() => connectMutation.mutate(p.key)}
+                    >
+                      {ready ? "ربط الآن" : "غير مُفعّل بعد"}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              بريد آخر: يحتاج موصلًا متوافقًا يعمل عبر واجهات ويب آمنة. الربط المباشر بخوادم البريد
+              التقليدية غير متاح في بيئة التشغيل الحالية، ولا نعرض خيارًا لا يعمل فعلًا.
+            </p>
+          </SectionCard>
+        </>
       )}
     </div>
   );
