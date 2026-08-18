@@ -175,19 +175,47 @@ function NotificationsPage() {
         ) : (
           <ul className="space-y-3">
             {rows.map((n) => (
-              <li key={n.id} className="rounded-lg border border-border bg-card p-4 shadow-card">
+              <li
+                key={n.id}
+                className={`rounded-lg border p-4 shadow-card ${
+                  n.read_at ? "border-border bg-card" : "border-primary/40 bg-primary/5"
+                }`}
+              >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-foreground">
-                    {TYPE_LABEL_AR[n.type_code] ?? "تنبيه من ركيز"}
-                  </span>
+                  <span className="font-semibold text-foreground">{typeLabel(n.type_code)}</span>
                   {!n.read_at && <Badge variant="destructive">{t("notifications.unread")}</Badge>}
-                  {n.severity === "critical" && <Badge variant="destructive">{t("notifications.security")}</Badge>}
-                  <span className="ms-auto text-xs text-muted-foreground">
-                    {formatRiyadh(n.created_at)} · {t("notifications.riyadhTime")}
+                  {n.severity === "critical" && (
+                    <Badge variant="destructive">{t("notifications.security")}</Badge>
+                  )}
+                  <span className="ms-auto text-xs text-muted-foreground" dir="ltr">
+                    {formatRiyadh(n.created_at)}
                   </span>
                 </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{t("notifications.from")}:</span>
+                  <span className="font-medium text-foreground">{n.source.name}</span>
+                  {n.source.kind === "platform" ? (
+                    <Badge className="gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                      {t("notifications.officialSource")}
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      {n.source.kind === "entity" ? "كيان" : "فرد"}
+                    </Badge>
+                  )}
+                </div>
+
                 {notificationDetails(n.payload) ? (
                   <p className="mt-2 text-sm text-muted-foreground">{notificationDetails(n.payload)}</p>
+                ) : null}
+
+                {n.read_at ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("notifications.readAt")}{" "}
+                    <span dir="ltr">{formatRiyadh(n.read_at)}</span>
+                  </p>
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap gap-2">
