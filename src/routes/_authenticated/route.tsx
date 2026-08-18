@@ -1,7 +1,8 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 
 import { AccountCompletionGate } from "@/components/account/account-completion-gate";
 import { AuthenticatedAppShell } from "@/components/app-shell";
+import { PlatformShell } from "@/components/platform-shell";
 import { PolicyAcceptanceGate } from "@/components/legal/policy-acceptance-gate";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -24,6 +25,17 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // بيئة الإدارة مستقلة: لا قشرة الحساب العام ولا بوابة اكتمال الحساب الشخصي.
+  if (pathname === "/platform" || pathname.startsWith("/platform/")) {
+    return (
+      <PlatformShell>
+        <Outlet />
+      </PlatformShell>
+    );
+  }
+
   return (
     <PolicyAcceptanceGate>
       <AccountCompletionGate>
