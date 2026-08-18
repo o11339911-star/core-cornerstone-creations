@@ -51,6 +51,9 @@ export type AppointmentInvite = {
   linked_account: boolean;
   created_at: string;
   responded_at: string | null;
+  accepted_at: string | null;
+  invited_by_label: string | null;
+  can_cancel: boolean;
 };
 
 export const listAppointmentInvites = createServerFn({ method: "POST" })
@@ -90,7 +93,12 @@ export const inviteAppointmentParticipant = createServerFn({ method: "POST" })
     async ({
       data,
       context,
-    }): Promise<{ available: boolean; linkedAccount: boolean; emailSent: boolean }> => {
+    }): Promise<{
+      available: boolean;
+      linkedAccount: boolean;
+      emailSent: boolean;
+      mailConfigured: boolean;
+    }> => {
       const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
       const { data: res, error } = await rpc("invite_appointment_participant", {
         _appointment_id: data.appointmentId,
@@ -98,40 +106,31 @@ export const inviteAppointmentParticipant = createServerFn({ method: "POST" })
         _user_id: data.userId,
       });
       if (error) {
-        if (missing(error.message)) return { available: false, linkedAccount: false, emailSent: false };
+        if (missing(error.message))
+          return { available: false, linkedAccount: false, emailSent: false, mailConfigured: true };
         throw new Error(error.message);
       }
       const out = res as { linked_account: boolean };
 
-      // البريد الخارجي يمر بطبقة البريد الرسمية وحدها — بلا مزوّد مكرر.
+      // البريد الخارجي يمر عبر طبقة بريد المنصة وحدها؛ إن لم تكن معدّة نحفظ الدعوة فقط.
       let emailSent = false;
+      let mailConfigured = true;
       if (!out.linked_account && data.email) {
-        const apiKey = (process.env['RESEND_API_KEY'] ?? "").trim();
-        const from = (process.env['PLATFORM_EMAIL_FROM'] ?? "").trim();
-        if (apiKey && from) {
-          try {
-            const { getRequest } = await import("@tanstack/react-start/server");
-            const origin = new URL(getRequest().url).origin;
-            const res2 = await fetch("https://api.resend.com/emails", {
-              method: "POST",
-              headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-              body: JSON.stringify({
-                from,
-                to: data.email,
-                subject: "دعوة اجتماع في ركيز",
-                text:
-                  `لديك دعوة اجتماع في منصة ركيز.\n` +
-                  `سجّل الدخول أو أنشئ حسابًا بالبريد نفسه ثم اقبل الدعوة من صفحة المواعيد:\n${origin}/appointments\n` +
-                  `لا تُعرض تفاصيل الاجتماع قبل تسجيل الدخول وقبول الدعوة.`,
-              }),
-            });
-            emailSent = res2.ok;
-          } catch {
-            emailSent = false;
-          }
-        }
+        const { sendPlatformEmail } = await import("@/lib/mail/platform.server");
+        const { getRequest } = await import("@tanstack/react-start/server");
+        const origin = new URL(getRequest().url).origin;
+        const mail = await sendPlatformEmail({
+          to: data.email,
+          subject: "دعوة اجتماع في ركيز",
+          text:
+            `لديك دعوة اجتماع في منصة ركيز.\n` +
+            `سجّل الدخول أو أنشئ حسابًا بالبريد نفسه ثم اقبل الدعوة من صفحة المواعيد:\n${origin}/appointments\n` +
+            `لا تُعرض تفاصيل الاجتماع قبل تسجيل الدخول وقبول الدعوة.`,
+        });
+        emailSent = mail.sent;
+        mailConfigured = mail.reason !== "not_configured";
       }
-      return { available: true, linkedAccount: out.linked_account, emailSent };
+      return { available: true, linkedAccount: out.linked_account, emailSent, mailConfigured };
     },
   );
 
@@ -234,3 +233,51 @@ export const verifyAppointmentReference = createServerFn({ method: "POST" })
       return { available: true, ...out };
     },
   );
+
+/** إلغاء دعوة معلّقة من داعيها أو من أطراف الموعد. */
+export const cancelAppointmentInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ inviteId: uuid }).parse(input))
+  .handler(async ({ data, context }): Promise<{ available: boolean }> => {
+    const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
+    const { error } = await rpc("cancel_appointment_invite", { _invite_id: data.inviteId });
+    if (error) {
+      if (missing(error.message)) return { available: false };
+      throw new Error(error.message);
+    }
+    return { available: true };
+  });
+
+export type ShareTarget = { user_id: string; name: string };
+
+/** جهات المشاركة الداخلية: علاقات شبكة تواصل مقبولة فقط. */
+export const listAppointmentShareTargets = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ available: boolean; targets: ShareTarget[] }> => {
+    const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
+    const { data, error } = await rpc("appointment_share_targets");
+    if (error) {
+      if (missing(error.message)) return { available: false, targets: [] };
+      throw new Error(error.message);
+    }
+    return { available: true, targets: (data ?? []) as ShareTarget[] };
+  });
+
+/** مشاركة داخلية: إشعار بالمرجع والعنوان فقط، ولا تمنح أي وصول. */
+export const shareAppointmentInternal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ appointmentId: uuid, userId: uuid }).parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ available: boolean }> => {
+    const rpc = (context.supabase as unknown as { rpc: Rpc }).rpc;
+    const { error } = await rpc("share_appointment_internal", {
+      _appointment_id: data.appointmentId,
+      _user_id: data.userId,
+    });
+    if (error) {
+      if (missing(error.message)) return { available: false };
+      throw new Error(error.message);
+    }
+    return { available: true };
+  });

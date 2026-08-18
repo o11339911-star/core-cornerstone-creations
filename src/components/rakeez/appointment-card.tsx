@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, Link2, QrCode as QrIcon, UserPlus, Video } from "lucide-react";
+import { Copy, Link2, QrCode as QrIcon, Send, UserPlus, Video, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,13 @@ import { Input } from "@/components/ui/input";
 import { toLatinDigits } from "@/lib/format";
 import { QrCode } from "./qr-code";
 import {
+  cancelAppointmentInvite,
   getAppointmentCard,
   getMeetingAccess,
   inviteAppointmentParticipant,
   listAppointmentInvites,
+  listAppointmentShareTargets,
+  shareAppointmentInternal,
 } from "@/lib/appointment-card.functions";
 
 const RIYADH = "Asia/Riyadh";
@@ -60,9 +63,13 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
   const fetchInvites = useServerFn(listAppointmentInvites);
   const fetchMeeting = useServerFn(getMeetingAccess);
   const invite = useServerFn(inviteAppointmentParticipant);
+  const cancelInvite = useServerFn(cancelAppointmentInvite);
+  const fetchTargets = useServerFn(listAppointmentShareTargets);
+  const shareInternal = useServerFn(shareAppointmentInternal);
 
   const [email, setEmail] = useState("");
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [shareTarget, setShareTarget] = useState("");
 
   const card = useQuery({
     queryKey: ["appointment-card", appointmentId],
@@ -76,6 +83,43 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
     queryKey: ["appointment-meeting", appointmentId],
     queryFn: () => fetchMeeting({ data: { appointmentId } }),
   });
+  const targets = useQuery({
+    queryKey: ["appointment-share-targets"],
+    queryFn: () => fetchTargets(),
+  });
+
+  const cancelOne = useMutation({
+    mutationFn: (inviteId: string) => cancelInvite({ data: { inviteId } }),
+    onSuccess: (res) => {
+      if (!res.available) {
+        toast.error("إلغاء الدعوة غير مفعّل بعد على هذا الحساب.");
+        return;
+      }
+      toast.success("أُلغيت الدعوة.");
+      void qc.invalidateQueries({ queryKey: ["appointment-invites", appointmentId] });
+    },
+    onError: () => toast.error("تعذّر إلغاء الدعوة. حاول مرة أخرى."),
+  });
+
+  const sendInternalShare = useMutation({
+    mutationFn: (userId: string) => shareInternal({ data: { appointmentId, userId } }),
+    onSuccess: (res) => {
+      if (!res.available) {
+        toast.error("المشاركة الداخلية غير مفعّلة بعد على هذا الحساب.");
+        return;
+      }
+      setShareTarget("");
+      toast.success("شُوركت بطاقة الموعد داخل المنصة بالرقم المرجعي فقط.");
+    },
+    onError: (e: unknown) => {
+      const m = e instanceof Error ? e.message : "";
+      toast.error(
+        /NOT_LINKED/.test(m)
+          ? "المشاركة متاحة مع جهات مرتبطة بك في شبكة التواصل فقط."
+          : "تعذّرت المشاركة الداخلية. حاول مرة أخرى.",
+      );
+    },
+  });
 
   const sendInvite = useMutation({
     mutationFn: () => invite({ data: { appointmentId, email: email.trim().toLowerCase(), userId: null } }),
@@ -85,13 +129,15 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
         return;
       }
       setEmail("");
-      toast.success(
-        res.linkedAccount
-          ? "أُرسلت الدعوة، وستظهر للمدعو داخل المنصة."
-          : res.emailSent
-            ? "أُرسلت الدعوة إلى البريد المحدد."
-            : "حُفظت الدعوة. لن تُفعّل إلا بعد دخول صاحب البريد نفسه وقبولها.",
-      );
+      if (res.linkedAccount) {
+        toast.success("أُرسلت الدعوة، وستظهر للمدعو داخل المنصة.");
+      } else if (res.emailSent) {
+        toast.success("أُرسلت الدعوة إلى البريد المحدد.");
+      } else if (!res.mailConfigured) {
+        toast.warning("حُفظت الدعوة، وإرسال البريد يتطلب إعداد البريد من مدير النظام.");
+      } else {
+        toast.success("حُفظت الدعوة. لن تُفعّل إلا بعد دخول صاحب البريد نفسه وقبولها.");
+      }
       void qc.invalidateQueries({ queryKey: ["appointment-invites", appointmentId] });
     },
     onError: (e: unknown) => {
@@ -241,6 +287,35 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
         ) : null}
       </div>
 
+      {c.kind !== "meeting" && (targets.data?.targets ?? []).length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs font-medium" htmlFor={`share-${appointmentId}`}>
+            مشاركة داخل ركيز
+          </label>
+          <select
+            id={`share-${appointmentId}`}
+            className="min-h-11 min-w-48 flex-1 rounded-lg border border-input bg-background px-3 text-sm"
+            value={shareTarget}
+            onChange={(e) => setShareTarget(e.target.value)}
+          >
+            <option value="">اختر جهة متصلة…</option>
+            {(targets.data?.targets ?? []).map((t) => (
+              <option key={t.user_id} value={t.user_id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!shareTarget || sendInternalShare.isPending}
+            onClick={() => sendInternalShare.mutate(shareTarget)}
+          >
+            <Send className="size-4" aria-hidden="true" /> مشاركة
+          </Button>
+        </div>
+      ) : null}
+
       {c.kind === "meeting" ? (
         <div className="space-y-3 rounded-lg border border-border/60 bg-secondary/30 p-3">
           <span className="text-sm font-medium">المشاركون في الاجتماع</span>
@@ -256,8 +331,28 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
                   key={i.id}
                   className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background px-3 py-2 text-sm"
                 >
-                  <span dir="auto">{i.invitee ?? "مشارك"}</span>
-                  <Badge variant="outline">{INVITE_STATUS[i.status] ?? i.status}</Badge>
+                  <span className="min-w-0 space-y-0.5">
+                    <span className="block truncate" dir="auto">
+                      {i.invitee ?? "مشارك"}
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      دعاه: {i.invited_by_label ?? "عضو في الموعد"} — {fmt(i.created_at)}
+                      {i.accepted_at ? ` — قُبلت: ${fmt(i.accepted_at)}` : ""}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Badge variant="outline">{INVITE_STATUS[i.status] ?? i.status}</Badge>
+                    {i.can_cancel ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={cancelOne.isPending}
+                        onClick={() => cancelOne.mutate(i.id)}
+                      >
+                        <X className="size-4" aria-hidden="true" /> إلغاء
+                      </Button>
+                    ) : null}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -299,6 +394,59 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
               <p className="text-[11px] text-muted-foreground">
                 لا تظهر تفاصيل الاجتماع للمدعو إلا بعد دخوله بالبريد نفسه وقبول الدعوة.
               </p>
+
+              {(targets.data?.targets ?? []).length > 0 ? (
+                <div className="space-y-1.5 pt-1">
+                  <label className="block text-xs font-medium" htmlFor={`net-${appointmentId}`}>
+                    إضافة مشارك من شبكة التواصل
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <select
+                      id={`net-${appointmentId}`}
+                      className="min-h-11 min-w-52 flex-1 rounded-lg border border-input bg-background px-3 text-sm"
+                      value={shareTarget}
+                      onChange={(e) => setShareTarget(e.target.value)}
+                    >
+                      <option value="">اختر جهة متصلة…</option>
+                      {(targets.data?.targets ?? []).map((t) => (
+                        <option key={t.user_id} value={t.user_id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={!shareTarget || sendInvite.isPending}
+                      onClick={() =>
+                        invite({ data: { appointmentId, email: null, userId: shareTarget } })
+                          .then((res) => {
+                            if (!res.available) {
+                              toast.error("دعوة المشاركين غير مفعّلة بعد على هذا الحساب.");
+                              return;
+                            }
+                            setShareTarget("");
+                            toast.success("أُرسلت الدعوة، وستظهر للمدعو داخل المنصة.");
+                            void qc.invalidateQueries({
+                              queryKey: ["appointment-invites", appointmentId],
+                            });
+                          })
+                          .catch(() => toast.error("تعذّرت دعوة هذه الجهة."))
+                      }
+                    >
+                      <UserPlus className="size-4" aria-hidden="true" /> دعوة من الشبكة
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={!shareTarget || sendInternalShare.isPending}
+                      onClick={() => sendInternalShare.mutate(shareTarget)}
+                    >
+                      <Send className="size-4" aria-hidden="true" /> مشاركة داخل ركيز
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
