@@ -11,6 +11,11 @@ update public.appointment_invites
    set accepted_at = responded_at
  where status = 'accepted' and accepted_at is null and responded_at is not null;
 
+-- توسيع أنواع أحداث التدقيق لتشمل المشاركة (إضافة قيمة فقط).
+alter table public.appointment_events drop constraint if exists appointment_events_action_check;
+alter table public.appointment_events add constraint appointment_events_action_check
+  check (action in ('proposed','confirmed','rescheduled','cancelled','completed','shared'));
+
 -- ── 2) إلغاء دعوة من داعيها أو أطراف الموعد ─────────────────────────
 create or replace function public.cancel_appointment_invite(_invite_id uuid)
 returns boolean
