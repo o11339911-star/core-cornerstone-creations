@@ -9,6 +9,7 @@ import {
   Building2,
   ExternalLink,
   FileText,
+  FolderKanban,
   Flag,
   Gauge,
   Inbox,
