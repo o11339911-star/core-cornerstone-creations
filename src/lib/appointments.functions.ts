@@ -96,6 +96,10 @@ export const myAppointmentSchema = z.object({
   kind: z.string(),
   status: z.string(),
   starts_at: z.string(),
+  created_at: z.string().nullable().default(null),
+  reference: z.string().nullable().default(null),
+  requester_label: z.string().nullable().default(null),
+  provider_label: z.string().nullable().default(null),
   previous_starts_at: z.string().nullable().default(null),
   cancel_deadline_at: z.string().nullable().default(null),
   confirmed_at: z.string().nullable().default(null),
@@ -106,6 +110,7 @@ export const myAppointmentSchema = z.object({
   can_reschedule: z.boolean(),
 });
 export type MyAppointment = z.infer<typeof myAppointmentSchema>;
+
 
 type SupabaseLike = { rpc: Function; from: Function };
 
