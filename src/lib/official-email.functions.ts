@@ -21,16 +21,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 type Db = SupabaseClient;
 const db = (c: unknown) => c as Db;
 
-function isMissingObject(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false;
-  const code = error.code ?? "";
-  return (
-    code === "42P01" ||
-    code === "PGRST205" ||
-    /does not exist|schema cache/i.test(error.message ?? "")
-  );
-}
-
 export type OfficialEmailState = {
   available: boolean;
   email: string | null;
@@ -56,10 +46,7 @@ export const getOfficialEmail = createServerFn({ method: "GET" })
       ? q.eq("owner_entity_id", data.entityId)
       : q.eq("owner_user_id", context.userId);
     const { data: row, error } = await q.maybeSingle();
-    if (error) {
-      if (isMissingObject(error)) return { available: false, email: null, status: "not_linked", verifiedAt: null };
-      throw new Error(error.message);
-    }
+    if (error) throw new Error(error.message);
     const r = row as { email: string; status: string; verified_at: string | null } | null;
     return {
       available: true,
