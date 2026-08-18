@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Building2, Search } from "lucide-react";
@@ -123,7 +123,16 @@ function PlatformEntitiesPage() {
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.entity_id} className="border-t border-border">
-                      <td className="px-3 py-2">{r.name}</td>
+                      <td className="px-3 py-2">
+                        <Link
+                          to="/platform/entity/$entityId"
+                          params={{ entityId: r.entity_id }}
+                          search={{ hint: r.name }}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {r.name}
+                        </Link>
+                      </td>
                       <td className="px-3 py-2">{TYPE_AR[r.type] ?? r.type}</td>
                       <td className="px-3 py-2">{r.legal_form ? (FORM_AR[r.legal_form] ?? r.legal_form) : "—"}</td>
                       <td className="px-3 py-2">
@@ -151,7 +160,14 @@ function PlatformEntitiesPage() {
               {rows.map((r) => (
                 <li key={r.entity_id} className="rounded-xl border border-border p-3">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-semibold">{r.name}</span>
+                    <Link
+                      to="/platform/entity/$entityId"
+                      params={{ entityId: r.entity_id }}
+                      search={{ hint: r.name }}
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      {r.name}
+                    </Link>
                     <Badge variant={r.verification_status === "verified" ? "default" : "secondary"}>
                       {VERIFY_AR[r.verification_status ?? "unverified"] ?? r.verification_status}
                     </Badge>

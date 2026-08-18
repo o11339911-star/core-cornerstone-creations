@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BadgeCheck, Search, Users } from "lucide-react";
@@ -109,7 +109,16 @@ function PlatformUsersPage() {
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.user_id} className="border-t border-border">
-                      <td className="px-3 py-2">{r.full_name ?? "—"}</td>
+                      <td className="px-3 py-2">
+                        <Link
+                          to="/platform/user/$userId"
+                          params={{ userId: r.user_id }}
+                          search={{ hint: r.email ?? r.full_name ?? "" }}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {r.full_name ?? "عرض التفاصيل"}
+                        </Link>
+                      </td>
                       <td className="px-3 py-2">
                         <Num>{r.email ?? "—"}</Num>
                       </td>
@@ -144,7 +153,14 @@ function PlatformUsersPage() {
               {rows.map((r) => (
                 <li key={r.user_id} className="rounded-xl border border-border p-3">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-semibold">{r.full_name ?? "—"}</span>
+                    <Link
+                      to="/platform/user/$userId"
+                      params={{ userId: r.user_id }}
+                      search={{ hint: r.email ?? r.full_name ?? "" }}
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      {r.full_name ?? "عرض التفاصيل"}
+                    </Link>
                     <Badge variant={r.registration_complete ? "default" : "secondary"}>
                       {r.registration_complete ? "مكتمل" : "غير مكتمل"}
                     </Badge>

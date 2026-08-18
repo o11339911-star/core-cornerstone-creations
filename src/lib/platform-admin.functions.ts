@@ -337,3 +337,181 @@ export const adminListEntities = createServerFn({ method: "GET" })
     const parsed = adminEntityRowSchema.array().parse(rows ?? []);
     return { rows: parsed, total: parsed[0]?.total_count ?? 0 };
   });
+
+/* ------------------------------------------------------------------ *
+ * Administrative detail views (user / entity)
+ *
+ * The authoritative source is the SECURITY DEFINER RPC pair
+ * `admin_get_user` / `admin_get_entity` (pending migration 08), which
+ * re-check `private.is_platform_admin(auth.uid())` internally. Until that
+ * migration is applied the handlers fall back to the already deployed
+ * directory RPCs so the pages stay usable and never leak more than the
+ * directory itself. No secret is ever projected: no password hashes,
+ * tokens, encrypted identity payloads or raw metadata.
+ * ------------------------------------------------------------------ */
+
+type LooseRpc = (
+  name: string,
+  args?: Record<string, unknown>,
+) => Promise<{ data: unknown; error: { message: string } | null }>;
+
+function isMissingFunction(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("could not find the function") ||
+    m.includes("does not exist") ||
+    m.includes("schema cache") ||
+    m.includes("pgrst202")
+  );
+}
+
+export const adminMembershipSchema = z.object({
+  membership_id: z.string(),
+  entity_id: z.string(),
+  entity_name: z.string().nullable(),
+  entity_type: z.string().nullable(),
+  entity_status: z.string().nullable(),
+  role: z.string().nullable(),
+  status: z.string().nullable(),
+  created_at: z.string().nullable(),
+  expires_at: z.string().nullable(),
+});
+export type AdminMembership = z.infer<typeof adminMembershipSchema>;
+
+export const adminUserDetailSchema = z.object({
+  user_id: z.string(),
+  full_name: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  locale: z.string().nullable().optional(),
+  city: z.string().nullable().optional(),
+  district: z.string().nullable().optional(),
+  created_at: z.string().nullable(),
+  last_sign_in_at: z.string().nullable(),
+  email_confirmed: z.boolean(),
+  identity_status: z.string().nullable().optional(),
+  identity_last4: z.string().nullable().optional(),
+  registration_complete: z.boolean().optional(),
+  active_memberships: z.number().optional(),
+  memberships: adminMembershipSchema.array(),
+  /** "full" when the detail RPC answered, "directory" for the fallback. */
+  source: z.enum(["full", "directory"]),
+});
+export type AdminUserDetail = z.infer<typeof adminUserDetailSchema>;
+
+export const adminEntityMemberSchema = z.object({
+  membership_id: z.string(),
+  user_id: z.string().nullable(),
+  full_name: z.string().nullable(),
+  role: z.string().nullable(),
+  status: z.string().nullable(),
+  created_at: z.string().nullable(),
+  expires_at: z.string().nullable(),
+});
+export type AdminEntityMember = z.infer<typeof adminEntityMemberSchema>;
+
+export const adminEntityDetailSchema = z.object({
+  entity_id: z.string(),
+  name: z.string(),
+  type: z.string().nullable(),
+  status: z.string().nullable(),
+  legal_form: z.string().nullable().optional(),
+  unified_national_number: z.string().nullable().optional(),
+  verification_status: z.string().nullable().optional(),
+  owner_name: z.string().nullable().optional(),
+  members_count: z.number().optional(),
+  created_at: z.string().nullable(),
+  members: adminEntityMemberSchema.array(),
+  source: z.enum(["full", "directory"]),
+});
+export type AdminEntityDetail = z.infer<typeof adminEntityDetailSchema>;
+
+const detailInput = z.object({
+  id: uuid,
+  /** Directory search hint (name / e-mail) used only by the fallback path. */
+  hint: z.string().trim().max(160).optional(),
+});
+
+export const adminGetUser = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => detailInput.parse(input))
+  .handler(async ({ data, context }): Promise<AdminUserDetail> => {
+    const rpc = context.supabase.rpc as unknown as LooseRpc;
+    const detail = await rpc("admin_get_user", { _user_id: data.id });
+    if (!detail.error && detail.data) {
+      const raw = detail.data as Record<string, unknown>;
+      return adminUserDetailSchema.parse({ ...raw, source: "full" });
+    }
+    if (detail.error && !isMissingFunction(detail.error.message)) {
+      throw new Error(detail.error.message.includes("FORBIDDEN") ? "FORBIDDEN" : detail.error.message);
+    }
+
+    // Fallback: the deployed directory RPC, filtered down to this user.
+    const { data: rows, error } = await context.supabase.rpc("admin_list_users", {
+      ...(data.hint ? { _q: data.hint } : {}),
+      _limit: 100,
+      _offset: 0,
+    });
+    if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
+    const match = adminUserRowSchema
+      .array()
+      .parse(rows ?? [])
+      .find((r) => r.user_id === data.id);
+    if (!match) throw new Error("NOT_FOUND");
+    return adminUserDetailSchema.parse({
+      user_id: match.user_id,
+      full_name: match.full_name,
+      email: match.email,
+      phone: match.phone,
+      created_at: match.created_at,
+      last_sign_in_at: match.last_sign_in_at,
+      email_confirmed: match.email_confirmed,
+      identity_status: match.identity_status,
+      identity_last4: match.identity_last4,
+      registration_complete: match.registration_complete,
+      active_memberships: match.active_memberships,
+      memberships: [],
+      source: "directory",
+    });
+  });
+
+export const adminGetEntity = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => detailInput.parse(input))
+  .handler(async ({ data, context }): Promise<AdminEntityDetail> => {
+    const rpc = context.supabase.rpc as unknown as LooseRpc;
+    const detail = await rpc("admin_get_entity", { _entity_id: data.id });
+    if (!detail.error && detail.data) {
+      const raw = detail.data as Record<string, unknown>;
+      return adminEntityDetailSchema.parse({ ...raw, source: "full" });
+    }
+    if (detail.error && !isMissingFunction(detail.error.message)) {
+      throw new Error(detail.error.message.includes("FORBIDDEN") ? "FORBIDDEN" : detail.error.message);
+    }
+
+    const { data: rows, error } = await context.supabase.rpc("admin_list_entities", {
+      ...(data.hint ? { _q: data.hint } : {}),
+      _limit: 100,
+      _offset: 0,
+    });
+    if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
+    const match = adminEntityRowSchema
+      .array()
+      .parse(rows ?? [])
+      .find((r) => r.entity_id === data.id);
+    if (!match) throw new Error("NOT_FOUND");
+    return adminEntityDetailSchema.parse({
+      entity_id: match.entity_id,
+      name: match.name,
+      type: match.type,
+      status: match.status,
+      legal_form: match.legal_form,
+      unified_national_number: match.unified_national_number,
+      verification_status: match.verification_status,
+      owner_name: match.owner_name,
+      members_count: match.members_count,
+      created_at: match.created_at,
+      members: [],
+      source: "directory",
+    });
+  });

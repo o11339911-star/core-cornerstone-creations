@@ -72,6 +72,8 @@ import { Route as AuthenticatedEntitiesEntityIdInvitationsRouteImport } from './
 import { Route as AuthenticatedEntitiesEntityIdPublicProfileRouteImport } from './routes/_authenticated/entities.$entityId.public-profile'
 import { Route as AuthenticatedEntitiesEntityIdReportTemplatesRouteImport } from './routes/_authenticated/entities.$entityId.report-templates'
 import { Route as AuthenticatedEntitiesEntityIdTeamRouteImport } from './routes/_authenticated/entities.$entityId.team'
+import { Route as AuthenticatedPlatformEntityEntityIdRouteImport } from './routes/_authenticated/platform.entity.$entityId'
+import { Route as AuthenticatedPlatformUserUserIdRouteImport } from './routes/_authenticated/platform.user.$userId'
 import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './routes/_authenticated/projects.$projectId.index'
 import { Route as AuthenticatedProjectsProjectIdClosureRouteImport } from './routes/_authenticated/projects.$projectId.closure'
 import { Route as AuthenticatedProjectsProjectIdContractsRouteImport } from './routes/_authenticated/projects.$projectId.contracts'
@@ -442,6 +444,18 @@ const AuthenticatedEntitiesEntityIdTeamRoute =
     path: '/entities/$entityId/team',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPlatformEntityEntityIdRoute =
+  AuthenticatedPlatformEntityEntityIdRouteImport.update({
+    id: '/entity/$entityId',
+    path: '/entity/$entityId',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformUserUserIdRoute =
+  AuthenticatedPlatformUserUserIdRouteImport.update({
+    id: '/user/$userId',
+    path: '/user/$userId',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdIndexRoute =
   AuthenticatedProjectsProjectIdIndexRouteImport.update({
     id: '/projects/$projectId/',
@@ -618,6 +632,8 @@ export interface FileRoutesByFullPath {
   '/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
+  '/platform/entity/$entityId': typeof AuthenticatedPlatformEntityEntityIdRoute
+  '/platform/user/$userId': typeof AuthenticatedPlatformUserUserIdRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/drawings': typeof AuthenticatedProjectsProjectIdDrawingsRoute
@@ -699,6 +715,8 @@ export interface FileRoutesByTo {
   '/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
+  '/platform/entity/$entityId': typeof AuthenticatedPlatformEntityEntityIdRoute
+  '/platform/user/$userId': typeof AuthenticatedPlatformUserUserIdRoute
   '/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/projects/$projectId/drawings': typeof AuthenticatedProjectsProjectIdDrawingsRoute
@@ -784,6 +802,8 @@ export interface FileRoutesById {
   '/_authenticated/entities/$entityId/public-profile': typeof AuthenticatedEntitiesEntityIdPublicProfileRoute
   '/_authenticated/entities/$entityId/report-templates': typeof AuthenticatedEntitiesEntityIdReportTemplatesRoute
   '/_authenticated/entities/$entityId/team': typeof AuthenticatedEntitiesEntityIdTeamRoute
+  '/_authenticated/platform/entity/$entityId': typeof AuthenticatedPlatformEntityEntityIdRoute
+  '/_authenticated/platform/user/$userId': typeof AuthenticatedPlatformUserUserIdRoute
   '/_authenticated/projects/$projectId/closure': typeof AuthenticatedProjectsProjectIdClosureRoute
   '/_authenticated/projects/$projectId/contracts': typeof AuthenticatedProjectsProjectIdContractsRoute
   '/_authenticated/projects/$projectId/drawings': typeof AuthenticatedProjectsProjectIdDrawingsRoute
@@ -869,6 +889,8 @@ export interface FileRouteTypes {
     | '/entities/$entityId/public-profile'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
+    | '/platform/entity/$entityId'
+    | '/platform/user/$userId'
     | '/projects/$projectId/closure'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/drawings'
@@ -950,6 +972,8 @@ export interface FileRouteTypes {
     | '/entities/$entityId/public-profile'
     | '/entities/$entityId/report-templates'
     | '/entities/$entityId/team'
+    | '/platform/entity/$entityId'
+    | '/platform/user/$userId'
     | '/projects/$projectId/closure'
     | '/projects/$projectId/contracts'
     | '/projects/$projectId/drawings'
@@ -1034,6 +1058,8 @@ export interface FileRouteTypes {
     | '/_authenticated/entities/$entityId/public-profile'
     | '/_authenticated/entities/$entityId/report-templates'
     | '/_authenticated/entities/$entityId/team'
+    | '/_authenticated/platform/entity/$entityId'
+    | '/_authenticated/platform/user/$userId'
     | '/_authenticated/projects/$projectId/closure'
     | '/_authenticated/projects/$projectId/contracts'
     | '/_authenticated/projects/$projectId/drawings'
@@ -1519,6 +1545,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntitiesEntityIdTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform/entity/$entityId': {
+      id: '/_authenticated/platform/entity/$entityId'
+      path: '/entity/$entityId'
+      fullPath: '/platform/entity/$entityId'
+      preLoaderRoute: typeof AuthenticatedPlatformEntityEntityIdRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/user/$userId': {
+      id: '/_authenticated/platform/user/$userId'
+      path: '/user/$userId'
+      fullPath: '/platform/user/$userId'
+      preLoaderRoute: typeof AuthenticatedPlatformUserUserIdRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/projects/$projectId/': {
       id: '/_authenticated/projects/$projectId/'
       path: '/projects/$projectId'
@@ -1665,6 +1705,8 @@ interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
   AuthenticatedPlatformUsersRoute: typeof AuthenticatedPlatformUsersRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
+  AuthenticatedPlatformEntityEntityIdRoute: typeof AuthenticatedPlatformEntityEntityIdRoute
+  AuthenticatedPlatformUserUserIdRoute: typeof AuthenticatedPlatformUserUserIdRoute
 }
 
 const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
@@ -1679,6 +1721,9 @@ const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
   AuthenticatedPlatformStaffRoute: AuthenticatedPlatformStaffRoute,
   AuthenticatedPlatformUsersRoute: AuthenticatedPlatformUsersRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
+  AuthenticatedPlatformEntityEntityIdRoute:
+    AuthenticatedPlatformEntityEntityIdRoute,
+  AuthenticatedPlatformUserUserIdRoute: AuthenticatedPlatformUserUserIdRoute,
 }
 
 const AuthenticatedPlatformRouteWithChildren =
