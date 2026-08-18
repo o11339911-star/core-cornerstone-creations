@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldAlert } from "lucide-react";
 
 import { MarkdownView } from "@/components/legal/markdown-view";
 import { ErrorState } from "@/components/rakeez";
 import { PageHero, SectionCard } from "@/components/rakeez/dashboard-kit";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/platform/breach-playbook")({
   component: BreachPlaybookPage,
