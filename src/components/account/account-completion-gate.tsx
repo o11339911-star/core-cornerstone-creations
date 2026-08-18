@@ -90,11 +90,9 @@ export function AccountCompletionGate({ children }: { children: React.ReactNode 
     );
   }
 
-  if (state.data.complete) return <>{children}</>;
+  if (state.data.complete || state.data.bypass) return <>{children}</>;
 
-  if (!state.data.bypass) return <EmailVerifiedGuard><CompletionFlow step={state.data.current_step === "entity" ? "entity" : "identity"} /></EmailVerifiedGuard>;
-
-  return <CompletionFlow step={state.data.current_step === "entity" ? "entity" : "identity"} />;
+  return <EmailVerifiedGuard><CompletionFlow step={state.data.current_step === "entity" ? "entity" : "identity"} /></EmailVerifiedGuard>;
 }
 
 function GateShell({

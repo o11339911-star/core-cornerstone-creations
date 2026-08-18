@@ -5,6 +5,7 @@ import { BookLock, Building2, Inbox, PlugZap, ShieldAlert, ShieldCheck, UserSear
 
 import { ErrorState, UnauthorizedState } from "@/components/rakeez";
 import { getPlatformMe } from "@/lib/platform-admin.functions";
+import { hasPlatformAccess } from "@/lib/platform-access";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/platform")({
@@ -35,7 +36,7 @@ function PlatformLayout() {
     );
   }
 
-  if (me.isError || !me.data?.is_staff) {
+  if (me.isError || !hasPlatformAccess(me.data)) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
         <UnauthorizedState
