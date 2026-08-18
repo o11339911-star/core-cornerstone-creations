@@ -59,6 +59,7 @@ import { Route as AuthenticatedPlatformIntegrationsRouteImport } from './routes/
 import { Route as AuthenticatedPlatformLegalRouteImport } from './routes/_authenticated/platform.legal'
 import { Route as AuthenticatedPlatformPrivacyRouteImport } from './routes/_authenticated/platform.privacy'
 import { Route as AuthenticatedPlatformQueueRouteImport } from './routes/_authenticated/platform.queue'
+import { Route as AuthenticatedPlatformReportTemplatesRouteImport } from './routes/_authenticated/platform.report-templates'
 import { Route as AuthenticatedPlatformRequestsRouteImport } from './routes/_authenticated/platform.requests'
 import { Route as AuthenticatedPlatformSlaRouteImport } from './routes/_authenticated/platform.sla'
 import { Route as AuthenticatedPlatformStaffRouteImport } from './routes/_authenticated/platform.staff'
@@ -375,6 +376,12 @@ const AuthenticatedPlatformQueueRoute =
     path: '/queue',
     getParentRoute: () => AuthenticatedPlatformRoute,
   } as any)
+const AuthenticatedPlatformReportTemplatesRoute =
+  AuthenticatedPlatformReportTemplatesRouteImport.update({
+    id: '/report-templates',
+    path: '/report-templates',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
 const AuthenticatedPlatformRequestsRoute =
   AuthenticatedPlatformRequestsRouteImport.update({
     id: '/requests',
@@ -681,6 +688,7 @@ export interface FileRoutesByFullPath {
   '/platform/legal': typeof AuthenticatedPlatformLegalRoute
   '/platform/privacy': typeof AuthenticatedPlatformPrivacyRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
+  '/platform/report-templates': typeof AuthenticatedPlatformReportTemplatesRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/sla': typeof AuthenticatedPlatformSlaRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -773,6 +781,7 @@ export interface FileRoutesByTo {
   '/platform/legal': typeof AuthenticatedPlatformLegalRoute
   '/platform/privacy': typeof AuthenticatedPlatformPrivacyRoute
   '/platform/queue': typeof AuthenticatedPlatformQueueRoute
+  '/platform/report-templates': typeof AuthenticatedPlatformReportTemplatesRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/sla': typeof AuthenticatedPlatformSlaRoute
   '/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -869,6 +878,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/legal': typeof AuthenticatedPlatformLegalRoute
   '/_authenticated/platform/privacy': typeof AuthenticatedPlatformPrivacyRoute
   '/_authenticated/platform/queue': typeof AuthenticatedPlatformQueueRoute
+  '/_authenticated/platform/report-templates': typeof AuthenticatedPlatformReportTemplatesRoute
   '/_authenticated/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/_authenticated/platform/sla': typeof AuthenticatedPlatformSlaRoute
   '/_authenticated/platform/staff': typeof AuthenticatedPlatformStaffRoute
@@ -965,6 +975,7 @@ export interface FileRouteTypes {
     | '/platform/legal'
     | '/platform/privacy'
     | '/platform/queue'
+    | '/platform/report-templates'
     | '/platform/requests'
     | '/platform/sla'
     | '/platform/staff'
@@ -1057,6 +1068,7 @@ export interface FileRouteTypes {
     | '/platform/legal'
     | '/platform/privacy'
     | '/platform/queue'
+    | '/platform/report-templates'
     | '/platform/requests'
     | '/platform/sla'
     | '/platform/staff'
@@ -1152,6 +1164,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/legal'
     | '/_authenticated/platform/privacy'
     | '/_authenticated/platform/queue'
+    | '/_authenticated/platform/report-templates'
     | '/_authenticated/platform/requests'
     | '/_authenticated/platform/sla'
     | '/_authenticated/platform/staff'
@@ -1571,6 +1584,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformQueueRouteImport
       parentRoute: typeof AuthenticatedPlatformRoute
     }
+    '/_authenticated/platform/report-templates': {
+      id: '/_authenticated/platform/report-templates'
+      path: '/report-templates'
+      fullPath: '/platform/report-templates'
+      preLoaderRoute: typeof AuthenticatedPlatformReportTemplatesRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/platform/requests': {
       id: '/_authenticated/platform/requests'
       path: '/requests'
@@ -1888,6 +1908,7 @@ interface AuthenticatedPlatformRouteChildren {
   AuthenticatedPlatformLegalRoute: typeof AuthenticatedPlatformLegalRoute
   AuthenticatedPlatformPrivacyRoute: typeof AuthenticatedPlatformPrivacyRoute
   AuthenticatedPlatformQueueRoute: typeof AuthenticatedPlatformQueueRoute
+  AuthenticatedPlatformReportTemplatesRoute: typeof AuthenticatedPlatformReportTemplatesRoute
   AuthenticatedPlatformRequestsRoute: typeof AuthenticatedPlatformRequestsRoute
   AuthenticatedPlatformSlaRoute: typeof AuthenticatedPlatformSlaRoute
   AuthenticatedPlatformStaffRoute: typeof AuthenticatedPlatformStaffRoute
@@ -1913,6 +1934,8 @@ const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
   AuthenticatedPlatformLegalRoute: AuthenticatedPlatformLegalRoute,
   AuthenticatedPlatformPrivacyRoute: AuthenticatedPlatformPrivacyRoute,
   AuthenticatedPlatformQueueRoute: AuthenticatedPlatformQueueRoute,
+  AuthenticatedPlatformReportTemplatesRoute:
+    AuthenticatedPlatformReportTemplatesRoute,
   AuthenticatedPlatformRequestsRoute: AuthenticatedPlatformRequestsRoute,
   AuthenticatedPlatformSlaRoute: AuthenticatedPlatformSlaRoute,
   AuthenticatedPlatformStaffRoute: AuthenticatedPlatformStaffRoute,

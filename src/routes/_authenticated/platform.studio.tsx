@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/platform/studio")({
 /** أسطح موجودة فعلًا في المشروع ويصلها الاستديو مباشرة. */
 const CONNECTED = [
   {
-    to: "/admin/report-templates",
+    to: "/platform/report-templates",
     label: "قوالب التقارير",
     description: "مراجعة واعتماد قوالب التقارير الهندسية على مستوى المنصة.",
     icon: FileText,
