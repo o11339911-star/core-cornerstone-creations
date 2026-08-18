@@ -65,10 +65,15 @@ async function countOf(
   table: string,
   build: (q: any) => any = (q) => q,
 ): Promise<number> {
-  const query = build((supabaseAdmin as any).from(table).select("*", { count: "exact", head: true }));
-  const { count, error } = await query;
-  if (error) return 0;
-  return count ?? 0;
+  try {
+    const query = build((supabaseAdmin as any).from(table).select("*", { count: "exact", head: true }));
+    const { count, error } = await query;
+    if (error) return 0;
+    return count ?? 0;
+  } catch {
+    // مفتاح الخدمة غير مهيأ أو تعذر الوصول: أعد صفرًا بدل إسقاط الصفحة
+    return 0;
+  }
 }
 
 const OPEN_QUEUE = ["open", "assigned", "in_progress"];
