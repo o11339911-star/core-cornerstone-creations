@@ -61,17 +61,11 @@ const FILTERS = [
 ] as const;
 
 /**
- * الطلب الأصلي هو المصدر: لا نعيد إنشاء سجل موازٍ، بل نفتح الكيان أو
- * المشروع الذي وُلد منه عنصر الطابور بنفس `source_id`.
+ * الطلب الأصلي هو المصدر: لا نعيد إنشاء سجل موازٍ، بل نفتح الصف الأصلي
+ * بنفس `source_id` من جدوله (`requests` مثلًا)، ولا نكتفي بـ `entity_id`
+ * إلا حين لا يوجد مسار للأصل نفسه. المنطق والاختبارات في `platform-queue-links`.
  */
-function sourceLink(
-  item: QueueItem,
-): { to: "/entities/$entityId"; params: { entityId: string } } | null {
-  if (item.entity_id) {
-    return { to: "/entities/$entityId", params: { entityId: item.entity_id } };
-  }
-  return null;
-}
+
 
 function PlatformRequestsPage() {
   const fetchItems = useServerFn(listQueueItems);
