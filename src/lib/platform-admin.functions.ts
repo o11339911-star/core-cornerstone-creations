@@ -464,7 +464,7 @@ export const adminGetUser = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => detailInput.parse(input))
   .handler(async ({ data, context }): Promise<AdminUserDetail> => {
-    const rpc = context.supabase.rpc as unknown as LooseRpc;
+    const rpc = context.supabase.rpc.bind(context.supabase) as unknown as LooseRpc;
     const detail = await rpc("admin_get_user", { _user_id: data.id });
     if (!detail.error && detail.data) {
       const raw = detail.data as Record<string, unknown>;
@@ -507,7 +507,7 @@ export const adminGetEntity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => detailInput.parse(input))
   .handler(async ({ data, context }): Promise<AdminEntityDetail> => {
-    const rpc = context.supabase.rpc as unknown as LooseRpc;
+    const rpc = context.supabase.rpc.bind(context.supabase) as unknown as LooseRpc;
     const detail = await rpc("admin_get_entity", { _entity_id: data.id });
     if (!detail.error && detail.data) {
       const raw = detail.data as Record<string, unknown>;
