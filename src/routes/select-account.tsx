@@ -51,11 +51,7 @@ function SelectAccountRoute() {
     );
   }
 
-  return (
-    <PolicyAcceptanceGate>
-      <PlatformAccountGate />
-    </PolicyAcceptanceGate>
-  );
+  return <PlatformAccountGate />;
 }
 
 function PlatformAccountGate() {
@@ -83,7 +79,11 @@ function PlatformAccountGate() {
 
   // A failed check is fail-closed for administration and preserves the normal
   // account-selection flow for ordinary users.
-  return <SelectAccountPage />;
+  return (
+    <PolicyAcceptanceGate>
+      <SelectAccountPage />
+    </PolicyAcceptanceGate>
+  );
 }
 
 function SelectAccountPage() {
