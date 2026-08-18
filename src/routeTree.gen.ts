@@ -88,6 +88,7 @@ import { Route as AuthenticatedProjectsProjectIdTeamRouteImport } from './routes
 import { Route as AuthenticatedProjectsProjectIdVisitsRouteImport } from './routes/_authenticated/projects.$projectId.visits'
 import { Route as AuthenticatedProjectsProjectIdWarrantiesRouteImport } from './routes/_authenticated/projects.$projectId.warranties'
 import { Route as ApiPublicCronDurationScanRouteImport } from './routes/api.public.cron.duration-scan'
+import { Route as ApiPublicMailCallbackRouteImport } from './routes/api/public/mail/callback'
 import { Route as AuthenticatedEntitiesEntityIdTemplateImportsImportIdRouteImport } from './routes/_authenticated/entities.$entityId.template-imports.$importId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -537,6 +538,11 @@ const ApiPublicCronDurationScanRoute =
     path: '/api/public/cron/duration-scan',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMailCallbackRoute = ApiPublicMailCallbackRouteImport.update({
+  id: '/api/public/mail/callback',
+  path: '/api/public/mail/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute =
   AuthenticatedEntitiesEntityIdTemplateImportsImportIdRouteImport.update({
     id: '/entities/$entityId/template-imports/$importId',
@@ -621,6 +627,7 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/api/public/mail/callback': typeof ApiPublicMailCallbackRoute
   '/entities/$entityId/': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
@@ -700,6 +707,7 @@ export interface FileRoutesByTo {
   '/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/api/public/mail/callback': typeof ApiPublicMailCallbackRoute
   '/entities/$entityId': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
@@ -783,6 +791,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/$projectId/visits': typeof AuthenticatedProjectsProjectIdVisitsRoute
   '/_authenticated/projects/$projectId/warranties': typeof AuthenticatedProjectsProjectIdWarrantiesRoute
   '/api/public/cron/duration-scan': typeof ApiPublicCronDurationScanRoute
+  '/api/public/mail/callback': typeof ApiPublicMailCallbackRoute
   '/_authenticated/entities/$entityId/': typeof AuthenticatedEntitiesEntityIdIndexRoute
   '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
   '/_authenticated/entities/$entityId/template-imports/$importId': typeof AuthenticatedEntitiesEntityIdTemplateImportsImportIdRoute
@@ -866,6 +875,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/api/public/mail/callback'
     | '/entities/$entityId/'
     | '/projects/$projectId/'
     | '/entities/$entityId/template-imports/$importId'
@@ -945,6 +955,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/visits'
     | '/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/api/public/mail/callback'
     | '/entities/$entityId'
     | '/projects/$projectId'
     | '/entities/$entityId/template-imports/$importId'
@@ -1027,6 +1038,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/$projectId/visits'
     | '/_authenticated/projects/$projectId/warranties'
     | '/api/public/cron/duration-scan'
+    | '/api/public/mail/callback'
     | '/_authenticated/entities/$entityId/'
     | '/_authenticated/projects/$projectId/'
     | '/_authenticated/entities/$entityId/template-imports/$importId'
@@ -1048,6 +1060,7 @@ export interface RootRouteChildren {
   MpTokenRoute: typeof MpTokenRoute
   VerifyTokenRoute: typeof VerifyTokenRoute
   ApiPublicCronDurationScanRoute: typeof ApiPublicCronDurationScanRoute
+  ApiPublicMailCallbackRoute: typeof ApiPublicMailCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1605,6 +1618,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronDurationScanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/mail/callback': {
+      id: '/api/public/mail/callback'
+      path: '/api/public/mail/callback'
+      fullPath: '/api/public/mail/callback'
+      preLoaderRoute: typeof ApiPublicMailCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/entities/$entityId/template-imports/$importId': {
       id: '/_authenticated/entities/$entityId/template-imports/$importId'
       path: '/entities/$entityId/template-imports/$importId'
@@ -1816,6 +1836,7 @@ const rootRouteChildren: RootRouteChildren = {
   MpTokenRoute: MpTokenRoute,
   VerifyTokenRoute: VerifyTokenRoute,
   ApiPublicCronDurationScanRoute: ApiPublicCronDurationScanRoute,
+  ApiPublicMailCallbackRoute: ApiPublicMailCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
