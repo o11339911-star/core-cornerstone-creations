@@ -104,12 +104,16 @@ function PlatformQueuePage() {
 
   const assignMut = useMutation({
     mutationFn: (itemId: string) => autoAssign({ data: { itemId } }),
-    onSuccess: () => {
-      toast.success("تم الإسناد تلقائيًا للأقل حملًا");
+    onSuccess: (res) => {
+      if (res.ok) toast.success("تم الإسناد تلقائيًا للأقل حملًا");
+      else if (res.code === "already_assigned")
+        toast.info("هذا العنصر مُسند بالفعل، استخدم إعادة التوزيع لتغيير المسؤول");
+      else toast.warning("لا يوجد موظف متاح حاليًا للإسناد");
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message || "تعذّر الإسناد، حاول مجددًا"),
   });
+
 
   const reassignMut = useMutation({
     mutationFn: (v: { itemId: string; toUser: string; reason: string }) =>

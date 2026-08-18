@@ -165,9 +165,19 @@ export const autoAssignQueueItem = createServerFn({ method: "POST" })
     const { data: staff, error } = await context.supabase.rpc("auto_assign_queue_item", {
       _item_id: data.itemId,
     });
-    if (error) throw new Error(error.message);
-    return { assignedTo: staff as string };
+    if (error) {
+      const msg = error.message || "";
+      if (/already assigned/i.test(msg)) {
+        return { ok: false as const, code: "already_assigned" as const, assignedTo: null };
+      }
+      if (/no available staff|no staff/i.test(msg)) {
+        return { ok: false as const, code: "no_staff" as const, assignedTo: null };
+      }
+      throw new Error(msg);
+    }
+    return { ok: true as const, code: "assigned" as const, assignedTo: (staff as string) ?? null };
   });
+
 
 export const reassignQueueItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
