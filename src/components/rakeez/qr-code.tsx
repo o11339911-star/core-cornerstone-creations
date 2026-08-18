@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type Matrix = { size: number; data: Uint8Array };
 
 /** رمز تحقق (QR) يُولَّد في المتصفح فقط — لا يحوي إلا رابط التحقق العام. */
 export function QrCode({
@@ -10,18 +12,18 @@ export function QrCode({
   size?: number;
   alt?: string;
 }) {
-  const [src, setSrc] = useState<string | null>(null);
+  const [matrix, setMatrix] = useState<Matrix | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    setSrc(null);
+    setMatrix(null);
     setFailed(false);
     void (async () => {
       try {
         const QR = (await import("qrcode")).default;
-        const url = await QR.toDataURL(value, { width: size, margin: 1 });
-        if (alive) setSrc(url);
+        const out = QR.create(value, { errorCorrectionLevel: "M" });
+        if (alive) setMatrix({ size: out.modules.size, data: out.modules.data });
       } catch {
         if (alive) setFailed(true);
       }
@@ -29,7 +31,18 @@ export function QrCode({
     return () => {
       alive = false;
     };
-  }, [value, size]);
+  }, [value]);
+
+  const path = useMemo(() => {
+    if (!matrix) return "";
+    let d = "";
+    for (let y = 0; y < matrix.size; y += 1) {
+      for (let x = 0; x < matrix.size; x += 1) {
+        if (matrix.data[y * matrix.size + x]) d += `M${x} ${y}h1v1h-1z`;
+      }
+    }
+    return d;
+  }, [matrix]);
 
   if (failed) {
     return (
@@ -42,7 +55,7 @@ export function QrCode({
     );
   }
 
-  if (!src) {
+  if (!matrix) {
     return (
       <div
         className="animate-pulse rounded-lg bg-muted"
@@ -52,5 +65,18 @@ export function QrCode({
     );
   }
 
-  return <img src={src} alt={alt} width={size} height={size} className="rounded-lg bg-white p-1" />;
+  return (
+    <svg
+      role="img"
+      aria-label={alt}
+      width={size}
+      height={size}
+      viewBox={`0 0 ${matrix.size} ${matrix.size}`}
+      className="rounded-lg bg-white p-1"
+      shapeRendering="crispEdges"
+    >
+      <rect width={matrix.size} height={matrix.size} fill="#ffffff" />
+      <path d={path} fill="#000000" />
+    </svg>
+  );
 }
