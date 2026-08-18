@@ -1,3 +1,23 @@
+/* تصحيح التطبيق (2026-08-18): `private.can(uid, entity, 'entities','manage')`
+   غير موجودة بهذا التوقيع/القيم، فاستُبدلت بدالة صريحة للعضوية الإدارية. */
+create or replace function private.is_entity_manager(_uid uuid, _entity uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, private
+as $$
+  select exists (
+    select 1 from public.entity_memberships m
+     where m.user_id = _uid
+       and m.entity_id = _entity
+       and m.status = 'active'
+       and m.role in ('owner','admin','manager')
+  )
+$$;
+revoke all on function private.is_entity_manager(uuid, uuid) from public, anon;
+grant execute on function private.is_entity_manager(uuid, uuid) to authenticated;
+
 -- 03 — «شبكة التواصل»: جهات الاتصال الخاصة + طلبات التواصل + الارتباطات وأذونات المشاركة.
 -- قاعدة أمنية: معرفة رقم الهوية/السجل لا تمنح أي وصول ولا تكشف بيانات اتصال.
 -- كشف البريد/الجوال يحدث فقط بعد قبول صريح، وبحسب ما سمح به الطرف المستقبل.
@@ -38,7 +58,7 @@ create policy "network_contacts_owner_all"
 drop trigger if exists network_contacts_updated_at on public.network_contacts;
 create trigger network_contacts_updated_at
   before update on public.network_contacts
-  for each row execute function public.update_updated_at_column();
+  for each row execute function public.set_updated_at();
 
 -- ── طلبات/ارتباطات التواصل بين حسابين مسجّلين ───────────────────────
 create table if not exists public.network_links (
@@ -82,14 +102,14 @@ create policy "network_links_party_select"
   using (
     requester_user_id = auth.uid()
     or target_user_id = auth.uid()
-    or (target_entity_id is not null and private.can(auth.uid(), target_entity_id, 'entities', 'manage'))
-    or (requester_entity_id is not null and private.can(auth.uid(), requester_entity_id, 'entities', 'manage'))
+    or (target_entity_id is not null and private.is_entity_manager(auth.uid(), target_entity_id))
+    or (requester_entity_id is not null and private.is_entity_manager(auth.uid(), requester_entity_id))
   );
 
 drop trigger if exists network_links_updated_at on public.network_links;
 create trigger network_links_updated_at
   before update on public.network_links
-  for each row execute function public.update_updated_at_column();
+  for each row execute function public.set_updated_at();
 
 -- ── بحث آمن: اسم وتصنيف فقط، بلا بريد ولا جوال ─────────────────────
 create or replace function public.network_search(_q text)
@@ -140,7 +160,7 @@ begin
   if auth.uid() is null then raise exception 'UNAUTHENTICATED'; end if;
   if _target_kind not in ('user', 'entity') then raise exception 'TARGET_INVALID'; end if;
   if _requester_entity_id is not null
-     and not private.can(auth.uid(), _requester_entity_id, 'entities', 'manage') then
+     and not private.is_entity_manager(auth.uid(), _requester_entity_id) then
     raise exception 'FORBIDDEN';
   end if;
 
@@ -188,7 +208,7 @@ begin
 
   if not (
     l.target_user_id = auth.uid()
-    or (l.target_entity_id is not null and private.can(auth.uid(), l.target_entity_id, 'entities', 'manage'))
+    or (l.target_entity_id is not null and private.is_entity_manager(auth.uid(), l.target_entity_id))
   ) then
     raise exception 'FORBIDDEN';
   end if;
@@ -223,8 +243,8 @@ begin
   if not (
     l.requester_user_id = auth.uid()
     or l.target_user_id = auth.uid()
-    or (l.target_entity_id is not null and private.can(auth.uid(), l.target_entity_id, 'entities', 'manage'))
-    or (l.requester_entity_id is not null and private.can(auth.uid(), l.requester_entity_id, 'entities', 'manage'))
+    or (l.target_entity_id is not null and private.is_entity_manager(auth.uid(), l.target_entity_id))
+    or (l.requester_entity_id is not null and private.is_entity_manager(auth.uid(), l.requester_entity_id))
   ) then
     raise exception 'FORBIDDEN';
   end if;
@@ -258,7 +278,7 @@ begin
              l.created_at,
              (l.requester_user_id = auth.uid()
                or (l.requester_entity_id is not null
-                   and private.can(auth.uid(), l.requester_entity_id, 'entities', 'manage'))) as outgoing,
+                   and private.is_entity_manager(auth.uid(), l.requester_entity_id))) as outgoing,
              coalesce(
                (select coalesce(ep.legal_name_ar, ep.legal_name_en, e.name)
                   from public.entities e
@@ -280,8 +300,8 @@ begin
       from public.network_links l
       where l.requester_user_id = auth.uid()
          or l.target_user_id = auth.uid()
-         or (l.target_entity_id is not null and private.can(auth.uid(), l.target_entity_id, 'entities', 'manage'))
-         or (l.requester_entity_id is not null and private.can(auth.uid(), l.requester_entity_id, 'entities', 'manage'))
+         or (l.target_entity_id is not null and private.is_entity_manager(auth.uid(), l.target_entity_id))
+         or (l.requester_entity_id is not null and private.is_entity_manager(auth.uid(), l.requester_entity_id))
       order by l.created_at desc
       limit 200
     ) x

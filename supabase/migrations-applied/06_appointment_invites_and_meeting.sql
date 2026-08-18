@@ -1,3 +1,10 @@
+-- تصحيح التطبيق (2026-08-18): توسيع قيد جهة المشارك ليشمل الضيف الخارجي.
+alter table public.appointment_participants
+  drop constraint if exists appointment_participants_side_check;
+alter table public.appointment_participants
+  add constraint appointment_participants_side_check
+  check (side in ('requester','provider','guest'));
+
 -- 06 — مشاركو الاجتماع ودعواتهم + بطاقة الموعد + وصول الاجتماع.
 -- يعتمد على 01 (المراجع) و02 (المرجع والدورة) و04 (الأدوار). آمن للتشغيل المتكرر.
 -- قواعد ثابتة:
