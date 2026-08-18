@@ -503,6 +503,7 @@ function AppointmentsPage() {
         <div className="mt-4">
           <Button
             onClick={() => {
+              if (create.isPending) return;
               if (validate()) create.mutate();
             }}
             disabled={create.isPending}
@@ -600,7 +601,7 @@ function AppointmentsPage() {
                 </div>
                 {openCard === a.id ? (
                   <div className="mt-3">
-                    <AppointmentCard appointmentId={a.id} />
+                    <AppointmentCard appointmentId={a.id} basics={basicsOf(a)} />
                   </div>
                 ) : null}
 
