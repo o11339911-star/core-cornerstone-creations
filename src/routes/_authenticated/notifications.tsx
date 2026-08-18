@@ -129,12 +129,16 @@ function NotificationsPage() {
       <PageHero
         title={t("notifications.title")}
         subtitle={t("notifications.subtitle")}
-        badge={<HeroBadge tone="neutral">{rows.length}</HeroBadge>}
+        badge={
+          <HeroBadge tone={unreadCount > 0 ? "warning" : "neutral"}>
+            {`${t("notifications.unreadCount")} ${unreadCount}`}
+          </HeroBadge>
+        }
         aside={
           <Button
             variant="secondary"
             className="min-h-11"
-            disabled={readAll.isPending}
+            disabled={readAll.isPending || unreadCount === 0}
             onClick={() => readAll.mutate()}
           >
             {readAll.isPending ? t("common.loading") : t("notifications.markAll")}
@@ -144,10 +148,18 @@ function NotificationsPage() {
 
       <SectionCard
         icon={BellRing}
-        title={t("notifications.title")}
+        title={unreadOnly ? t("notifications.unreadOnly") : t("notifications.all")}
         count={rows.length}
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={unreadOnly ? "default" : "outline"}
+              size="sm"
+              className="min-h-9"
+              onClick={() => setUnreadOnly(true)}
+            >
+              {`${t("notifications.unreadOnly")} (${unreadCount})`}
+            </Button>
             <Button
               variant={unreadOnly ? "outline" : "default"}
               size="sm"
@@ -155,14 +167,6 @@ function NotificationsPage() {
               onClick={() => setUnreadOnly(false)}
             >
               {t("notifications.all")}
-            </Button>
-            <Button
-              variant={unreadOnly ? "default" : "outline"}
-              size="sm"
-              className="min-h-9"
-              onClick={() => setUnreadOnly(true)}
-            >
-              {t("notifications.unreadOnly")}
             </Button>
             <Link
               to="/settings/notifications"
