@@ -101,7 +101,8 @@ function BreakglassPage() {
     <div className="space-y-6">
       <PageHero
         title="الوصول الطارئ (Break-glass)"
-        subtitle="استثناء نادر: سبب مكتوب، موافقة شخص ثانٍ، تنبيه فوري، ومدة قصيرة تنتهي تلقائيًا."
+        subtitle="استثناء نادر: سبب مكتوب، موافقة شخص ثانٍ، ومدة قصيرة تنتهي تلقائيًا."
+        aside={<RefreshAction onRefresh={() => void list.refetch()} busy={list.isFetching} />}
       />
 
       <StatGrid>

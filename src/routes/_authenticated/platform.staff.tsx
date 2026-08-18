@@ -77,7 +77,8 @@ function PlatformStaffPage() {
     <div className="space-y-6">
       <PageHero
         title="فريق تشغيل المنصة"
-        subtitle="أدوار وحالات موظفي ركيز — منفصلة تمامًا عن عضويات الكيانات وأدوار المشاريع."
+        subtitle="أدوار وحالات موظفي ركيز — منفصلة عن عضويات الكيانات وأدوار المشاريع."
+        aside={<RefreshAction onRefresh={() => void staff.refetch()} busy={staff.isFetching} />}
       />
 
       <StatGrid>

@@ -7,7 +7,15 @@ import { BadgeCheck, Search, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CardsSkeleton, ErrorState, Num, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
+import {
+  CardsSkeleton,
+  ErrorState,
+  Num,
+  PageHero,
+  RefreshAction,
+  SectionCard,
+  SoftEmpty,
+} from "@/components/rakeez";
 import { adminListUsers, type AdminUserRow } from "@/lib/platform-admin.functions";
 import { formatDateTime } from "@/lib/format";
 
@@ -60,7 +68,11 @@ function PlatformUsersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHero title="المستخدمون" subtitle="دليل حسابات المنصة — للاطلاع الإداري فقط دون بيانات حساسة." />
+      <PageHero
+        title="المستخدمون"
+        subtitle="دليل حسابات المنصة — للاطلاع الإداري فقط دون بيانات حساسة."
+        aside={<RefreshAction onRefresh={() => void query.refetch()} busy={query.isFetching} />}
+      />
 
       <SectionCard icon={Users} title="بحث وقائمة" count={total}>
         <form

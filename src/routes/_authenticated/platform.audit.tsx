@@ -92,6 +92,7 @@ function PlatformAuditPage() {
       <PageHero
         title="سجل التدقيق"
         subtitle="قراءة فقط — السجل لاحق ولا يُعدَّل ولا يُحذف من الواجهة."
+        aside={<RefreshAction onRefresh={() => void result.refetch()} busy={result.isFetching} />}
       />
 
       <SectionCard icon={ScrollText} title="السجلات" count={result.data?.rows.length ?? 0}>

@@ -5,7 +5,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Inbox, ShieldCheck } from "lucide-react";
 
-import { CardsSkeleton, ErrorState, PageHero, SectionCard, SoftEmpty } from "@/components/rakeez";
+import {
+  CardsSkeleton,
+  ErrorState,
+  PageHero,
+  RefreshAction,
+  SectionCard,
+  SoftEmpty,
+} from "@/components/rakeez";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -149,7 +156,8 @@ function PlatformDsrPage() {
     <div className="space-y-6">
       <PageHero
         title="طلبات حقوق أصحاب البيانات"
-        subtitle="كل طلب يمر بالتحقق من الهوية ثم الدراسة ثم قرار مسبّب، ويُسجَّل كل انتقال تلقائيًا."
+        subtitle="تحقق من الهوية ثم دراسة ثم قرار مسبّب، مع تسجيل كل انتقال تلقائيًا."
+        aside={<RefreshAction onRefresh={() => void requests.refetch()} busy={requests.isFetching} />}
       />
       <SectionCard icon={Inbox} title="الطلبات" count={requests.data.length}>
         {requests.data.length === 0 ? (
