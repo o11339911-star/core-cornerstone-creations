@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArchiveButton } from "@/components/archive/archive-button";
 import { ErrorState, HeroBadge, PageHero, ResponsiveModal, SoftEmpty } from "@/components/rakeez";
+import { MailboxPanel } from "@/components/rakeez/mailbox-panel";
 import { useAccountUi } from "@/lib/account-ui";
 import { formatDateTime } from "@/lib/format";
 import {
@@ -65,6 +66,7 @@ function CorrespondencePage() {
   const setArchived = useServerFn(setCorrespondenceArchived);
 
   const [filter, setFilter] = React.useState<ChannelValue | null>(null);
+  const [mode, setMode] = React.useState<"log" | "mailbox">("log");
   const [box, setBox] = React.useState<"outgoing" | "incoming">("outgoing");
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({
@@ -213,7 +215,7 @@ function CorrespondencePage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" hidden={mode !== "log"}>
         <button
           type="button"
           onClick={() => setFilter(null)}
@@ -239,7 +241,7 @@ function CorrespondencePage() {
         ))}
       </div>
 
-      <section aria-live="polite" className="space-y-3">
+      <section aria-live="polite" className="space-y-3" hidden={mode !== "log"}>
         {list.isPending ? (
           <div className="space-y-3" role="status" aria-busy="true">
             {[0, 1, 2].map((i) => (
