@@ -101,11 +101,7 @@ export const inviteAppointmentParticipant = createServerFn({ method: "POST" })
         _email: data.email,
         _user_id: data.userId,
       });
-      if (error) {
-        if (missing(error.message))
-          return { available: false, linkedAccount: false, emailSent: false, mailConfigured: true };
-        throw new Error(error.message);
-      }
+      if (error) throw new Error(error.message);
       const out = res as { linked_account: boolean };
 
       // البريد الخارجي يمر عبر طبقة بريد المنصة وحدها؛ إن لم تكن معدّة نحفظ الدعوة فقط.
