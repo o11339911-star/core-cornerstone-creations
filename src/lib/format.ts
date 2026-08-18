@@ -119,24 +119,28 @@ function dtf(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
   });
 }
 
-/** `15/08/2026` */
+/**
+ * `18/08/2026` — يُبنى من الأجزاء لا من نص المنسّق، فلا تتسرّب علامات RTL
+ * ولا يتغيّر ترتيب الأجزاء باختلاف اللغة.
+ */
 export function formatDate(value: string | number | Date | null | undefined): string {
   const date = toDate(value);
   if (!date) return EMPTY;
-  return toLatinDigits(
-    dtf({ year: "numeric", month: "2-digit", day: "2-digit" }).format(date),
-  ).replace(/\u200f/g, "");
+  const parts = dtf({ year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+  const get = (type: string) => toLatinDigits(parts.find((p) => p.type === type)?.value ?? "");
+  return `${get("day")}/${get("month")}/${get("year")}`;
 }
 
 /** `17:27` */
 export function formatTime(value: string | number | Date | null | undefined): string {
   const date = toDate(value);
   if (!date) return EMPTY;
-  return toLatinDigits(dtf({ hour: "2-digit", minute: "2-digit" }).format(date)).replace(
-    /\u200f/g,
-    "",
-  );
+  const parts = dtf({ hour: "2-digit", minute: "2-digit" }).formatToParts(date);
+  const get = (type: string) => toLatinDigits(parts.find((p) => p.type === type)?.value ?? "");
+  const hour = get("hour").padStart(2, "0");
+  return `${hour}:${get("minute")}`;
 }
+
 
 /** `15/08/2026 17:27` — the canonical timestamp shape across Rakeez. */
 export function formatDateTime(value: string | number | Date | null | undefined): string {
