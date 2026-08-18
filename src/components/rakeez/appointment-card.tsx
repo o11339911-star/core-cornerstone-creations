@@ -7,7 +7,7 @@ import { Copy, Link2, QrCode as QrIcon, Send, UserPlus, Video, X } from "lucide-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toLatinDigits } from "@/lib/format";
+import { formatDateTime, toLatinDigits } from "@/lib/format";
 import { QrCode } from "./qr-code";
 import {
   cancelAppointmentInvite,
@@ -19,19 +19,9 @@ import {
   shareAppointmentInternal,
 } from "@/lib/appointment-card.functions";
 
-const RIYADH = "Asia/Riyadh";
+/** `18/08/2026 09:00` بتوقيت الرياض وبأرقام لاتينية دائمًا. */
+const fmt = (iso: string) => formatDateTime(iso);
 
-const fmt = (iso: string) =>
-  toLatinDigits(
-    new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
-      calendar: "gregory",
-      numberingSystem: "latn",
-      hourCycle: "h23",
-      timeZone: RIYADH,
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso)),
-  );
 
 const STATUS_LABEL: Record<string, string> = {
   proposed: "بانتظار الموافقة",
