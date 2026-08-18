@@ -68,13 +68,46 @@ export const breakglassSchema = z.object({
 });
 export type BreakglassRequest = z.infer<typeof breakglassSchema>;
 
-/** Who am I on the platform side? Returns `is_staff: false` for normal users. */
+/**
+ * Resolve platform access from the two authoritative tables for the current
+ * authenticated user only. This deliberately does not use profile metadata,
+ * entity membership, or a tenant/account selection.
+ */
 export const getPlatformMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformMe> => {
-    const { data, error } = await context.supabase.rpc("platform_me");
-    if (error) throw new Error(error.message);
-    return platformMeSchema.parse(data);
+    const [adminResult, staffResult] = await Promise.all([
+      context.supabase
+        .from("platform_admins")
+        .select("user_id")
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+      context.supabase
+        .from("platform_staff")
+        .select("user_id, role, availability, max_concurrent, active")
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+    ]);
+
+    const isAdmin = !adminResult.error && adminResult.data?.user_id === context.userId;
+    const staff = !staffResult.error ? staffResult.data : null;
+    const isStaff = staff?.user_id === context.userId && staff.active === true;
+
+    // A positive result from either independent source is sufficient. If no
+    // source proves access, any read failure makes the result indeterminate and
+    // must fail closed rather than silently treating an administrator as a
+    // personal account.
+    if (!isAdmin && !isStaff && (adminResult.error || staffResult.error)) {
+      throw new Error("PLATFORM_ACCESS_CHECK_FAILED");
+    }
+
+    return platformMeSchema.parse({
+      is_admin: isAdmin,
+      is_staff: isStaff,
+      role: isStaff ? staff.role : null,
+      availability: isStaff ? staff.availability : null,
+      max_concurrent: isStaff ? staff.max_concurrent : null,
+    });
   });
 
 export const listQueueItems = createServerFn({ method: "GET" })

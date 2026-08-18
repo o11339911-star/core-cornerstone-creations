@@ -77,8 +77,20 @@ function PlatformAccountGate() {
     );
   }
 
-  // A failed check is fail-closed for administration and preserves the normal
-  // account-selection flow for ordinary users.
+  if (platform.isError) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-12 sm:px-6 lg:px-8">
+        <ErrorState
+          title="تعذّر التحقق من نوع الحساب"
+          description="لم نتمكن من التحقق من صلاحية إدارة النظام. أعد المحاولة للمتابعة بأمان."
+          onRetry={() => void platform.refetch()}
+        />
+      </div>
+    );
+  }
+
+  // Only a conclusive server-side negative result reaches ordinary account
+  // selection. An unavailable check never downgrades an administrator silently.
   return (
     <PolicyAcceptanceGate>
       <SelectAccountPage />

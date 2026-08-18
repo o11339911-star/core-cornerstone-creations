@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/rakeez/form-field";
 import {
   activateTemplate,
-  amIPlatformAdmin,
   archiveTemplate,
   getTemplate,
   listRakeezTemplates,
   upsertRakeezTemplate,
 } from "@/lib/report-templates.functions";
+import { getPlatformMe } from "@/lib/platform-admin.functions";
 import { emptyBlock, type ReportContent } from "@/lib/reports/blocks";
 
 export const Route = createFileRoute("/_authenticated/admin/report-templates")({
@@ -45,7 +45,7 @@ const blankContent = (): ReportContent => ({
 
 function RakeezTemplateLibraryPage() {
   const queryClient = useQueryClient();
-  const checkAdmin = useServerFn(amIPlatformAdmin);
+  const checkAdmin = useServerFn(getPlatformMe);
   const fetchTemplates = useServerFn(listRakeezTemplates);
   const fetchTemplate = useServerFn(getTemplate);
   const save = useServerFn(upsertRakeezTemplate);
@@ -60,8 +60,10 @@ function RakeezTemplateLibraryPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
 
-  const adminQuery = useQuery({ queryKey: ["platform-admin"], queryFn: () => checkAdmin() });
-  const isAdmin = adminQuery.data?.isPlatformAdmin === true;
+  const adminQuery = useQuery({ queryKey: ["platform-me"], queryFn: () => checkAdmin() });
+  const isAdmin =
+    adminQuery.data?.is_admin === true ||
+    (adminQuery.data?.is_staff === true && adminQuery.data.role === "superadmin");
 
   const templatesQuery = useQuery({
     queryKey: ["rakeez-templates"],

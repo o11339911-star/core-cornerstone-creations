@@ -183,7 +183,9 @@ function SignInForm() {
           return;
         }
       } catch {
-        // Fail closed: an unavailable/failed platform check grants no access.
+        // Fail closed without silently entering the personal-account flow. The
+        // selection route retries the same authoritative check and shows a
+        // recoverable Arabic error if the backend remains unavailable.
       }
     }
 
