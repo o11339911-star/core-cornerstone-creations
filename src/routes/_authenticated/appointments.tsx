@@ -89,17 +89,9 @@ const STATUS_FILTERS = [
 
 const RIYADH = "Asia/Riyadh";
 
-const fmt = (iso: string) =>
-  toLatinDigits(
-    new Intl.DateTimeFormat("ar-u-ca-gregory-nu-latn", {
-      calendar: "gregory",
-      numberingSystem: "latn",
-      hourCycle: "h23",
-      timeZone: RIYADH,
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso)),
-  );
+/** `18/08/2026 09:00` — تنسيق موحّد بتوقيت الرياض وبأرقام لاتينية. */
+const fmt = (iso: string) => formatDateTime(iso);
+
 
 /** تاريخ اليوم في الرياض بصيغة YYYY-MM-DD وبأرقام لاتينية مضمونة. */
 function todayRiyadh(): string {
