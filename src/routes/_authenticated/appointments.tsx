@@ -251,15 +251,16 @@ function AppointmentsPage() {
       }),
     onSuccess: (res) => {
       toast.success("تم حجز الموعد وجُدول التذكير");
-      setCreated({
-        title: form.title.trim(),
-        startsAt: res.startsAt,
-        provider: providerName ?? "",
-        createdAt: new Date().toISOString(),
-      });
+      setBookedId(res.id);
+      try {
+        window.sessionStorage.setItem(bookedStorageKey, res.id);
+      } catch {
+        /* التخزين المحلي غير متاح — الكرت يظل يُقرأ من القائمة */
+      }
       setForm((f) => ({ ...f, title: "", startsAt: "" }));
       invalidate();
     },
+
     onError: failure,
   });
 
