@@ -144,12 +144,13 @@ function PlatformRequestsPage() {
                   <div className="flex items-center gap-2">
                     {source ? (
                       <Button asChild variant="outline" size="sm" className="min-h-11 gap-2">
-                        <Link to={source.to} params={source.params}>
+                        <Link to={source.to} params={source.params as never}>
                           <ExternalLink className="size-4" aria-hidden="true" />
-                          فتح الأصل
+                          {source.label}
                         </Link>
                       </Button>
                     ) : null}
+
                     <Badge variant="secondary">{STATUS_AR[r.status] ?? r.status}</Badge>
                   </div>
                 </li>
