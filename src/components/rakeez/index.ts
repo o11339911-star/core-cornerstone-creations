@@ -14,6 +14,16 @@ export { FieldShell, TextField, TextAreaField } from "./form-field";
 export { LanguageToggle } from "./language-toggle";
 export { Num, normalizedInput, useLatinDigitInputGuard } from "./numeric";
 export {
+  LatinDatePicker,
+  LatinDateTimePicker,
+  formatLatinDate,
+  hasNonLatinDigits,
+  ISO_DATE_RE,
+  ISO_DATETIME_LOCAL_RE,
+} from "./latin-date-picker";
+export type { LatinDatePickerProps, LatinDateTimePickerProps } from "./latin-date-picker";
+
+export {
   AsyncBoundary,
   EmptyState,
   ErrorState,
