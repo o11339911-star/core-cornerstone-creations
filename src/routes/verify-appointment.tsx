@@ -15,7 +15,8 @@ export const Route = createFileRoute("/verify-appointment")({
   component: VerifyAppointmentPage,
   errorComponent: ErrorState,
   validateSearch: (search: Record<string, unknown>): Search => ({
-    n: typeof search['n'] === "string" ? search['n'] : "",
+    // محلّل الاستعلام يحوّل القيم الرقمية إلى أرقام، لذا نقبل النوعين ونوحّدها نصًا.
+    n: typeof search['n'] === "string" || typeof search['n'] === "number" ? String(search['n']) : "",
     d: typeof search['d'] === "string" ? search['d'] : "",
   }),
   head: () => ({
