@@ -162,26 +162,15 @@ export const setOfficialEmail = createServerFn({ method: "POST" })
     },
   );
 
-/** إرسال الرمز عبر مزوّد المنصة التشغيلي فقط (لا علاقة له بصندوق بريد المستخدم). */
+/** إرسال الرمز عبر طبقة بريد المنصة وحدها (لا علاقة له بصندوق بريد المستخدم). */
 async function deliverCode(to: string, code: string): Promise<boolean> {
-  const apiKey = (process.env['RESEND_API_KEY'] ?? "").trim();
-  const from = (process.env['PLATFORM_EMAIL_FROM'] ?? "").trim();
-  if (!apiKey || !from) return false;
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        from,
-        to,
-        subject: "رمز تأكيد البريد الرسمي في ركيز",
-        text: `رمز التأكيد: ${code}\nالرمز صالح لمدة ساعة واحدة، ولا تشاركه مع أحد.`,
-      }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+  const { sendPlatformEmail } = await import("@/lib/mail/platform.server");
+  const res = await sendPlatformEmail({
+    to,
+    subject: "رمز تأكيد البريد الرسمي في ركيز",
+    text: `رمز التأكيد: ${code}\nالرمز صالح لمدة ساعة واحدة، ولا تشاركه مع أحد.`,
+  });
+  return res.sent;
 }
 
 export const verifyOfficialEmail = createServerFn({ method: "POST" })
