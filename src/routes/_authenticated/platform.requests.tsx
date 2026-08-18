@@ -60,6 +60,19 @@ const FILTERS = [
   { key: "resolved", label: "منجز" },
 ] as const;
 
+/**
+ * الطلب الأصلي هو المصدر: لا نعيد إنشاء سجل موازٍ، بل نفتح الكيان أو
+ * المشروع الذي وُلد منه عنصر الطابور بنفس `source_id`.
+ */
+function sourceLink(
+  item: QueueItem,
+): { to: "/entities/$entityId"; params: { entityId: string } } | null {
+  if (item.entity_id) {
+    return { to: "/entities/$entityId", params: { entityId: item.entity_id } };
+  }
+  return null;
+}
+
 function PlatformRequestsPage() {
   const fetchItems = useServerFn(listQueueItems);
   const [status, setStatus] = useState<(typeof FILTERS)[number]["key"]>("all");
