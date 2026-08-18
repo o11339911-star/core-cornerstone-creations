@@ -163,9 +163,37 @@ function CorrespondencePage() {
 
       <div
         role="tablist"
+        aria-label="نوع العرض"
+        className="flex w-full gap-2 rounded-xl border border-border bg-card p-1"
+      >
+        {([
+          { value: "log", label: "سجل المراسلات" },
+          { value: "mailbox", label: "صندوق البريد" },
+        ] as const).map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={mode === t.value}
+            onClick={() => setMode(t.value)}
+            className={`min-h-11 flex-1 rounded-lg px-3 text-sm font-medium ${
+              mode === t.value ? "bg-secondary text-primary" : "text-muted-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "mailbox" ? <MailboxPanel entityId={entityId} /> : null}
+
+      <div
+        hidden={mode !== "log"}
+        role="tablist"
         aria-label="اتجاه المراسلات"
         className="flex w-full gap-2 rounded-xl border border-border bg-card p-1"
       >
+
         {([
           { value: "incoming", label: "وارد" },
           { value: "outgoing", label: "صادر" },
