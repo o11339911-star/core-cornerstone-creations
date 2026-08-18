@@ -23,7 +23,9 @@ export type ArchiveVerifyResult =
 const LEGACY_REFERENCE = /^RKZ-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/;
 /** الصيغة الرقمية الموحدة الجديدة (Rakiz تجميلية فقط). */
 const NUMERIC_REFERENCE = /^[0-9]{6,}$/;
-const DATE = /^\d{4}\/\d{2}\/\d{2}$/;
+const DATE = /^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$/;
+/** أرقام عربية-هندية أو فارسية: تُرفض ولا تُحوَّل صامتًا. */
+const NON_LATIN_DIGITS = /[\u0660-\u0669\u06F0-\u06F9]/;
 
 export const verifyArchiveFile = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
@@ -39,6 +41,10 @@ export const verifyArchiveFile = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }): Promise<ArchiveVerifyResult> => {
+    // الرفض الخادمي الصريح للأرقام غير اللاتينية قبل أي مطابقة.
+    if (NON_LATIN_DIGITS.test(data.reference) || NON_LATIN_DIGITS.test(data.date))
+      throw new Error("NON_LATIN_DIGITS");
+
     if (
       (!LEGACY_REFERENCE.test(data.reference) && !NUMERIC_REFERENCE.test(data.reference)) ||
       !DATE.test(data.date)
