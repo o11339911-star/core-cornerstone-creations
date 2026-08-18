@@ -10,10 +10,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * `private.assert_platform_admin()` وتسجّل الفعل في `permission_audit_log`.
  * لا تُعاد أي بيانات اعتماد (كلمات مرور/رموز) في أي مسار.
  *
- * الهجرة `supabase/migrations-pending/10_admin_full_management.sql` لم تُطبَّق
- * بعد (صلاحية Supabase مرفوضة)، لذلك يتعامل كل غلاف مع غياب الدالة بهدوء
- * ويُعيد `{ ok:false, code:"not_deployed" }` كي تعرض الواجهة رسالة عربية
- * مفهومة بدل خطأ تقني — ويعمل تلقائيًا فور التطبيق.
+ * الهجرة `supabase/migrations/applied/10_admin_full_management.sql` مطبَّقة على
+ * القاعدة (2026-08-18)، فلا مسارات احتياطية هنا: أي خطأ يُترجم إلى رسالة عربية
+ * مفهومة ويُعرض كما هو.
  */
 
 const uuid = z.string().uuid();
@@ -24,32 +23,15 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | { [key:
 
 export type AdminActionResult =
   | { ok: true; code: "done"; data: JsonValue }
-  | { ok: false; code: "not_deployed" | "forbidden" | "blocked" | "confirm_mismatch"; message: string };
+  | { ok: false; code: "forbidden" | "blocked" | "confirm_mismatch"; message: string };
 
 type LooseRpc = (
   name: string,
   args?: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-function isMissingFunction(message: string): boolean {
-  const m = message.toLowerCase();
-  return (
-    m.includes("could not find the function") ||
-    m.includes("does not exist") ||
-    m.includes("schema cache") ||
-    m.includes("pgrst202")
-  );
-}
-
 /** يحوّل خطأ القاعدة إلى نتيجة عربية مفهومة بدل نص تقني خام. */
 function toResult(message: string): AdminActionResult {
-  if (isMissingFunction(message)) {
-    return {
-      ok: false,
-      code: "not_deployed",
-      message: "هذا الإجراء جاهز في الواجهة وينتظر تطبيق التحديث الإداري لقاعدة البيانات.",
-    };
-  }
   if (/forbidden/i.test(message)) {
     return { ok: false, code: "forbidden", message: "هذا الإجراء متاح لمدير النظام فقط." };
   }
@@ -323,19 +305,16 @@ export const adminListProjects = createServerFn({ method: "GET" })
     async ({
       data,
       context,
-    }): Promise<{ rows: AdminProjectRow[]; total: number; deployed: boolean }> => {
+    }): Promise<{ rows: AdminProjectRow[]; total: number }> => {
       const rpc = looseRpc(context.supabase);
       const { data: rows, error } = await rpc("admin_list_projects", {
         ...(data.q ? { _q: data.q } : {}),
         _limit: data.limit ?? 50,
         _offset: data.offset ?? 0,
       });
-      if (error) {
-        if (isMissingFunction(error.message)) return { rows: [], total: 0, deployed: false };
-        throw new Error(/forbidden/i.test(error.message) ? "FORBIDDEN" : error.message);
-      }
+      if (error) throw new Error(/forbidden/i.test(error.message) ? "FORBIDDEN" : error.message);
       const parsed = adminProjectRowSchema.array().parse(rows ?? []);
-      return { rows: parsed, total: parsed[0]?.total_count ?? 0, deployed: true };
+      return { rows: parsed, total: parsed[0]?.total_count ?? 0 };
     },
   );
 
