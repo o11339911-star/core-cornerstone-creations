@@ -57,16 +57,21 @@ export const setMyAddress = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<PersonAddress> => {
-    const { error } = await context.supabase.rpc("set_person_address", {
-      _building_no: data.buildingNo || undefined,
-      _street: data.street || undefined,
-      _district: data.district || undefined,
-      _city: data.city || undefined,
-      _postal_code: data.postalCode || undefined,
-      _additional_no: data.additionalNo || undefined,
-      _unit_no: data.unitNo || undefined,
-    });
+    const args: Record<string, string> = {};
+    if (data.buildingNo) args["_building_no"] = data.buildingNo;
+    if (data.street) args["_street"] = data.street;
+    if (data.district) args["_district"] = data.district;
+    if (data.city) args["_city"] = data.city;
+    if (data.postalCode) args["_postal_code"] = data.postalCode;
+    if (data.additionalNo) args["_additional_no"] = data.additionalNo;
+    if (data.unitNo) args["_unit_no"] = data.unitNo;
+
+    const { error } = await context.supabase.rpc(
+      "set_person_address",
+      args as { _building_no?: string },
+    );
     if (error) throw new Error(error.message);
+
 
     // نعيد القيم المحفوظة فعليًا من القاعدة، لا القيم المرسلة.
     const { data: row, error: readError } = await context.supabase
