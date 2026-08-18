@@ -79,7 +79,7 @@ export type SessionPayload = { access_token: string; refresh_token: string };
 
 export type SignInResult =
   | { ok: true; session: SessionPayload }
-  | { ok: false; reason: "invalid" | "throttled" | "unconfirmed" | "unavailable" };
+  | { ok: false; reason: "invalid" | "throttled" | "unconfirmed" | "unavailable" | "suspended" };
 
 /**
  * يحلّ رقم الهوية إلى معرّف حساب Auth داخل الخادم فقط.
@@ -165,6 +165,25 @@ export async function signInWithIdentifier(
   if (error || !data.session) {
     const unconfirmed = (error?.message ?? "").toLowerCase().includes("not confirmed");
     return { ok: false, reason: unconfirmed ? "unconfirmed" : "invalid" };
+  }
+
+  // الحساب المجمّد لا يُسمح له بمتابعة الدخول (public.my_account_suspension).
+  const url = process.env["SUPABASE_URL"];
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
+  if (url && key) {
+    const asUser = createClient<Database>(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      global: { headers: { Authorization: `Bearer ${data.session.access_token}` } },
+    });
+    const rpc = asUser.rpc.bind(asUser) as unknown as (
+      fn: string,
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
+    const suspension = await rpc("my_account_suspension");
+    if (!suspension.error) {
+      const row = suspension.data as { suspended?: boolean } | boolean | null;
+      const suspended = typeof row === "boolean" ? row : row?.suspended === true;
+      if (suspended) return { ok: false, reason: "suspended" };
+    }
   }
 
   return {
