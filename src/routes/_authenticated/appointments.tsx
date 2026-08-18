@@ -17,6 +17,8 @@ import {
   FieldGrid,
   HeroBadge,
   PageHero,
+  ISO_DATETIME_LOCAL_RE,
+  LatinDateTimePicker,
   SectionCard,
   SoftEmpty,
 } from "@/components/rakeez";
@@ -85,6 +87,20 @@ const fmt = (iso: string) =>
       timeStyle: "short",
     }).format(new Date(iso)),
   );
+
+/** تاريخ اليوم في الرياض بصيغة YYYY-MM-DD وبأرقام لاتينية مضمونة. */
+function todayRiyadh(): string {
+  const parts = new Intl.DateTimeFormat("en-CA-u-ca-gregory-nu-latn", {
+    calendar: "gregory",
+    numberingSystem: "latn",
+    timeZone: RIYADH,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
 
 const digitsOnly = (v: string) => toLatinDigits(v).replace(/[^0-9]/g, "");
 
@@ -217,7 +233,10 @@ function AppointmentsPage() {
       next['providerNumber'] = "أدخل عشرة أرقام بالضبط (0-9) لسجل مقدّم الخدمة";
     else if (providerState !== "found") next['providerNumber'] = "لا يوجد كيان مسجّل بهذا الرقم";
     if (form.title.trim().length < 3) next['title'] = "أدخل عنوانًا واضحًا للموعد";
-    if (!form.startsAt) next['startsAt'] = "حدد تاريخ ووقت الموعد";
+    if (!ISO_DATETIME_LOCAL_RE.test(form.startsAt))
+      next['startsAt'] = "حدد تاريخ ووقت الموعد من التقويم";
+    else if (form.startsAt.slice(0, 10) < todayRiyadh())
+      next['startsAt'] = "اختر تاريخًا في المستقبل بتوقيت الرياض";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -316,17 +335,17 @@ function AppointmentsPage() {
 
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">الموعد (بتوقيت الرياض)</span>
-            <Input
-              type="datetime-local"
-              dir="ltr"
-              className="text-start"
+            <LatinDateTimePicker
               value={form.startsAt}
-              onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+              onChange={(v) => setForm({ ...form, startsAt: v })}
+              min={todayRiyadh()}
+              invalid={!!errors['startsAt']}
             />
             {errors['startsAt'] ? (
               <span className="text-xs text-destructive">{errors['startsAt']}</span>
             ) : null}
           </label>
+
 
           <label className="space-y-1.5 text-sm">
             <span className="font-medium">مهلة الإلغاء بالساعات (اختياري)</span>

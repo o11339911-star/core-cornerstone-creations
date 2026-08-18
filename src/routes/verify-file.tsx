@@ -7,9 +7,8 @@ import { BadgeCheck, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ErrorState } from "@/components/rakeez";
+import { ErrorState, LatinDatePicker, hasNonLatinDigits } from "@/components/rakeez";
 import { verifyArchiveFile, type ArchiveVerifyResult } from "@/lib/archive-verify.functions";
-import { toAsciiDigits } from "@/lib/office-files";
 
 export const Route = createFileRoute("/verify-file")({
   component: VerifyFilePage,
@@ -96,10 +95,22 @@ function VerifyFilePage() {
               id="verify-reference"
               value={reference}
               onChange={(e) => {
-                const raw = toAsciiDigits(e.target.value).toUpperCase();
+                const raw = e.target.value;
+                if (hasNonLatinDigits(raw)) {
+                  setErrors((p) => ({
+                    ...p,
+                    reference: "استخدم الأرقام اللاتينية 0-9 فقط، ولا تُقبل الأرقام العربية أو الفارسية.",
+                  }));
+                  return;
+                }
+                const up = raw.toUpperCase();
                 // نقبل اللصق بالصيغة القديمة، وما عداها أرقام 0-9 فقط.
+                setErrors((p) => {
+                  const { reference: _drop, ...rest } = p;
+                  return rest;
+                });
                 setReference(
-                  raw.startsWith("RKZ") ? raw.replace(/[^0-9A-Z-]/g, "") : raw.replace(/[^0-9]/g, ""),
+                  up.startsWith("RKZ") ? up.replace(/[^0-9A-Z-]/g, "") : up.replace(/[^0-9]/g, ""),
                 );
               }}
               placeholder="482913"
@@ -120,18 +131,16 @@ function VerifyFilePage() {
 
         <div className="space-y-2">
           <Label htmlFor="verify-date">تاريخ الإصدار</Label>
-          <Input
+          <LatinDatePicker
             id="verify-date"
-            type="date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
-            dir="ltr"
-            className="min-h-11 text-start"
-            autoComplete="off"
-            aria-invalid={!!errors.date}
+            onChange={setDate}
+            invalid={!!errors.date}
+            placeholder="اختر تاريخ الإصدار"
           />
           {errors.date ? <p className="text-xs text-destructive">{errors.date}</p> : null}
         </div>
+
 
         <Button type="submit" className="min-h-11 w-full gap-2" disabled={mutation.isPending}>
           {mutation.isPending ? (

@@ -14,6 +14,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const uuid = z.string().uuid();
 
+/** أرقام عربية-هندية/فارسية: تُرفض خادميًا ولا تُحوَّل صامتًا. */
+const NON_LATIN_DIGITS = /[\u0660-\u0669\u06F0-\u06F9]/;
+const latinOnly = (v: string) => !NON_LATIN_DIGITS.test(v);
+
 export const appointmentSchema = z.object({
   id: z.string().uuid(),
   requester_entity_id: z.string().uuid(),
@@ -142,11 +146,18 @@ export const bookAppointment = createServerFn({ method: "POST" })
     z
       .object({
         requesterEntityId: uuid,
-        providerNumber: z.string().trim().regex(/^[0-9]{10}$/),
+        providerNumber: z
+          .string()
+          .trim()
+          .regex(/^[0-9]{10}$/)
+          .refine(latinOnly, { message: "NON_LATIN_DIGITS" }),
         kind: z.string().min(2),
         title: z.string().trim().min(3).max(160),
         // "YYYY-MM-DDTHH:mm" بتوقيت الرياض
-        startsAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+        startsAtLocal: z
+          .string()
+          .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$/)
+          .refine(latinOnly, { message: "NON_LATIN_DIGITS" }),
         cancelHours: z.number().int().min(0).max(168).nullable().default(null),
         notes: z.string().max(2000).nullable().default(null),
       })
