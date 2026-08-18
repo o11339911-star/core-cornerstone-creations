@@ -9,7 +9,8 @@ import { CardsSkeleton, ErrorState, PageHero } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveAccount } from "@/lib/active-account";
-import { getMyMemberships, getMyProfile, type MembershipRow } from "@/lib/auth.functions";
+import { getMyProfile, type MembershipRow } from "@/lib/auth.functions";
+import { fetchMyMemberships } from "@/lib/memberships-query";
 import { getPlatformMe } from "@/lib/platform-admin.functions";
 import { hasPlatformAccess, PLATFORM_HOME } from "@/lib/platform-access";
 import { queryClient } from "@/router";
@@ -110,7 +111,7 @@ function SelectAccountPage() {
 
   const membershipsQuery = useSuspenseQuery({
     queryKey: ["my-memberships"],
-    queryFn: () => getMyMemberships(),
+    queryFn: () => fetchMyMemberships(),
   });
 
   const profile = profileQuery.data;

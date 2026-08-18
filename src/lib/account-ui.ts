@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useActiveAccount } from "@/lib/active-account";
-import { getMyMemberships, type MembershipRow } from "@/lib/auth.functions";
+import { type MembershipRow } from "@/lib/auth.functions";
+import { fetchMyMemberships } from "@/lib/memberships-query";
 
 /**
  * UI-only view of the caller's verified account context.
@@ -28,7 +29,7 @@ export function useAccountUi(): AccountUi {
 
   const query = useQuery({
     queryKey: MY_MEMBERSHIPS_QUERY_KEY,
-    queryFn: () => getMyMemberships(),
+    queryFn: () => fetchMyMemberships(),
     staleTime: 60_000,
   });
 
