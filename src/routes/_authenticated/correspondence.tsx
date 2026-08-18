@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArchiveButton } from "@/components/archive/archive-button";
 import { ErrorState, HeroBadge, PageHero, ResponsiveModal, SoftEmpty } from "@/components/rakeez";
+import { MailboxPanel } from "@/components/rakeez/mailbox-panel";
 import { useAccountUi } from "@/lib/account-ui";
 import { formatDateTime } from "@/lib/format";
 import {
@@ -65,6 +66,7 @@ function CorrespondencePage() {
   const setArchived = useServerFn(setCorrespondenceArchived);
 
   const [filter, setFilter] = React.useState<ChannelValue | null>(null);
+  const [mode, setMode] = React.useState<"log" | "mailbox">("log");
   const [box, setBox] = React.useState<"outgoing" | "incoming">("outgoing");
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({
@@ -163,9 +165,37 @@ function CorrespondencePage() {
 
       <div
         role="tablist"
+        aria-label="نوع العرض"
+        className="flex w-full gap-2 rounded-xl border border-border bg-card p-1"
+      >
+        {([
+          { value: "log", label: "سجل المراسلات" },
+          { value: "mailbox", label: "صندوق البريد" },
+        ] as const).map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={mode === t.value}
+            onClick={() => setMode(t.value)}
+            className={`min-h-11 flex-1 rounded-lg px-3 text-sm font-medium ${
+              mode === t.value ? "bg-secondary text-primary" : "text-muted-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "mailbox" ? <MailboxPanel entityId={entityId} /> : null}
+
+      <div
+        hidden={mode !== "log"}
+        role="tablist"
         aria-label="اتجاه المراسلات"
         className="flex w-full gap-2 rounded-xl border border-border bg-card p-1"
       >
+
         {([
           { value: "incoming", label: "وارد" },
           { value: "outgoing", label: "صادر" },
@@ -185,7 +215,7 @@ function CorrespondencePage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" hidden={mode !== "log"}>
         <button
           type="button"
           onClick={() => setFilter(null)}
@@ -211,7 +241,7 @@ function CorrespondencePage() {
         ))}
       </div>
 
-      <section aria-live="polite" className="space-y-3">
+      <section aria-live="polite" className="space-y-3" hidden={mode !== "log"}>
         {list.isPending ? (
           <div className="space-y-3" role="status" aria-busy="true">
             {[0, 1, 2].map((i) => (

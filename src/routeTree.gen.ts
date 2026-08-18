@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SelectAccountRouteImport } from './routes/select-account'
+import { Route as VerifyAppointmentRouteImport } from './routes/verify-appointment'
 import { Route as VerifyFileRouteImport } from './routes/verify-file'
 import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
 import { Route as AuthenticatedArchiveRouteImport } from './routes/_authenticated/archive'
@@ -108,6 +109,11 @@ const AuthRoute = AuthRouteImport.update({
 const SelectAccountRoute = SelectAccountRouteImport.update({
   id: '/select-account',
   path: '/select-account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyAppointmentRoute = VerifyAppointmentRouteImport.update({
+  id: '/verify-appointment',
+  path: '/verify-appointment',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyFileRoute = VerifyFileRouteImport.update({
@@ -554,6 +560,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/verify-appointment': typeof VerifyAppointmentRoute
   '/verify-file': typeof VerifyFileRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/archive': typeof AuthenticatedArchiveRoute
@@ -635,6 +642,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/select-account': typeof SelectAccountRoute
+  '/verify-appointment': typeof VerifyAppointmentRoute
   '/verify-file': typeof VerifyFileRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/archive': typeof AuthenticatedArchiveRoute
@@ -718,6 +726,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/select-account': typeof SelectAccountRoute
+  '/verify-appointment': typeof VerifyAppointmentRoute
   '/verify-file': typeof VerifyFileRoute
   '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
   '/_authenticated/archive': typeof AuthenticatedArchiveRoute
@@ -802,6 +811,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/select-account'
+    | '/verify-appointment'
     | '/verify-file'
     | '/appointments'
     | '/archive'
@@ -883,6 +893,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/select-account'
+    | '/verify-appointment'
     | '/verify-file'
     | '/appointments'
     | '/archive'
@@ -965,6 +976,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/select-account'
+    | '/verify-appointment'
     | '/verify-file'
     | '/_authenticated/appointments'
     | '/_authenticated/archive'
@@ -1049,6 +1061,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   SelectAccountRoute: typeof SelectAccountRoute
+  VerifyAppointmentRoute: typeof VerifyAppointmentRoute
   VerifyFileRoute: typeof VerifyFileRoute
   ESlugRoute: typeof ESlugRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
@@ -1091,6 +1104,13 @@ declare module '@tanstack/react-router' {
       path: '/select-account'
       fullPath: '/select-account'
       preLoaderRoute: typeof SelectAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-appointment': {
+      id: '/verify-appointment'
+      path: '/verify-appointment'
+      fullPath: '/verify-appointment'
+      preLoaderRoute: typeof VerifyAppointmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify-file': {
@@ -1825,6 +1845,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   SelectAccountRoute: SelectAccountRoute,
+  VerifyAppointmentRoute: VerifyAppointmentRoute,
   VerifyFileRoute: VerifyFileRoute,
   ESlugRoute: ESlugRoute,
   InviteAcceptRoute: InviteAcceptRoute,

@@ -47,3 +47,5 @@ export {
   SoftEmpty,
   CardsSkeleton,
 } from "./dashboard-kit";
+export { QrCode } from "./qr-code";
+export { AppointmentCard } from "./appointment-card";

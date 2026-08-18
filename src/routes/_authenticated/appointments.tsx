@@ -3,7 +3,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarCheck2, CalendarClock, CalendarPlus, Loader2, Phone } from "lucide-react";
+import {
+  CalendarCheck2,
+  CalendarClock,
+  CalendarPlus,
+  Loader2,
+  Phone,
+  QrCode as QrIcon,
+} from "lucide-react";
 
 import { toLatinDigits } from "@/lib/format";
 import { useAccountUi } from "@/lib/account-ui";
@@ -11,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  AppointmentCard,
   CardsSkeleton,
   ErrorState,
   Field,
@@ -30,6 +38,10 @@ import {
   lookupProviderEntity,
   rescheduleAppointment,
 } from "@/lib/appointments.functions";
+import {
+  listMyAppointmentInvites,
+  respondAppointmentInvite,
+} from "@/lib/appointment-card.functions";
 
 export const Route = createFileRoute("/_authenticated/appointments")({
   component: AppointmentsPage,
@@ -114,6 +126,30 @@ function AppointmentsPage() {
   const confirm = useServerFn(confirmAppointment);
   const cancel = useServerFn(cancelAppointment);
   const reschedule = useServerFn(rescheduleAppointment);
+  const fetchMyInvites = useServerFn(listMyAppointmentInvites);
+  const respondInvite = useServerFn(respondAppointmentInvite);
+
+  const myInvites = useQuery({
+    queryKey: ["my-appointment-invites"],
+    queryFn: () => fetchMyInvites(),
+  });
+
+  const answerInvite = useMutation({
+    mutationFn: (v: { inviteId: string; accept: boolean }) =>
+      respondInvite({ data: v }),
+    onSuccess: (res, v) => {
+      if (!res.available) {
+        toast.error("دعوات الاجتماعات غير مفعّلة بعد على هذا الحساب.");
+        return;
+      }
+      toast.success(v.accept ? "قبلت الدعوة، وأصبح الاجتماع في مواعيدك." : "رُفضت الدعوة.");
+      void qc.invalidateQueries({ queryKey: ["my-appointment-invites"] });
+      void qc.invalidateQueries({ queryKey: ["appointments"] });
+    },
+    onError: () => toast.error("تعذّر تنفيذ الرد على الدعوة. حاول مرة أخرى."),
+  });
+
+  const [openCard, setOpenCard] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     providerNumber: "",
@@ -298,6 +334,47 @@ function AppointmentsPage() {
         </SectionCard>
       ) : null}
 
+      {(myInvites.data ?? []).length > 0 ? (
+        <SectionCard
+          icon={CalendarClock}
+          title="دعوات اجتماعات بانتظار ردّك"
+          count={(myInvites.data ?? []).length}
+        >
+          <ul className="space-y-3">
+            {(myInvites.data ?? []).map((inv) => (
+              <li
+                key={inv.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">{inv.title}</p>
+                  <p className="text-xs text-muted-foreground" dir="ltr">
+                    {fmt(inv.starts_at)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    disabled={answerInvite.isPending}
+                    onClick={() => answerInvite.mutate({ inviteId: inv.id, accept: true })}
+                  >
+                    قبول
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={answerInvite.isPending}
+                    onClick={() => answerInvite.mutate({ inviteId: inv.id, accept: false })}
+                  >
+                    رفض
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </SectionCard>
+      ) : null}
+
       <SectionCard icon={CalendarPlus} title="حجز موعد">
         {!accountLoading && !activeEntity?.id ? (
           <p className="mb-4 rounded-lg bg-secondary p-3 text-sm text-primary">
@@ -476,6 +553,24 @@ function AppointmentsPage() {
                     />
                   </FieldGrid>
                 </div>
+
+                <div className="mt-3">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setOpenCard(openCard === a.id ? null : a.id)}
+                    aria-expanded={openCard === a.id}
+                  >
+                    <QrIcon className="size-4" aria-hidden="true" />
+                    {openCard === a.id ? "إخفاء بطاقة الموعد" : "بطاقة الموعد ورمز التحقق"}
+                  </Button>
+                </div>
+                {openCard === a.id ? (
+                  <div className="mt-3">
+                    <AppointmentCard appointmentId={a.id} />
+                  </div>
+                ) : null}
+
                 {a.can_cancel || a.can_reschedule || a.can_confirm ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {a.can_confirm ? (
