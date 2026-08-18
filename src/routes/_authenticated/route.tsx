@@ -25,6 +25,17 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // بيئة الإدارة مستقلة: لا قشرة الحساب العام ولا بوابة اكتمال الحساب الشخصي.
+  if (pathname === "/platform" || pathname.startsWith("/platform/")) {
+    return (
+      <PlatformShell>
+        <Outlet />
+      </PlatformShell>
+    );
+  }
+
   return (
     <PolicyAcceptanceGate>
       <AccountCompletionGate>

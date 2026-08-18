@@ -1,7 +1,6 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookLock, Building2, Inbox, PlugZap, ShieldAlert, ShieldCheck, UserSearch, Users } from "lucide-react";
 
 import { ErrorState, UnauthorizedState } from "@/components/rakeez";
 import { getPlatformMe } from "@/lib/platform-admin.functions";
@@ -13,16 +12,6 @@ export const Route = createFileRoute("/_authenticated/platform")({
   errorComponent: ErrorState,
 });
 
-const LINKS = [
-  { to: "/platform/queue", label: "طابور المراجعة", icon: Inbox },
-  { to: "/platform/users", label: "المستخدمون", icon: UserSearch },
-  { to: "/platform/entities", label: "الكيانات", icon: Building2 },
-  { to: "/platform/staff", label: "فريق المنصة", icon: Users },
-  { to: "/platform/breakglass", label: "الوصول الطارئ", icon: ShieldAlert },
-  { to: "/platform/integrations", label: "التكاملات", icon: PlugZap },
-  { to: "/platform/dsr", label: "طلبات الخصوصية", icon: ShieldCheck },
-  { to: "/platform/breach-playbook", label: "خطة الحوادث", icon: BookLock },
-] as const;
 
 function PlatformLayout() {
   const fetchMe = useServerFn(getPlatformMe);
@@ -49,25 +38,6 @@ function PlatformLayout() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
-      <nav aria-label="أقسام إدارة المنصة" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <ul className="flex w-max gap-1 rounded-xl border border-border bg-card p-1.5 shadow-card sm:w-full">
-          {LINKS.map((link) => (
-            <li key={link.to}>
-              <Link
-                to={link.to}
-                className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-lg border-b-2 border-transparent px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
-                activeProps={{
-                  className:
-                    "border-primary bg-secondary text-primary inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-lg border-b-2 px-3 text-sm font-semibold",
-                }}
-              >
-                <link.icon className="size-4" aria-hidden="true" />
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
       <Outlet />
     </div>
   );
