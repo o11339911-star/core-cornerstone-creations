@@ -121,9 +121,14 @@ function AppointmentsPage() {
   const fetchMyInvites = useServerFn(listMyAppointmentInvites);
   const respondInvite = useServerFn(respondAppointmentInvite);
 
+  // كل استعلام معزول بالحساب النشط: تبديل الحساب لا يعرض بيانات حساب سابق.
+  const accountKey = accountLoading ? "…" : (activeEntity?.id ?? "personal");
+  const scoped = { enabled: !accountLoading, retry: 1, staleTime: 30_000, refetchOnWindowFocus: false } as const;
+
   const myInvites = useQuery({
-    queryKey: ["my-appointment-invites"],
+    queryKey: ["my-appointment-invites", accountKey],
     queryFn: () => fetchMyInvites(),
+    ...scoped,
   });
 
   const answerInvite = useMutation({
@@ -157,14 +162,25 @@ function AppointmentsPage() {
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [providerName, setProviderName] = useState<string | null>(null);
   const [providerState, setProviderState] = useState<"idle" | "loading" | "none" | "found">("idle");
-  const [created, setCreated] = useState<{
-    title: string;
-    startsAt: string;
-    provider: string;
-    createdAt: string;
-  } | null>(null);
+  // معرّف آخر موعد حُجز من هذا المتصفح؛ بياناته المعروضة تأتي من القاعدة لا من الحالة.
+  const [bookedId, setBookedId] = useState<string | null>(null);
 
-  const list = useQuery({ queryKey: ["appointments"], queryFn: () => fetchList() });
+  const list = useQuery({
+    queryKey: ["appointments", accountKey],
+    queryFn: () => fetchList(),
+    ...scoped,
+  });
+
+  const bookedStorageKey = `rakeez:last-appointment:${accountKey}`;
+  useEffect(() => {
+    if (accountLoading) return;
+    try {
+      setBookedId(window.sessionStorage.getItem(bookedStorageKey));
+    } catch {
+      setBookedId(null);
+    }
+  }, [bookedStorageKey, accountLoading]);
+
 
   // بحث تلقائي عند اكتمال عشرة أرقام، دون كشف معرّف الكيان في المتصفح.
   useEffect(() => {
