@@ -20,9 +20,8 @@ import {
 export const Route = createFileRoute("/_authenticated/settings/messaging")({
   component: MessagingSettingsPage,
   errorComponent: ErrorState,
-  validateSearch: (search: Record<string, unknown>) => ({
-    mail: typeof search['mail'] === "string" ? (search['mail'] as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { mail?: string } =>
+    typeof search['mail'] === "string" ? { mail: search['mail'] as string } : {},
   head: () => ({
     meta: [
       { title: "البريد الرسمي وصندوق البريد | ركيز" },
