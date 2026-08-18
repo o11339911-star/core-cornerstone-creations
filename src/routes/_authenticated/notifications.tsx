@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BellRing } from "lucide-react";
+import { BellRing, ShieldCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 } from "@/components/rakeez";
 import { useT } from "@/i18n";
 import {
+  getUnreadCount,
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -57,7 +58,21 @@ const TYPE_LABEL_AR: Record<string, string> = {
   "security.membership_suspended": "تعليق عضويتك",
   "document.shared": "مستند تمت مشاركته",
   "contract.updated": "تحديث على عقد",
+  "appointment.proposed": "طلب موعد جديد",
+  "appointment.confirmed": "تم تأكيد موعد",
+  "appointment.rescheduled": "إعادة جدولة موعد",
+  "appointment.cancelled": "إلغاء موعد",
+  "appointment.reminder": "تذكير بموعد",
+  "correspondence.received": "مراسلة واردة",
+  "network.request": "طلب تواصل جديد",
+  "deal.message": "رسالة على معاملة تعاقد",
+  "deal.updated": "تحديث على معاملة تعاقد",
 };
+
+/** لا نعرض مفاتيح تقنية إنجليزية أبدًا: أي نوع غير معروف يظهر بعبارة عربية عامة. */
+function typeLabel(typeCode: string): string {
+  return TYPE_LABEL_AR[typeCode] ?? "تنبيه من ركيز";
+}
 
 /** Arabic one-liner describing a stage notification: project, stage, actor. */
 function notificationDetails(
@@ -88,6 +103,12 @@ function NotificationsPage() {
     queryFn: () => fetchList({ data: { unreadOnly } }),
   });
 
+  const fetchUnread = useServerFn(getUnreadCount);
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () => fetchUnread(),
+  });
+
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
   const readOne = useMutation({
@@ -108,12 +129,16 @@ function NotificationsPage() {
       <PageHero
         title={t("notifications.title")}
         subtitle={t("notifications.subtitle")}
-        badge={<HeroBadge tone="neutral">{rows.length}</HeroBadge>}
+        badge={
+          <HeroBadge tone={unreadCount > 0 ? "warning" : "neutral"}>
+            {`${t("notifications.unreadCount")} ${unreadCount}`}
+          </HeroBadge>
+        }
         aside={
           <Button
             variant="secondary"
             className="min-h-11"
-            disabled={readAll.isPending}
+            disabled={readAll.isPending || unreadCount === 0}
             onClick={() => readAll.mutate()}
           >
             {readAll.isPending ? t("common.loading") : t("notifications.markAll")}
@@ -123,10 +148,18 @@ function NotificationsPage() {
 
       <SectionCard
         icon={BellRing}
-        title={t("notifications.title")}
+        title={unreadOnly ? t("notifications.unreadOnly") : t("notifications.all")}
         count={rows.length}
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={unreadOnly ? "default" : "outline"}
+              size="sm"
+              className="min-h-9"
+              onClick={() => setUnreadOnly(true)}
+            >
+              {`${t("notifications.unreadOnly")} (${unreadCount})`}
+            </Button>
             <Button
               variant={unreadOnly ? "outline" : "default"}
               size="sm"
@@ -134,14 +167,6 @@ function NotificationsPage() {
               onClick={() => setUnreadOnly(false)}
             >
               {t("notifications.all")}
-            </Button>
-            <Button
-              variant={unreadOnly ? "default" : "outline"}
-              size="sm"
-              className="min-h-9"
-              onClick={() => setUnreadOnly(true)}
-            >
-              {t("notifications.unreadOnly")}
             </Button>
             <Link
               to="/settings/notifications"
@@ -161,19 +186,47 @@ function NotificationsPage() {
         ) : (
           <ul className="space-y-3">
             {rows.map((n) => (
-              <li key={n.id} className="rounded-lg border border-border bg-card p-4 shadow-card">
+              <li
+                key={n.id}
+                className={`rounded-lg border p-4 shadow-card ${
+                  n.read_at ? "border-border bg-card" : "border-primary/40 bg-primary/5"
+                }`}
+              >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-foreground">
-                    {TYPE_LABEL_AR[n.type_code] ?? "تنبيه من ركيز"}
-                  </span>
+                  <span className="font-semibold text-foreground">{typeLabel(n.type_code)}</span>
                   {!n.read_at && <Badge variant="destructive">{t("notifications.unread")}</Badge>}
-                  {n.severity === "critical" && <Badge variant="destructive">{t("notifications.security")}</Badge>}
-                  <span className="ms-auto text-xs text-muted-foreground">
-                    {formatRiyadh(n.created_at)} · {t("notifications.riyadhTime")}
+                  {n.severity === "critical" && (
+                    <Badge variant="destructive">{t("notifications.security")}</Badge>
+                  )}
+                  <span className="ms-auto text-xs text-muted-foreground" dir="ltr">
+                    {formatRiyadh(n.created_at)}
                   </span>
                 </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{t("notifications.from")}:</span>
+                  <span className="font-medium text-foreground">{n.source.name}</span>
+                  {n.source.kind === "platform" ? (
+                    <Badge className="gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                      {t("notifications.officialSource")}
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      {n.source.kind === "entity" ? "كيان" : "فرد"}
+                    </Badge>
+                  )}
+                </div>
+
                 {notificationDetails(n.payload) ? (
                   <p className="mt-2 text-sm text-muted-foreground">{notificationDetails(n.payload)}</p>
+                ) : null}
+
+                {n.read_at ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("notifications.readAt")}{" "}
+                    <span dir="ltr">{formatRiyadh(n.read_at)}</span>
+                  </p>
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap gap-2">
