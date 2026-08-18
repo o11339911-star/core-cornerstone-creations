@@ -315,6 +315,18 @@ function AppointmentsPage() {
     statusFilter === "all" ? true : a.status === statusFilter,
   );
 
+  /** كرت الحجز الأخير: بياناته من القاعدة، فيبقى بعد إعادة تحميل الصفحة. */
+  const bookedRow = bookedId ? (list.data ?? []).find((a) => a.id === bookedId) : undefined;
+  const basicsOf = (a: NonNullable<typeof bookedRow>) => ({
+    title: a.title,
+    kind: a.kind,
+    status: a.status,
+    startsAt: a.starts_at,
+    createdAt: a.created_at,
+    requesterLabel: a.requester_label,
+    providerLabel: a.provider_label,
+  });
+
   return (
     <div className="space-y-6">
       <PageHero
@@ -327,21 +339,33 @@ function AppointmentsPage() {
         </p>
       </PageHero>
 
-      {created ? (
+      {bookedRow ? (
         <SectionCard icon={CalendarCheck2} title="تم حجز الموعد">
           <FieldGrid>
-            <Field label="الموعد" value={created.title} />
-            <Field label="مقدّم الخدمة" value={created.provider || "—"} />
-            <Field label="الموعد بتوقيت الرياض" value={<span dir="ltr">{fmt(created.startsAt)}</span>} />
-            <Field label="تاريخ الحجز" value={<span dir="ltr">{fmt(created.createdAt)}</span>} />
-            <Field label="الحالة" value="بانتظار الموافقة" />
+            <Field label="الموعد" value={bookedRow.title} />
+            <Field label="مقدّم الخدمة" value={bookedRow.provider_label ?? "—"} />
+            <Field
+              label="نوع الموعد"
+              value={KINDS.find((k) => k.value === bookedRow.kind)?.label ?? bookedRow.kind}
+            />
+            <Field
+              label="الموعد بتوقيت الرياض"
+              value={<span dir="ltr">{fmt(bookedRow.starts_at)}</span>}
+            />
+            <Field
+              label="تاريخ الحجز"
+              value={
+                bookedRow.created_at ? <span dir="ltr">{fmt(bookedRow.created_at)}</span> : "—"
+              }
+            />
+            <Field label="الحالة" value={STATUS_LABEL[bookedRow.status] ?? "بانتظار الموافقة"} />
           </FieldGrid>
-          <p className="mt-3 text-xs text-muted-foreground">
-            الرقم المرجعي الموحّد ورمز التحقق (QR) للمواعيد غير مفعّلين بعد لأن تعديل قاعدة البيانات
-            المطلوب لهما غير متاح حاليًا.
-          </p>
+          <div className="mt-4">
+            <AppointmentCard appointmentId={bookedRow.id} basics={basicsOf(bookedRow)} />
+          </div>
         </SectionCard>
       ) : null}
+
 
       {(myInvites.data ?? []).length > 0 ? (
         <SectionCard
