@@ -57,7 +57,21 @@ const TYPE_LABEL_AR: Record<string, string> = {
   "security.membership_suspended": "تعليق عضويتك",
   "document.shared": "مستند تمت مشاركته",
   "contract.updated": "تحديث على عقد",
+  "appointment.proposed": "طلب موعد جديد",
+  "appointment.confirmed": "تم تأكيد موعد",
+  "appointment.rescheduled": "إعادة جدولة موعد",
+  "appointment.cancelled": "إلغاء موعد",
+  "appointment.reminder": "تذكير بموعد",
+  "correspondence.received": "مراسلة واردة",
+  "network.request": "طلب تواصل جديد",
+  "deal.message": "رسالة على معاملة تعاقد",
+  "deal.updated": "تحديث على معاملة تعاقد",
 };
+
+/** لا نعرض مفاتيح تقنية إنجليزية أبدًا: أي نوع غير معروف يظهر بعبارة عربية عامة. */
+function typeLabel(typeCode: string): string {
+  return TYPE_LABEL_AR[typeCode] ?? "تنبيه من ركيز";
+}
 
 /** Arabic one-liner describing a stage notification: project, stage, actor. */
 function notificationDetails(
