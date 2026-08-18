@@ -269,8 +269,9 @@ begin
              ) as counterpart_name,
              l.share_email, l.share_phone, l.share_internal_call,
              case when l.status = 'accepted' and l.share_email then
-               (select pr.contact_email from public.profiles pr
-                 where pr.id = coalesce(nullif(l.target_user_id, auth.uid()), l.requester_user_id))
+               -- قراءة فقط من auth.users، بلا أي تعديل على المخطط المحجوز.
+               (select u.email::text from auth.users u
+                 where u.id = coalesce(nullif(l.target_user_id, auth.uid()), l.requester_user_id))
              end as email,
              case when l.status = 'accepted' and l.share_phone then
                (select pr.phone from public.profiles pr
