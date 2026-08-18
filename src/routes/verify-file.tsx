@@ -7,9 +7,8 @@ import { BadgeCheck, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ErrorState } from "@/components/rakeez";
+import { ErrorState, LatinDatePicker, hasNonLatinDigits } from "@/components/rakeez";
 import { verifyArchiveFile, type ArchiveVerifyResult } from "@/lib/archive-verify.functions";
-import { toAsciiDigits } from "@/lib/office-files";
 
 export const Route = createFileRoute("/verify-file")({
   component: VerifyFilePage,
@@ -106,7 +105,10 @@ function VerifyFilePage() {
                 }
                 const up = raw.toUpperCase();
                 // نقبل اللصق بالصيغة القديمة، وما عداها أرقام 0-9 فقط.
-                setErrors((p) => ({ ...p, reference: undefined }));
+                setErrors((p) => {
+                  const { reference: _drop, ...rest } = p;
+                  return rest;
+                });
                 setReference(
                   up.startsWith("RKZ") ? up.replace(/[^0-9A-Z-]/g, "") : up.replace(/[^0-9]/g, ""),
                 );
