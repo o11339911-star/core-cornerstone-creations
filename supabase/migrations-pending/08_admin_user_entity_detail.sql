@@ -8,7 +8,7 @@ returns json
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = public, private
 as $$
 declare
   _res json;
@@ -62,7 +62,7 @@ returns json
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = public, private
 as $$
 declare
   _res json;

@@ -69,13 +69,34 @@ export const breakglassSchema = z.object({
 export type BreakglassRequest = z.infer<typeof breakglassSchema>;
 
 /**
- * Resolve platform access from the two authoritative tables for the current
- * authenticated user only. This deliberately does not use profile metadata,
- * entity membership, or a tenant/account selection.
+ * 20A — مصدر حقيقة واحد لصلاحيات الإدارة.
+ *
+ * الأساس هو `public.platform_me()` (SECURITY DEFINER) الذي يجمع
+ * `platform_admins` و`platform_staff` داخل القاعدة. لا نعتمد على بيانات
+ * الملف الشخصي ولا عضوية الكيانات ولا اختيار الحساب. إذا تعذّر تنفيذ الدالة
+ * لسبب غير «الدالة غير موجودة» نفشل مغلقًا بدل خفض المدير لمستخدم عادي.
  */
 export const getPlatformMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformMe> => {
+    const rpc = await context.supabase.rpc("platform_me");
+
+    if (!rpc.error && rpc.data) {
+      const raw = rpc.data as Record<string, unknown>;
+      return platformMeSchema.parse({
+        is_admin: raw["is_admin"] === true,
+        is_staff: raw["is_staff"] === true,
+        role: (raw["role"] as string | null) ?? null,
+        availability: (raw["availability"] as string | null) ?? null,
+        max_concurrent: (raw["max_concurrent"] as number | null) ?? null,
+      });
+    }
+
+    // مسار احتياطي وحيد: القاعدة لا تحتوي الدالة بعد. أي خطأ آخر = فشل مغلق.
+    if (rpc.error && !isMissingFunction(rpc.error.message)) {
+      throw new Error("PLATFORM_ACCESS_CHECK_FAILED");
+    }
+
     const [adminResult, staffResult] = await Promise.all([
       context.supabase
         .from("platform_admins")
@@ -93,10 +114,6 @@ export const getPlatformMe = createServerFn({ method: "GET" })
     const staff = !staffResult.error ? staffResult.data : null;
     const isStaff = staff?.user_id === context.userId && staff.active === true;
 
-    // A positive result from either independent source is sufficient. If no
-    // source proves access, any read failure makes the result indeterminate and
-    // must fail closed rather than silently treating an administrator as a
-    // personal account.
     if (!isAdmin && !isStaff && (adminResult.error || staffResult.error)) {
       throw new Error("PLATFORM_ACCESS_CHECK_FAILED");
     }
@@ -109,6 +126,7 @@ export const getPlatformMe = createServerFn({ method: "GET" })
       max_concurrent: isStaff ? staff.max_concurrent : null,
     });
   });
+
 
 export const listQueueItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
