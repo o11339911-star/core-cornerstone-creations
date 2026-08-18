@@ -80,53 +80,17 @@ export const getPlatformMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformMe> => {
     const rpc = await context.supabase.rpc("platform_me");
+    if (rpc.error || !rpc.data) throw new Error("PLATFORM_ACCESS_CHECK_FAILED");
 
-    if (!rpc.error && rpc.data) {
-      const raw = rpc.data as Record<string, unknown>;
-      return platformMeSchema.parse({
-        is_admin: raw["is_admin"] === true,
-        is_staff: raw["is_staff"] === true,
-        role: (raw["role"] as string | null) ?? null,
-        availability: (raw["availability"] as string | null) ?? null,
-        max_concurrent: (raw["max_concurrent"] as number | null) ?? null,
-      });
-    }
-
-    // مسار احتياطي وحيد: القاعدة لا تحتوي الدالة بعد. أي خطأ آخر = فشل مغلق.
-    if (rpc.error && !isMissingFunction(rpc.error.message)) {
-      throw new Error("PLATFORM_ACCESS_CHECK_FAILED");
-    }
-
-    const [adminResult, staffResult] = await Promise.all([
-      context.supabase
-        .from("platform_admins")
-        .select("user_id")
-        .eq("user_id", context.userId)
-        .maybeSingle(),
-      context.supabase
-        .from("platform_staff")
-        .select("user_id, role, availability, max_concurrent, active")
-        .eq("user_id", context.userId)
-        .maybeSingle(),
-    ]);
-
-    const isAdmin = !adminResult.error && adminResult.data?.user_id === context.userId;
-    const staff = !staffResult.error ? staffResult.data : null;
-    const isStaff = staff?.user_id === context.userId && staff.active === true;
-
-    if (!isAdmin && !isStaff && (adminResult.error || staffResult.error)) {
-      throw new Error("PLATFORM_ACCESS_CHECK_FAILED");
-    }
-
+    const raw = rpc.data as Record<string, unknown>;
     return platformMeSchema.parse({
-      is_admin: isAdmin,
-      is_staff: isStaff,
-      role: isStaff ? staff.role : null,
-      availability: isStaff ? staff.availability : null,
-      max_concurrent: isStaff ? staff.max_concurrent : null,
+      is_admin: raw["is_admin"] === true,
+      is_staff: raw["is_staff"] === true,
+      role: (raw["role"] as string | null) ?? null,
+      availability: (raw["availability"] as string | null) ?? null,
+      max_concurrent: (raw["max_concurrent"] as number | null) ?? null,
     });
   });
-
 
 export const listQueueItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -383,16 +347,6 @@ type LooseRpc = (
   args?: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-function isMissingFunction(message: string): boolean {
-  const m = message.toLowerCase();
-  return (
-    m.includes("could not find the function") ||
-    m.includes("does not exist") ||
-    m.includes("schema cache") ||
-    m.includes("pgrst202")
-  );
-}
-
 export const adminMembershipSchema = z.object({
   membership_id: z.string(),
   entity_id: z.string(),
@@ -466,41 +420,13 @@ export const adminGetUser = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<AdminUserDetail> => {
     const rpc = context.supabase.rpc.bind(context.supabase) as unknown as LooseRpc;
     const detail = await rpc("admin_get_user", { _user_id: data.id });
-    if (!detail.error && detail.data) {
-      const raw = detail.data as Record<string, unknown>;
-      return adminUserDetailSchema.parse({ ...raw, source: "full" });
+    if (detail.error) {
+      throw new Error(
+        /forbidden/i.test(detail.error.message) ? "FORBIDDEN" : detail.error.message,
+      );
     }
-    if (detail.error && !isMissingFunction(detail.error.message)) {
-      throw new Error(detail.error.message.includes("FORBIDDEN") ? "FORBIDDEN" : detail.error.message);
-    }
-
-    // Fallback: the deployed directory RPC, filtered down to this user.
-    const { data: rows, error } = await context.supabase.rpc("admin_list_users", {
-      ...(data.hint ? { _q: data.hint } : {}),
-      _limit: 100,
-      _offset: 0,
-    });
-    if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
-    const match = adminUserRowSchema
-      .array()
-      .parse(rows ?? [])
-      .find((r) => r.user_id === data.id);
-    if (!match) throw new Error("NOT_FOUND");
-    return adminUserDetailSchema.parse({
-      user_id: match.user_id,
-      full_name: match.full_name,
-      email: match.email,
-      phone: match.phone,
-      created_at: match.created_at,
-      last_sign_in_at: match.last_sign_in_at,
-      email_confirmed: match.email_confirmed,
-      identity_status: match.identity_status,
-      identity_last4: match.identity_last4,
-      registration_complete: match.registration_complete,
-      active_memberships: match.active_memberships,
-      memberships: [],
-      source: "directory",
-    });
+    if (!detail.data) throw new Error("NOT_FOUND");
+    return adminUserDetailSchema.parse({ ...(detail.data as Record<string, unknown>), source: "full" });
   });
 
 export const adminGetEntity = createServerFn({ method: "GET" })
@@ -509,19 +435,14 @@ export const adminGetEntity = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<AdminEntityDetail> => {
     const rpc = context.supabase.rpc.bind(context.supabase) as unknown as LooseRpc;
     const detail = await rpc("admin_get_entity", { _entity_id: data.id });
-    if (!detail.error && detail.data) {
-      const raw = detail.data as Record<string, unknown>;
-      return adminEntityDetailSchema.parse({ ...raw, source: "full" });
+    if (detail.error) {
+      throw new Error(
+        /forbidden/i.test(detail.error.message) ? "FORBIDDEN" : detail.error.message,
+      );
     }
-    if (detail.error && !isMissingFunction(detail.error.message)) {
-      throw new Error(detail.error.message.includes("FORBIDDEN") ? "FORBIDDEN" : detail.error.message);
-    }
-
-    const { data: rows, error } = await context.supabase.rpc("admin_list_entities", {
-      ...(data.hint ? { _q: data.hint } : {}),
-      _limit: 100,
-      _offset: 0,
-    });
+    if (!detail.data) throw new Error("NOT_FOUND");
+    return adminEntityDetailSchema.parse({ ...(detail.data as Record<string, unknown>), source: "full" });
+  });
     if (error) throw new Error(error.message.includes("FORBIDDEN") ? "FORBIDDEN" : error.message);
     const match = adminEntityRowSchema
       .array()
