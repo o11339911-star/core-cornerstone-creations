@@ -60,7 +60,7 @@ export const adminListAuditLog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => inputSchema.parse(input ?? {}))
   .handler(async ({ data, context }): Promise<AuditResult> => {
-    const rpc = context.supabase.rpc as unknown as LooseRpc;
+    const rpc = context.supabase.rpc.bind(context.supabase) as unknown as LooseRpc;
     const res = await rpc("admin_list_audit_log", {
       _q: data.q ?? null,
       _object_type: data.objectType ?? null,
