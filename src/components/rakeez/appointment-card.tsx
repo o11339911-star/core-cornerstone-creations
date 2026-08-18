@@ -287,6 +287,35 @@ export function AppointmentCard({ appointmentId }: { appointmentId: string }) {
         ) : null}
       </div>
 
+      {c.kind !== "meeting" && (targets.data?.targets ?? []).length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs font-medium" htmlFor={`share-${appointmentId}`}>
+            مشاركة داخل ركيز
+          </label>
+          <select
+            id={`share-${appointmentId}`}
+            className="min-h-11 min-w-48 flex-1 rounded-lg border border-input bg-background px-3 text-sm"
+            value={shareTarget}
+            onChange={(e) => setShareTarget(e.target.value)}
+          >
+            <option value="">اختر جهة متصلة…</option>
+            {(targets.data?.targets ?? []).map((t) => (
+              <option key={t.user_id} value={t.user_id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!shareTarget || sendInternalShare.isPending}
+            onClick={() => sendInternalShare.mutate(shareTarget)}
+          >
+            <Send className="size-4" aria-hidden="true" /> مشاركة
+          </Button>
+        </div>
+      ) : null}
+
       {c.kind === "meeting" ? (
         <div className="space-y-3 rounded-lg border border-border/60 bg-secondary/30 p-3">
           <span className="text-sm font-medium">المشاركون في الاجتماع</span>
