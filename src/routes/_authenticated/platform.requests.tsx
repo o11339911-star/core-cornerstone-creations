@@ -109,24 +109,44 @@ function PlatformRequestsPage() {
           <SoftEmpty icon={ListChecks} message="لا توجد طلبات مطابقة لهذا الفلتر." />
         ) : (
           <ul className="space-y-2">
-            {rows.map((r) => (
-              <li
-                key={r.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">{r.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {SOURCE_AR[r.source_type] ?? r.source_type} ·{" "}
-                    <span dir="ltr" className="inline-block">
-                      {formatDateTime(r.created_at)}
-                    </span>
-                  </p>
-                </div>
-                <Badge variant="secondary">{STATUS_AR[r.status] ?? r.status}</Badge>
-              </li>
-            ))}
+            {rows.map((r) => {
+              const source = sourceLink(r);
+              return (
+                <li
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{r.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {SOURCE_AR[r.source_type] ?? r.source_type} ·{" "}
+                      <span dir="ltr" className="inline-block">
+                        {formatDateTime(r.created_at)}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      رقم الطلب الأصلي:{" "}
+                      <span dir="ltr" className="inline-block font-mono">
+                        {r.source_id}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {source ? (
+                      <Button asChild variant="outline" size="sm" className="min-h-11 gap-2">
+                        <Link to={source.to} params={source.params}>
+                          <ExternalLink className="size-4" aria-hidden="true" />
+                          فتح الأصل
+                        </Link>
+                      </Button>
+                    ) : null}
+                    <Badge variant="secondary">{STATUS_AR[r.status] ?? r.status}</Badge>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
+
         )}
         <p className="mt-4 text-xs text-muted-foreground">
           الإجراءات التشغيلية (الإسناد، الإنجاز، الوصول المؤقت) تتم من «طابور المراجعة».
