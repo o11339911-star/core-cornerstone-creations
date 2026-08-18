@@ -61,9 +61,9 @@ function VerifyAppointmentPage() {
   const verify = useServerFn(verifyAppointmentReference);
 
   const [reference, setReference] = useState(
-    toLatinDigits(search.ref ?? "").replace(/[^0-9]/g, ""),
+    toLatinDigits(search.ref).replace(/[^0-9]/g, ""),
   );
-  const [date, setDate] = useState(search.d ?? "");
+  const [date, setDate] = useState(search.d);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
