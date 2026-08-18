@@ -89,15 +89,156 @@ export const proposeAppointment = createServerFn({ method: "POST" })
     return id as string;
   });
 
+/** صف الموعد كما يراه صاحب العلاقة، مع الدور والإجراءات المسموحة — كلها من الخادم. */
+export const myAppointmentSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  kind: z.string(),
+  status: z.string(),
+  starts_at: z.string(),
+  previous_starts_at: z.string().nullable().default(null),
+  cancel_deadline_at: z.string().nullable().default(null),
+  confirmed_at: z.string().nullable().default(null),
+  my_side: z.enum(["requester", "provider"]),
+  pending_party: z.enum(["requester", "provider"]).nullable().default(null),
+  can_confirm: z.boolean(),
+  can_cancel: z.boolean(),
+  can_reschedule: z.boolean(),
+});
+export type MyAppointment = z.infer<typeof myAppointmentSchema>;
+
+type SupabaseLike = { rpc: Function; from: Function };
+
+/**
+ * جهة المستخدم من الموعد عند غياب دالة القاعدة بعد (قبل تطبيق الهجرة 04):
+ * تُحسب خادميًا من عضويات الكيانات ومُنشئ الموعد، لا من الواجهة.
+ */
+async function deriveRowsServerSide(
+  supabase: SupabaseLike,
+  userId: string,
+): Promise<MyAppointment[]> {
+  const { data: rows, error } = await supabase
+    .from("appointments")
+    .select(
+      "id, title, kind, status, starts_at, cancel_deadline_at, created_by, requester_entity_id, provider_entity_id",
+    )
+    .order("starts_at", { ascending: true })
+    .limit(200);
+  if (error) throw new Error(error.message);
+
+  const { data: memberships } = await supabase
+    .from("entity_memberships")
+    .select("entity_id")
+    .eq("user_id", userId)
+    .eq("status", "active");
+  const mine = new Set<string>(
+    ((memberships ?? []) as Array<{ entity_id: string }>).map((m) => m.entity_id),
+  );
+
+  const out: MyAppointment[] = [];
+  for (const r of (rows ?? []) as Array<Record<string, string | null>>) {
+    const isRequester =
+      r['created_by'] === userId ||
+      (!!r['requester_entity_id'] && mine.has(r['requester_entity_id'] as string));
+    const isProvider = !!r['provider_entity_id'] && mine.has(r['provider_entity_id'] as string);
+    // المُنشئ/الطالب يبقى في جهة الطلب حتى لو كان عضوًا في الطرفين.
+    const side = isRequester ? "requester" : isProvider ? "provider" : null;
+    if (!side) continue;
+    const status = String(r['status']);
+    const pending = status === "proposed" || status === "postponed";
+    out.push({
+      id: String(r['id']),
+      title: String(r['title'] ?? ""),
+      kind: String(r['kind'] ?? ""),
+      status,
+      starts_at: String(r['starts_at']),
+      previous_starts_at: null,
+      cancel_deadline_at: (r['cancel_deadline_at'] as string | null) ?? null,
+      confirmed_at: null,
+      my_side: side,
+      pending_party: pending ? "provider" : null,
+      can_confirm: pending && side === "provider" && r['created_by'] !== userId,
+      can_cancel: pending || status === "confirmed",
+      can_reschedule: pending || status === "confirmed",
+    });
+  }
+  return out;
+}
+
+/** مواعيدي مع الدور والإجراءات — مصدرها الخادم حصرًا. */
+export const listMyAppointments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MyAppointment[]> => {
+    const { data, error } = await context.supabase.rpc("list_my_appointments");
+    if (!error) return z.array(myAppointmentSchema).parse(data ?? []);
+    // الدالة غير موجودة بعد: اشتقاق خادمي مكافئ بلا كشف أي موعد لطرف ثالث.
+    if (/list_my_appointments|does not exist|PGRST202|42883/i.test(error.message))
+      return deriveRowsServerSide(context.supabase as unknown as SupabaseLike, context.userId);
+    throw new Error(error.message);
+  });
+
+/** حارس خادمي إضافي: يمنع الطالب/المُنشئ من التأكيد حتى قبل تطبيق الهجرة. */
+async function assertMayConfirm(supabase: SupabaseLike, userId: string, appointmentId: string) {
+  const rows = await deriveRowsServerSide(supabase, userId);
+  const row = rows.find((r) => r.id === appointmentId);
+  if (!row) throw new Error("FORBIDDEN");
+  if (!row.can_confirm) throw new Error("CONFIRM_BY_REQUESTER_FORBIDDEN");
+}
+
 export const confirmAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ appointmentId: uuid }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertMayConfirm(
+      context.supabase as unknown as SupabaseLike,
+      context.userId,
+      data.appointmentId,
+    );
     const { error } = await context.supabase.rpc("confirm_appointment", {
       _appointment_id: data.appointmentId,
     });
     if (error) throw new Error(error.message);
     return true;
+  });
+
+/**
+ * إعادة الجدولة: تحفظ الموعد السابق وتعيد الحالة إلى «بانتظار الموافقة» من الطرف الآخر.
+ * لا تُعد تأكيدًا، ولا تُبقي الموعد مؤكدًا.
+ */
+export const rescheduleAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        appointmentId: uuid,
+        newStartsAtLocal: z
+          .string()
+          .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$/)
+          .refine(latinOnly, { message: "NON_LATIN_DIGITS" }),
+        reason: z.string().max(500).nullable().default(null),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ startsAt: string }> => {
+    const rows = await deriveRowsServerSide(
+      context.supabase as unknown as SupabaseLike,
+      context.userId,
+    );
+    const row = rows.find((r) => r.id === data.appointmentId);
+    if (!row) throw new Error("FORBIDDEN");
+    if (!row.can_reschedule) throw new Error("APPOINTMENT_STATE_INVALID");
+
+    const startsAt = new Date(`${data.newStartsAtLocal}:00+03:00`).toISOString();
+    if (Number.isNaN(Date.parse(startsAt))) throw new Error("INVALID_DATETIME");
+    if (new Date(startsAt).getTime() <= Date.now()) throw new Error("APPOINTMENT_IN_THE_PAST");
+
+    const { error } = await context.supabase.rpc("reschedule_appointment", {
+      _appointment_id: data.appointmentId,
+      _new_starts_at: startsAt,
+      ...(data.reason ? { _reason: data.reason } : {}),
+    });
+    if (error) throw new Error(error.message);
+    return { startsAt };
   });
 
 export const cancelAppointment = createServerFn({ method: "POST" })
