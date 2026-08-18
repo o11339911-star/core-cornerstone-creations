@@ -40,7 +40,7 @@ create policy "official_emails_read_own"
   on public.official_emails for select to authenticated
   using (
     owner_user_id = auth.uid()
-    or (owner_entity_id is not null and public.is_entity_member(owner_entity_id))
+    or (owner_entity_id is not null and private.is_entity_member(auth.uid(), owner_entity_id))
   );
 
 -- رمز التحقق: تجزئة فقط، في مخطط private، بلا أي منح للعميل.
@@ -87,7 +87,7 @@ create policy "mailbox_connections_read_own"
   on public.mailbox_connections for select to authenticated
   using (
     owner_user_id = auth.uid()
-    or (owner_entity_id is not null and public.is_entity_member(owner_entity_id))
+    or (owner_entity_id is not null and private.is_entity_member(auth.uid(), owner_entity_id))
   );
 
 -- التوكنات: مشفّرة (AES-256-GCM) خارج نطاق Data API نهائيًا.
@@ -139,7 +139,7 @@ create policy "mailbox_messages_read_own"
   on public.mailbox_messages for select to authenticated
   using (
     owner_user_id = auth.uid()
-    or (owner_entity_id is not null and public.is_entity_member(owner_entity_id))
+    or (owner_entity_id is not null and private.is_entity_member(auth.uid(), owner_entity_id))
   );
 
 -- ── 4) تحديث updated_at ─────────────────────────────────────────────
