@@ -1204,6 +1204,11 @@ export const ar = {
     linkDenied: "غير موجود أو لا صلاحية",
     linkDeniedHint: "قد يكون المورد محذوفًا أو أن صلاحيتك عليه انتهت. لا نكشف أي تفاصيل إضافية.",
     riyadhTime: "بتوقيت الرياض",
+    previous: "السابقة",
+    from: "من",
+    officialSource: "مصدر رسمي من المنصة",
+    readAt: "قُرئ في",
+    unreadCount: "غير مقروء",
     digest: {
       immediate: "فوري",
       daily: "يومي",
